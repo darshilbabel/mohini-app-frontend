@@ -8,6 +8,7 @@
     "upload": "Add Photos",
     "storyText": "Here is your improvement story",
     "downloadStoryText": "Download Story",
+    "reDownloadStoryText": "Regenerate Story",
     "editStoryText": "Edit Story",
     "storyLoader": "Creating your story, this may take a moment. Please wait...",
     "downloadLoader": "Downloading please wait...",
@@ -36,12 +37,15 @@
     "fileSizeText": "File size cannot exceed 50MB",
     "completedStatusText": "Completed",
     "inProgressStatusText": "In Progress",
-    "EditorConfirm": "Create Story",
-    "uploadImagesStory": "Upload Images for your story",
+    "EditorConfirm": "Create story",
+    "uploadImagesStory": "Add media",
+    "editorHeading": "Last step! Review and edit your story and title.",
+    "addImage": "Add image",
     "UploadErrorMsg":"Opps, It seems you have already uploaded this file!",
     "removeImage": "Remove",
     "EditorFirstTab": "Story",
     "EditorSecondTab": "Gallery",
     "saveChanges": "Save Changes",
-    "chooseFile": "Choose File"
+    "chooseFile": "Choose File",
+    "editorPlaceholder": "Start writing here..."
 }

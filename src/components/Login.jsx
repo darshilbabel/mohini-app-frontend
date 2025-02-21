@@ -13,6 +13,7 @@ import { BiLoader } from "react-icons/bi";
 import "./custom-style.css"
 import "../index.css"
 import { languageList } from "../pages/ShikshalokamVoiceChat/enum";
+import i18n, { setLanguage } from '../i18n';
 
 const cookies = new Cookies();
 const login_api_url = `/api/login/`;
@@ -77,6 +78,7 @@ function Login({ type, variant }) {
     localStorage.removeItem('has_accepted_tnc');
     localStorage.removeItem('flow');
     localStorage.removeItem('statemachine_length');
+    localStorage.removeItem('llmError');
     
     cookies.remove("profileid", {
       path: "/",
@@ -121,6 +123,7 @@ function Login({ type, variant }) {
 
   const handleLanguageChange = (e) => {
     setUserLanguage(e.target.value);
+    setLanguage(e.target.value)
   };
 
   const handleStateChange = (e) => {
@@ -398,8 +401,7 @@ function Login({ type, variant }) {
                     selectValue = {userState?.value}
                     selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleStateChange}
-                    isRequired={true}
-                  />
+                    isRequired={stateLabelArray?.length > 0 ? true : false}                  />
                   <FormData layOut={2} labelName="District Name" id="districtNameID" selectID="districtNameID" selectName="districtName"
                     selectOptions={districtLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
