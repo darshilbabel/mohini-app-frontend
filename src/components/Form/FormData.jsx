@@ -29,7 +29,7 @@ function FormData({selectOptions, selectClassName, selectName, selectOnChange, s
                   multiple={multipleValue}
                   {...(isRequired && { required: true })}
                 >
-                    <option value="">{defaultText}</option>
+                    <option value="" disabled hidden>{defaultText}</option>
                     {(optionArr).map((option) => {
                         return (
                             <option key={option.value} value={option.value}>

@@ -185,6 +185,7 @@ const Logout = () => {
         localStorage.removeItem('isOldChatOpen');
         localStorage.removeItem('isNewChatOpen');
         localStorage.removeItem('model');
+        localStorage.removeItem('llmError');
       }
     }
     if (!!Object.keys(localUserData || {}).length) {

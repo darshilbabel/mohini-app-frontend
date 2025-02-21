@@ -8,7 +8,7 @@ import { useLocalStorage } from "react-use";
 import USER_ACTIONS from "./context/user/user-actions";
 import Shikshalokam from "./pages/shikshalokam";
 import ShikshalokamVoiceBasedChat from "./pages/ShikshalokamVoiceChat/voice-chat";
-import './i18n';
+
 
 function App() {
   const elements = useRoutes([

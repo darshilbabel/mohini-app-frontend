@@ -1071,3 +1071,9 @@
 .div72{
     background-color: hsl(0deg 0% 95.42%);
 }
+
+.error-para {
+    display: block;
+    padding: 0.5rem 3rem;
+    color: #cc1c1c;
+}

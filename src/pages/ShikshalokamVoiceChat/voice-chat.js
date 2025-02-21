@@ -33,7 +33,7 @@ import { RxCross2 } from "react-icons/rx";
 import EditorJS from "@editorjs/editorjs";
 import SimpleImage from "@editorjs/simple-image";
 import Header from "@editorjs/header";
-
+import Paragraph from '@editorjs/paragraph';
 import PdfDownloader from "../story/upload-content/pdfDownloader";
 import { FaMicrophone } from "react-icons/fa";
 import "../../style.css"
@@ -47,6 +47,8 @@ import ROUTES from "../../url";
 import PrivacyPolicyPage from "../../components/TnC/privacyPolicy";
 import { useTranslation } from "react-i18next";
 import UploadImages from "./upload-images";
+import { TbReload } from "react-icons/tb";
+import { IoMdArrowRoundBack } from "react-icons/io";
 
 
 const cookies = new Cookies();
@@ -148,10 +150,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [showFileInput, setShowFileInput] = useState(null);
   const [shouldSendMessage, ] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(storyData? true: false);
   const [acceptedTnc, setAcceptedTnC] = useState(localStorage.getItem('has_accepted_tnc')|| 'ONGOING');
   const [stateMachineLength, setStateMachineLength] = useState(localStorage.getItem('statemachine_length') || 0);
-  const [tabValue, setTabValue] = useState(0);
 
 
   const { t } = useTranslation();
@@ -171,6 +172,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     response: "",
     status: 200,
   });
+  const [llmError, setLlmError] = useState(localStorage.getItem('llmError') || "");
   const [isUploading, ] = useState(false);
   const [files, setFiles] = useState([]);
   const [fileErrorText, setFileErrorText] = useState('');
@@ -219,6 +221,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
 
   }, [projectId, profileToUse])
+
+  useEffect(() => {
+    if (isLoading || isEndStoryLoading) {
+      document.body.style.overflowY = "hidden";
+    } else {
+      document.body.style.overflowY = "auto";
+    }
+
+    return () => {
+      document.body.style.overflowY = "auto";
+    };
+  }, [isLoading, isEndStoryLoading]);
 
   useEffect(() => {
     // Function to create user profile
@@ -336,57 +350,65 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   },[fileErrorText])
 
-  useEffect(() => {
-    async function callEndStory() {
-      if (isStreamingComplete && strandStep >= stateMachineLength) {
-        try {
-          setIsLoading(true);
-          setIsEndStoryLoading(true);
-  
-          const sessionid = JSON.parse(localStorage.getItem('sessionid'));
-          const end_story_api_url = `/api/end-story/`;
-          
-          let sourceLanguage = JSON.parse(localStorage.getItem('preferred_language'))?.value || languageToUse;
-  
-          const endStoryResponse = await axiosInstance({
-            url: end_story_api_url,
-            data: {
-              session: sessionid,
-              profile_id: profileToUse,
-              stage: 'COMPLETED',
-              access_token: access_token,
-              flow: localStorage.getItem('flow'),
-              language: sourceLanguage
-            },
-            method: "POST",
-          });
-          
-  
-          if (endStoryResponse?.data?.id) {
-            setFiles([]);
-            setShowFileInput(true);
-            window.location.reload();
-          }
-        } catch (error) {
-          console.error('Error completing the story:', error);
-          //navigate(ROUTES.EXIT_ROUTE)
-          if (projectId){
-            clearFromStorage()
-            navigate(-1)
-            // window.location.href=ROUTES.EXIT_ROUTE;
-          }
+  async function callEndStory() {
+    let endStoryResponse;
+    if (isStreamingComplete && strandStep >= stateMachineLength) {
+      try {
+        setIsLoading(true);
+        setIsEndStoryLoading(true);
 
-        } finally {
-          setIsEndStoryLoading(false);
-          setIsLoading(false);
+        const sessionid = JSON.parse(localStorage.getItem('sessionid'));
+        const end_story_api_url = `/api/end-story/`;
+        
+        let sourceLanguage = JSON.parse(localStorage.getItem('preferred_language'))?.value || languageToUse;
+
+        endStoryResponse = await axiosInstance({
+          url: end_story_api_url,
+          data: {
+            session: sessionid,
+            profile_id: profileToUse,
+            stage: 'COMPLETED',
+            access_token: access_token,
+            flow: localStorage.getItem('flow'),
+            language: sourceLanguage
+          },
+          method: "POST",
+        });
+        console.log("endStoryResponse: ", endStoryResponse)
+
+        if (endStoryResponse?.data?.id) {
+          setFiles([]);
+          setShowFileInput(true);
+          localStorage.removeItem('llmError');
+          window.location.reload();
+        } else {
+          localStorage.setItem('llmError', endStoryResponse?.data?.error_message)
+          setLlmError(endStoryResponse?.data?.error_message)
         }
+      } catch (error) {
+        console.error('Error completing the story:', error);
+        //navigate(ROUTES.EXIT_ROUTE)
+        // if (projectId){
+        //   clearFromStorage()
+        //   navigate(-1)
+        //   // window.location.href=ROUTES.EXIT_ROUTE;
+        // }
+        localStorage.setItem('llmError', error?.response?.data?.error_message)
+        setLlmError(error?.response?.data?.error_message)
+
+      } finally {
+        setIsEndStoryLoading(false);
+        setIsLoading(false);
       }
     }
-  
+  }
+
+  useEffect(() => {
     if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength) {
       callEndStory();
     }
   }, [isStreamingComplete, strandStep, access_token, stateMachineLength, languageToUse]);
+
     useEffect(()=>{
     let profileid = cookies.get('profileid') || localStorage.getItem('profileid')
     if(!profileid && !access_token) window.location.href=ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN;
@@ -402,18 +424,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if(shouldShowChatHistoryFeature) {
       const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'));
       if(isOldChatOpen === true){
-        setShouldFetchIntro(false);
+        setShouldFetchIntro(true);
         setShowHomepage(false);
         // removeLocalChatHistory();
-        MakeSocketConnection();
+        // MakeSocketConnection();
       } else if(isNewChatOpen === true){
         const showStartPage = JSON.parse(localStorage.getItem('showHomepage'));
         setShowHomepage(showStartPage !== null ? showStartPage : true);
-        MakeSocketConnection();
+        // MakeSocketConnection();
       }
     } else{
       removeLocalChatHistory();
-      MakeSocketConnection();
+      // MakeSocketConnection();
     }
   }, [isNewChatOpen]);
 
@@ -427,7 +449,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
 
   useEffect(() => {
-    if (!!editorCopyChanges && (isModalOpen || (tabValue===0 && projectId)) && storyData) {
+    if (!!editorCopyChanges && isModalOpen && storyData) {
       let parsed_content = [];
       try {
         parsed_content = editorCopyChanges.map(item => ({
@@ -448,7 +470,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
          * Id of Element that should contain the Editor
          */
         holder: "editorjs",
-
+        placeholder: t('editorPlaceholder'),
         /**
          * Available Tools list.
          * Pass Tool's class or Settings object for each Tool you want to use
@@ -459,13 +481,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             class: Header,
             shortcut: "CMD+SHIFT+H",
           },
+          paragraph: {
+            class: Paragraph,
+            inlineToolbar: true,
+          },
         },
         onReady: (ready) => {
           
           setEditor(_editor);
         },
+        defaultBlock: "paragraph",
         data: {
-          blocks: parsed_content,
+          blocks: parsed_content.length > 0 ? parsed_content : [{ type: "paragraph", data: { text: "" } }],
         },
         onChange: async (api, event) => {
           
@@ -501,50 +528,50 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return () => {
       if (!!Object.keys(editor || {})?.length) editor.destroy();
     };
-  }, [editorCopyChanges, isModalOpen, storyData, tabValue]);
+  }, [editorCopyChanges, isModalOpen, storyData]);
 
-  const defaultEditorClick = () => {
+  const defaultEditorClick = (title, name, location) => {
     return (
       <>
-        <div
-          className="fixed inset-0 bg-white flex items-center justify-center p-4"
-        >
+        <div className="fixed inset-0 bg-white flex items-center justify-center p-4 max-sm:px-0 z-[100]">
+          
           <div
-            className="bg-gray-100 rounded-lg shadow-lg w-full h-full max-w-2xl p-6 relative"
+            className="bg-gray-100 rounded-lg shadow-lg w-full h-full max-w-2xl p-[60px_0_0] relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-center space-x-4 mb-4">
+            {(!projectId)&&<div className="absolute top-4 left-4 z-10">
               <button
-                className={`px-4 py-2 rounded-md ${tabValue === 0 ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'}`}
-                onClick={() => setTabValue(0)}
+                onClick={closeModal}
+                className="text-2xl text-gray-700 hover:text-black flex items-center"
               >
-                {t('EditorFirstTab')}
+                <IoMdArrowRoundBack />
               </button>
-              <button
-                className={`px-4 py-2 rounded-md ${tabValue === 1 ? 'bg-black text-white' : 'bg-gray-200 text-gray-700'}`}
-                onClick={() => setTabValue(1)}
-              >
-                {t('EditorSecondTab')}
-              </button>
-            </div>
-            
-            {tabValue === 0 && (
-              <div className="h-[78%] overflow-y-auto border p-4 rounded-md bg-white">
-                <div id="editorjs" ref={editorContainerRef} className="editor-main-div">
+            </div>}
+            <div className="overflow-y-auto h-full w-full">
+              <div className="px-[73px] max-sm:px-[23px]">
+
+                <h2 className="text-lg font-semibold text-black-700">
+                  {t('editorHeading')}
+                </h2>
+
+                <div className="mt-4">
+                  <h3 className="text-md font-semibold">{title}</h3>
+                  <p className="text-gray-600 text-sm">
+                    by {name}, {location}
+                  </p>
+                </div>
+
+                <div className="mt-4 bg-gray-100 rounded-md h-60 overflow-y-auto text-sm">
+                  <div id="editorjs" ref={editorContainerRef} className=""></div>
+                </div>
+                <div className="mt-4">
+                  <UploadImages 
+                    storyData={storyData} access_token={access_token} projectId={projectId} 
+                    files={files} setFiles={setFiles} setIsLoading={setIsLoading}
+                  />
                 </div>
               </div>
-            )}
-            {(tabValue === 1) && (
-              <div className="h-[85%] overflow-y-auto border p-4 rounded-md bg-white">
-                <UploadImages 
-                  storyData={storyData} access_token={access_token} projectId={projectId} 
-                  files={files} setFiles={setFiles} 
-                />
-              </div>
-            )}
-            
-            {tabValue === 0 && (
-              <div className="mt-4 text-center">
+              <div className="w-full flex justify-center py-4 px-[40px] bg-gray-100">
                 <button
                   onClick={async () => {
                     try {
@@ -564,23 +591,26 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       if(projectId){
                         await updateReflectionStatus();
                       } else{
-                        window.location.reload()
+                        window.location.reload();
                       }
                     } catch (error) {
                       console.error("Saving failed: ", error);
                       if (projectId){
-                        clearFromStorage()
-                        navigate(-1)
+                        clearFromStorage();
+                        navigate(-1);
                       }
                     }
                   }}
                   disabled={isLoading || isSaving}
-                  className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-600 disabled:opacity-50"
+                  className="w-full bg-[#212121] text-white py-2 rounded-md hover:bg-black disabled:opacity-50"
                 >
                   {t('EditorConfirm')}
                 </button>
               </div>
-            )}
+            </div>
+              {/* <button className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                Create story
+              </button> */}
           </div>
         </div>
       </>
@@ -734,155 +764,199 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     localStorage.setItem('isChatVisible', JSON.stringify(false));
     localStorage.setItem('chatbot_clickedOn?', '');
     localStorage.setItem('showHomepage', true);
-    localStorage.removeItem('has_accepted_tnc')
+    localStorage.removeItem('has_accepted_tnc');
+    localStorage.removeItem('llmError');
     window.location.reload();
   }
   
+  
   // socket connection
-  //wss://demo.shi /shikshalokam_new
-  function MakeSocketConnection(){
-    let socket;
+  const MakeSocketConnection = useCallback((currentTextMessage, currentSocket) => {
+    return new Promise((resolve, reject) => {
+      try{
+        console.log("start chatSocket: ", chatSocket)
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+          console.log("Reusing existing WebSocket connection");
+          return resolve(chatSocket);
+        } else if(currentSocket && currentSocket.readyState === WebSocket.OPEN) {
+          console.log("Reusing existing WebSocket passed as connection");
+          return resolve(currentSocket);
+        }
+        console.log("Creating new WebSocket connection...");
+        let socket;
     
-    let url;
-
-    if (!!code) {
-      url = `${wss_protocol}${window.location.host}/ws/chat/company/`;
-    } else {
-        const base_url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}`
-        if (selectedType === 'normal') {
-        if (localStorage.getItem('flow') && localStorage.getItem('flow') === 'login') {
-          url = `${base_url+bot_websocket.normal}`;
+        let url;
+    
+        if (!!code) {
+          url = `${wss_protocol}${window.location.host}/ws/chat/company/`;
         } else {
-          url = `${base_url+bot_websocket.reflection}`;
+            const base_url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}`
+            if (selectedType === 'normal') {
+            if (localStorage.getItem('flow') && localStorage.getItem('flow') === 'login') {
+              url = `${base_url+bot_websocket.normal}`;
+            } else {
+              url = `${base_url+bot_websocket.reflection}`;
+            }
+          } else {
+            url = `${base_url+bot_websocket.oneshot}`;
+          }
         }
-      } else {
-        url = `${base_url+bot_websocket.oneshot}`;
+        socket = new WebSocket(url);
+        console.log("socket: ", socket)
+
+        socket.onmessage = (e) => {
+          console.log("Ws Connection Message");
+          const data = JSON.parse(e.data);
+          const message = data["text"];
+        
+          if (message.source === "bot") {
+            setIsStreamingComplete(false);
+
+            setSentences((prevSentences) => {
+              const updatedSentences = [...prevSentences];
+        
+              if (
+                updatedSentences.length > 0 &&
+                updatedSentences[updatedSentences.length - 1]?.source === "bot"
+              ) {
+                // Append to the last bot message
+                if (message?.msg) {
+                  updatedSentences[updatedSentences.length - 1].message += message?.msg;
+                }
+              } else {
+                // Create a new bot message
+                updatedSentences.push({
+                  message: message?.msg || "",
+                  source: "bot",
+                  isNarrated: false,
+                  id: new Date().valueOf(),
+                });
+                lastBotMessageIndex.current = updatedSentences.length - 1;
+              }
+              return updatedSentences;
+            });
+        
+            setChatHistory((prevChatHistory) => {
+              const updatedChatHistory = [...prevChatHistory];
+        
+              if (
+                updatedChatHistory.length > 0 &&
+                updatedChatHistory[updatedChatHistory.length - 1]?.source === "bot"
+              ) {
+                // Append to the last bot message in chat history
+                if (message?.msg) {
+                  updatedChatHistory[updatedChatHistory.length - 1].msg += message?.msg;
+                }
+              } else {
+                // Create a new bot message in chat history
+                updatedChatHistory.push({
+                  msg: message?.msg || "",
+                  source: "bot",
+                  updated_at: new Date().valueOf(),
+                });
+              }
+              return updatedChatHistory;
+            });
+        
+            if (isShikshalokamPublicType) {
+              handleScrollToView();
+            }
+          } else{
+            setIsStreamingComplete(false)
+          }
+        
+          if (message.finish_reason === "stop" && message.source === "bot") {
+            setStrandStep(message?.step);
+            handleScrollToView();
+            setTalking(0);
+            setIsStreamingComplete(true);
+
+          }
+        };
+
+        socket.onopen = () => {
+          console.log("Ws Connection open");
+          console.log("socket: ", socket)
+          setChatSocket(socket);
+          if (isShikshalokamPublicType){
+            let profileid = localStorage.getItem('profileid')
+            let sessionid = JSON.parse(localStorage.getItem('sessionid'))
+            let route = languageToUse
+            if(profileid && sessionid){
+              socket.send(JSON.stringify({
+                type: 'authenticate',
+                sessionid: sessionid,
+                profileid: profileid,
+                projectid: searchParams.get("projectId"),
+                access_token: access_token,
+                route: route,
+              }));
+            }
+          }
+          resolve(socket);
+        };
+
+        socket.onclose = (event) => {
+          console.log("Socket connection closed", event);
+        };
+        
+        socket.onerror = (error) => {
+          console.error("WebSocket error:", error);
+          socket.close();
+          retryConnection(currentTextMessage);
+          reject(error);
+        };
+
+        return () => {
+          if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+            console.log("Socket connection closed")
+            chatSocket.close();
+          }
+        };
+      } catch (error) {
+        console.error("Error establishing WebSocket connection:", error);
+        reject(error);
       }
+    });
+  }, [chatSocket]);
+
+  let reconnectAttempts = 0;
+  const maxReconnectAttempts = process.env.REACT_APP_WEBSOCKET_RETRY_NUM || 3;
+
+  function retryConnection(currentTextMessage="") {
+    if (reconnectAttempts >= maxReconnectAttempts) {
+      console.error("Max reconnection attempts reached. Stopping.");
+      showConfirmationPopup();
+      return;
     }
-    
-    socket = new WebSocket(url);
+    reconnectAttempts++; 
+    console.log(`Reconnection attempt #${reconnectAttempts}...`);
 
-    console.log("socket: ", socket)
-    socket.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      const message = data["text"];
-    
-      if (message.source === "bot") {
-        setIsStreamingComplete(false);
-
-        setSentences((prevSentences) => {
-          const updatedSentences = [...prevSentences];
-    
-          if (
-            updatedSentences.length > 0 &&
-            updatedSentences[updatedSentences.length - 1]?.source === "bot"
-          ) {
-            // Append to the last bot message
-            if (message?.msg) {
-              updatedSentences[updatedSentences.length - 1].message += message?.msg;
-            }
-          } else {
-            // Create a new bot message
-            updatedSentences.push({
-              message: message?.msg || "",
-              source: "bot",
-              isNarrated: false,
-              id: new Date().valueOf(),
-            });
-            lastBotMessageIndex.current = updatedSentences.length - 1;
-          }
-          return updatedSentences;
-        });
-    
-        // Update chat history in the same manner
-        
-        setChatHistory((prevChatHistory) => {
-          const updatedChatHistory = [...prevChatHistory];
-    
-          if (
-            updatedChatHistory.length > 0 &&
-            updatedChatHistory[updatedChatHistory.length - 1]?.source === "bot"
-          ) {
-            
-            // Append to the last bot message in chat history
-            if (message?.msg) {
-              updatedChatHistory[updatedChatHistory.length - 1].msg += message?.msg;
-            }
-          } else {
-            // Create a new bot message in chat history
-            
-            
-            updatedChatHistory.push({
-              msg: message?.msg || "",
-              source: "bot",
-              updated_at: new Date().valueOf(),
-            });
-          }
-          return updatedChatHistory;
-        });
-    
-        if (isShikshalokamPublicType) {
-          handleScrollToView();
+    console.log("Attempting WebSocket Reconnection...");
+    setTimeout(() => {
+      MakeSocketConnection(currentTextMessage)
+      .then((newSocket) => {
+        console.log("Reconnected to WebSocket", newSocket);
+        reconnectAttempts = 0;
+        console.log("currentTextMessage: ", currentTextMessage)
+        if (currentTextMessage && currentTextMessage.trim() !== "") {
+          console.log("Resubmitting the form...");
+          // document.querySelector("form.div39").requestSubmit();
+          handleSendMessage(null, newSocket)
         }
-      } else{
-        setIsStreamingComplete(false)
-      }
-    
-      if (message.finish_reason === "stop" && message.source === "bot") {
-        setStrandStep(message?.step);
-        handleScrollToView();
-        setTalking(0);
-        setIsStreamingComplete(true);
-
-      }
-    };
-
-    socket.onopen = () => {
-      console.log('websocket open')
-      setChatSocket(socket);
-      let sessionid = JSON.parse(localStorage.getItem('sessionid'))
-      let route = languageToUse
-      let tempProfId = localStorage.getItem('profileid')
-      
-      if(tempProfId && sessionid){
-        socket.send(JSON.stringify({
-          type: 'authenticate',
-          sessionid: sessionid,
-          profileid: tempProfId,
-          projectid: searchParams.get("projectId"),
-          access_token: access_token,
-          route: route,
-        }));
-      }
-    };
-
-    socket.onclose = (event) => {
-      console.log("closed ", strandStep, isResetCalled)
-      console.log("event ", event)
-      if(!isResetCalled){
-        showConfirmationPopup()
-      }
-    };
-
-    socket.onerror = (event) => {
-      console.log("error ", event)
-    };
-
-    return () => {
-      if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-        
-        chatSocket.close();
-      }
-    };
+      })
+      .catch((error) => {
+        console.error("Reconnection Failed:", error);
+      });
+    }, 1000);
   }
+
 
   function showConfirmationPopup() {
     <div className="div-popup">
     {Swal.fire({
       title: t('popUpChanges'),
-      // icon: 'question',
       showCancelButton: true,
-      // confirmButtonText: getComfirmButtonTranslation(languageToUse),
       confirmButtonText: t('confirmChanges'),
       cancelButtonText: t('denyButton'),
     }).then((result) => {
@@ -892,8 +966,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         if (projectId){
           clearFromStorage()
           navigate(-1)
-          // window.location.href=ROUTES.EXIT_ROUTE;
-
         } else {
           ResetChat();
         }
@@ -947,6 +1019,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         
         const textBlocks = extractTextBlocks(formatted_content);
         setEditorCopyChanges(textBlocks);
+        setIsModalOpen(true);
       }
     })();
 
@@ -970,7 +1043,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           
           setFiles(tempMediaArr);
         },
-        loader: setIsLoading,
+        // loader: setIsLoading,
         data: {
           story: story_id,
         },
@@ -1106,14 +1179,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         console.error({ error });
       } finally {
         setHasFetchIntro(true);
+        setShouldFetchIntro(false);
       }
     };
-    
+
     
     if (chatHistory?.length === 0 && shouldFetchIntro && profileToUse) {
 
       fetchBotInfo().then(() => {
-        setShouldFetchIntro(false);
         setIsIntroLoading(false);
       });
     }
@@ -1181,15 +1254,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   useEffect(()=>{
     if(!isModalOpen && profileToUse){
+      setIsLoading(true);
       const titleTime = setTimeout(()=>{
         if(shouldShowChatHistoryFeature) showChatTitle();
       }, 4000);
   
       return ()=>{
+        setIsLoading(false);
         clearTimeout(titleTime);
       }
     }
-  },[profileToUse, isModalOpen])
+  },[profileToUse])
 
 
   useEffect(() => {
@@ -1277,6 +1352,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         }
 
     } catch (error) {
+        setIsLoading(false);
         console.error('Error downloading file:', error);
     } finally {
         setIsPdfDownloading(false);
@@ -1378,7 +1454,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     } catch (error) {
         console.error('Error fetching company chat data:', error);
     } finally {
-        setIsLoading(false);
+        // setIsLoading(false);
         setIsFetchingOldIntro(false);
     }
   }
@@ -1516,41 +1592,45 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }
 
   const handleSendMessage = useCallback(
-    (event) => {
+    async (event, currentSocket) => {
+      console.log("Send event: ", event);
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      setLlmError('');
+      localStorage.removeItem('llmError');
+  
       try {
-        
+        console.log("message: ", textMessage);
+        const socket = await MakeSocketConnection(textMessage, currentSocket);
+  
+        console.log("Send socket: ", socket);
         setIsChatVisible(true);
         setShowHomepage(false);
         setNotMute(true);
-
         if (audioRef.current) {
           audioRef.current.pause();
           audioRef.current.currentTime = 0;
         }
-
-        if (!!event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-
-        if (!textMessage.trim()) return;  // Only send if there's a typed message
-        
-        if (textMessage.trim()) {
-          handleMessagesForUser(textMessage);  // Send the typed message
-          chatSocket.send(
-            JSON.stringify({
-              text: textMessage,  // Only send the textMessage
-              context: "",
-            })
-          );
-          handleScrollToView();
-          setTextMessage("");  // Clear textMessage after sending
-        }
+  
+        if (!textMessage.trim()) return;
+  
+        handleMessagesForUser(textMessage);
+        socket.send(
+          JSON.stringify({
+            text: textMessage,
+            context: "",
+          })
+        );
+  
+        handleScrollToView();
+        setTextMessage("");
       } catch (error) {
-        console.error({ error });
+        console.error("WebSocket connection failed:", error);
       }
     },
-    [chatSocket, textMessage]
+    [textMessage, MakeSocketConnection]
   );
 
   const handleOnInputText = (e) => {
@@ -1609,10 +1689,22 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   async function getAI4BharatAudio(text, sourceLanguage = 'en', gender = 'female') {
     try {
-      const response = await axiosInstance.post('/api/ai4bharat/', {
+      let storedRoute = '/'
+      if (selectedType === 'oneshot'){
+        storedRoute = '/oneshot_bot';
+      } else {
+        if(localStorage.getItem('flow') && localStorage.getItem('flow') === 'login'){
+          storedRoute = '/';
+        } else {
+          storedRoute = '/reflection';
+        }
+      }
+
+      const response = await axiosInstance.post('api/text_to_speech/', {
         text: text,
         source_language: sourceLanguage,
         gender: gender,
+        route: storedRoute
       });
       
       // Return the audio content
@@ -1702,18 +1794,29 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   async function ai4BharatASR(base64, gender = 'female'){
     
     let sourceLanguage = languageToUse;
+    let storedRoute = '/'
+    if (selectedType === 'oneshot'){
+      storedRoute = '/oneshot_bot';
+    } else {
+      if(localStorage.getItem('flow') && localStorage.getItem('flow') === 'login'){
+        storedRoute = '/';
+      } else {
+        storedRoute = '/reflection';
+      }
+    }
     try {
-      const response = await axiosInstance.post('/api/ai4bharat/asr', {
+      const response = await axiosInstance.post('api/asr/', {
         base_64: base64,
         source_language: sourceLanguage,
         gender: gender,
+        route: storedRoute
       });
       
       // Return the audio content
       return response.data.transcript;
     } catch (error) {
       console.error('Error fetching AI4Bharat audio:', error);
-      throw error;
+      return '';
     } 
   }
 
@@ -2106,354 +2209,358 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }
         </div>
       </div> }
-      {(storyData && projectId)? 
-        defaultEditorClick()
-        :
-        <div className={`${projectId? 'div72' : isOpen? 'div71': ''}`}>
-        {(projectId)&& 
-          <>
-              <button
-                onClick={(e) => {
-                  if (projectId){
-                    clearFromStorage()
-                    navigate(-1)
-                    // window.location.href=ROUTES.EXIT_ROUTE;
-
-                  }
-                }}
-                className="button-13"
-              >
-                <div
-                >
-                  {t('doLater')}
-                </div>
-              </button>
-            </>
-          }
-          <HiddenRecorder />
-          <div
-            className={`${projectId? 'div33-a': 'div33'} div9`}
-          >
-            {(!showHomepage)&&
-              <ul className="div34">
-                {chatHistory?.map((chat, i) => (
-                  <li
-                  key={i}
-                  className={`div34 div35 ${
-                    chat?.source === "user" ? "label1" : "label1"
-                  }`}  // Align messages based on the source
-                >
-          
-                  <div className={`div36 ${chat?.source === "user"&& 'div37'}`}>
-                    <ChatMessage
-                      botNameToDisplay={botNameToDisplay}
-                      userType={chat?.source}
-                      message={`${chat?.msg}`}
-                      name={"You"}
-                      recording={chat?.recording}
-                      hasAppendix={chat?.recording}
-                      appendixURL={chat?.appendixURL}
-                      isTalking={
-                        (chat.source === "bot") && !isStreamingComplete && (i === chatHistory.length - 1)
-                      }
-                      handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                      handleOnSpeaking={() =>{
-                        handleOnSpeaking(chat?.msg, chat?.updated_at)}
-                      }
-                      isAnyPlaying={!!hasOverRideId || isTalking}
-                      isPlaying={hasOverRideId === chat?.updated_at}
-                      isStreamingComplete={isStreamingComplete}
-                      setNotMute={setNotMute}
-                      chatId={chat?.updated_at}
-                    />
-                    </div>
-                    {!hasStartedListening && chatHistory[chatHistory?.length - 1].source === "user" &&
-                    i === chatHistory?.length - 1 ? (
-                      <div className="div57">
-                        <div className="div58">
-                          <div>{t('replyMsg')}</div>
-                        </div>
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                  </li>
-                ))}
-              </ul>
-            }
-            {(showHomepage)&&
-              <>
-                {(localStorage.getItem('flow'))&&<>
-                  <div className="div10" >
-                    <h3 className="h3-1">
-                      {t('homepageHeading')}
-                      <br/>
-                      {t('homepageHeading1')}
-                    </h3>
-                  </div>
-                  <ul className="div11" >
-                    <li>{t('homepageList')}</li>
-                    <li>{t('homepageList1')}</li>
-                    <li>{t('homepageList2')}</li>
-                  </ul>
-                </>}
-
-                {chatHistory?.length > 0 && (
-                  <div className="div26">
-                    <div className="div36 div12" >
-                      <ChatMessage
-                        botNameToDisplay={botNameToDisplay}
-                        userType={chatHistory[0]?.source}
-                        message={`${chatHistory[0]?.msg}`}
-                        name={"You"}
-                        recording={chatHistory[0]?.recording}
-                        hasAppendix={chatHistory[0]?.recording}
-                        appendixURL={chatHistory[0]?.appendixURL}
-                        isTalking={false}
-                        handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                        handleOnSpeaking={() =>{
-                          handleOnSpeaking(chatHistory[0]?.msg, chatHistory[0]?.updated_at)}
-                        }
-                        isAnyPlaying={!!hasOverRideId || isTalking}
-                        isPlaying={hasOverRideId === chatHistory[0]?.updated_at}
-                        isStreamingComplete={isStreamingComplete}
-                        setNotMute={setNotMute}
-                        chatId={chatHistory[0]?.updated_at}
-                      />
-                    </div>
-                  </div>
-                )}
-              </>
-            }
-            {(isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading && (
-              !isLoading || isPdfDownloading ) && !projectId && storyData?.id !== '') && (
-              <>
-                <div className="div13" >
-                  <ChatMessage 
-                    botNameToDisplay={botNameToDisplay}
-                    userType="bot"
-                    message={t('evidence')}
-                    // message="क्या आप परियोजना में साक्ष्य जोड़ना चाहेंगे?"
-                    isTalking={false}
-                    handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                    handleOnSpeaking={(message, updatedAt, staticMessage) =>{
-                      const message_to_use = t('evidence')
-                      handleOnSpeaking(message_to_use, "upload-img-id",
-                        {msg: message_to_use, updated_at: "upload-img-id", source:"bot"}
-                      )}
-                    }
-                    isAnyPlaying={!!hasOverRideId || isTalking}
-                    isPlaying={hasOverRideId === "upload-img-id"}
-                    isStreamingComplete={isStreamingComplete}
-                    setNotMute={setNotMute}
-                    chatId={"upload-img-id"}
-                    isStaticMessage={true}
-                  />
-                  <div className="div14">
-                    <label className="clickable-label" htmlFor="file-upload">
-                      <GrGallery className="icon-1" />
-                      <span className="div16">
-                        {t('upload')}
-                      </span>
-                      <input 
-                        id="file-upload"
-                        type="file" 
-                        accept="image/*,image/svg+xml" 
-                        multiple
-                        onChange={(e)=>{
-                          handleFileUpload(
-                            e, storyData, files, setFileErrorText, fileSizeText, access_token, 
-                            setFiles, setError, projectId, setIsLoading, navigate
-                          )
-                        }} 
-                        // onClick={(e) => {
-                        //   if (files?.length >= 5) {
-                        //     setFileErrorText(fileExceedText);
-                        //   } else {
-                        //     setFileErrorText('');
-                        //   }
-                        // }}
-                        disabled={isLoading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
-                        className="div17"
-                      />
-                    </label>
-                  </div>
-
-                  {files?.length > 0 && (
-                    <div className="div18">
-                      <h4 className="h4-1">{t('uploadedFiles')}:</h4>
-                      <ul>
-                        {fileErrorText && (
-                          <li className="li-1">
-                            {fileErrorText}
-                          </li>
-                        )}
-                        {files.map((file, index) => (
-                          <li key={index} className="li-2">
-                            {file.name.slice(0, 20)}
-                            {file.name.length > 20 && '...'} 
-                            <button 
-                              className="button-1" 
-                              onClick={() => partialUpdateMedia(file?.id, false, access_token, setIsLoading)}
-                            >
-                              <RxCross2 />
-                            </button>
-                          </li>
-                        ))}
-                        {isUploading && (
-                          <li className="li-3">
-                            {t('uploadLoadMsg')}
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                <div className="div19">
-                  <ChatMessage 
-                    botNameToDisplay={botNameToDisplay}
-                    userType="bot"
-                    message={t('storyText')}
-                    isTalking={false}
-                    handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                    handleOnSpeaking={(message, updatedAt, staticMessage) =>{
-                      const message_to_use = t('storyText')
-                      handleOnSpeaking(message_to_use, "download-story-id",
-                        {msg: message_to_use, updated_at: "download-story-id", source:"bot"}
-                      )}
-                    }
-                    isAnyPlaying={!!hasOverRideId || isTalking}
-                    isPlaying={hasOverRideId === "download-story-id"}
-                    isStreamingComplete={isStreamingComplete}
-                    setNotMute={setNotMute}
-                    chatId={"download-story-id"}
-                    isStaticMessage={true}
-                  />
-                  {(!projectId)&& <div className="div20">
-                    <button
-                      className="clickable-button"
-                      onClick={()=>{
-                        const sessionToUse = JSON.parse(localStorage.getItem('sessionid'));
-                        if (sessionToUse) {
-                          pdfDownloadSidebar(sessionToUse);
-                        }
-                      }}
-                      disabled={isLoading || isPdfDownloading}
-                    >
-                      <div className="download-story-div">
-                        <FiDownload className="icon-1" />
-                        <span className="div16" ref={endPageToScrollRef}>
-                        {t('downloadStoryText')}
-                        </span>
-                      </div>
-                    </button>
-
-                    {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
-                  </div>}
-                  <div className="div20">
-                    <button
-                      className="clickable-button"
-                      onClick={openModal}
-                      disabled={isLoading || isPdfDownloading}
-                    >
-                      <div className="download-story-div">
-                        <MdEdit className="icon-1" />
-                        <span className="div16" ref={endPageToScrollRef}>
-                        {t('editStoryText')}
-                        </span>
-                      </div>
-                    </button>
-                  </div>
-                  {/* {(triggerDownload)&& <Progressbar
-                      progressInNumber={downloadProgress?.toFixed(2)}
-                      progressBarClass="w-[273px] progress-div-download"
-                    />} */}
-                </div>
-                {(isModalOpen && storyData )&& handleEditClick()}
-              </>
-            )}
-            <div id="last-chat-boundary" className="div38" />
-          </div>
-          {(!showFileInput && !isLoading)&&       
-            <form
-              className="div39 form-1"
-              onSubmit={handleSendMessage}
-              autoComplete="off"
+      {(storyData && isModalOpen)&& 
+        defaultEditorClick(storyData?.title, storyData?.author?.first_name, storyData?.location )
+      }
+      <div className={`${projectId? 'div72' : isOpen? 'div71': ''}`}>
+      {(projectId)&& 
+        <>
+            <button
+              onClick={(e) => {
+                if (projectId){
+                  clearFromStorage()
+                  navigate(-1)
+                }
+              }}
+              className="button-13"
             >
               <div
-                className="textarea-wrapper"
               >
-                <textarea
-                  className="input-2 input-1"
-                  onChange={handleOnInputText}
-                  placeholder={hasStartedRecording? 
-                    t('placeholder1'): 
-                    isFetchingData? t('placeholder2'): t('placeholder3')
-                  }
-                  name="message-box"
-                  value={textMessage}
-                  autoFocus={true}
-                  disabled={hasStartedRecording || isFetchingData}
-                  onInput={(e) => {
-                    e.target.style.height = 'auto';
-                    e.target.style.height = `${e.target.scrollHeight}px`;
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      if (e.shiftKey) {
-                        // Submit the form on Shift + Enter
-                        e.preventDefault(); // Prevent default "Enter" key behavior
-                        e.target.form.requestSubmit();
-                        setTimeout(() => {
-                          e.target.value = "";
-                        }, 0);
-                      } else {
-                        
-                      }
-                    }
-                  }}
-                />
+                {t('doLater')}
               </div>
-              {(isTyping && !hasStartedListening) ? (
-              <button
-                type="submit"
-                disabled={hasStartedRecording || isFetchingData}
-                className="button-6"
+            </button>
+          </>
+        }
+        <HiddenRecorder />
+        <div
+          className={`${projectId? 'div33-a': 'div33'} div9`}
+        >
+          {(!showHomepage)&&
+            <ul className="div34">
+              {chatHistory?.map((chat, i) => (
+                <li
+                key={i}
+                className={`div34 div35 ${
+                  chat?.source === "user" ? "label1" : "label1"
+                }`}  // Align messages based on the source
               >
-                <MdSend />
-              </button>
-              ) : (
-                <div className="audio-recorder">
-                  {/* Recording Button */}
-
-                  {hasStartedRecording && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        stopRecording();
-                      }}
-                      className="div40"
-                    >
-                      {t('cancel')}
-                    </button>
+        
+                <div className={`div36 ${chat?.source === "user"&& 'div37'}`}>
+                  <ChatMessage
+                    botNameToDisplay={botNameToDisplay}
+                    userType={chat?.source}
+                    message={`${chat?.msg}`}
+                    name={"You"}
+                    recording={chat?.recording}
+                    hasAppendix={chat?.recording}
+                    appendixURL={chat?.appendixURL}
+                    isTalking={
+                      (chat.source === "bot") && !isStreamingComplete && (i === chatHistory.length - 1)
+                    }
+                    handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                    handleOnSpeaking={() =>{
+                      handleOnSpeaking(chat?.msg, chat?.updated_at)}
+                    }
+                    isAnyPlaying={!!hasOverRideId || isTalking}
+                    isPlaying={hasOverRideId === chat?.updated_at}
+                    isStreamingComplete={isStreamingComplete}
+                    setNotMute={setNotMute}
+                    chatId={chat?.updated_at}
+                  />
+                  </div>
+                  {!hasStartedListening && chatHistory[chatHistory?.length - 1].source === "user" &&
+                  i === chatHistory?.length - 1 ? (
+                    <div className="div57">
+                      <div className="div58">
+                        <div>{t('replyMsg')}</div>
+                      </div>
+                    </div>
+                  ) : (
+                    ""
                   )}
+                </li>
+              ))}
+            </ul>
+          }
+          {(showHomepage)&&
+            <>
+              {(localStorage.getItem('flow'))&&<>
+                <div className="div10" >
+                  <h3 className="h3-1">
+                    {t('homepageHeading')}
+                    <br/>
+                    {t('homepageHeading1')}
+                  </h3>
+                </div>
+                <ul className="div11" >
+                  <li>{t('homepageList')}</li>
+                  <li>{t('homepageList1')}</li>
+                  <li>{t('homepageList2')}</li>
+                </ul>
+              </>}
 
-                  <button
-                    type="button"
-                    onClick={hasStartedRecording ? stopRecording : startRecording}
-                    disabled={isFetchingData}
-                    className={`button-7 ${hasStartedRecording ? 'button-8' : 'button-9'}`}
-                  >
-                    
-                    {hasStartedRecording ? <FaMicrophone /> : <FaMicrophone />}
-                  </button>                
+              {chatHistory?.length > 0 && (
+                <div className="div26">
+                  <div className="div36 div12" >
+                    <ChatMessage
+                      botNameToDisplay={botNameToDisplay}
+                      userType={chatHistory[0]?.source}
+                      message={`${chatHistory[0]?.msg}`}
+                      name={"You"}
+                      recording={chatHistory[0]?.recording}
+                      hasAppendix={chatHistory[0]?.recording}
+                      appendixURL={chatHistory[0]?.appendixURL}
+                      isTalking={false}
+                      handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                      handleOnSpeaking={() =>{
+                        handleOnSpeaking(chatHistory[0]?.msg, chatHistory[0]?.updated_at)}
+                      }
+                      isAnyPlaying={!!hasOverRideId || isTalking}
+                      isPlaying={hasOverRideId === chatHistory[0]?.updated_at}
+                      isStreamingComplete={isStreamingComplete}
+                      setNotMute={setNotMute}
+                      chatId={chatHistory[0]?.updated_at}
+                    />
+                  </div>
                 </div>
               )}
-            </form>
+            </>
           }
+          {(isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading && (
+            !isLoading || isPdfDownloading ) && !projectId && storyData?.id !== '') && (
+            <>
+              <div className="div13" >
+                <ChatMessage 
+                  botNameToDisplay={botNameToDisplay}
+                  userType="bot"
+                  message={t('evidence')}
+                  isTalking={false}
+                  handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                  handleOnSpeaking={(message, updatedAt, staticMessage) =>{
+                    const message_to_use = t('evidence')
+                    handleOnSpeaking(message_to_use, "upload-img-id",
+                      {msg: message_to_use, updated_at: "upload-img-id", source:"bot"}
+                    )}
+                  }
+                  isAnyPlaying={!!hasOverRideId || isTalking}
+                  isPlaying={hasOverRideId === "upload-img-id"}
+                  isStreamingComplete={isStreamingComplete}
+                  setNotMute={setNotMute}
+                  chatId={"upload-img-id"}
+                  isStaticMessage={true}
+                />
+                <div className="div14">
+                  <label className="clickable-label" htmlFor="file-upload">
+                    <GrGallery className="icon-1" />
+                    <span className="div16">
+                      {t('upload')}
+                    </span>
+                    <input 
+                      id="file-upload"
+                      type="file" 
+                      accept="image/*,image/svg+xml" 
+                      multiple
+                      onChange={(e)=>{
+                        handleFileUpload(
+                          e, storyData, files, setFileErrorText, fileSizeText, access_token, 
+                          setFiles, setError, projectId, setIsLoading, navigate
+                        )
+                      }} 
+                      disabled={isLoading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
+                      className="div17"
+                    />
+                  </label>
+                </div>
+
+                {files?.length > 0 && (
+                  <div className="div18">
+                    <h4 className="h4-1">{t('uploadedFiles')}:</h4>
+                    <ul>
+                      {fileErrorText && (
+                        <li className="li-1">
+                          {fileErrorText}
+                        </li>
+                      )}
+                      {files.map((file, index) => (
+                        <li key={index} className="li-2">
+                          {file.name.slice(0, 20)}
+                          {file.name.length > 20 && '...'} 
+                          <button 
+                            className="button-1" 
+                            onClick={() => partialUpdateMedia(file?.id, false, access_token, setIsLoading)}
+                          >
+                            <RxCross2 />
+                          </button>
+                        </li>
+                      ))}
+                      {isUploading && (
+                        <li className="li-3">
+                          {t('uploadLoadMsg')}
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <div className="div19">
+                <ChatMessage 
+                  botNameToDisplay={botNameToDisplay}
+                  userType="bot"
+                  message={t('storyText')}
+                  isTalking={false}
+                  handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                  handleOnSpeaking={(message, updatedAt, staticMessage) =>{
+                    const message_to_use = t('storyText')
+                    handleOnSpeaking(message_to_use, "download-story-id",
+                      {msg: message_to_use, updated_at: "download-story-id", source:"bot"}
+                    )}
+                  }
+                  isAnyPlaying={!!hasOverRideId || isTalking}
+                  isPlaying={hasOverRideId === "download-story-id"}
+                  isStreamingComplete={isStreamingComplete}
+                  setNotMute={setNotMute}
+                  chatId={"download-story-id"}
+                  isStaticMessage={true}
+                />
+                {(!projectId)&& <div className="div20">
+                  <button
+                    className="clickable-button"
+                    onClick={()=>{
+                      const sessionToUse = JSON.parse(localStorage.getItem('sessionid'));
+                      if (sessionToUse) {
+                        pdfDownloadSidebar(sessionToUse);
+                      }
+                    }}
+                    disabled={isLoading || isPdfDownloading}
+                  >
+                    <div className="download-story-div">
+                      <FiDownload className="icon-1" />
+                      <span className="div16" ref={endPageToScrollRef}>
+                      {t('downloadStoryText')}
+                      </span>
+                    </div>
+                  </button>
+
+                  {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
+                </div>}
+                <div className="div20">
+                  <button
+                    className="clickable-button"
+                    onClick={openModal}
+                    disabled={isLoading || isPdfDownloading}
+                  >
+                    <div className="download-story-div">
+                      <MdEdit className="icon-1" />
+                      <span className="div16" ref={endPageToScrollRef}>
+                      {t('editStoryText')}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+          {(llmError && llmError!=='')&&
+            <>
+                <p className="error-para">{llmError}</p>
+                <div className="div20">
+                  <button
+                    className="clickable-button"
+                    onClick={()=>{
+                        callEndStory()
+                    }}
+                    disabled={isLoading || isPdfDownloading}
+                  >
+                    <div className="download-story-div">
+                      <TbReload className="icon-1" />
+                      <span className="div16" ref={endPageToScrollRef}>
+                      {t('reDownloadStoryText')}
+                      </span>
+                    </div>
+                  </button>
+
+                  {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
+                </div>
+            </>
+            }
+          <div id="last-chat-boundary" className="div38" />
         </div>
-      }
+        {(!showFileInput && !isLoading)&&       
+          <form
+            className="div39 form-1"
+            onSubmit={handleSendMessage}
+            autoComplete="off"
+          >
+            <div
+              className="textarea-wrapper"
+            >
+              <textarea
+                className="input-2 input-1"
+                onChange={handleOnInputText}
+                placeholder={hasStartedRecording? 
+                  t('placeholder1'): 
+                  isFetchingData? t('placeholder2'): t('placeholder3')
+                }
+                name="message-box"
+                value={textMessage}
+                autoFocus={true}
+                disabled={hasStartedRecording || isFetchingData}
+                onInput={(e) => {
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    if (e.shiftKey) {
+                      e.preventDefault();
+                      e.target.form.requestSubmit();
+                      setTimeout(() => {
+                        e.target.value = "";
+                      }, 0);
+                    } else {
+                      
+                    }
+                  }
+                }}
+              />
+            </div>
+            {(isTyping && !hasStartedListening) ? (
+            <button
+              type="submit"
+              disabled={hasStartedRecording || isFetchingData}
+              className="button-6"
+            >
+              <MdSend />
+            </button>
+            ) : (
+              <div className="audio-recorder">
+                {hasStartedRecording && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stopRecording();
+                    }}
+                    className="div40"
+                  >
+                    {t('cancel')}
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={hasStartedRecording ? stopRecording : startRecording}
+                  disabled={isFetchingData}
+                  className={`button-7 ${hasStartedRecording ? 'button-8' : 'button-9'}`}
+                >
+                  
+                  {hasStartedRecording ? <FaMicrophone /> : <FaMicrophone />}
+                </button>                
+              </div>
+            )}
+          </form>
+        }
+      </div>
     </>
   );
 };
@@ -2571,17 +2678,18 @@ export function clearFromStorage() {
 export async function handleFileUpload(e, storyData, files, setFileErrorText, fileSizeText, access_token, setFiles, setError, projectId, setIsLoading, navigate) {
     
   const story_id = storyData?.id;
-  
+  console.log("test: ", setIsLoading)
   if (!story_id || story_id === '') return;
-
+  setIsLoading(true);
   const selectedFiles = Array.from(e.target.files); 
-  const maxFileSize = 50 * 1024 * 1024; 
+  const maxFileSize = 1 * 1024 * 1024; 
   const currentFiles = [...files];  
 
   const uploadPromises = selectedFiles.map((uploadedFile) => {
     if (uploadedFile.size > maxFileSize) {
       setFileErrorText(fileSizeText);
       // Skip oversized files
+      setIsLoading(false);
       return Promise.resolve();
     }
     const fileName = uploadedFile?.name;
@@ -2591,6 +2699,7 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
       "jpg": "image/jpeg",
       "png": "image/png",
       "svg": "image/svg+xml",
+      "webp": "image/webp"
     };
     
     const mediaType = mediaTypes[fileExtension] || null;
@@ -2622,14 +2731,8 @@ const uploadImage = (formData, setError, projectId, navigate, setIsLoading, acce
   return new Promise((resolve, reject) => {
     try {
       createStoryMedia({
-        setter: (data) => {
-          setError({});
-          resolve({
-            id: data.id,
-            name: data.name,
-            base64_str: `data:image/jpeg;charset=utf-8;base64,${data.base64_str}`,
-            include_in_story: data.include_in_story,
-          });
+        setter: () => {
+          window.location.reload()
         },
         errorHandler: (err) => {
           //navigate(ROUTES.EXIT_ROUTE)
@@ -2642,13 +2745,15 @@ const uploadImage = (formData, setError, projectId, navigate, setIsLoading, acce
           setError(err);
           reject(err); 
         },
-        loader: setIsLoading,
+        // loader: setIsLoading,
         data: formData,
         token: access_token,
       });
+      setIsLoading(false);
     } catch (error) {
       console.error({ error });
       //navigate(ROUTES.EXIT_ROUTE)
+      setIsLoading(false);
       if (projectId){
         clearFromStorage()
         navigate(-1)

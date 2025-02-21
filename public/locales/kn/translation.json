@@ -8,6 +8,7 @@
     "upload": "ಫೋಟೋಗಳನ್ನು ಸೇರಿಸಿ",
     "storyText": "ನಿಮ್ಮ ಸುಧಾರಣೆಯ ಕಥೆ ಇಲ್ಲಿದೆ",
     "downloadStoryText": "ಕಹಾನಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+    "reDownloadStoryText": "ಕಥೆಯನ್ನು ಮರುನಿರ್ಮಿಸು",
     "editStoryText": "ಕಥೆಯನ್ನು ಸಂಪಾದಿಸಿ",
     "storyLoader": "ನಿಮ್ಮ ಕಥೆಯನ್ನು ರಚಿಸಲಾಗುತ್ತಿದೆ, ಇದು ಸ್ವಲ್ಪ ಸಮಯ ತೆಗೆದುಕೊಳ್ಳಬಹುದು. ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ...",
     "downloadLoader": "ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ...",
@@ -37,12 +38,15 @@
     "completedStatusText": "ಪೂರ್ಣಗೊಂಡಿದೆ",
     "inProgressStatusText": "ಪ್ರಗತಿಯಲ್ಲಿದೆ",
     "EditorConfirm": "ಕಥೆ ರಚಿಸಿ",
-    "uploadImagesStory": "ನಿಮ್ಮ ಕಥೆಗೆ ಚಿತ್ರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    "uploadImagesStory": "ಚಿತ್ರಗಳನ್ನು ಸೇರಿಸಿ",
+    "editorHeading": "ಕೊನೆಯ ಹಂತ! ನಿಮ್ಮ ಕಥೆ ಮತ್ತು ಶೀರ್ಷಿಕೆಯನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಸಂಪಾದಿಸಿ.",
+    "addImage": "ಚಿತ್ರ ಸೇರಿಸಿ",
     "UploadErrorMsg": "ಅಯ್ಯೋ, ನೀವು ಈ ಫೈಲ್ ಈಗಾಗಲೇ ಅಪ್‌ಲೋಡ್ ಮಾಡಿರುವಂತೆ ತೋರುತ್ತದೆ!",
     "removeImage": "ತೆಗೆದುಹಾಕಿ",
     "EditorFirstTab": "ಕಥೆ",
     "EditorSecondTab": "ಗ್ಯಾಲರಿ",
     "saveChanges": "ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ",
-    "chooseFile": "ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ"
+    "chooseFile": "ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ",
+    "editorPlaceholder": "ಇಲ್ಲಿ ಬರೆಯಲು ಪ್ರಾರಂಭಿಸಿ..."
 
 }
