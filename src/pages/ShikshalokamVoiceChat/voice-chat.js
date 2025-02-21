@@ -350,9 +350,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   },[fileErrorText])
 
-  async function callEndStory() {
+  async function callEndStory(hasClickedOnRegenerate=false) {
     let endStoryResponse;
-    if (isStreamingComplete && strandStep >= stateMachineLength) {
+    if ((isStreamingComplete && strandStep >= stateMachineLength) || hasClickedOnRegenerate) {
       try {
         setIsLoading(true);
         setIsEndStoryLoading(true);
@@ -2468,7 +2468,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   <button
                     className="clickable-button"
                     onClick={()=>{
-                        callEndStory()
+                        callEndStory(true)
                     }}
                     disabled={isLoading || isPdfDownloading}
                   >
