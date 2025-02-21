@@ -350,9 +350,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   },[fileErrorText])
 
-  async function callEndStory() {
+  async function callEndStory(hasClickedOnRegenerate=false) {
     let endStoryResponse;
-    if (isStreamingComplete && strandStep >= stateMachineLength) {
+    if ((isStreamingComplete && strandStep >= stateMachineLength) || hasClickedOnRegenerate) {
       try {
         setIsLoading(true);
         setIsEndStoryLoading(true);
@@ -881,7 +881,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           if (isShikshalokamPublicType){
             let profileid = localStorage.getItem('profileid')
             let sessionid = JSON.parse(localStorage.getItem('sessionid'))
-            let route = languageToUse
+            let route = JSON.parse(localStorage.getItem("route"))
             if(profileid && sessionid){
               socket.send(JSON.stringify({
                 type: 'authenticate',
@@ -2468,7 +2468,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   <button
                     className="clickable-button"
                     onClick={()=>{
-                        callEndStory()
+                        callEndStory(true)
                     }}
                     disabled={isLoading || isPdfDownloading}
                   >
