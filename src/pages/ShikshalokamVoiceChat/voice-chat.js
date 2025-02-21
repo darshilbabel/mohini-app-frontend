@@ -881,7 +881,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           if (isShikshalokamPublicType){
             let profileid = localStorage.getItem('profileid')
             let sessionid = JSON.parse(localStorage.getItem('sessionid'))
-            let route = languageToUse
+            let route = JSON.parse(localStorage.getItem("route"))
             if(profileid && sessionid){
               socket.send(JSON.stringify({
                 type: 'authenticate',
