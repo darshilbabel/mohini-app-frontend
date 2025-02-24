@@ -145,6 +145,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [strandStep, setStrandStep] = useState(null);
   const [isEndStoryLoading, setIsEndStoryLoading] = useState(false);
   const [storyData, setStoryData] = useState(null);
+  const [noStoryFound, setNoStoryFound] = useState(false);
   const [triggerDownload, setTriggerDownload] = useState(false);
   const [showHomepage, setShowHomepage] = useState(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
@@ -381,9 +382,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           setShowFileInput(true);
           localStorage.removeItem('llmError');
           window.location.reload();
+          setIsEndStoryLoading(false);
+          setIsLoading(false);
         } else {
           localStorage.setItem('llmError', endStoryResponse?.data?.error_message)
           setLlmError(endStoryResponse?.data?.error_message)
+          setIsEndStoryLoading(false);
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('Error completing the story:', error);
@@ -395,19 +400,19 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         // }
         localStorage.setItem('llmError', error?.response?.data?.error_message)
         setLlmError(error?.response?.data?.error_message)
-
-      } finally {
         setIsEndStoryLoading(false);
         setIsLoading(false);
+      } finally {
+        setNoStoryFound(false);
       }
     }
   }
 
   useEffect(() => {
-    if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength) {
+    if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError==='')) {
       callEndStory();
     }
-  }, [isStreamingComplete, strandStep, access_token, stateMachineLength, languageToUse]);
+  }, [isStreamingComplete, strandStep, access_token, stateMachineLength, languageToUse, noStoryFound]);
 
     useEffect(()=>{
     let profileid = cookies.get('profileid') || localStorage.getItem('profileid')
@@ -756,16 +761,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     removeLocalChatHistory();
     localStorage.setItem('isOldChatOpen', JSON.stringify(false));
     localStorage.setItem('isNewChatOpen', JSON.stringify(true));
+    localStorage.removeItem('has_accepted_tnc');
+    localStorage.removeItem('llmError');
+
     const session = await getSessionDetails();
-    await cookies.set("sessionid", session.sessionid, {
-        path: "/"
-    });
     localStorage.setItem('sessionid', JSON.stringify(session.sessionid));
     localStorage.setItem('isChatVisible', JSON.stringify(false));
     localStorage.setItem('chatbot_clickedOn?', '');
     localStorage.setItem('showHomepage', true);
-    localStorage.removeItem('has_accepted_tnc');
-    localStorage.removeItem('llmError');
+    await cookies.set("sessionid", session.sessionid, {
+        path: "/"
+    });
+    
     window.location.reload();
   }
   
@@ -1020,6 +1027,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         const textBlocks = extractTextBlocks(formatted_content);
         setEditorCopyChanges(textBlocks);
         setIsModalOpen(true);
+        setNoStoryFound(false);
+      } else {
+        if(!llmError) {
+          setNoStoryFound(true);
+        }
       }
     })();
 
@@ -1066,6 +1078,19 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     let translate_api_url = `api/bot_vernacular/?language=${languageToUse}&company_bot__route=${storedRoute}`;
     try {
       const response = await axiosInstance.get(translate_api_url);
+      return response?.data?.results;
+    } catch (error) {
+      console.error('Error fetching AI4Bharat audio:', error);
+      throw error;
+    }
+
+  }
+
+  async function getSessionInfo(){
+    let currentSession = JSON.parse(localStorage.getItem('sessionid'));
+    let session_url = `api/chatsession/?session=${currentSession}`;
+    try {
+      const response = await axiosInstance.get(session_url);
       return response?.data?.results;
     } catch (error) {
       console.error('Error fetching AI4Bharat audio:', error);
@@ -1156,7 +1181,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           const botName = data[0]?.name || 'Bot';
           localStorage.setItem('botName', botName);
           setBotNameToDisplay(botName);
-
+          const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'))
+          if(isOldChatOpen) {
+            let sessionInfo = await getSessionInfo();
+            if(sessionInfo && sessionInfo.length>0) {
+              setStrandStep(sessionInfo[0]?.current_step)
+            }
+            // setLlmError(data[0]?.error_message);
+          }
           if (message && firstName) {
             const words = message.split(' ');
             words.splice(1, 0, firstName);
@@ -1253,7 +1285,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isMute])
 
   useEffect(()=>{
-    if(!isModalOpen && profileToUse){
+    console.log("noStoryFound: ", noStoryFound)
+    if(!isModalOpen && profileToUse && !noStoryFound){
       setIsLoading(true);
       const titleTime = setTimeout(()=>{
         if(shouldShowChatHistoryFeature) showChatTitle();
@@ -1264,7 +1297,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         clearTimeout(titleTime);
       }
     }
-  },[profileToUse])
+  },[profileToUse, noStoryFound])
 
 
   useEffect(() => {
@@ -1289,6 +1322,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if(key){
       key_num = key?.split('-').pop();
       currentSession = chatTitle[key_num]?.session;
+      localStorage.removeItem('llmError');
       localStorage.setItem('isOldChatOpen', JSON.stringify(true));
       localStorage.setItem('isNewChatOpen', JSON.stringify(false));
       localStorage.setItem('sessionid', JSON.stringify(currentSession))
@@ -2680,7 +2714,7 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
   const story_id = storyData?.id;
   console.log("test: ", setIsLoading)
   if (!story_id || story_id === '') return;
-  setIsLoading(true);
+  // setIsLoading(true);
   const selectedFiles = Array.from(e.target.files); 
   const maxFileSize = 1 * 1024 * 1024; 
   const currentFiles = [...files];  
@@ -2717,7 +2751,7 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
     formData.append("media_type", mediaType);
 
     // Return a promise for each file upload
-    return uploadImage(formData, setError, projectId, navigate, setIsLoading, access_token);
+    return uploadImage(formData, setError, projectId, navigate, setIsLoading, access_token, setFiles);
   });
 
   return Promise.all(uploadPromises).then((uploadedFiles) => {
@@ -2727,12 +2761,13 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
   });
 }
 
-const uploadImage = (formData, setError, projectId, navigate, setIsLoading, access_token) => {
+const uploadImage = (formData, setError, projectId, navigate, setIsLoading, access_token, setFiles) => {
   return new Promise((resolve, reject) => {
     try {
       createStoryMedia({
-        setter: () => {
-          window.location.reload()
+        setter: (uploadedFile) => {
+          setFiles((prevFiles) => [...prevFiles, uploadedFile]);
+          // window.location.reload()
         },
         errorHandler: (err) => {
           //navigate(ROUTES.EXIT_ROUTE)
@@ -2743,29 +2778,30 @@ const uploadImage = (formData, setError, projectId, navigate, setIsLoading, acce
 
           }
           setError(err);
+          setIsLoading(false);
           reject(err); 
         },
         // loader: setIsLoading,
         data: formData,
+        loader: setIsLoading,
         token: access_token,
       });
-      setIsLoading(false);
     } catch (error) {
       console.error({ error });
       //navigate(ROUTES.EXIT_ROUTE)
-      setIsLoading(false);
       if (projectId){
         clearFromStorage()
         navigate(-1)
         // window.location.href=ROUTES.EXIT_ROUTE;
 
       }
+        setIsLoading(false);
       reject(error);
     }
   });
 }
 
-export const partialUpdateMedia = (partialUpdateId, include_in_story=false, access_token, setIsLoading) => {
+export const partialUpdateMedia = (partialUpdateId, include_in_story=false, access_token, setIsLoading, setFiles) => {
   try {
     const formData = new FormData();
     formData.append('include_in_story', include_in_story);
