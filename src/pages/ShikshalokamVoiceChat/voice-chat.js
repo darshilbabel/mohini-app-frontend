@@ -1299,6 +1299,22 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   },[profileToUse, noStoryFound])
 
+  useEffect(() => {
+    const handleBack = () => {
+      clearFromStorage();
+      navigate(-1);
+    };
+
+    // Push a dummy state to history so popstate triggers on back
+    window.history.pushState(null, "", window.location.href);
+    
+    window.addEventListener("popstate", handleBack);
+
+    return () => {
+      window.removeEventListener("popstate", handleBack);
+    };
+  }, []);
+
 
   useEffect(() => {
     localStorage.setItem('isChatVisible', JSON.stringify(isChatVisible));
@@ -2700,7 +2716,7 @@ export function clearFromStorage() {
   const keysToRemove = [
     'botName', 'chat-history', 'company', 'first_name', 'has_accepted_tnc', 'intro_message', 
     'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
-    'showHomepage', 'state'
+    'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length'
   ];
 
   keysToRemove.forEach((key) => {
