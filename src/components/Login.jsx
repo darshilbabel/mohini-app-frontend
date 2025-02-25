@@ -14,6 +14,7 @@ import "./custom-style.css"
 import "../index.css"
 import { languageList } from "../pages/ShikshalokamVoiceChat/enum";
 import i18n, { setLanguage } from '../i18n';
+import { clearFromStorage } from "../pages/ShikshalokamVoiceChat/voice-chat";
 
 const cookies = new Cookies();
 const login_api_url = `/api/login/`;
@@ -50,70 +51,7 @@ function Login({ type, variant }) {
 
 
   useEffect(() => {
-    localStorage.removeItem('selected_type');
-    localStorage.removeItem('isStoryFormedAfterCall');
-    localStorage.removeItem('first_name');
-    localStorage.removeItem('isChatVisible');
-    localStorage.removeItem('type');
-    localStorage.removeItem('variant');
-    localStorage.removeItem('intro_message');
-    localStorage.removeItem('isNewChatOpen');
-    localStorage.removeItem('isOldChatOpen');
-    localStorage.removeItem('showFileInput');
-    localStorage.removeItem('company');
-    localStorage.removeItem('state');
-    removeLocalChatHistory();
-    localStorage.removeItem('sessionid');
-    localStorage.removeItem('profileid');
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('route');
-    localStorage.removeItem('botName');
-    localStorage.removeItem('isRecordButtonClicked');
-    localStorage.removeItem('grit');
-    localStorage.removeItem('companyData');
-    localStorage.removeItem('isCallError');
-    localStorage.removeItem('timerStart');
-    localStorage.removeItem('showHomepage');
-    localStorage.removeItem('model');
-    localStorage.removeItem('has_accepted_tnc');
-    localStorage.removeItem('flow');
-    localStorage.removeItem('statemachine_length');
-    localStorage.removeItem('llmError');
-    
-    cookies.remove("profileid", {
-      path: "/",
-    });
-    cookies.remove("access_token", {
-      path: "/",
-    });
-    cookies.remove("company", {
-      path: "/",
-    });
-    cookies.remove("sessionid", {
-      path: "/",
-    });
-    cookies.remove('messageid', {
-      path: '/',
-    });
-    cookies.remove('route', {
-      path: '/',
-    });
-    cookies.remove("state", {
-      path: "/",
-    });
-
-    cookies.remove("fName", {
-      path: "/",
-    });
-    cookies.remove("location", {
-      path: "/",
-    });
-    cookies.remove("org_associated", {
-      path: "/",
-    });
-    cookies.remove("product_interested", {
-      path: "/",
-    });
+    clearFromStorage()
 
   }, []);
 
