@@ -134,7 +134,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return storedVisibility !== null ? JSON.parse(storedVisibility) : false;
   });
   const [chatTitle, setChatTitle] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isIntroLoading, setIsIntroLoading] = useState(false);
   const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false);
   const [sessionTitleDetail, setSessionTitleDetail] = useState(null);
@@ -476,24 +476,49 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
          */
         holder: "editorjs",
         placeholder: t('editorPlaceholder'),
+        autofocus: true,
+        hideToolbar: true, 
         /**
          * Available Tools list.
          * Pass Tool's class or Settings object for each Tool you want to use
          */
+        // tools: {
+        //   image: SimpleImage,
+        //   header: {
+        //     class: Header,
+        //     shortcut: "CMD+SHIFT+H",
+        //   },
+        //   paragraph: {
+        //     class: Paragraph,
+        //     inlineToolbar: true,
+        //   },
+        // },
         tools: {
-          image: SimpleImage,
           header: {
             class: Header,
-            shortcut: "CMD+SHIFT+H",
-          },
-          paragraph: {
-            class: Paragraph,
-            inlineToolbar: true,
+            inlineToolbar : false
           },
         },
-        onReady: (ready) => {
-          
+        onReady: () => {
           setEditor(_editor);
+          const style = document.createElement("style");
+          style.innerHTML = `
+            /* Hide "+" button */
+            .ce-toolbar__plus, .ce-toolbar__actions { display: none !important; }
+        
+            /* Hide block settings (Click to Tune) */
+            .ce-popover, .ce-settings, .ce-settings__button { display: none !important; }
+        
+            /* Hide Drag handle */
+            .ce-block--selected .ce-block__drag-handle { display: none !important; }
+        
+            /* Hide the inline toolbar */
+            .ce-inline-toolbar { display: none !important; }
+        
+            /* Hide block selection outline */
+            .ce-block--selected { outline: none !important; }
+          `;
+          document.head.appendChild(style);
         },
         defaultBlock: "paragraph",
         data: {
@@ -692,7 +717,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               }}
               disabled={isLoading || isSaving}
             >
-              {t('saveChanges')}
+              {t('EditorConfirm')}
 
             </PrimaryButton>
             </div>
@@ -1285,8 +1310,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isMute])
 
   useEffect(()=>{
+    console.log('isLoading: ', isLoading);
+  }, [isLoading])
+
+  useEffect(()=>{
     console.log("noStoryFound: ", noStoryFound)
-    if(!isModalOpen && profileToUse && !noStoryFound){
+    console.log("projectId: ", projectId)
+    console.log("profileToUse: ", profileToUse)
+    console.log("isModalOpen: ", isModalOpen)
+    console.log("projectId: ", projectId)
+    if(profileToUse && !projectId){
       setIsLoading(true);
       const titleTime = setTimeout(()=>{
         if(shouldShowChatHistoryFeature) showChatTitle();
@@ -1296,8 +1329,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         setIsLoading(false);
         clearTimeout(titleTime);
       }
+    } else {
+      setIsLoading(false);
     }
-  },[profileToUse, noStoryFound])
+  },[profileToUse, projectId])
 
   useEffect(() => {
     const handleBack = () => {
@@ -1424,7 +1459,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       return;
     }
 
-    setIsLoading(true);
+    // setIsLoading(true);
     setIsFetchingOldIntro(true);
 
     try {
@@ -1506,6 +1541,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     } finally {
         // setIsLoading(false);
         setIsFetchingOldIntro(false);
+        if(projectId) {
+          setIsLoading(false);
+        }
     }
   }
 
@@ -2260,7 +2298,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         </div>
       </div> }
       {(storyData && isModalOpen)&& 
-        defaultEditorClick(storyData?.title, storyData?.author?.first_name, storyData?.location )
+        handleEditClick()
+        // defaultEditorClick(storyData?.title, storyData?.author?.first_name, storyData?.location )
       }
       <div className={`${projectId? 'div72' : isOpen? 'div71': ''}`}>
       {(projectId)&& 
@@ -2377,7 +2416,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             </>
           }
           {(isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading && (
-            !isLoading || isPdfDownloading ) && !projectId && storyData?.id !== '') && (
+            !isLoading || isPdfDownloading ) && storyData?.id !== '') && (
             <>
               <div className="div13" >
                 <ChatMessage 
