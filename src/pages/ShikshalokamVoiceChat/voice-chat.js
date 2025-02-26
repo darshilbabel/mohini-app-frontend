@@ -2732,7 +2732,7 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
   if (!story_id || story_id === '') return;
   // setIsLoading(true);
   const selectedFiles = Array.from(e.target.files); 
-  const maxFileSize = 1 * 1024 * 1024; 
+  const maxFileSize = 50 * 1024 * 1024; 
   const currentFiles = [...files];  
 
   const uploadPromises = selectedFiles.map((uploadedFile) => {
