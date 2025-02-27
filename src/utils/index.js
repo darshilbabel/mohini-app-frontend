@@ -1,6 +1,5 @@
 import moment from "moment";
 
-// url details generator
 export function getDomainDetail() {
   try {
     let url = window.location.host;

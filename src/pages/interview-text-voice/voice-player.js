@@ -2,12 +2,9 @@ import { MdPause, MdPlayArrow } from "react-icons/md";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 
-// WaveSurfer hook
 const useWavesurfer = (containerRef, options) => {
   const [wavesurfer, setWavesurfer] = useState(null);
 
-  // Initialize wavesurfer when the container mounts
-  // or any of the props change
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -31,7 +28,6 @@ const WaveSurferPlayer = (props) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const wavesurfer = useWavesurfer(containerRef, props);
 
-  // On play button click
   const onPlayClick = useCallback(() => {
     try {
       wavesurfer.isPlaying() ? wavesurfer.pause() : wavesurfer.play();
@@ -40,8 +36,6 @@ const WaveSurferPlayer = (props) => {
     }
   }, [wavesurfer]);
 
-  // Initialize wavesurfer when the container mounts
-  // or any of the props change
   useEffect(() => {
   try {
     if (!wavesurfer) return;

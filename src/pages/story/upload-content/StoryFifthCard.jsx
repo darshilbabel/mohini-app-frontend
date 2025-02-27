@@ -7,7 +7,6 @@ function StoryFifthCard(props){
             let jsonString = points.replace(/'/g, '"');
             points = JSON.parse(jsonString);
         } catch (error) {
-            // console.error("Error parsing content:", error);
             points = points?.split(/\d+\./).filter(Boolean);
         }
     }

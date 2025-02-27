@@ -8,7 +8,6 @@ import getConfiguration, { company_list } from "../../configure";
 import { Link } from "react-router-dom";
 import ROUTES from "../../url";
 
-// understand what this api is doing
 const logout_api_url = `/api/logout/`;
 const company_config = getConfiguration();
 const cookies = new Cookies();

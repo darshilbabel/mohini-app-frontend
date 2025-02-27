@@ -38,7 +38,6 @@ import PdfDownloader from "../story/upload-content/pdfDownloader";
 import { FaMicrophone } from "react-icons/fa";
 import "../../style.css"
 import "./shikshaChatStyle.css"
-// import Progressbar from "../../components/ProgressBar/ProgressBar";
 import Swal from 'sweetalert2';
 import { PrimaryButton } from "../../components/Buttons";
 import { IoClose } from "react-icons/io5";
@@ -62,17 +61,15 @@ function useCustomMediaQuery(query) {
   const [matches, setMatches] = useState(false);
 
   useEffect(() => {
-    // Ensure the window object is available
     if (typeof window !== "undefined") {
       const media = window.matchMedia(query);
       const isMatching = media.matches;
       
-      setMatches(isMatching); // Set the initial value
+      setMatches(isMatching);
 
       const listener = () => setMatches(isMatching);
       media.addEventListener('change', listener);
 
-      // Clean up event listener on unmount
       return () => media.removeEventListener('change', listener);
     }
   }, [query]);
@@ -83,9 +80,6 @@ function useCustomMediaQuery(query) {
 
 
 const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
-  // const recognitionRef = useRef(
-  //   new (window.SpeechRecognition || window.webkitSpeechRecognition)()
-  // );
   const [profileToUse, setProfileToUse] = useState(JSON.parse(localStorage.getItem('profileid')) || null);
   const audioRef = useRef();
   const lastBotMessageIndex = useRef(-1);
@@ -97,8 +91,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const [searchParams] = useSearchParams();
   
-  // const isMobile = false;
-
   const [localChatHistory, setLocalChatHistory, removeLocalChatHistory] =
     useLocalStorage("chat-history", []);
   const [chatHistory, setChatHistory] = useState(
@@ -236,7 +228,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isLoading, isEndStoryLoading]);
 
   useEffect(() => {
-    // Function to create user profile
     async function createUserProfile() {
       try {
         setIsLoading(true);
@@ -268,25 +259,20 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           localStorage.setItem('company', JSON.stringify(data?.company?.slug));
           localStorage.setItem('state', JSON.stringify(data?.profile_address[0]?.state));
         } else {
-          //navigate(ROUTES.EXIT_ROUTE)
+          navigate(ROUTES.EXIT_ROUTE)
           clearFromStorage()
           navigate(-1)
-          // window.location.href=ROUTES.EXIT_ROUTE
         }
       } catch (error) {
         console.error(error?.response?.data || error);
-        //navigate(ROUTES.EXIT_ROUTE)
           clearFromStorage()
           navigate(-1)
-          // window.location.href=ROUTES.EXIT_ROUTE
 
       } finally {
-        // setIsLoading(false);
       }
     }
     
     
-    // Check if profile ID is in localStorage, if not, create the profile
     if (!profileToUse && access_token) {
       
       createUserProfile();
@@ -375,7 +361,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           },
           method: "POST",
         });
-        console.log("endStoryResponse: ", endStoryResponse)
 
         if (endStoryResponse?.data?.id) {
           setFiles([]);
@@ -392,12 +377,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         }
       } catch (error) {
         console.error('Error completing the story:', error);
-        //navigate(ROUTES.EXIT_ROUTE)
-        // if (projectId){
-        //   clearFromStorage()
-        //   navigate(-1)
-        //   // window.location.href=ROUTES.EXIT_ROUTE;
-        // }
         localStorage.setItem('llmError', error?.response?.data?.error_message)
         setLlmError(error?.response?.data?.error_message)
         setIsEndStoryLoading(false);
@@ -431,16 +410,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       if(isOldChatOpen === true){
         setShouldFetchIntro(true);
         setShowHomepage(false);
-        // removeLocalChatHistory();
-        // MakeSocketConnection();
       } else if(isNewChatOpen === true){
         const showStartPage = JSON.parse(localStorage.getItem('showHomepage'));
         setShowHomepage(showStartPage !== null ? showStartPage : true);
-        // MakeSocketConnection();
       }
     } else{
       removeLocalChatHistory();
-      // MakeSocketConnection();
     }
   }, [isNewChatOpen]);
 
@@ -471,28 +446,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         return;
       }
       const _editor = new EditorJS({
-        /**
-         * Id of Element that should contain the Editor
-         */
         holder: "editorjs",
         placeholder: t('editorPlaceholder'),
         autofocus: true,
         hideToolbar: true, 
-        /**
-         * Available Tools list.
-         * Pass Tool's class or Settings object for each Tool you want to use
-         */
-        // tools: {
-        //   image: SimpleImage,
-        //   header: {
-        //     class: Header,
-        //     shortcut: "CMD+SHIFT+H",
-        //   },
-        //   paragraph: {
-        //     class: Paragraph,
-        //     inlineToolbar: true,
-        //   },
-        // },
         tools: {
           header: {
             class: Header,
@@ -638,9 +595,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 </button>
               </div>
             </div>
-              {/* <button className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-700">
-                Create story
-              </button> */}
           </div>
         </div>
       </>
@@ -651,16 +605,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const handleEditClick = () => {
     return (
       <>
-        {/* Modal Overlay */}
         <div
           className="voice-chat-editor-overlay"
           onClick={closeModal}
         >
-          {/* Modal Content */}
           <div
             className="voice-chat-editor-content"
             onClick={(e) => {
-              // Prevent closing modal when clicking inside
               e.stopPropagation()
             }}
           >
@@ -675,7 +626,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 className="container-editor-div"
               >
                 <div id="editorjs" ref={editorContainerRef} className="editor-main-div">
-                  {/* Code editor */}
                 </div>
               </div>
             </div>
@@ -707,11 +657,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
                 } catch (error) {
                   console.error("Saving failed: ", error);
-                  //navigate(ROUTES.EXIT_ROUTE)
                   if (projectId){
                     clearFromStorage()
                     navigate(-1)
-                    // window.location.href=ROUTES.EXIT_ROUTE;
                   }
                 }
               }}
@@ -740,22 +688,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       });
 
       if (response?.status === 200) {
-        //navigate(ROUTES.EXIT_ROUTE)
         if (projectId){
           clearFromStorage()
           navigate(-1)
-          // window.location.href=ROUTES.EXIT_ROUTE;
 
         }
       }
       
       return response;
     } catch (error) {
-      //navigate(ROUTES.EXIT_ROUTE)
       if (projectId){
         clearFromStorage()
         navigate(-1)
-        // window.location.href=ROUTES.EXIT_ROUTE;
 
       }
     }
@@ -802,19 +746,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }
   
   
-  // socket connection
   const MakeSocketConnection = useCallback((currentTextMessage, currentSocket) => {
     return new Promise((resolve, reject) => {
       try{
-        console.log("start chatSocket: ", chatSocket)
         if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-          console.log("Reusing existing WebSocket connection");
           return resolve(chatSocket);
         } else if(currentSocket && currentSocket.readyState === WebSocket.OPEN) {
-          console.log("Reusing existing WebSocket passed as connection");
           return resolve(currentSocket);
         }
-        console.log("Creating new WebSocket connection...");
         let socket;
     
         let url;
@@ -834,10 +773,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }
         }
         socket = new WebSocket(url);
-        console.log("socket: ", socket)
 
         socket.onmessage = (e) => {
-          console.log("Ws Connection Message");
           const data = JSON.parse(e.data);
           const message = data["text"];
         
@@ -851,12 +788,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 updatedSentences.length > 0 &&
                 updatedSentences[updatedSentences.length - 1]?.source === "bot"
               ) {
-                // Append to the last bot message
                 if (message?.msg) {
                   updatedSentences[updatedSentences.length - 1].message += message?.msg;
                 }
               } else {
-                // Create a new bot message
                 updatedSentences.push({
                   message: message?.msg || "",
                   source: "bot",
@@ -875,12 +810,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 updatedChatHistory.length > 0 &&
                 updatedChatHistory[updatedChatHistory.length - 1]?.source === "bot"
               ) {
-                // Append to the last bot message in chat history
                 if (message?.msg) {
                   updatedChatHistory[updatedChatHistory.length - 1].msg += message?.msg;
                 }
               } else {
-                // Create a new bot message in chat history
                 updatedChatHistory.push({
                   msg: message?.msg || "",
                   source: "bot",
@@ -907,8 +840,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         };
 
         socket.onopen = () => {
-          console.log("Ws Connection open");
-          console.log("socket: ", socket)
           setChatSocket(socket);
           if (isShikshalokamPublicType){
             let profileid = localStorage.getItem('profileid')
@@ -929,7 +860,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         };
 
         socket.onclose = (event) => {
-          console.log("Socket connection closed", event);
         };
         
         socket.onerror = (error) => {
@@ -941,7 +871,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
         return () => {
           if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-            console.log("Socket connection closed")
             chatSocket.close();
           }
         };
@@ -962,18 +891,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       return;
     }
     reconnectAttempts++; 
-    console.log(`Reconnection attempt #${reconnectAttempts}...`);
 
-    console.log("Attempting WebSocket Reconnection...");
     setTimeout(() => {
       MakeSocketConnection(currentTextMessage)
       .then((newSocket) => {
-        console.log("Reconnected to WebSocket", newSocket);
         reconnectAttempts = 0;
-        console.log("currentTextMessage: ", currentTextMessage)
         if (currentTextMessage && currentTextMessage.trim() !== "") {
-          console.log("Resubmitting the form...");
-          // document.querySelector("form.div39").requestSubmit();
           handleSendMessage(null, newSocket)
         }
       })
@@ -1014,8 +937,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [])
 
   useEffect(()=>{
-    // showConfirmationPopup()
- 
     localStorage.setItem('showFileInput', showFileInput)
 
   }, [showFileInput])
@@ -1080,7 +1001,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           
           setFiles(tempMediaArr);
         },
-        // loader: setIsLoading,
         data: {
           story: story_id,
         },
@@ -1212,7 +1132,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             if(sessionInfo && sessionInfo.length>0) {
               setStrandStep(sessionInfo[0]?.current_step)
             }
-            // setLlmError(data[0]?.error_message);
           }
           if (message && firstName) {
             const words = message.split(' ');
@@ -1251,7 +1170,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return () => {};
   }, [access_token, shouldFetchIntro, profileToUse, languageToUse]);
 
-  //copying to local storage
   useEffect(() => {
     
     setLocalChatHistory(chatHistory);
@@ -1282,11 +1200,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return () => {};
   }, [recordings, chatHistory]);
 
-  // sends data on trigger
   useEffect(() => {
     try {
       if (!!trigger && !!reconText) {
-        // sendData(reconText);
         setReconText("");
         setTrigger(false);
       }
@@ -1310,15 +1226,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isMute])
 
   useEffect(()=>{
-    console.log('isLoading: ', isLoading);
-  }, [isLoading])
-
-  useEffect(()=>{
-    console.log("noStoryFound: ", noStoryFound)
-    console.log("projectId: ", projectId)
-    console.log("profileToUse: ", profileToUse)
-    console.log("isModalOpen: ", isModalOpen)
-    console.log("projectId: ", projectId)
     if(profileToUse && !projectId){
       setIsLoading(true);
       const titleTime = setTimeout(()=>{
@@ -1340,7 +1247,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       navigate(-1);
     };
 
-    // Push a dummy state to history so popstate triggers on back
     window.history.pushState(null, "", window.location.href);
     
     window.addEventListener("popstate", handleBack);
@@ -1391,7 +1297,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         setIsPdfDownloading(true);
         
         
-        // Fetch story by session ID
         const story = await getStoryBySession(sessionid, access_token);
         
         const story_media = story[0]?.story_media;
@@ -1409,14 +1314,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 const reader = response.body.getReader();
                 const chunks = [];
 
-                // Read the stream and push chunks to array
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
                     chunks.push(value);
                 }
 
-                // Create a Blob from the chunks
                 const blob = new Blob(chunks);
                 const a = document.createElement('a');
                 const url = window.URL.createObjectURL(blob);
@@ -1425,7 +1328,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 document.body.appendChild(a);
                 a.click();
 
-                // Cleanup
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
             } else {
@@ -1459,7 +1361,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       return;
     }
 
-    // setIsLoading(true);
     setIsFetchingOldIntro(true);
 
     try {
@@ -1469,7 +1370,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         
         let sortedResult = quickSort(resp?.data?.results, compareById);
 
-        // Ensure intro message is added only once
         if (introMessageRef.current) {
             const temp_intro = introMessageRef.current;
             setSentences((prev) => [
@@ -1488,10 +1388,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 updated_at: 'intro_msg_id',
             });
 
-            introMessageRef.current = ""; // Clear intro message after use
+            introMessageRef.current = "";
         }
 
-        // Process chat messages
         sortedResult.forEach((chats) => {
             let messageToUse = chats?.message;
             if (chats?.translated_message && chats?.translated_message !== ''){
@@ -1516,14 +1415,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             });
         });
 
-        // Update chat history
         const newChatHistoryItems = newChatSessionDetail.map((item) => ({
             msg: item.msg,
             source: item.source,
             updated_at: item.updated_at,
         }));
-        
-        // Avoid adding duplicates
         
         setChatHistory((prev) => {
             const existingMessages = new Set(prev.map(msg => msg.msg));
@@ -1539,7 +1435,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     } catch (error) {
         console.error('Error fetching company chat data:', error);
     } finally {
-        // setIsLoading(false);
         setIsFetchingOldIntro(false);
         if(projectId) {
           setIsLoading(false);
@@ -1681,7 +1576,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const handleSendMessage = useCallback(
     async (event, currentSocket) => {
-      console.log("Send event: ", event);
       if (event) {
         event.preventDefault();
         event.stopPropagation();
@@ -1690,10 +1584,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       localStorage.removeItem('llmError');
   
       try {
-        console.log("message: ", textMessage);
         const socket = await MakeSocketConnection(textMessage, currentSocket);
-  
-        console.log("Send socket: ", socket);
         setIsChatVisible(true);
         setShowHomepage(false);
         setNotMute(true);
@@ -1725,7 +1616,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     e.preventDefault();
     setTextMessage(e.target.value);
     
-    // If the input is cleared, reset the recognition flags
     if (e.target.value.trim() === "") {
       setIsRecognizing(false);
       setHasStartedListening(false);
@@ -1795,7 +1685,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         route: storedRoute
       });
       
-      // Return the audio content
       return response.data.audio;
     } catch (error) {
       console.error('Error fetching AI4Bharat audio:', error);
@@ -1811,12 +1700,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       let audio_result = "";
       let audio;
   
-      // Mark sentence as narrated if override ID is not set
       if (!hasOverRideId) {
         handleMessagesForBot(text);
       }
   
-      // If muted, mark all sentences as narrated and skip TTS
       if (isMute && !hasOverRideId) {
         setSentences((prev) => {
           let all_sentences = JSON.parse(JSON.stringify([...prev]));
@@ -1827,7 +1714,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         return;
       }
   
-      // Fetch the audio result using AI4Bharat TTS service if not cached
       if (!cachedAudioUrl) {
         audio_result = await getAI4BharatAudio(text, sourceLanguage);
         if (audio_result?.length) {
@@ -1843,12 +1729,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         audioRef.current = new Audio(cachedAudioUrl);
         audio = audioRef.current;
   
-        // Disable next sentence narration while current audio is playing
         audio.onplay = () => {
           setIsNextAllowed(false);
         };
   
-        // Enable next sentence narration after the current audio ends
         audio.onended = () => {
           setSentences((prev) => {
             let all_sentences = JSON.parse(JSON.stringify([...prev]));
@@ -1900,7 +1784,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         route: storedRoute
       });
       
-      // Return the audio content
       return response.data.transcript;
     } catch (error) {
       console.error('Error fetching AI4Bharat audio:', error);
@@ -2003,7 +1886,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           const recorder = new MediaRecorder(stream);
           setMediaRecorder(recorder);
   
-          // Clear previous audio chunks before starting new recording
           const localAudioChunks = [];
   
           recorder.start();
@@ -2011,7 +1893,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           
   
           recorder.ondataavailable = (event) => {
-            // Collect audio data chunks in the local array
             localAudioChunks.push(event.data);
             
           };
@@ -2019,21 +1900,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           recorder.onstop = async () => {
             
             if (localAudioChunks.length > 0) {
-              // Combine all audio chunks into a single Blob
               const audioBlob = new Blob(localAudioChunks, { type: 'audio/webm;codecs=opus' });
               
   
-              // Check if the audio blob contains any significant sound
               const wavBlob = await convertToWav(audioBlob);
               if (!wavBlob) {
                 
-                return; // Skip if no meaningful audio
+                return;
               }
               setIsFetchingData(true);
-              // Convert to Base64 and send to the ASR API
               const base64Audio = await convertBlobToBase64(wavBlob);
               const transcriptResult = await ai4BharatASR(base64Audio);
-              // Update transcript if valid audio
               setTextMessage(transcriptResult);
               setIsFetchingData(false);
             } else {
@@ -2051,7 +1928,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   };
   
-  // Function to check if the audio contains significant sound
   const containsSignificantAudio = (audioBuffer, threshold = 0.3) => {
     const numOfChannels = audioBuffer.numberOfChannels;
     const channelData = [];
@@ -2060,19 +1936,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       channelData.push(audioBuffer.getChannelData(i));
     }
   
-    // Check each sample in each channel for significant sound
     for (let i = 0; i < channelData[0].length; i++) {
       for (let channel = 0; channel < numOfChannels; channel++) {
         if (Math.abs(channelData[channel][i]) > threshold) {
-          return true; // There is significant sound
+          return true; 
         }
       }
     }
   
-    return false; // No significant sound detected
+    return false; 
   };
   
-  // Function to convert the audio to WAV and check for silence
   const convertToWav = async (audioBlob) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -2083,11 +1957,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         try {
           const buffer = await audioContext.decodeAudioData(audioData.buffer);
           
-          // If no significant audio is detected, return null
           if (!containsSignificantAudio(buffer)) {
             resolve(null);
           } else {
-            // Convert to WAV and return the blob if audio is valid
             const wavData = bufferToWave(buffer, buffer.length);
             const wavBlob = new Blob([wavData], { type: 'audio/wav' });
             resolve(wavBlob);
@@ -2099,19 +1971,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       reader.readAsArrayBuffer(audioBlob);
     });
   };
-  // Function to convert audio buffer to WAV format
   const bufferToWave = (abuffer, len) => {
     const numOfChannels = abuffer.numberOfChannels;
     const sampleRate = abuffer.sampleRate;
-    const format = 1; // PCM
-    const bitDepth = 16; // 16-bit PCM
+    const format = 1;
+    const bitDepth = 16;
     const byteRate = sampleRate * numOfChannels * (bitDepth / 8);
     const blockAlign = numOfChannels * (bitDepth / 8);
     const wavLength = 44 + len * blockAlign;
     const buffer = new ArrayBuffer(wavLength);
     const view = new DataView(buffer);
   
-    // Write WAV header
     let offset = 0;
     const writeString = (str) => {
       for (let i = 0; i < str.length; i++) {
@@ -2120,27 +1990,25 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       offset += str.length;
     };
   
-    // RIFF header
     writeString('RIFF');
-    view.setUint32(offset, wavLength - 8, true); // file length
+    view.setUint32(offset, wavLength - 8, true); 
     offset += 4;
-    writeString('WAVE'); // wave format
+    writeString('WAVE'); 
   
-    // Format chunk
     writeString('fmt ');
-    view.setUint32(offset, 16, true); // chunk length
+    view.setUint32(offset, 16, true); 
     offset += 4;
-    view.setUint16(offset, format, true); // format type
+    view.setUint16(offset, format, true);
     offset += 2;
-    view.setUint16(offset, numOfChannels, true); // channels
+    view.setUint16(offset, numOfChannels, true);
     offset += 2;
-    view.setUint32(offset, sampleRate, true); // sample rate
+    view.setUint32(offset, sampleRate, true);
     offset += 4;
-    view.setUint32(offset, byteRate, true); // byte rate
+    view.setUint32(offset, byteRate, true);
     offset += 4;
-    view.setUint16(offset, blockAlign, true); // block align
+    view.setUint16(offset, blockAlign, true);
     offset += 2;
-    view.setUint16(offset, bitDepth, true); // bits per sample
+    view.setUint16(offset, bitDepth, true); 
     offset += 2;
   
     writeString('data');
@@ -2172,7 +2040,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   
   const stopRecording = () => {
     if (mediaRecorder) {
-      mediaRecorder.stop(); // Stop the recording
+      mediaRecorder.stop();
       setHasStartedRecording(false);
       
     }
@@ -2224,7 +2092,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     
     localStorage.setItem('has_accepted_tnc', false)
     setAcceptedTnC(false);
-    // navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
     navigate(-1)
   }
 
@@ -2299,7 +2166,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       </div> }
       {(storyData && isModalOpen)&& 
         handleEditClick()
-        // defaultEditorClick(storyData?.title, storyData?.author?.first_name, storyData?.location )
       }
       <div className={`${projectId? 'div72' : isOpen? 'div71': ''}`}>
       {(projectId)&& 
@@ -2331,7 +2197,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 key={i}
                 className={`div34 div35 ${
                   chat?.source === "user" ? "label1" : "label1"
-                }`}  // Align messages based on the source
+                }`} 
               >
         
                 <div className={`div36 ${chat?.source === "user"&& 'div37'}`}>
@@ -2767,9 +2633,7 @@ export function clearFromStorage() {
 export async function handleFileUpload(e, storyData, files, setFileErrorText, fileSizeText, access_token, setFiles, setError, projectId, setIsLoading, navigate) {
     
   const story_id = storyData?.id;
-  console.log("test: ", setIsLoading)
   if (!story_id || story_id === '') return;
-  // setIsLoading(true);
   const selectedFiles = Array.from(e.target.files); 
   const maxFileSize = 50 * 1024 * 1024; 
   const currentFiles = [...files];  
@@ -2777,7 +2641,6 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
   const uploadPromises = selectedFiles.map((uploadedFile) => {
     if (uploadedFile.size > maxFileSize) {
       setFileErrorText(fileSizeText);
-      // Skip oversized files
       setIsLoading(false);
       return Promise.resolve();
     }
@@ -2805,12 +2668,10 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
     formData.append('session', JSON.parse(localStorage.getItem('sessionid')));
     formData.append("media_type", mediaType);
 
-    // Return a promise for each file upload
     return uploadImage(formData, setError, projectId, navigate, setIsLoading, access_token, setFiles);
   });
 
   return Promise.all(uploadPromises).then((uploadedFiles) => {
-    // Filter out undefined entries (for skipped files)
     const validFiles = uploadedFiles.filter(Boolean);
     setFiles([...currentFiles, ...validFiles]);
   });
@@ -2822,32 +2683,26 @@ const uploadImage = (formData, setError, projectId, navigate, setIsLoading, acce
       createStoryMedia({
         setter: (uploadedFile) => {
           setFiles((prevFiles) => [...prevFiles, uploadedFile]);
-          // window.location.reload()
         },
         errorHandler: (err) => {
-          //navigate(ROUTES.EXIT_ROUTE)
           if (projectId){
             clearFromStorage()
             navigate(-1)
-            // window.location.href=ROUTES.EXIT_ROUTE;
 
           }
           setError(err);
           setIsLoading(false);
           reject(err); 
         },
-        // loader: setIsLoading,
         data: formData,
         loader: setIsLoading,
         token: access_token,
       });
     } catch (error) {
       console.error({ error });
-      //navigate(ROUTES.EXIT_ROUTE)
       if (projectId){
         clearFromStorage()
         navigate(-1)
-        // window.location.href=ROUTES.EXIT_ROUTE;
 
       }
         setIsLoading(false);

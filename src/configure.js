@@ -1,7 +1,5 @@
 import { getDomainDetail } from "./utils";
 
-// combined logo
-
 import ROUTES from "./url";
 
 export const lang_codes = {

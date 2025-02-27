@@ -289,11 +289,11 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
                           },
                           token: localStorage.getItem('accToken'),
                       });
-                      resolve(); // Resolve the promise here
+                      resolve();
                   },
                   errorHandler: (error) => {
                       setError(error);
-                      reject(error); // Reject the promise on error
+                      reject(error);
                   },
                   loader: setIsLoading,
                   data: formData,
@@ -303,11 +303,11 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
               updateStoryMedia({
                   setter: (data) => {
                       setError({});
-                      resolve(); // Resolve the promise here
+                      resolve(); 
                   },
                   errorHandler: (error) => {
                       setError(error);
-                      reject(error); // Reject the promise on error
+                      reject(error);
                   },
                   loader: setIsLoading,
                   data: {
@@ -364,7 +364,7 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
   
           for (let i = 0; i < container.length; i++) {
               const element = container[i];
-              const uniqueKey = element.outerHTML;  // Use outerHTML to identify duplicates
+              const uniqueKey = element.outerHTML; 
   
               if (!seenElements.has(uniqueKey)) {
                   seenElements.add(uniqueKey);
@@ -442,7 +442,6 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
       formData.append("media_type", 'application/pdf');
       formData.append('access_token', localStorage.getItem('accToken'));
       formData.append('session', JSON.parse(localStorage.getItem('sessionid')));
-      // const uploadFilePromise = await uploadFile(formData, file, `${storyData?.title}.pdf`, story_media[0]?.id, storyData?.id);
 
       
       uploadFile(formData, file, `${storyData?.title}.pdf`, story_media[0]?.id, storyData?.id)
@@ -454,14 +453,6 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
         .catch((error) => {
             console.error('Error uploading file:', error);
         });
-      
-      // .finally(() => {
-      //   // setIsLoading(false);
-      //   // downloadTriggeredRef.current = false;
-      //   // setTimeout(() => {
-      //   //   handleDownloadStop();
-      //   // }, 3000);
-      // });
     }
   
     function addPages(){
@@ -607,9 +598,6 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
     return (
         <div className="container mx-auto" id="mainDivStory">
             <div ref={pdfRef} style={{
-                // position: 'absolute',
-                // left: '-9999px',
-                // top: '-9999px',
             }}>
             {showPdfAccToCompany()}
             </div>
