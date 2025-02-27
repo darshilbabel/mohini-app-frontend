@@ -974,6 +974,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         setEditorCopyChanges(textBlocks);
         setIsModalOpen(true);
         setNoStoryFound(false);
+        setShowFileInput(true);
       } else {
         if(!llmError) {
           setNoStoryFound(true);
