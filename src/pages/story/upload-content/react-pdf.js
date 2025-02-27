@@ -251,7 +251,4 @@ const Quixote = () => (
     );
   }
   
-//   ReactDOM.render(<ReactPDFGenerator />, document.getElementById("root2"));
-  
-  
   export default ReactPDFGenerator;

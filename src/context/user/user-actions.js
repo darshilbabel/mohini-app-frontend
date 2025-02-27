@@ -1,4 +1,3 @@
-//actions
 const USER_ACTIONS = Object.freeze({
     LOGIN: "LOGIN",
     RESET: "RESET",
