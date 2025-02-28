@@ -8,6 +8,7 @@
     "upload": "Add Photos",
     "storyText": "Here is your improvement story",
     "downloadStoryText": "Download Story",
+    "viewStoryText": "View Story",
     "reDownloadStoryText": "Regenerate Story",
     "editStoryText": "Edit Story",
     "storyLoader": "Creating your story, this may take a moment. Please wait...",

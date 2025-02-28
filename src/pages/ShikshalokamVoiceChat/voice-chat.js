@@ -22,6 +22,7 @@ import DOMPurify from "dompurify";
 import rehypeRaw from 'rehype-raw';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { BiLoader } from "react-icons/bi";
+import { AiOutlineEye } from "react-icons/ai";
 import { getSessionDetails } from "../../services/api.service";
 import Sidebar from "./shikshaChatSidebar";
 import MainHeader from "./shikshaChatHeader";
@@ -48,6 +49,7 @@ import { useTranslation } from "react-i18next";
 import UploadImages from "./upload-images";
 import { TbReload } from "react-icons/tb";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import { setLanguage } from "../../i18n";
 
 
 const cookies = new Cookies();
@@ -143,7 +145,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [showFileInput, setShowFileInput] = useState(null);
   const [shouldSendMessage, ] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(storyData? true: false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [acceptedTnc, setAcceptedTnC] = useState(localStorage.getItem('has_accepted_tnc')|| 'ONGOING');
   const [stateMachineLength, setStateMachineLength] = useState(localStorage.getItem('statemachine_length') || 0);
 
@@ -246,6 +248,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           const language = preferredLanguage.value || "en";
           localStorage.setItem('route', JSON.stringify(language));
           setLanguageToUse((language || "en"));
+          setLanguage((language || "en"))
           localStorage.setItem('profileid', data?.id);
           setProfileToUse(data?.id)
           let sessionid = localStorage.getItem('sessionid');
@@ -633,6 +636,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             <PrimaryButton
               onClick={async () => {
                 try {
+                  setIsLoading(true);
                   const outputData = await editor.save();
                   
                   
@@ -648,24 +652,20 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     },
                     token: access_token,
                   });
-                  
-                  if(projectId){
-                    await updateReflectionStatus();
-                  } else{
-                    window.location.reload()
-                  }
-
                 } catch (error) {
+                  setIsLoading(false);
                   console.error("Saving failed: ", error);
                   if (projectId){
                     clearFromStorage()
                     navigate(-1)
                   }
+                } finally {
+                  window.location.reload()
                 }
               }}
               disabled={isLoading || isSaving}
             >
-              {t('EditorConfirm')}
+              {t('saveChanges')}
 
             </PrimaryButton>
             </div>
@@ -972,7 +972,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         
         const textBlocks = extractTextBlocks(formatted_content);
         setEditorCopyChanges(textBlocks);
-        setIsModalOpen(true);
+        // setIsModalOpen(true);
         setNoStoryFound(false);
         setShowFileInput(true);
       } else {
@@ -2414,6 +2414,30 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     </div>
                   </button>
                 </div>
+                {(projectId)&& <div className="div20">
+                  <button
+                    className="clickable-button"
+                    onClick={async ()=>{
+                      if(projectId){
+                        setIsLoading(true);
+                        await updateReflectionStatus();
+                      } else{
+                        window.location.reload()
+                      }
+    
+                    }}
+                    disabled={isLoading || isPdfDownloading}
+                  >
+                    <div className="download-story-div">
+                      <AiOutlineEye className="icon-1" />
+                      <span className="div16" ref={endPageToScrollRef}>
+                      {t('viewStoryText')}
+                      </span>
+                    </div>
+                  </button>
+
+                  {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
+                </div>}
               </div>
             </>
           )}
