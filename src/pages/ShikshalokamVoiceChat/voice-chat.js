@@ -2435,8 +2435,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       </span>
                     </div>
                   </button>
-
-                  {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
                 </div>}
               </div>
             </>
