@@ -218,7 +218,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [projectId, profileToUse])
 
   useEffect(() => {
-    if (isLoading || isEndStoryLoading) {
+    if (isLoading || isEndStoryLoading || isModalOpen) {
       document.body.style.overflowY = "hidden";
     } else {
       document.body.style.overflowY = "auto";
@@ -227,7 +227,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return () => {
       document.body.style.overflowY = "auto";
     };
-  }, [isLoading, isEndStoryLoading]);
+  }, [isLoading, isEndStoryLoading, isModalOpen]);
 
   useEffect(() => {
     async function createUserProfile() {
