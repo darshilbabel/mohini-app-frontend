@@ -1881,6 +1881,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      setTextMessage('')
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then((stream) => {
@@ -2328,7 +2329,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   </label>
                 </div>
 
-                {files?.length > 0 && (
+                {files?.length > 0 ? (
                   <div className="div18">
                     <h4 className="h4-1">{t('uploadedFiles')}:</h4>
                     <ul>
@@ -2356,7 +2357,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       )}
                     </ul>
                   </div>
-                )}
+                ):
+                 (<div className="div18">
+                    <ul>
+                      {fileErrorText && (
+                        <li className="li-1">
+                          {fileErrorText}
+                        </li>
+                      )}
+                    </ul>
+                  </div>)
+                }
+
               </div>
 
               <div className="div19">
