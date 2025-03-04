@@ -1881,6 +1881,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      setTextMessage('')
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then((stream) => {
