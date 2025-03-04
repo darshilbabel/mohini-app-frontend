@@ -2319,7 +2319,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       onChange={(e)=>{
                         handleFileUpload(
                           e, storyData, files, setFileErrorText, fileSizeText, access_token, 
-                          setFiles, setError, projectId, setIsLoading, navigate
+                          setFiles, setError, projectId, setIsLoading, navigate, t
                         )
                       }} 
                       disabled={isLoading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
@@ -2653,7 +2653,7 @@ export function clearFromStorage() {
 }
 
 
-export async function handleFileUpload(e, storyData, files, setFileErrorText, fileSizeText, access_token, setFiles, setError, projectId, setIsLoading, navigate) {
+export async function handleFileUpload(e, storyData, files, setFileErrorText, fileSizeText, access_token, setFiles, setError, projectId, setIsLoading, navigate, t) {
     
   const story_id = storyData?.id;
   if (!story_id || story_id === '') return;
@@ -2668,7 +2668,7 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
       return Promise.resolve();
     }
     const fileName = uploadedFile?.name;
-    const fileExtension =  fileName ?  fileName.split('.').pop().toLowerCase() : '';
+    const allowedExtensions = ["jpeg", "jpg", "png", "svg", "webp"];
     const mediaTypes = {
       "jpeg": "image/jpeg",
       "jpg": "image/jpeg",
@@ -2676,6 +2676,13 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
       "svg": "image/svg+xml",
       "webp": "image/webp"
     };
+    const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
+
+    if (!allowedExtensions.includes(fileExtension)) {
+      setFileErrorText(t("fileTypeErrorText"));
+      setIsLoading(false);
+      return Promise.resolve();
+    }
     
     const mediaType = mediaTypes[fileExtension] || null;
     

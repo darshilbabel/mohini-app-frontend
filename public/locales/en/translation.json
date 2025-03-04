@@ -48,5 +48,7 @@
     "EditorSecondTab": "Gallery",
     "saveChanges": "Save Changes",
     "chooseFile": "Choose File",
-    "editorPlaceholder": "Start writing here..."
+    "editorPlaceholder": "Start writing here...",
+    "fileTypeErrorText": "Only JPEG, JPG, PNG, SVG, and WEBP formats are supported."
+
 }
