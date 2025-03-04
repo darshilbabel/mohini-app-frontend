@@ -218,7 +218,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [projectId, profileToUse])
 
   useEffect(() => {
-    if (isLoading || isEndStoryLoading || isModalOpen) {
+    if (isLoading || isEndStoryLoading || isModalOpen || acceptedTnc==="ONGOING") {
       document.body.style.overflowY = "hidden";
     } else {
       document.body.style.overflowY = "auto";
