@@ -159,7 +159,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     ]
  }; 
 
- const selectedType = JSON.parse(localStorage.getItem('selected_type')) || selectedLabel.types[0].value;
+ const [selectedType, setSelectedType] = useState(JSON.parse(localStorage.getItem('selected_type')) || selectedLabel.types[0].value);
 
   const endPageToScrollRef = useRef(null);
 
@@ -1130,6 +1130,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             let sessionInfo = await getSessionInfo();
             if(sessionInfo && sessionInfo.length>0) {
               setStrandStep(sessionInfo[0]?.current_step)
+              if(sessionInfo[0]?.session_type) {
+                localStorage.setItem('selected_type', JSON.stringify(sessionInfo[0]?.session_type))
+                setSelectedType(sessionInfo[0]?.session_type)
+              }
             }
           }
           if (message && firstName) {
@@ -2204,7 +2208,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     botNameToDisplay={botNameToDisplay}
                     userType={chat?.source}
                     message={`${chat?.msg}`}
-                    name={"You"}
+                    name={t("userName")}
                     recording={chat?.recording}
                     hasAppendix={chat?.recording}
                     appendixURL={chat?.appendixURL}
@@ -2653,7 +2657,7 @@ export function clearFromStorage() {
   const keysToRemove = [
     'botName', 'chat-history', 'company', 'first_name', 'has_accepted_tnc', 'intro_message', 
     'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
-    'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length'
+    'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type'
   ];
 
   keysToRemove.forEach((key) => {
