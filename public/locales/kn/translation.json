@@ -49,6 +49,7 @@
     "saveChanges": "ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ",
     "chooseFile": "ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ",
     "editorPlaceholder": "ಇಲ್ಲಿ ಬರೆಯಲು ಪ್ರಾರಂಭಿಸಿ...",
-    "fileTypeErrorText": "ಮಾತ್ರ JPEG, JPG, PNG, SVG ಮತ್ತು WEBP ಸ್ವರೂಪಗಳು ಬೆಂಬಲಿತವಾಗಿವೆ."
+    "fileTypeErrorText": "ಮಾತ್ರ JPEG, JPG, PNG, SVG ಮತ್ತು WEBP ಸ್ವರೂಪಗಳು ಬೆಂಬಲಿತವಾಗಿವೆ.",
+    "userName": "ನೀವು"
 
 }

@@ -370,8 +370,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           setShowFileInput(true);
           localStorage.removeItem('llmError');
           window.location.reload();
-          setIsEndStoryLoading(false);
-          setIsLoading(false);
         } else {
           localStorage.setItem('llmError', endStoryResponse?.data?.error_message)
           setLlmError(endStoryResponse?.data?.error_message)
@@ -1682,7 +1680,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       const response = await axiosInstance.post('api/text_to_speech/', {
         text: text,
         source_language: sourceLanguage,
-        gender: gender,
         route: storedRoute
       });
       
@@ -2476,7 +2473,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             }
           <div id="last-chat-boundary" className="div38" />
         </div>
-        {(!showFileInput && !isLoading)&&       
+        {(!showFileInput && !isLoading && (llmError==='' || !llmError))&&       
           <form
             className="div39 form-1"
             onSubmit={handleSendMessage}
