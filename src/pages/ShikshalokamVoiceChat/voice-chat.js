@@ -370,8 +370,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           setShowFileInput(true);
           localStorage.removeItem('llmError');
           window.location.reload();
-          setIsEndStoryLoading(false);
-          setIsLoading(false);
         } else {
           localStorage.setItem('llmError', endStoryResponse?.data?.error_message)
           setLlmError(endStoryResponse?.data?.error_message)
@@ -2476,7 +2474,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             }
           <div id="last-chat-boundary" className="div38" />
         </div>
-        {(!showFileInput && !isLoading)&&       
+        {(!showFileInput && !isLoading && (llmError==='' || !llmError))&&       
           <form
             className="div39 form-1"
             onSubmit={handleSendMessage}
