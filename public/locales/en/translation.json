@@ -49,6 +49,6 @@
     "saveChanges": "Save Changes",
     "chooseFile": "Choose File",
     "editorPlaceholder": "Start writing here...",
-    "fileTypeErrorText": "Only JPEG, JPG, PNG, SVG, and WEBP formats are supported."
-
+    "fileTypeErrorText": "Only JPEG, JPG, PNG, SVG, and WEBP formats are supported.",
+    "userName": "You"
 }
