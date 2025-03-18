@@ -64,6 +64,13 @@ function Login({ type, variant }) {
     setLanguage(e.target.value)
   };
 
+  const handlePhoneChange = (e) => {
+    if (e?.target?.value?.length <= 10) {
+      const numericInput = e?.target?.value?.replace(/[^0-9]/g, "");
+      setPhoneNumberField(numericInput);
+    }
+  };
+
   const handleStateChange = (e) => {
     setUserState({
       key: e?.target?.selectedOptions[0]?.text,
@@ -195,10 +202,12 @@ function Login({ type, variant }) {
       }, 10000);
       return;
     }
+    const customEmail = phoneNumberField + "@shikshalokam.org"
 
     const body = {
       first_name: firstName,
-      email: emailId,
+      email: phoneNumberField? customEmail : emailId,
+      phone: phoneNumberField,
       preferred_route: userLanguage,
       company: "shikshalokamstaging",
       password: "grit@123",
@@ -229,7 +238,7 @@ function Login({ type, variant }) {
       url: login_api_url,
       method: "POST",
       data: {
-        email: emailId,
+        email: phoneNumberField? customEmail : emailId,
         password: "grit@123",
       },
     });
@@ -266,12 +275,19 @@ function Login({ type, variant }) {
       <div className="px-5 hidden sm:block">
           <div className="flex">
             <img
-              src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/shikshalokam-logo.png"
+              src="https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/shikshagrahaLogo.png"
               className="h-[100px] w-[200px] object-contain aspect-auto align-top object-[center_center] relative ml-0"
               alt="shikshalokam_logo"
             />
           </div>
-          
+          <div>
+            <div className="text-left sm:text-2xl text-md text-slate-700">
+              <b>Share Your Impact Story Easily</b>
+            </div>
+            <p className="pt-4 pb-4">
+              MItra is an AI-powered multi lingual, voice-enabled chatbot that helps education leaders (teachers, school leaders, community leaders, parent, youth leaders, etc.) reflect and share their micro-improvement journeys towards improving schools. Through guided prompts, MItra enables leaders to share their highlights, challenges and impact of their school improvement efforts, compiling responses into an inspiring and meaningful story.
+            </p>
+          </div>
         <img
           src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
           width="500"
@@ -283,21 +299,19 @@ function Login({ type, variant }) {
       <div className="">
         <div className="justify-center w-full flex sm:hidden">
           <div className="w-[100%]">
-            
                 <div className="flex p-2 mx-auto px-auto items-center justify-center">
-                 <img
-                  src="https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/shikshalokam_logo_pdf.png"
-                  className="h-[60px] w-[auto] mt-6 mb-2 object-fill aspect-auto align-top object-[center_center] relative ml-2"
-                  alt="grit_Logo"
-                />
+                  <img
+                    src="https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/shikshagrahaLogo.png"
+                    className="h-[100px] w-[200px] object-contain aspect-auto align-top object-[center_center] relative ml-0"
+                    alt="shikshalokam_logo"
+                  />
               </div>
           </div>
         </div>
         <div className="bg-slate-50 h-full sm:pt-6">
-
             <>
               <div className="text-center sm:text-2xl text-md pt-10 text-slate-700">
-                <b>Welcome to ShikshaLokam!!</b>
+                <b>Welcome</b>
               </div>
             </>
           <div className="p-2 text-center">
@@ -320,11 +334,18 @@ function Login({ type, variant }) {
               </>
 
                 <>
-                  <FormData layOut={1} isRequired={true}  labelName="E-mail ID" id="emailID" inputType="email" inputName="email" placeholder="Email ID"
+                  {/* <FormData layOut={1} isRequired={true}  labelName="E-mail ID" id="emailID" inputType="email" inputName="email" placeholder="Email ID"
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     inputClass="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     inputOnChange={handleEmailChange}
                     inputValue = {emailId}
+                  /> */}
+                  <FormData layOut={1} isRequired={true}  labelName="Phone Number" id="phnNumID" inputType="text" inputName="phoneNumber" placeholder="Phone number"
+                    labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
+                    inputClass="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
+                    inputOnChange={handlePhoneChange}
+                    fieldError={fieldError}
+                    inputValue = {phoneNumberField}
                   />
                   <FormData layOut={2} labelName="language" id="languageID" selectID="languageID" selectName="language"
                     selectOptions={languageList}
@@ -332,6 +353,7 @@ function Login({ type, variant }) {
                     selectValue = {userLanguage}
                     selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleLanguageChange}
+                    isRequired={true}
                   />
                   <FormData layOut={2} labelName="State" id="stateNameID" selectID="stateNameID" selectName="stateName"
                     selectOptions={stateLabelArray}
@@ -371,8 +393,8 @@ function Login({ type, variant }) {
                 )}
                 <button
                   id="demo"
-                  className=" p-3 mt-6 mb-2 px-5 py-3 bg-mira-red-original hover:bg-mira-red-original text-white rounded-md"
-                  style={{backgroundColor: "#c3234a"}}
+                  className=" p-3 mt-6 mb-2 px-5 py-3 text-white rounded-md"
+                  style={{backgroundColor: "#572E91"}}
                   type="submit"
                 >
                   Let's Get Started

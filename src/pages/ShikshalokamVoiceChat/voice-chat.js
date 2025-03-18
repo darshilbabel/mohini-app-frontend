@@ -1680,7 +1680,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       const response = await axiosInstance.post('api/text_to_speech/', {
         text: text,
         source_language: sourceLanguage,
-        gender: gender,
         route: storedRoute
       });
       
