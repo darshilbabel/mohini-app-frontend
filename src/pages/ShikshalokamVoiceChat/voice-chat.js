@@ -423,10 +423,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(()=>{
     const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'))
     const flow = localStorage.getItem('flow')
-    if(isOldChatOpen === true && (hasFetchIntro || flow==='login') ) {
+    if(isOldChatOpen === true && (hasFetchIntro || flow==='login') && chatHistory?.length === 0 && sentences?.length === 0) {
       handleChatSessionButtonClick({key: null})
     }
-  }, [isNewChatOpen, hasFetchIntro])
+  }, [isNewChatOpen, hasFetchIntro, chatHistory, sentences])
 
 
   useEffect(() => {
@@ -927,6 +927,22 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     </div>
   }
 
+  useEffect(() => {
+    if (
+      chatHistory && chatHistory.length > 0 && !isLoading && !isEndStoryLoading && 
+      chatHistory[chatHistory.length - 1]?.source === "bot" && isMute && isStreamingComplete && 
+      acceptedTnc && acceptedTnc!=="ONGOING"
+    ) {
+      const speakerButtons = document.querySelectorAll(".button-11.button-3");
+      const lastSpeakerButton = speakerButtons[speakerButtons.length - 1];
+  
+      if (lastSpeakerButton) {
+        lastSpeakerButton.click();
+      }
+    }
+  }, [chatHistory, isLoading, isEndStoryLoading, isStreamingComplete, isMute, acceptedTnc]);
+  
+
   useEffect(()=>{
     if(chatHistory?.length!== 0){
       localStorage.setItem('isChatVisible', true);
@@ -1042,136 +1058,137 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
 
   }
+  const fetchBotInfo = async () => {
+      
+    setIsIntroLoading(true);
+    let companyName = await getCompanyDetail();
+    try {
+      let filter_route = bot_routes.reflection;
+      if (selectedType === 'normal') {
+        if (localStorage.getItem('flow') && localStorage.getItem('flow') === 'login') {
+          filter_route=bot_routes.normal
+        } 
+      } else {
+        filter_route=bot_routes.oneshot
+      }
+      const response = await axiosInstance({
+        url: company_bot_list_url,
+        params: {
+          company__slug: companyName,
+          target_language: languageToUse,
+          route: filter_route
+        },
+      });
+      const bots = response?.data?.results;
+      
+
+      if (bots) {
+        let storedRoute = '/';
+
+        if (selectedType === 'oneshot'){
+          storedRoute = '/oneshot_bot';
+        } else {
+          if(localStorage.getItem('flow') && localStorage.getItem('flow') === 'login'){
+            storedRoute = '/';
+          } else {
+            storedRoute = '/reflection';
+          }
+        }
+        
+        let selectedBot = bots.find(bot => bot.route === storedRoute);
+        if (!selectedBot) {
+          selectedBot = bots[0] || { route: '/' };
+        }
+        localStorage.setItem('statemachine_length', selectedBot?.statemachine_length);
+        setStateMachineLength(selectedBot?.statemachine_length)
+      }
+     
+      // if (!shouldFetchIntro || chatHistory?.length) return;
+
+      if (languageToUse && bots && bots.length > 0) {
+        let latestBot;
+        let storedRoute = '/';
+        for (const bot of bots) {
+          if(isShikshalokamPublicType){
+            if (selectedType === 'oneshot'){
+              storedRoute = '/oneshot_bot';
+            } else {
+              if(localStorage.getItem('flow') && localStorage.getItem('flow') === 'login'){
+                storedRoute = '/';
+              } else {
+                storedRoute = '/reflection';
+              }
+            }
+            if (bot.route === storedRoute){
+              latestBot = bot
+            }
+          }
+          else if (!latestBot || new Date(bot.created_at) > new Date(latestBot.created_at)) {
+            latestBot = bot;
+          }
+        }
+        if (!latestBot) {
+          handleFirstMessage('');
+          return;
+        }
+        
+        let firstName = JSON.parse(localStorage.getItem("first_name")) || '';
+        
+        let data = await getTranslatedIntroMessage(storedRoute)
+        let message = data[0]?.introductory_message
+        const botName = data[0]?.name || 'Bot';
+        localStorage.setItem('botName', botName);
+        setBotNameToDisplay(botName);
+        const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'))
+        if(isOldChatOpen) {
+          let sessionInfo = await getSessionInfo();
+          if(sessionInfo && sessionInfo.length>0) {
+            setStrandStep(sessionInfo[0]?.current_step)
+            if(sessionInfo[0]?.session_type) {
+              localStorage.setItem('selected_type', JSON.stringify(sessionInfo[0]?.session_type))
+              setSelectedType(sessionInfo[0]?.session_type)
+            }
+          }
+        }
+        if (message && firstName) {
+          const words = message.split(' ');
+          words.splice(1, 0, firstName);
+          message = words.join(' ');
+        }
+        if (
+          message && !!message?.trim() && (chatHistory[chatHistory?.length - 1]?.msg !== message) && 
+          !sentences.some((msg) => msg.message === message)
+        ) {
+          localStorage.setItem('intro_message', message);
+          setSentences((prev) => [
+            ...prev,
+            {
+              message: message,
+              isNarrated: false,
+                id: 'intro_msg_id',
+              // id: new Date().valueOf(),
+            },
+          ]);
+        }
+      }
+
+    } catch (error) {
+      console.error({ error });
+    } finally {
+      setHasFetchIntro(true);
+      setShouldFetchIntro(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBotInfo = async () => {
-      
-      setIsIntroLoading(true);
-      let companyName = await getCompanyDetail();
-      try {
-        let filter_route = bot_routes.reflection;
-        if (selectedType === 'normal') {
-          if (localStorage.getItem('flow') && localStorage.getItem('flow') === 'login') {
-            filter_route=bot_routes.normal
-          } 
-        } else {
-          filter_route=bot_routes.oneshot
-        }
-        const response = await axiosInstance({
-          url: company_bot_list_url,
-          params: {
-            company__slug: companyName,
-            target_language: languageToUse,
-            route: filter_route
-          },
-        });
-        const bots = response?.data?.results;
-        
-  
-        if (bots) {
-          let storedRoute = '/';
-
-          if (selectedType === 'oneshot'){
-            storedRoute = '/oneshot_bot';
-          } else {
-            if(localStorage.getItem('flow') && localStorage.getItem('flow') === 'login'){
-              storedRoute = '/';
-            } else {
-              storedRoute = '/reflection';
-            }
-          }
-          
-          let selectedBot = bots.find(bot => bot.route === storedRoute);
-          if (!selectedBot) {
-            selectedBot = bots[0] || { route: '/' };
-          }
-          localStorage.setItem('statemachine_length', selectedBot?.statemachine_length);
-          setStateMachineLength(selectedBot?.statemachine_length)
-        }
-       
-        if (!shouldFetchIntro || chatHistory?.length) return;
-  
-        if (languageToUse && bots && bots.length > 0) {
-          let latestBot;
-          let storedRoute = '/';
-          for (const bot of bots) {
-            if(isShikshalokamPublicType){
-              if (selectedType === 'oneshot'){
-                storedRoute = '/oneshot_bot';
-              } else {
-                if(localStorage.getItem('flow') && localStorage.getItem('flow') === 'login'){
-                  storedRoute = '/';
-                } else {
-                  storedRoute = '/reflection';
-                }
-              }
-              if (bot.route === storedRoute){
-                latestBot = bot
-              }
-            }
-            else if (!latestBot || new Date(bot.created_at) > new Date(latestBot.created_at)) {
-              latestBot = bot;
-            }
-          }
-          if (!latestBot) {
-            handleFirstMessage('');
-            return;
-          }
-          
-          let firstName = JSON.parse(localStorage.getItem("first_name")) || '';
-          
-          let data = await getTranslatedIntroMessage(storedRoute)
-          let message = data[0]?.introductory_message
-          const botName = data[0]?.name || 'Bot';
-          localStorage.setItem('botName', botName);
-          setBotNameToDisplay(botName);
-          const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'))
-          if(isOldChatOpen) {
-            let sessionInfo = await getSessionInfo();
-            if(sessionInfo && sessionInfo.length>0) {
-              setStrandStep(sessionInfo[0]?.current_step)
-              if(sessionInfo[0]?.session_type) {
-                localStorage.setItem('selected_type', JSON.stringify(sessionInfo[0]?.session_type))
-                setSelectedType(sessionInfo[0]?.session_type)
-              }
-            }
-          }
-          if (message && firstName) {
-            const words = message.split(' ');
-            words.splice(1, 0, firstName);
-            message = words.join(' ');
-          }
-          if (message && !!message?.trim() && (chatHistory[chatHistory?.length - 1]?.msg !== message)) {
-            localStorage.setItem('intro_message', message);
-            setSentences((prev) => [
-              ...prev,
-              {
-                message: message,
-                isNarrated: false,
-                id: new Date().valueOf(),
-              },
-            ]);
-          }
-        }
-  
-      } catch (error) {
-        console.error({ error });
-      } finally {
-        setHasFetchIntro(true);
-        setShouldFetchIntro(false);
-      }
-    };
-
-    
-    if (chatHistory?.length === 0 && shouldFetchIntro && profileToUse) {
-
+    if (chatHistory?.length === 0 && shouldFetchIntro && profileToUse && isNewChatOpen) {
       fetchBotInfo().then(() => {
         setIsIntroLoading(false);
       });
     }
     
     return () => {};
-  }, [access_token, shouldFetchIntro, profileToUse, languageToUse]);
+  }, [access_token, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen]);
 
   useEffect(() => {
     
@@ -1290,7 +1307,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       window.location.reload()
     } else {
       currentSession = JSON.parse(localStorage.getItem('sessionid'));
-      handleCompanyChatCall(currentSession);
+      await fetchBotInfo()
+      setIsIntroLoading(false);
+      await handleCompanyChatCall(currentSession);
     }
   }
 
@@ -1398,6 +1417,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             let messageToUse = chats?.message;
             if (chats?.translated_message && chats?.translated_message !== ''){
               messageToUse = chats?.translated_message;
+            }
+            if (chats?.id === "intro_msg_id" || messageToUse === introMessageRef.current) {
+              return;
             }
             const chatMessage = {
                 message: chats?.sender?.id === 1 ? messageToUse : chats?.message,
@@ -1585,7 +1607,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       }
       setLlmError('');
       localStorage.removeItem('llmError');
-  
+      handleOnStopSpeaking()
       try {
         const socket = await MakeSocketConnection(textMessage, currentSocket);
         setIsChatVisible(true);
@@ -1762,6 +1784,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       }
     } catch (error) {
       console.error('Error in handleAI4BharatTTSRequest:', error);
+      handleOnStopSpeaking()
     }
   };
 
@@ -1882,6 +1905,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      handleOnStopSpeaking()
       setTextMessage('')
       navigator.mediaDevices
         .getUserMedia({ audio: true })
