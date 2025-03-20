@@ -2707,13 +2707,15 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
       return Promise.resolve();
     }
     const fileName = uploadedFile?.name;
-    const allowedExtensions = ["jpeg", "jpg", "png", "svg", "webp"];
+    const allowedExtensions = ["jpeg", "jpg", "png", "svg", "webp", "heif", "heic"];
     const mediaTypes = {
       "jpeg": "image/jpeg",
       "jpg": "image/jpeg",
       "png": "image/png",
       "svg": "image/svg+xml",
-      "webp": "image/webp"
+      "webp": "image/webp",
+      "heif": "image/heif",
+      "heic": "image/heic"
     };
     const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
 
