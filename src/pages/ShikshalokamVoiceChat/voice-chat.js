@@ -388,12 +388,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }
 
-  useEffect(() => {
-    if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError==='')) {
-      callEndStory();
-    }
-  }, [isStreamingComplete, strandStep, access_token, stateMachineLength, languageToUse, noStoryFound]);
-
     useEffect(()=>{
     let profileid = cookies.get('profileid') || localStorage.getItem('profileid')
     if(!profileid && !access_token) window.location.href=ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN;
@@ -1245,21 +1239,29 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }, [isMute])
 
+  useEffect(() => {
+    if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError==='')) {
+      callEndStory();
+    }
+  }, [isStreamingComplete, strandStep, access_token, stateMachineLength, languageToUse, noStoryFound]);
+
   useEffect(()=>{
-    if(profileToUse && !projectId){
+    if(profileToUse && !projectId && !isEndStoryLoading){
       setIsLoading(true);
       const titleTime = setTimeout(()=>{
         if(shouldShowChatHistoryFeature) showChatTitle();
       }, 4000);
   
       return ()=>{
-        setIsLoading(false);
+        if (!noStoryFound) {
+          setIsLoading(false);
+        }
         clearTimeout(titleTime);
       }
-    } else {
+    } else if(!isEndStoryLoading) {
       setIsLoading(false);
     }
-  },[profileToUse, projectId])
+  },[profileToUse, projectId, isEndStoryLoading, noStoryFound])
 
   useEffect(() => {
     const handleBack = () => {
