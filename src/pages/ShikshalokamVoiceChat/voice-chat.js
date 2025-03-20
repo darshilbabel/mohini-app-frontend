@@ -388,12 +388,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }
 
-  useEffect(() => {
-    if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError==='')) {
-      callEndStory();
-    }
-  }, [isStreamingComplete, strandStep, access_token, stateMachineLength, languageToUse, noStoryFound]);
-
     useEffect(()=>{
     let profileid = cookies.get('profileid') || localStorage.getItem('profileid')
     if(!profileid && !access_token) window.location.href=ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN;
@@ -1245,21 +1239,29 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }, [isMute])
 
+  useEffect(() => {
+    if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError==='')) {
+      callEndStory();
+    }
+  }, [isStreamingComplete, strandStep, access_token, stateMachineLength, languageToUse, noStoryFound]);
+
   useEffect(()=>{
-    if(profileToUse && !projectId){
+    if(profileToUse && !projectId && !isEndStoryLoading){
       setIsLoading(true);
       const titleTime = setTimeout(()=>{
         if(shouldShowChatHistoryFeature) showChatTitle();
       }, 4000);
   
       return ()=>{
-        setIsLoading(false);
+        if (!noStoryFound) {
+          setIsLoading(false);
+        }
         clearTimeout(titleTime);
       }
-    } else {
+    } else if(!isEndStoryLoading) {
       setIsLoading(false);
     }
-  },[profileToUse, projectId])
+  },[profileToUse, projectId, isEndStoryLoading, noStoryFound])
 
   useEffect(() => {
     const handleBack = () => {
@@ -2705,13 +2707,15 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
       return Promise.resolve();
     }
     const fileName = uploadedFile?.name;
-    const allowedExtensions = ["jpeg", "jpg", "png", "svg", "webp"];
+    const allowedExtensions = ["jpeg", "jpg", "png", "svg", "webp", "heif", "heic"];
     const mediaTypes = {
       "jpeg": "image/jpeg",
       "jpg": "image/jpeg",
       "png": "image/png",
       "svg": "image/svg+xml",
-      "webp": "image/webp"
+      "webp": "image/webp",
+      "heif": "image/heif",
+      "heic": "image/heic"
     };
     const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
 
