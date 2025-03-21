@@ -1178,6 +1178,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (chatHistory?.length === 0 && shouldFetchIntro && profileToUse && isNewChatOpen) {
       fetchBotInfo().then(() => {
         setIsIntroLoading(false);
+        const current_flow = localStorage.getItem('flow');
+        if(!current_flow || current_flow !== 'login') {
+          const currentSession = JSON.parse(localStorage.getItem('sessionid'));
+          handleCompanyChatCall(currentSession);
+        }
       });
     }
     
