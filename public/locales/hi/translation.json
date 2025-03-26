@@ -50,6 +50,6 @@
     "chooseFile": "फ़ाइल चुनें",
     "editorPlaceholder": "यहां लिखना शुरू करें...",
     "fileTypeErrorText": "केवल JPEG, JPG, PNG, SVG और WEBP फ़ॉर्मेट समर्थित हैं।",
-    "userName": "आप"
-
+    "userName": "आप",
+    "asrError": "माफ़ कीजिए, आपकी आवाज़ सुनी नहीं जा सकी। कृपया दोबारा बोलें।"
 }

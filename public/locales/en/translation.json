@@ -50,5 +50,6 @@
     "chooseFile": "Choose File",
     "editorPlaceholder": "Start writing here...",
     "fileTypeErrorText": "Only JPEG, JPG, PNG, SVG, and WEBP formats are supported.",
-    "userName": "You"
+    "userName": "You",
+    "asrError": "Oops! We couldn't capture your speech. Try again."
 }

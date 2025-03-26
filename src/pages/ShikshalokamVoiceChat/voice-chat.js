@@ -84,6 +84,7 @@ function useCustomMediaQuery(query) {
 const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [profileToUse, setProfileToUse] = useState(JSON.parse(localStorage.getItem('profileid')) || null);
   const audioRef = useRef();
+  const textAreaRef = useRef(null);
   const lastBotMessageIndex = useRef(-1);
   let access_token = localStorage.getItem('accToken');
   let globalSessionID = JSON.parse(localStorage.getItem('sessionid'))
@@ -339,6 +340,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       clearTimeout(textErrorTime);
     }
   },[fileErrorText])
+
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = "auto"; 
+      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`; 
+    }
+  }, [textMessage]);
 
   async function callEndStory(hasClickedOnRegenerate=false) {
     let endStoryResponse;
@@ -1819,7 +1827,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       return response.data.transcript;
     } catch (error) {
       console.error('Error fetching AI4Bharat audio:', error);
-      return '';
+      return t('asrError');
     } 
   }
 
@@ -1939,7 +1947,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   
               const wavBlob = await convertToWav(audioBlob);
               if (!wavBlob) {
-                
+                setTextMessage(t('asrError'))
                 return;
               }
               setIsFetchingData(true);
@@ -2528,9 +2536,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 value={textMessage}
                 autoFocus={true}
                 disabled={hasStartedRecording || isFetchingData}
+                ref={textAreaRef}
                 onInput={(e) => {
                   e.target.style.height = 'auto';
-                  e.target.style.height = `${e.target.scrollHeight}px`;
+                  const maxHeight = 450;
+                  if (e.target.scrollHeight > maxHeight) {
+                    e.target.style.height = `${maxHeight}px`;
+                    e.target.style.overflowY = 'auto';
+                  } else {
+                    e.target.style.height = `${e.target.scrollHeight}px`;
+                    e.target.style.overflowY = 'hidden';
+                  }
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -2548,13 +2564,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               />
             </div>
             {(isTyping && !hasStartedListening) ? (
-            <button
-              type="submit"
-              disabled={hasStartedRecording || isFetchingData}
-              className="button-6"
-            >
-              <MdSend />
-            </button>
+              <div className="button-container">
+                <button
+                  type="submit"
+                  disabled={hasStartedRecording || isFetchingData}
+                  className="button-6"
+                >
+                  <MdSend />
+                </button>
+              </div>
             ) : (
               <div className="audio-recorder">
                 {hasStartedRecording && (
