@@ -309,9 +309,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [projectId])
 
   useEffect(()=>{
-   
-   
-  
     setVisibleItemCount(chatToAddLength)
   }, [chatToAddLength])
 
@@ -860,6 +857,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         };
 
         socket.onclose = (event) => {
+          console.warn("WebSocket closed:", event);
+          if (event.code !== 1000) { 
+            console.error("Unexpected WebSocket closure. Retrying...");
+            showConfirmationPopup();
+            retryConnection(currentTextMessage);
+          }
         };
         
         socket.onerror = (error) => {
