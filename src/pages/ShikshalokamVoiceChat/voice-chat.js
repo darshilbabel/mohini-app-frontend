@@ -2542,7 +2542,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 ref={textAreaRef}
                 onInput={(e) => {
                   e.target.style.height = 'auto';
-                  const maxHeight = 450;
+                  const maxHeight = 150;
                   if (e.target.scrollHeight > maxHeight) {
                     e.target.style.height = `${maxHeight}px`;
                     e.target.style.overflowY = 'auto';
