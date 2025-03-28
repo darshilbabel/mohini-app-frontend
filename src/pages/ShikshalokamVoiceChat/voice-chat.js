@@ -1337,11 +1337,30 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       }
     };
 
+    const handleOffline = () => {
+      if (toastId) {
+        toast.dismiss(toastId);
+      }
+      toastId = toast.error(t('offlineNetwork'));
+    };
+
+    const handleOnline = () => {
+      if (toastId) {
+        toast.dismiss(toastId);
+      }
+      toastId = toast.success(t('onlineNetwork'));
+      checkNetworkSpeed(); 
+    };
+
     checkNetworkSpeed(); 
-    connection.addEventListener("change", checkNetworkSpeed); 
+    connection?.addEventListener("change", checkNetworkSpeed);
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
 
     return () => {
-      connection.removeEventListener("change", checkNetworkSpeed); 
+      connection?.removeEventListener("change", checkNetworkSpeed);
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
     };
   }, []);
 
