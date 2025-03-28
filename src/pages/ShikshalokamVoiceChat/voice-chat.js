@@ -50,6 +50,8 @@ import UploadImages from "./upload-images";
 import { TbReload } from "react-icons/tb";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { setLanguage } from "../../i18n";
+import Notification, { showNotification } from "../../components/ToastMessage/TotastMessage";
+import { toast } from "react-toastify";
 
 
 const cookies = new Cookies();
@@ -870,10 +872,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         socket.onerror = (error) => {
           console.error("WebSocket error:", error);
           socket.close();
-          if (!isReconnectInProgress) {
             isReconnectInProgress = true; 
             retryConnection(currentTextMessage);
-          }
           reject(error);
         };
 
@@ -895,6 +895,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   function retryConnection(currentTextMessage="") {
     if (reconnectAttempts >= maxReconnectAttempts) {
       console.error("Max reconnection attempts reached. Stopping.");
+      try {
+        let chatHistory = JSON.parse(localStorage.getItem("chat-history")) || [];
+        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].source === "user") {
+          chatHistory.pop();
+          localStorage.setItem("chat-history", JSON.stringify(chatHistory));
+          console.log("🗑️ Removed last user message from localStorage.");
+        }
+      } catch (error) {
+        console.error("⚠️ Error modifying localStorage:", error);
+      }
       showConfirmationPopup();
       return;
     }
@@ -1304,6 +1314,37 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     localStorage.setItem('isChatVisible', JSON.stringify(isChatVisible));
   }, [isChatVisible]);
+
+  useEffect(() => {
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    let toastId = null; 
+
+    const checkNetworkSpeed = () => {
+      if (connection) {
+        const { effectiveType, downlink } = connection;
+        console.log("effectiveType: ", effectiveType)
+        console.log("navigator: ", navigator)
+        if ((effectiveType === "2g" || effectiveType === "3g") && navigator.onLine) {
+          if (toastId) {
+            toast.dismiss(toastId);
+          }
+          const message = t("networkWarning", { networkType: effectiveType.toUpperCase() });
+          toastId = showNotification({
+            message: message,
+            type: "warning",
+          });
+        }
+      }
+    };
+
+    checkNetworkSpeed(); 
+    connection.addEventListener("change", checkNetworkSpeed); 
+
+    return () => {
+      connection.removeEventListener("change", checkNetworkSpeed); 
+    };
+  }, []);
+
 
   const handleScrollToView = () => {
     if(acceptedTnc==="ONGOING") return;
@@ -2531,6 +2572,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             onSubmit={handleSendMessage}
             autoComplete="off"
           >
+            <Notification />
+
             <div
               className="textarea-wrapper"
             >

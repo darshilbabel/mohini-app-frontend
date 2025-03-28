@@ -1,0 +1,8 @@
+.custom-toast {
+    border-radius: 6px !important;
+}
+
+.Toastify__toast-container--bottom-left {
+    bottom: 60px !important;
+}
+  
