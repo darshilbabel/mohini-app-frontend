@@ -51,5 +51,6 @@
     "editorPlaceholder": "Start writing here...",
     "fileTypeErrorText": "Only JPEG, JPG, PNG, SVG, and WEBP formats are supported.",
     "userName": "You",
-    "asrError": "Oops! We couldn't capture your speech. Try again."
+    "asrError": "Oops! We couldn't capture your speech. Try again.",
+    "networkWarning": "You're on a slow network ({{networkType}}). Move to a better area for faster speed!"
 }
