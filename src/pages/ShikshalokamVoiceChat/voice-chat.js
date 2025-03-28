@@ -742,6 +742,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     window.location.reload();
   }
   
+  let isReconnectInProgress = false;
   
   const MakeSocketConnection = useCallback((currentTextMessage, currentSocket) => {
     return new Promise((resolve, reject) => {
@@ -838,6 +839,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
         socket.onopen = () => {
           setChatSocket(socket);
+          isReconnectInProgress = false;
+          reconnectAttempts = 0;
           if (isShikshalokamPublicType){
             let profileid = localStorage.getItem('profileid')
             let sessionid = JSON.parse(localStorage.getItem('sessionid'))
@@ -855,12 +858,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }
           resolve(socket);
         };
-
         socket.onclose = (event) => {
           console.warn("WebSocket closed:", event);
-          if (event.code !== 1000) { 
+          if (event.code !== 1000 && !isReconnectInProgress) { 
             console.error("Unexpected WebSocket closure. Retrying...");
-            showConfirmationPopup();
+            isReconnectInProgress = true; 
             retryConnection(currentTextMessage);
           }
         };
@@ -868,7 +870,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         socket.onerror = (error) => {
           console.error("WebSocket error:", error);
           socket.close();
-          retryConnection(currentTextMessage);
+          if (!isReconnectInProgress) {
+            isReconnectInProgress = true; 
+            retryConnection(currentTextMessage);
+          }
           reject(error);
         };
 
@@ -899,6 +904,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       MakeSocketConnection(currentTextMessage)
       .then((newSocket) => {
         reconnectAttempts = 0;
+        isReconnectInProgress = false;
         if (currentTextMessage && currentTextMessage.trim() !== "") {
           handleSendMessage(null, newSocket)
         }
