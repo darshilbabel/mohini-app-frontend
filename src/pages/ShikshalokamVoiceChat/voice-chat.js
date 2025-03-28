@@ -1324,7 +1324,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         const { effectiveType, downlink } = connection;
         console.log("effectiveType: ", effectiveType)
         console.log("navigator: ", navigator)
-        if ((effectiveType === "2g" || effectiveType === "3g") && navigator.onLine) {
+        if (effectiveType && (effectiveType === "2g" || effectiveType === "3g") && navigator.onLine) {
           if (toastId) {
             toast.dismiss(toastId);
           }
