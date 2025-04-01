@@ -52,7 +52,7 @@
     "fileTypeErrorText": "Only JPEG, JPG, PNG, SVG, and WEBP formats are supported.",
     "userName": "You",
     "asrError": "Oops! We couldn't capture your speech. Try again.",
-    "networkWarning": "You're on a slow network ({{networkType}}). Move to a better area for faster speed!",
+    "networkWarning": "Slow network detected. Please check your connection and try again",
     "offlineNetwork": "You are offline. Please check your internet connection.",
     "onlineNetwork": "You are back online."
 }
