@@ -1328,10 +1328,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           if (toastId) {
             toast.dismiss(toastId);
           }
-          const message = t("networkWarning", { networkType: effectiveType.toUpperCase() });
+          const message = t("networkWarning");
           toastId = showNotification({
             message: message,
             type: "warning",
+            options: {position: "top-center"},
           });
         }
       }
@@ -1341,14 +1342,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       if (toastId) {
         toast.dismiss(toastId);
       }
-      toastId = toast.error(t('offlineNetwork'));
+      toastId = toast.error(t('offlineNetwork'), { position: "top-center" });
     };
 
     const handleOnline = () => {
       if (toastId) {
         toast.dismiss(toastId);
       }
-      toastId = toast.success(t('onlineNetwork'));
+      toastId = toast.success(t('onlineNetwork'), { position: "top-center" });
       checkNetworkSpeed(); 
     };
 
@@ -2585,14 +2586,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             }
           <div id="last-chat-boundary" className="div38" />
         </div>
+        <Notification />
+
         {(!showFileInput && !isLoading && (llmError==='' || !llmError))&&       
           <form
             className="div39 form-1"
             onSubmit={handleSendMessage}
             autoComplete="off"
           >
-            <Notification />
-
             <div
               className="textarea-wrapper"
             >
