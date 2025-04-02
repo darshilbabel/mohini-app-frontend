@@ -1332,7 +1332,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           toastId = showNotification({
             message: message,
             type: "warning",
-            options: {position: "top-center"},
+            options: { position: "top-center", style: { fontWeight: "bold", color: "#1D1616" } },
           });
         }
       }
@@ -1342,14 +1342,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       if (toastId) {
         toast.dismiss(toastId);
       }
-      toastId = toast.error(t('offlineNetwork'), { position: "top-center" });
+      toastId = toast.error(t('offlineNetwork'), { position: "top-center", style: { fontWeight: "bold", color: "#fff" } });
     };
 
     const handleOnline = () => {
       if (toastId) {
         toast.dismiss(toastId);
       }
-      toastId = toast.success(t('onlineNetwork'), { position: "top-center" });
+      toastId = toast.success(t('onlineNetwork'), { position: "top-center", style: { fontWeight: "bold", color: "#1D1616" } });
       checkNetworkSpeed(); 
     };
 
