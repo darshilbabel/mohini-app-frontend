@@ -12,9 +12,10 @@ import ROUTES from "../url";
 import { BiLoader } from "react-icons/bi";
 import "./custom-style.css"
 import "../index.css"
-import { languageList } from "../pages/ShikshalokamVoiceChat/enum";
+import { languageList, sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
 import i18n, { setLanguage } from '../i18n';
 import { clearFromStorage } from "../pages/ShikshalokamVoiceChat/voice-chat";
+import { useTranslation } from "react-i18next";
 
 const cookies = new Cookies();
 const login_api_url = `/api/login/`;
@@ -24,6 +25,9 @@ function Login({ type, variant }) {
   const [firstName, setFirstName] = useState("");
   const [emailId, setEmailId] = useState("");
   const [userLanguage, setUserLanguage] = useState("");
+  const [pageLanguage, setPageLanguage] = useState(
+    JSON.parse(localStorage.getItem("local_route")) || languageList[0].value
+  );
   const [userState, setUserState] = useState({
     key: "",
     value: ""
@@ -49,6 +53,7 @@ function Login({ type, variant }) {
   const [districtLabelArray, setDistrictLabelArray] = useState([]);
   const [blockLabelArray, setBlockLabelArray] = useState([]);
 
+  const { t } = useTranslation();
 
   useEffect(() => {
     clearFromStorage()
@@ -59,9 +64,16 @@ function Login({ type, variant }) {
     getStateLabelValue()
   }, [])
 
+  const handlePageLanguageChange = (e) => {
+    setPageLanguage(e?.target?.value);
+    setLanguage(e?.target?.value);
+    localStorage.setItem('local_route', JSON.stringify(e?.target?.value));
+  };
+
   const handleLanguageChange = (e) => {
     setUserLanguage(e.target.value);
-    setLanguage(e.target.value)
+    localStorage.setItem('preferred_route', JSON.stringify(e?.target?.value));
+    // setLanguage(e.target.value)
   };
 
   const handlePhoneChange = (e) => {
@@ -79,6 +91,14 @@ function Login({ type, variant }) {
     setDistrictLabelArray([])
     setBlockLabelArray([])
     getDistrictLabelValue(e?.target?.value)
+    setUserDistrict({
+      key: "",
+      value: ""
+    })
+    setUserBlock({
+      key: "",
+      value: ""
+    });
   };
 
   const handleDistrictChange = (e) => {
@@ -88,6 +108,10 @@ function Login({ type, variant }) {
     });
     setBlockLabelArray([])
     getBlockLabelValue(e?.target?.value)
+    setUserBlock({
+      key: "",
+      value: ""
+    });
   };
 
   const handleBlockChange = (e) => {
@@ -203,6 +227,7 @@ function Login({ type, variant }) {
       return;
     }
     const customEmail = phoneNumberField + "@shikshalokam.org"
+    const currentFlow = localStorage.getItem('flow');
 
     const body = {
       first_name: firstName,
@@ -211,6 +236,7 @@ function Login({ type, variant }) {
       preferred_route: userLanguage,
       company: "shikshalokamstaging",
       password: "grit@123",
+      latest_flow_used: currentFlow,
       profile_address: [
         {
           state: userState?.key,
@@ -230,7 +256,6 @@ function Login({ type, variant }) {
     }
     let session = await getSessionDetails();
     localStorage.setItem('profileid', JSON.stringify(res.id));
-    localStorage.setItem('route', JSON.stringify(userLanguage));
     localStorage.setItem('sessionid', JSON.stringify(session.sessionid));
     localStorage.setItem('isNewChatOpen', JSON.stringify(true));
 
@@ -253,7 +278,7 @@ function Login({ type, variant }) {
       localStorage.setItem('access_token', JSON.stringify(response?.data?.access_token));
       localStorage.setItem('company', JSON.stringify(response?.data?.company));
       localStorage.setItem('state', JSON.stringify(response?.data?.state));
-      localStorage.setItem('flow', 'login');
+      localStorage.setItem('flow', sessionFlowName.LoginMiStory);
       cookies.set("profileid", JSON.stringify(response?.data?.id), {
         path: "/",
       });
@@ -261,7 +286,7 @@ function Login({ type, variant }) {
         path: "/",
       });
       setLocalUserData(response?.data);
-      navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT);
+      navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE);
     } else {
       navigate("/login");
       window.location.reload();
@@ -272,6 +297,20 @@ function Login({ type, variant }) {
 
   return (
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 justify-center h-screen">
+      <div className="absolute top-6 right-6 min-w-[100px] max-w-fit hidden sm:block">
+        <FormData
+          layOut={2}
+          labelName=""
+          id="pagelanguageID"
+          selectID="pagelanguageID"
+          selectName="language"
+          selectOptions={languageList}
+          labelDivClass="text-left text-slate-700"
+          selectValue={pageLanguage}
+          selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-max"
+          selectOnChange={handlePageLanguageChange}
+        />
+      </div>
       <div className="px-5 hidden sm:block">
           <div className="flex">
             <img
@@ -280,12 +319,12 @@ function Login({ type, variant }) {
               alt="shikshalokam_logo"
             />
           </div>
-          <div>
+          <div className="mt-[40px]">
             <div className="text-left sm:text-2xl text-md text-slate-700">
-              <b>Share Your Impact Story Easily</b>
+              <b>{t('welcome_heading1')}</b>
             </div>
             <p className="pt-4 pb-4">
-              MItra is an AI-powered multi lingual, voice-enabled chatbot that helps education leaders (teachers, school leaders, community leaders, parent, youth leaders, etc.) reflect and share their micro-improvement journeys towards improving schools. Through guided prompts, MItra enables leaders to share their highlights, challenges and impact of their school improvement efforts, compiling responses into an inspiring and meaningful story.
+              {t('welcome_paragraph1')}
             </p>
           </div>
         <img
@@ -309,16 +348,32 @@ function Login({ type, variant }) {
           </div>
         </div>
         <div className="bg-slate-50 h-full sm:pt-6">
+            <div className="flex justify-end mr-6 relative block sm:hidden">
+              <div className="absolute top-0 right-6 min-w-[100px] max-w-fit">
+                <FormData
+                  layOut={2}
+                  labelName=""
+                  id="pagelanguageID"
+                  selectID="pagelanguageID"
+                  selectName="language"
+                  selectOptions={languageList}
+                  labelDivClass="text-left text-slate-700"
+                  selectValue={pageLanguage}
+                  selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-max"
+                  selectOnChange={handlePageLanguageChange}
+                />
+              </div>
+            </div>
             <>
-              <div className="text-center sm:text-2xl text-md pt-10 text-slate-700">
-                <b>Welcome</b>
+              <div className="text-center sm:text-2xl text-md  mt-[100px] text-slate-700">
+                <b>{t('welcome_text')}</b>
               </div>
             </>
           <div className="p-2 text-center">
             <form id="myForm" onSubmit={submitForm}>
               <>
                 <div className="text-left text-slate-700 mt-7 ml-[7%] md:ml-[18%]">
-                  <b>First Name</b>
+                  <b>{t('firstNameText')}</b>
                 </div>
                 <div>
                   <input
@@ -332,22 +387,15 @@ function Login({ type, variant }) {
                   />
                 </div>
               </>
-
                 <>
-                  {/* <FormData layOut={1} isRequired={true}  labelName="E-mail ID" id="emailID" inputType="email" inputName="email" placeholder="Email ID"
-                    labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
-                    inputClass="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
-                    inputOnChange={handleEmailChange}
-                    inputValue = {emailId}
-                  /> */}
-                  <FormData layOut={1} isRequired={true}  labelName="Phone Number" id="phnNumID" inputType="text" inputName="phoneNumber" placeholder="Phone number"
+                  <FormData layOut={1} isRequired={true}  labelName={t('phoneNumberText')} id="phnNumID" inputType="text" inputName="phoneNumber" placeholder={t('phoneNumberText')}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     inputClass="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     inputOnChange={handlePhoneChange}
                     fieldError={fieldError}
                     inputValue = {phoneNumberField}
                   />
-                  <FormData layOut={2} labelName="language" id="languageID" selectID="languageID" selectName="language"
+                  <FormData layOut={2} labelName={t('languageText')} id="languageID" selectID="languageID" selectName="language"
                     selectOptions={languageList}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userLanguage}
@@ -355,14 +403,14 @@ function Login({ type, variant }) {
                     selectOnChange={handleLanguageChange}
                     isRequired={true}
                   />
-                  <FormData layOut={2} labelName="State" id="stateNameID" selectID="stateNameID" selectName="stateName"
+                  <FormData layOut={2} labelName={t('stateText')} id="stateNameID" selectID="stateNameID" selectName="stateName"
                     selectOptions={stateLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userState?.value}
                     selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleStateChange}
                     isRequired={stateLabelArray?.length > 0 ? true : false}                  />
-                  <FormData layOut={2} labelName="District Name" id="districtNameID" selectID="districtNameID" selectName="districtName"
+                  <FormData layOut={2} labelName={t('districtText')} id="districtNameID" selectID="districtNameID" selectName="districtName"
                     selectOptions={districtLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userDistrict?.value}
@@ -370,7 +418,7 @@ function Login({ type, variant }) {
                     selectOnChange={handleDistrictChange}
                     isRequired={districtLabelArray?.length > 0 ? true : false}
                   />
-                  <FormData layOut={2} labelName="Block Name" id="blockNameID" selectID="blockNameID" selectName="blockName"
+                  <FormData layOut={2} labelName={t('blockText')} id="blockNameID" selectID="blockNameID" selectName="blockName"
                     selectOptions={blockLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userBlock?.value}
@@ -397,7 +445,7 @@ function Login({ type, variant }) {
                   style={{backgroundColor: "#572E91"}}
                   type="submit"
                 >
-                  Let's Get Started
+                  {t('LetGetStartedBtn')}
                 </button>
                 {/* </a> */}
               </div>

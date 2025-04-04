@@ -58,3 +58,8 @@ export const submitFeedBack = async (body) => {
 	const endpoint = `feedback/`;
 	return await postWithoutAuth(body, endpoint);
 };
+  
+export const getIpLocation = async () => {
+	const endpoint = `get-ip-location/`;
+	return await getWithoutAuth(endpoint);
+};
