@@ -7,17 +7,21 @@ import { FiPlus } from "react-icons/fi";
 import { FaArrowLeft, FaPowerOff } from "react-icons/fa6";
 import "./shikshaChatStyle.css"
 import { useTranslation } from "react-i18next";
+import { setLanguage } from "../../i18n";
+import { languageList } from "./enum";
 
 
 const Sidebar = ({ 
-  isOpen, toggle, isMobileFirst=false, showLogout=true, showScrollbarContent, resetChat, setIsResetCalled, languageToUse 
+  isOpen, toggle, isMobileFirst=false, showLogout=true, showScrollbarContent, resetChat, setIsResetCalled, languageToUse, showGuestPopup
 }) => {
 
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   function handleLogout(){
-    navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+    setLanguage(languageList[0].value);
+    localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
+    navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
   }
 
   return (
@@ -45,7 +49,11 @@ const Sidebar = ({
                   className="button-4"
                   onClick={(e)=>{
                     setIsResetCalled(true);
-                    resetChat(e)
+                    if (showGuestPopup) {
+                      showGuestPopup();
+                    } else {
+                      resetChat(e)
+                    }
                   }}
                 >
                   <FiPlus className="icon-2" /> {t('newChat')}

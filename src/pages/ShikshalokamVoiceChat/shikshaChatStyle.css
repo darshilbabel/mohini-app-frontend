@@ -1084,3 +1084,8 @@
     padding: 0.5rem 3rem;
     color: #cc1c1c;
 }
+
+.bold-black-text {
+    font-weight: bold;
+    color: black;
+}

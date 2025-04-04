@@ -23,12 +23,14 @@ export const bot_routes = {
   normal: "/",
   reflection: "/reflection",
   oneshot: "/oneshot_bot",
+  shikshalokam_chaupal: "/shikshalokam_chaupal"
 };
 
 export const bot_websocket = {
   normal: "/ws/shikshalokam_new/",
   reflection: "/ws/reflection/",
   oneshot: "/ws/shikshalokam_one_shot/",
+  shikshalokam_chaupal: "/ws/shikshalokam_chaupal/"
 };
 
 

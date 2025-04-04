@@ -121,7 +121,9 @@ export const partialUpdateStoryById = async ({
     id : "",
     formatted_content: "",
     access_token: "",
-    session: ""
+    session: "",
+    flow: "",
+    other_params: {}
   },
 }) => {
   try {
@@ -133,7 +135,10 @@ export const partialUpdateStoryById = async ({
       data: {
         formatted_content: JSON.stringify(data?.formatted_content),
         access_token: data?.access_token,
-        session: data?.session
+        session: data?.session,
+        flow: data?.flow,
+        other_params: data?.other_params
+
       },
       method: "PATCH",
       url: getStoryByIdUrl(data?.id),

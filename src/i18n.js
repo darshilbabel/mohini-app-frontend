@@ -3,8 +3,11 @@ import { initReactI18next } from 'react-i18next';
 import HttpApi from 'i18next-http-backend';
 
 const preferredLanguage = JSON.parse(localStorage.getItem('preferred_language'))?.value;
-const languageToUse = preferredLanguage || JSON.parse(localStorage.getItem("route")) || "en";
-
+const languageToUse = 
+  JSON.parse(localStorage.getItem("route")) || 
+  JSON.parse(localStorage.getItem("local_route")) || 
+  "en";
+  
 i18n
   .use(HttpApi)
   .use(initReactI18next)
@@ -23,7 +26,7 @@ i18n
 export const setLanguage = (languageProp) => {
   const route = JSON.parse(localStorage.getItem('route'));
   const languageToUse = languageProp || route || 'en';
-
+  console.log("Language set to: ", languageToUse);
   i18n.changeLanguage(languageToUse);
 };
 

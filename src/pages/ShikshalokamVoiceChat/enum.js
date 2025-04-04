@@ -8,6 +8,15 @@ export const modelLabel = {
 
  export const languageList = [
     {label:'English', value:'en'},
-    {label:'Hindi', value:'hi'},
-    {label:'Kannada', value:'kn'}
+    {label:'हिंदी', value:'hi'},
+    {label:'ಕನ್ನಡ', value:'kn'}
 ];
+
+export const sessionFlowName = {
+    GuestDiscussion: 'guest-discussion',
+    LoginDiscussion:'login-discussion',
+    GuestMiStory: 'guest-mi-story',
+    LoginMiStory: 'login',
+    Reflection: 'reflection'
+
+}
