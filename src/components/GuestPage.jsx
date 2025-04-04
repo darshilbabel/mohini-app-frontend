@@ -70,17 +70,8 @@ function GuestPage() {
     }
     const lang = localStorage.getItem('preferred_route');
 
-    console.log(`
-      ------------------
-      ${lang}
-      ${currentFlow}
-      ${lang ? JSON.parse(lang) : "Invalid JSON"}
-      --------------------
-    `);
     if(lang){
       localStorage.setItem('route', lang);
-      console.log("Setting language to: ", lang)
-      console.log("Parsed language to: ", JSON.parse(lang))
       setLanguage(JSON.parse(lang));
     }
     else if(currentFlow && [sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion].includes(currentFlow)){
@@ -242,7 +233,6 @@ function GuestPage() {
                       setIsLoading(true);
                       localStorage.setItem('isNewChatOpen', JSON.stringify(true));
                       const locationData = await getIpLocation();
-                      console.log("Location Data:", locationData);
                       if (locationData && locationData?.location) {
                         localStorage.setItem('ip_state', locationData?.location?.regionName);
                         localStorage.setItem('ip_city', locationData?.location?.city);

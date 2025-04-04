@@ -724,8 +724,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     const challenges = getListAfterHeaderText("Challenges", blocks);
                     const solutions = getListAfterHeaderText("Solutions", blocks);
             
-                    console.log("Challenges:", challenges);
-                    console.log("Solutions: ", solutions);
                     updatePayload = {
                       ...updatePayload,
                         ...storyData?.other_params,
@@ -1192,7 +1190,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   async function getTranslatedIntroMessage(storedRoute){
     let translate_api_url = `api/bot_vernacular/?language=${languageToUse}&company_bot__route=${storedRoute}`;
-    console.log("translate_api_url: ", translate_api_url)
     try {
       const response = await axiosInstance.get(translate_api_url);
       return response?.data?.results;
@@ -1222,7 +1219,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     try {
       let storedRoute = bot_routes.reflection;
       let currentFlow = localStorage.getItem('flow');
-      console.log("selectedType: ", selectedType)
       if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
         storedRoute = bot_routes.shikshalokam_chaupal;
       } else if (selectedType === 'normal') {
@@ -1252,8 +1248,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       }
      
       // if (!shouldFetchIntro || chatHistory?.length) return;
-      console.log("languageToUse: ", languageToUse)
-      console.log("bots: ", bots)
       if (languageToUse && bots && bots.length > 0) {
         let latestBot;
         for (const bot of bots) {
@@ -1277,7 +1271,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         } else {
           firstName = '';
         }
-        console.log("firstName: ", firstName)
         let data = await getTranslatedIntroMessage(storedRoute)
         let message = data[0]?.introductory_message;
         if (data && data[0]) {
@@ -1333,8 +1326,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   useEffect(() => {
     const current_flow = localStorage.getItem('flow');
-    console.log("shouldFetchIntro: ", shouldFetchIntro)
-    console.log("languageToUse: ", languageToUse)
     if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && 
         (profileToUse || [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(current_flow))
       ) {
@@ -1463,8 +1454,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     const checkNetworkSpeed = () => {
       if (connection) {
         const { effectiveType, downlink } = connection;
-        console.log("effectiveType: ", effectiveType)
-        console.log("navigator: ", navigator)
         if (effectiveType && (effectiveType === "2g" || effectiveType === "3g") && navigator.onLine) {
           if (toastId) {
             toast.dismiss(toastId);
@@ -1604,7 +1593,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }
 
   async function handleCompanyChatCall(currentSession) {  
-    console.log("In chat api func")
     const storedChatHistory = JSON.parse(localStorage.getItem('chat-history'));
     if (storedChatHistory.length >= 1) {
       return;
@@ -1613,7 +1601,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setIsFetchingOldIntro(true);
 
     try {
-        console.log("Inside try block")
         const resp = await getCompanyChatApi(currentSession);
 
         const newChatSessionDetail = [];
@@ -1957,8 +1944,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       let audio_result = "";
       let audio;
 
-      console.log("cachedAudioUrl: ", cachedAudioUrl)
-
       if (!hasOverRideId) {
         handleMessagesForBot(text);
       }
@@ -1985,7 +1970,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       }
   
       if (cachedAudioUrl) {
-        console.log("audioRef: ", audioRef)
         if (audioRef.current) {
           audioRef.current.pause();
           audioRef.current.currentTime = 0; 
