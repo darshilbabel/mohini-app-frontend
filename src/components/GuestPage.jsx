@@ -161,7 +161,7 @@ function GuestPage() {
               alt="shikshalokam_logo"
             />
           </div>
-          <div className="flex flex-col items-center sm:mt-[150px] h-full">
+          <div className="flex flex-col items-center sm:mt-[150px]">
             <ol className="text-left sm:text-2xl text-md text-slate-700 list-decimal pl-5" 
               style={{ color: "#6eafaf" }}
             >
@@ -201,12 +201,21 @@ function GuestPage() {
                 />
               </div>
             </div>
+            <div className="sm:hidden flex flex-col items-center mt-[150px]">
+            <ol className="text-left sm:text-2xl text-md text-slate-700 list-decimal pl-5" 
+              style={{ color: "#6eafaf" }}
+            >
+              <li>{t('start_chat')}</li>
+              <li>{t('add_photos')}</li>
+              <li>{t('download_report')}</li>
+            </ol>
+            </div>
             <>
-              <div className="text-center sm:text-2xl text-md mt-[150px] text-slate-700">
+              <div className="text-center sm:text-2xl text-md sm:mt-[150px] mt-[40px] text-slate-700">
                 <b>{t('welcome_text')}</b>
               </div>
             </>
-            <div className="p-2 text-center sm:mt-[60px] h-full">
+            <div className="p-2 text-center sm:mt-[60px]">
               <div className="flex flex-col mx-auto w-64">
                 <button
                   id="demo"

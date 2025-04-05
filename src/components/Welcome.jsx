@@ -36,7 +36,7 @@ function WelcomePage() {
   };
 
   return (
-    <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 justify-center h-screen">
+    <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 justify-center">
       <div className="absolute top-6 right-6 min-w-[100px] max-w-fit hidden sm:block">
         <FormData
           layOut={2}
@@ -106,12 +106,20 @@ function WelcomePage() {
               />
             </div>
           </div>
+          <div className="mt-[150px] sm:hidden">
+            <div className="text-left sm:text-2xl text-md text-slate-700">
+              <b>{t('welcome_heading1')}</b>
+            </div>
+            <p className="pt-4 pb-4">
+              {t('welcome_paragraph1')}
+            </p>
+          </div>
             <>
-              <div className="text-center sm:text-2xl text-md mt-[150px] text-slate-700">
+              <div className="text-center sm:text-2xl sm:mt-[150px] text-md text-slate-700">
                 <b>{t('welcome_text')}</b>
               </div>
             </>
-            <div className="p-2 text-center sm:mt-[60px] h-full">
+            <div className="p-2 text-center sm:mt-[60px]">
               <div className="flex flex-col mx-auto w-64">
                 <button
                   id="demo"

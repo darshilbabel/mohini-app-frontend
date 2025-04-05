@@ -222,6 +222,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(()=>{
     if(projectId){
       localStorage.setItem('flow', sessionFlowName.Reflection);
+    } else if(!localStorage.getItem('flow')){
+      navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
     }
   }, [projectId])
 
@@ -728,6 +730,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       ...updatePayload,
                         ...storyData?.other_params,
                         other_params: {
+                          ...(storyData?.other_params || {}),
                           challenges_faced: challenges,
                           solutions_discussed: solutions,
                         },
@@ -1424,8 +1427,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   },[profileToUse, projectId, isEndStoryLoading, noStoryFound])
 
   useEffect(() => {
+    const currentFlow = localStorage.getItem('flow');
     const handleBack = () => {
-      if(acceptedTnc || acceptedTnc==="ONGOING"){
+      if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
+      [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
         showGuestPopup(true)
       } else {
         setLanguage(languageList[0].value);
@@ -2394,7 +2399,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             resetChat={ResetChat}
             setIsResetCalled={setIsResetCalled}
             languageToUse={languageToUse}
-            showGuestPopup={showGuestPopup}
+            
+            showGuestPopup={
+              (
+                localStorage.getItem('flow') && 
+                [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))
+              )&& showGuestPopup
+            }
           />}
         </div>
         {isOpen && (
@@ -2441,7 +2452,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           />
         </div>
       </div>
-      {(isLoading || isIntroLoading)&& <div className="loader-load-spinner">
+      {(isLoading || isIntroLoading || isEndStoryLoading)&& <div className="loader-load-spinner">
         <div className="div67">
           <BiLoader className="loader-rotate-loader loader-icon" />
           {isPdfDownloading&& 
@@ -2788,8 +2799,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 <div className="div20">
                   <button
                     className="clickable-button"
-                    onClick={()=>{
-                        callEndStory(true)
+                    onClick={async ()=>{
+                        setIsLoading(true);
+                        setIsEndStoryLoading(true);
+                        await callEndStory(true);
                     }}
                     disabled={isLoading || isPdfDownloading}
                   >
@@ -3000,7 +3013,7 @@ export function clearFromStorage() {
     'botName', 'chat-history', 'company', 'first_name', 'has_accepted_tnc', 'intro_message', 
     'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
     'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type', 
-    'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country'
+    'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError'
   ];
 
   keysToRemove.forEach((key) => {
