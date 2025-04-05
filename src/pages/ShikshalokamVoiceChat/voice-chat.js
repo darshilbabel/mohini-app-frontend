@@ -222,6 +222,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(()=>{
     if(projectId){
       localStorage.setItem('flow', sessionFlowName.Reflection);
+    } else if(!localStorage.getItem('flow')){
+      navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
     }
   }, [projectId])
 
@@ -3011,7 +3013,7 @@ export function clearFromStorage() {
     'botName', 'chat-history', 'company', 'first_name', 'has_accepted_tnc', 'intro_message', 
     'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
     'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type', 
-    'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country'
+    'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError'
   ];
 
   keysToRemove.forEach((key) => {
