@@ -373,7 +373,7 @@ function Login({ type, variant }) {
             <form id="myForm" onSubmit={submitForm}>
               <>
                 <div className="text-left text-slate-700 mt-7 ml-[7%] md:ml-[18%]">
-                  <b>{t('firstNameText')}</b>
+                  <b>{t('firstNameText')} *</b>
                 </div>
                 <div>
                   <input
@@ -388,14 +388,14 @@ function Login({ type, variant }) {
                 </div>
               </>
                 <>
-                  <FormData layOut={1} isRequired={true}  labelName={t('phoneNumberText')} id="phnNumID" inputType="text" inputName="phoneNumber" placeholder={t('phoneNumberText')}
+                  <FormData layOut={1} isRequired={true}  labelName={`${t('phoneNumberText')} *`} id="phnNumID" inputType="text" inputName="phoneNumber" placeholder={t('phoneNumberText')}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     inputClass="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     inputOnChange={handlePhoneChange}
                     fieldError={fieldError}
                     inputValue = {phoneNumberField}
                   />
-                  <FormData layOut={2} labelName={t('languageText')} id="languageID" selectID="languageID" selectName="language"
+                  <FormData layOut={2} labelName={`${t('languageText')} *`} id="languageID" selectID="languageID" selectName="language"
                     selectOptions={languageList}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userLanguage}
@@ -409,14 +409,14 @@ function Login({ type, variant }) {
                     selectValue = {userState?.value}
                     selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleStateChange}
-                    isRequired={stateLabelArray?.length > 0 ? true : false}                  />
+                    isRequired={false}                  />
                   <FormData layOut={2} labelName={t('districtText')} id="districtNameID" selectID="districtNameID" selectName="districtName"
                     selectOptions={districtLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userDistrict?.value}
                     selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleDistrictChange}
-                    isRequired={districtLabelArray?.length > 0 ? true : false}
+                    isRequired={false}
                   />
                   <FormData layOut={2} labelName={t('blockText')} id="blockNameID" selectID="blockNameID" selectName="blockName"
                     selectOptions={blockLabelArray}
@@ -424,7 +424,7 @@ function Login({ type, variant }) {
                     selectValue = {userBlock?.value}
                     selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleBlockChange}
-                    isRequired={blockLabelArray?.length > 0 ? true : false}
+                    isRequired={false}
                   />
                 </>
               
