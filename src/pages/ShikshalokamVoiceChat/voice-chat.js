@@ -460,7 +460,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               type: "list",
               data: {
                 style: "unordered",
-                items: challenges,
+                items: challenges.length > 0 ? challenges : [""],
               },
             },
             {
@@ -475,7 +475,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               type: "list",
               data: {
                 style: "unordered",
-                items: solutions,
+                items: solutions.length > 0 ? solutions : [""],
               },
             }
           ];
@@ -507,7 +507,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           },
           list: {
             class: List,
-            inlineToolbar: true
+            inlineToolbar: false,
+            config: {
+              defaultStyle: 'unordered'
+            },
           }
         },
         onReady: () => {
@@ -2545,7 +2548,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }
           {isEndStoryLoading&& 
             <div className="div69">
-              <label className="form-label label1">{t('storyLoader')}</label>
+              <label className="form-label label1">
+                {(localStorage.getItem('flow') && 
+                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                  )?
+                    t('reportLoader') : t('storyLoader')
+                }
+              </label>
             </div>
           }
         </div>
@@ -2800,11 +2809,19 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 <ChatMessage 
                   botNameToDisplay={botNameToDisplay}
                   userType="bot"
-                  message={t('storyText')}
+                  message={
+                    (localStorage.getItem('flow') && 
+                      [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                    )?
+                    t('reportText') : t('storyText')
+                  }
                   isTalking={false}
                   handleOnStopSpeaking={() => handleOnStopSpeaking()}
                   handleOnSpeaking={(message, updatedAt, staticMessage) =>{
-                    const message_to_use = t('storyText')
+                    const message_to_use = (localStorage.getItem('flow') && 
+                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                  )?
+                  t('reportText') : t('storyText')
                     handleOnSpeaking(message_to_use, "download-story-id",
                       {msg: message_to_use, updated_at: "download-story-id", source:"bot"}
                     )}
@@ -2830,7 +2847,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     <div className="download-story-div">
                       <FiDownload className="icon-1" />
                       <span className="div16" ref={endPageToScrollRef}>
-                      {t('downloadStoryText')}
+                        {(localStorage.getItem('flow') && 
+                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                        )?
+                          t('downloadReportText') : t('downloadStoryText')
+                        }
                       </span>
                     </div>
                   </button>
@@ -2846,7 +2867,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     <div className="download-story-div">
                       <MdEdit className="icon-1" />
                       <span className="div16" ref={endPageToScrollRef}>
-                      {t('editStoryText')}
+                        {(localStorage.getItem('flow') && 
+                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                        )?
+                          t('editReportText') : t('editStoryText')
+                        }
                       </span>
                     </div>
                   </button>
@@ -2892,7 +2917,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     <div className="download-story-div">
                       <TbReload className="icon-1" />
                       <span className="div16" ref={endPageToScrollRef}>
-                      {t('reDownloadStoryText')}
+                      {(localStorage.getItem('flow') && 
+                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                        )?
+                          t('reDownloadReportText') : t('reDownloadStoryText')
+                      }
                       </span>
                     </div>
                   </button>
@@ -2905,7 +2934,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         </div>
         <Notification />
 
-        {(!showFileInput && !isLoading && (llmError==='' || !llmError))&&       
+        {(!showFileInput && !isLoading &&!isEndStoryLoading && (llmError==='' || !llmError) && 
+         Array.isArray(chatHistory) &&
+         chatHistory.some(item => item && Object.keys(item).length > 0)
+        )&&       
           <form
             className="div39 form-1"
             onSubmit={handleSendMessage}
@@ -3080,7 +3112,7 @@ function ChatMessage({
           id={chatId}
         >
             <ReactMarkdown  children={sanitizedContent} remarkPlugins={[remarkGfm]} 
-              rehypePlugins={[rehypeRaw]} 
+              rehypePlugins={[rehypeRaw]} className="prose"
             />
         </div>
       </div>

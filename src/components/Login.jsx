@@ -421,14 +421,14 @@ function Login({ type, variant }) {
                     selectValue = {userState?.value}
                     selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleStateChange}
-                    isRequired={false}                  />
+                    isRequired={stateLabelArray?.length > 0 ? true : false}                 />
                   <FormData layOut={2} labelName={t('districtText')} id="districtNameID" selectID="districtNameID" selectName="districtName"
                     selectOptions={districtLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userDistrict?.value}
                     selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleDistrictChange}
-                    isRequired={false}
+                    isRequired={districtLabelArray?.length > 0 ? true : false}
                   />
                   <FormData layOut={2} labelName={t('blockText')} id="blockNameID" selectID="blockNameID" selectName="blockName"
                     selectOptions={blockLabelArray}
@@ -436,7 +436,7 @@ function Login({ type, variant }) {
                     selectValue = {userBlock?.value}
                     selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleBlockChange}
-                    isRequired={false}
+                    isRequired={blockLabelArray?.length > 0 ? true : false}
                   />
                 </>
               
