@@ -12,13 +12,17 @@ import { languageList } from "./enum";
 
 
 const Sidebar = ({ 
-  isOpen, toggle, isMobileFirst=false, showLogout=true, showScrollbarContent, resetChat, setIsResetCalled, languageToUse, showGuestPopup
+  isOpen, toggle, isMobileFirst=false, showLogout=true, showScrollbarContent, resetChat, setIsResetCalled, languageToUse, 
+  showGuestPopup, stopAllAudio
 }) => {
 
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   function handleLogout(){
+    if(stopAllAudio){
+      stopAllAudio();
+    }
     setLanguage(languageList[0].value);
     localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
     navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
