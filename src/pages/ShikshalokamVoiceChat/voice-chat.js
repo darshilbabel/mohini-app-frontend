@@ -3112,7 +3112,7 @@ function ChatMessage({
           id={chatId}
         >
             <ReactMarkdown  children={sanitizedContent} remarkPlugins={[remarkGfm]} 
-              rehypePlugins={[rehypeRaw]} className="prose"
+              rehypePlugins={[rehypeRaw]} className="prose max-w-none"
             />
         </div>
       </div>
