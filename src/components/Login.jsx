@@ -216,83 +216,95 @@ function Login({ type, variant }) {
   
 
   const submitForm = async (event) => {
-    event.preventDefault();
-    setFieldError("");
-
-    if (phoneNumberField && !isValidIndianMobileNumber(phoneNumberField)) {
-      setFieldError("Please enter a valid phone number.");
-      setTimeout(() => {
-        setFieldError("");
-      }, 10000);
-      return;
-    }
-    const customEmail = phoneNumberField + "@shikshalokam.org"
-    const currentFlow = localStorage.getItem('flow');
-
-    const body = {
-      first_name: firstName,
-      email: phoneNumberField? customEmail : emailId,
-      phone: phoneNumberField,
-      preferred_route: userLanguage,
-      company: "shikshalokamstaging",
-      password: "grit@123",
-      latest_flow_used: currentFlow,
-      profile_address: [
-        {
-          state: userState?.key,
-          block: userBlock?.key,
-          district: userDistrict?.key,
-        },
-      ],
-    };
-
-    setIsLoading(true);
-    const res = await getProfileDetails(body);
-
-    if (res?.status === "error") {
-      setLoginErrorMessage(res?.message.slice(2, -2));
-      setIsLoading(false);
-      return;
-    }
-    let session = await getSessionDetails();
-    localStorage.setItem('profileid', JSON.stringify(res.id));
-    localStorage.setItem('sessionid', JSON.stringify(session.sessionid));
-    localStorage.setItem('isNewChatOpen', JSON.stringify(true));
-
-    const response = await axiosInstance({
-      url: login_api_url,
-      method: "POST",
-      data: {
+    try{
+      if (!event.target.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+    
+      event.preventDefault();
+      setFieldError("");
+  
+      if (phoneNumberField && !isValidIndianMobileNumber(phoneNumberField)) {
+        setFieldError("Please enter a valid phone number.");
+        setTimeout(() => {
+          setFieldError("");
+        }, 10000);
+        return;
+      }
+      const customEmail = phoneNumberField + "@shikshalokam.org"
+      const currentFlow = localStorage.getItem('flow');
+  
+      const body = {
+        first_name: firstName,
         email: phoneNumberField? customEmail : emailId,
+        phone: phoneNumberField,
+        preferred_route: userLanguage,
+        company: "shikshalokamstaging",
         password: "grit@123",
-      },
-    });
-
-
-    if (!!response?.data?.access_token) {
-      userDispatcher({
-        type: USER_ACTIONS.LOGIN,
-        payload: response?.data,
+        latest_flow_used: currentFlow,
+        profile_address: [
+          {
+            state: userState?.key,
+            block: userBlock?.key,
+            district: userDistrict?.key,
+          },
+        ],
+      };
+  
+      setIsLoading(true);
+      const res = await getProfileDetails(body);
+  
+      if (res?.status === "error") {
+        setLoginErrorMessage(res?.message.slice(2, -2));
+        setIsLoading(false);
+        return;
+      }
+      let session = await getSessionDetails();
+      localStorage.setItem('profileid', JSON.stringify(res.id));
+      localStorage.setItem('sessionid', JSON.stringify(session.sessionid));
+      localStorage.setItem('isNewChatOpen', JSON.stringify(true));
+  
+      const response = await axiosInstance({
+        url: login_api_url,
+        method: "POST",
+        data: {
+          email: phoneNumberField? customEmail : emailId,
+          password: "grit@123",
+        },
       });
-      localStorage.setItem('first_name', JSON.stringify(response?.data?.first_name));
-      localStorage.setItem('access_token', JSON.stringify(response?.data?.access_token));
-      localStorage.setItem('company', JSON.stringify(response?.data?.company));
-      localStorage.setItem('state', JSON.stringify(response?.data?.state));
-      localStorage.setItem('flow', sessionFlowName.LoginMiStory);
-      cookies.set("profileid", JSON.stringify(response?.data?.id), {
-        path: "/",
-      });
-      cookies.set("access_token", response?.data?.access_token, {
-        path: "/",
-      });
-      setLocalUserData(response?.data);
-      navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE);
-    } else {
-      navigate("/login");
-      window.location.reload();
+  
+  
+      if (!!response?.data?.access_token) {
+        userDispatcher({
+          type: USER_ACTIONS.LOGIN,
+          payload: response?.data,
+        });
+        localStorage.setItem('first_name', JSON.stringify(response?.data?.first_name));
+        localStorage.setItem('access_token', JSON.stringify(response?.data?.access_token));
+        localStorage.setItem('company', JSON.stringify(response?.data?.company));
+        localStorage.setItem('state', JSON.stringify(response?.data?.state));
+        localStorage.setItem('flow', sessionFlowName.LoginMiStory);
+        cookies.set("profileid", JSON.stringify(response?.data?.id), {
+          path: "/",
+        });
+        cookies.set("access_token", response?.data?.access_token, {
+          path: "/",
+        });
+        setLocalUserData(response?.data);
+        navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE);
+      } else {
+        navigate("/login");
+        window.location.reload();
+      }
+  
+      setIsLoading(false);
+    } catch(e) {
+      console.log("Error in submitForm", e)
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
+    
   };
 
   return (

@@ -136,6 +136,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   });
   const [chatTitle, setChatTitle] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [langProgress, setLangProgress] = useState(localStorage.getItem('lang_progress')|| null);
   const [isIntroLoading, setIsIntroLoading] = useState(false);
   const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false);
   const [sessionTitleDetail, setSessionTitleDetail] = useState(null);
@@ -194,7 +195,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const [languageToUse, setLanguageToUse] = useState(() => {
     const savedLang = localStorage.getItem("route");
-    return savedLang ? JSON.parse(savedLang) : "en";
+    return savedLang ? JSON.parse(savedLang) : null;
   });
 
   let params = new URL(document.location).searchParams;
@@ -824,6 +825,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (isResetCalled && chatSocket && chatSocket.readyState === chatSocket.OPEN) {
       chatSocket.close();
     }
+    const currentFlow = localStorage.getItem('flow');
+    if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+      localStorage.removeItem("route");
+      localStorage.removeItem("intro_message");
+      setSelectedLanguage("en");
+      localStorage.setItem('lang_progress', null);
+    }
     removeLocalChatHistory();
     localStorage.setItem('isOldChatOpen', JSON.stringify(false));
     localStorage.setItem('isNewChatOpen', JSON.stringify(true));
@@ -1038,9 +1046,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         if (executeCustomFunction) {
-          executeCustomFunction()
+          executeCustomFunction();
         } else {
           if(wantToNavigateBack){
+            stopAllAudio();
             clearFromStorage();
             setLanguage(languageList[0].value);
             localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
@@ -1083,10 +1092,40 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }
 
   useEffect(() => {
+    let shouldPlay = false;
+    if (showFileInput) {
+      shouldPlay = true;
+    } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !isEndStoryLoading) {
+      const currentFlow = localStorage.getItem('flow');
+      
+      if (
+        currentFlow &&
+        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)
+      ) {
+        if(chatHistory.length > 0) {
+          if(isStreamingComplete && chatHistory[chatHistory.length - 1]?.source === "bot") {
+            shouldPlay = true;
+          }
+        } else if (langProgress === 'IN_PROGRESS') {
+          shouldPlay = false;
+        }else {
+          shouldPlay = true;
+        }
+      } else if (
+        chatHistory &&
+        chatHistory.length > 0 &&
+        chatHistory[chatHistory.length - 1]?.source === "bot"
+        && !isIntroLoading && !isLoading && !isEndStoryLoading
+      ) {
+        shouldPlay = true;
+      }
+    }
     if (
-      chatHistory && chatHistory.length > 0 && !isLoading && !isEndStoryLoading && 
-      chatHistory[chatHistory.length - 1]?.source === "bot" && isMute && isStreamingComplete && 
-      acceptedTnc && acceptedTnc!=="ONGOING"
+      isStreamingComplete &&
+      (shouldPlay) &&
+      !isEndStoryLoading && !isLoading && !isPdfDownloading &&
+      isMute &&
+      acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading && !isFetchingOldIntro
     ) {
       const speakerButtons = document.querySelectorAll(".button-11.button-3");
       const lastSpeakerButton = speakerButtons[speakerButtons.length - 1];
@@ -1095,7 +1134,20 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         lastSpeakerButton.click();
       }
     }
-  }, [chatHistory, isLoading, isEndStoryLoading, isStreamingComplete, isMute, acceptedTnc]);
+  }, [
+    isStreamingComplete,
+    showFileInput,
+    showHomepage,
+    isEndStoryLoading,
+    isLoading,
+    isPdfDownloading,
+    storyData,
+    chatHistory,
+    isMute,
+    acceptedTnc,
+    isIntroLoading,
+    noStoryFound
+  ]);
   
 
   useEffect(()=>{
@@ -1215,9 +1267,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
 
   }
+
+  useEffect(() => {
+    if(localStorage.getItem('intro_message') && !isLoading) {
+      localStorage.setItem('lang_progress', true);
+      setLangProgress(true);
+    }
+  }, [isLoading])
+
   const fetchBotInfo = async () => {
       
     setIsIntroLoading(true);
+    setIsLoading(true);
     let companyName = await getCompanyDetail();
     try {
       let storedRoute = bot_routes.reflection;
@@ -1321,9 +1382,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
     } catch (error) {
       console.error({ error });
+      setIsLoading(false);
     } finally {
       setHasFetchIntro(true);
       setShouldFetchIntro(false);
+      setIsLoading(false);
     }
   };
 
@@ -1435,6 +1498,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       } else {
         setLanguage(languageList[0].value);
         localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
+        stopAllAudio();
         navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
       }
     };
@@ -1949,6 +2013,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       let audio_result = "";
       let audio;
 
+      if (!sourceLanguage) {
+        sourceLanguage = "en"
+      }
+
       if (!hasOverRideId) {
         handleMessagesForBot(text);
       }
@@ -2056,7 +2124,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     let hasUnnarratedMessages = !!unnarratedMessages?.length;
     let sourceLanguage = languageToUse;
 
-    if (isNextAllowed && hasUnnarratedMessages) {
+    if (isNextAllowed && hasUnnarratedMessages && !isLoading && !isEndStoryLoading) {
       handleAI4BharatTTSRequest(
         unnarratedMessages[0].message,
         unnarratedMessages[0].id,
@@ -2065,7 +2133,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
 
     return () => {};
-  }, [isNextAllowed, sentences, languageToUse]);
+  }, [isNextAllowed, sentences, languageToUse, isLoading, isEndStoryLoading]);
 
   useEffect(() => {
     if (
@@ -2089,8 +2157,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (storedLanguage && storedLanguage !== null) {
       setSelectedLanguage(storedLanguage);
     } else {
-      localStorage.setItem("route", JSON.stringify("en"));
-      setSelectedLanguage("en");
+      const currentFlow = localStorage.getItem('flow');
+      if (currentFlow && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow))) {
+        localStorage.setItem("route", JSON.stringify("en"));
+        setSelectedLanguage("en");
+      }
     }
   }, []);
 
@@ -2100,6 +2171,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       localStorage.removeItem('intro_message');
       setChatHistory([]);
       localStorage.setItem("route", JSON.stringify(language));
+      localStorage.setItem('lang_progress', "IN_PROGRESS");
+      setLangProgress("IN_PROGRESS");
       setShouldFetchIntro(true);
       setLanguageToUse(language);
       setLanguage(language)
@@ -2385,28 +2458,38 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
   }
 
+  function stopAllAudio(){
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+  }
+
   return (
     <>
       {(acceptedTnc==="ONGOING" && !isLoading)&& <PrivacyPolicyPage tncText={t('tncText')} onAccept={handleAcceptTnC} onDecline={handleDeclineTnC} />}
       <></>
       <div className={`div27 ${isOpen&& ' div70'} ${(projectId)&& ' div21'}`}>
         <div className={`div28 ${isOpen ? "div29" : ""}`}>
-          {(isShikshalokamPublicType)&& <Sidebar
-            isOpen={isOpen}
-            toggle={setIsOpen}
-            isMobileFirst={true}
-            showScrollbarContent={!isGuestFlow&& showScrollbarContent}
-            resetChat={ResetChat}
-            setIsResetCalled={setIsResetCalled}
-            languageToUse={languageToUse}
-            
-            showGuestPopup={
-              (
-                localStorage.getItem('flow') && 
-                [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))
-              )&& showGuestPopup
-            }
-          />}
+          {(isShikshalokamPublicType && localStorage.getItem('flow') && 
+            !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))))&& 
+            <Sidebar
+              isOpen={isOpen}
+              toggle={setIsOpen}
+              isMobileFirst={true}
+              showScrollbarContent={!isGuestFlow&& showScrollbarContent}
+              resetChat={ResetChat}
+              setIsResetCalled={setIsResetCalled}
+              languageToUse={languageToUse}
+              stopAllAudio={stopAllAudio}
+              showGuestPopup={
+                (
+                  localStorage.getItem('flow') && 
+                  [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))
+                )&& showGuestPopup
+              }
+            />}
         </div>
         {isOpen && (
           <div
@@ -2625,8 +2708,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               )}
             </>
           }
-          {(isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading && (
-            !isLoading || isPdfDownloading ) && storyData?.id !== '') && (
+          {(isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading &&
+            !isLoading && !isPdfDownloading && storyData?.id !== '') && (
             <>
               <div className="div13" >
                 <ChatMessage 
@@ -3013,7 +3096,7 @@ export function clearFromStorage() {
     'botName', 'chat-history', 'company', 'first_name', 'has_accepted_tnc', 'intro_message', 
     'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
     'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type', 
-    'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError'
+    'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress'
   ];
 
   keysToRemove.forEach((key) => {
