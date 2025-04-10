@@ -1,41 +1,31 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import Cookies from "universal-cookie";
-import { useNavigate } from "react-router-dom";
-import "./custom-style.css"
-import "../index.css"
-import ROUTES from "../url";
-import { useEffect, useState } from "react";
-import { clearFromStorage } from "../pages/ShikshalokamVoiceChat/voice-chat";
-import FormData from "./Form/FormData";
-import { setLanguage } from "../i18n";
-import { languageList } from "../pages/ShikshalokamVoiceChat/enum";
+import "../style.css"
 import { useTranslation } from "react-i18next";
+import PrivacyPolicyPage from "../components/TnC/privacyPolicy";
+import FormData from "../components/Form/FormData";
+import { setLanguage } from "../i18n";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { languageList } from "./ShikshalokamVoiceChat/enum";
+import { clearFromStorage } from "./ShikshalokamVoiceChat/voice-chat";
 
-const cookies = new Cookies();
-const login_api_url = `/api/login/`;
 
-function WelcomePage() {
-  const navigate = useNavigate();
-  const [userLanguage, setUserLanguage] = useState(
-    JSON.parse(localStorage.getItem("local_route")) || languageList[0].value
-  );
-  
-  const { t } = useTranslation();
-  
-  useEffect(() => {
-    if (!localStorage.getItem("local_route")) {
-      localStorage.setItem("local_route", JSON.stringify(languageList[0].value));
-    }
-    clearFromStorage()
-  }, []);
+function PrivacyPage() {
+    const navigate = useNavigate();
+    const [userLanguage, setUserLanguage] = useState(
+        JSON.parse(localStorage.getItem("local_route")) || languageList[0].value
+    );
+    
+    const { t } = useTranslation();
+    
+    const handleLanguageChange = (e) => {
+        setUserLanguage(e?.target?.value);
+        setLanguage(e?.target?.value);
+        localStorage.setItem('local_route', JSON.stringify(e?.target?.value));
+    };
 
-  const handleLanguageChange = (e) => {
-    setUserLanguage(e?.target?.value);
-    setLanguage(e?.target?.value);
-    localStorage.setItem('local_route', JSON.stringify(e?.target?.value));
-  };
-
-  return (
+    return (
+        <>
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 justify-center">
       <div className="absolute top-6 right-6 min-w-[100px] max-w-fit hidden sm:block">
         <FormData
@@ -59,14 +49,6 @@ function WelcomePage() {
               className="h-[100px] w-[200px] object-contain aspect-auto align-top object-[center_center] relative ml-0"
               alt="shikshalokam_logo"
             />
-          </div>
-          <div>
-            <div className="text-left sm:text-2xl text-md text-slate-700">
-              <b>{t('welcome_heading1')}</b>
-            </div>
-            <p className="pt-4 pb-4">
-              {t('welcome_paragraph1')}
-            </p>
           </div>
         <img
           src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
@@ -106,47 +88,20 @@ function WelcomePage() {
               />
             </div>
           </div>
-          <div className="mt-[150px] sm:hidden">
-            <div className="text-center sm:text-2xl text-md text-slate-700">
-              <b>{t('welcome_heading1')}</b>
-            </div>
-            <p className="pt-4 pb-4 text-center">
-              {t('welcome_paragraph1')}
-            </p>
-          </div>
             <>
-              <div className="text-center sm:text-2xl sm:mt-[150px] text-md text-slate-700">
-                <b>{t('welcome_text')}</b>
-              </div>
+                <div className="text-center sm:text-2xl mt-[100px] text-md text-slate-700">
+                    <div className="container max-w-full md mx-auto py-6">
+                        <PrivacyPolicyPage tncText={t('tncText')} shouldShowAcceptDecline={false}/>
+                    </div>
+                </div>
             </>
-            <div className="p-2 text-center sm:mt-[60px]">
-              <div className="flex flex-col mx-auto w-64">
-                <button
-                  id="demo"
-                  className="w-full p-3 mt-6 mb-2 px-5 py-3 text-white rounded-md"
-                  style={{backgroundColor: "#572E91"}}
-                  onClick={() => {
-                    navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
-                  }}
-                >
-                  {t('loginBtnText')}
-                </button>
-                <button
-                  id="demo"
-                  className="w-full p-3 mt-6 mb-2 px-5 py-3 text-white rounded-md"
-                  style={{backgroundColor: "#572E91"}}
-                  onClick={() => {
-                    navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE);
-                  }}
-                >
-                  {t('guestBtnText')}
-                </button>
-              </div>
-            </div>
         </div>
       </div>
     </div>
-  );
+        </>
+    );
 }
 
-export default WelcomePage;
+export default PrivacyPage;
+
+/* eslint-disable react-hooks/exhaustive-deps */

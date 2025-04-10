@@ -78,5 +78,7 @@
     "stateText": "ರಾಜ್ಯ",
     "districtText": "ಜಿಲ್ಲೆಯ ಹೆಸರು",
     "blockText": "ಬ್ಲಾಕ್ ಹೆಸರು",
-    "LetGetStartedBtn": "ಆರಂಭಿಸೋಣ"
+    "LetGetStartedBtn": "ಆರಂಭಿಸೋಣ",
+    "tncText1": "ಸೈನ್ ಅಪ್ ಮಾಡುವ ಮೂಲಕ, ನೀವು ನಮ್ಮದನ್ನು ಸ್ವೀಕರಿಸುತ್ತೀರಿ",
+    "tncText2": "ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು"
 }

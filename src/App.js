@@ -10,6 +10,7 @@ import Shikshalokam from "./pages/shikshalokam";
 import ShikshalokamVoiceBasedChat from "./pages/ShikshalokamVoiceChat/voice-chat";
 import WelcomePage from "./components/Welcome";
 import GuestPage from "./components/GuestPage";
+import PrivacyPage from "./pages/privacyPage";
 
 
 function App() {
@@ -55,7 +56,7 @@ const unprotected_old_routes = [
   { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN, element: <Shikshalokam type={'shikshalokam'} variant={'publicBot'}/> },
   { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>},
   { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>},
-  
+  {path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage />},
 ];
 
 const unprotected_routes_config = [

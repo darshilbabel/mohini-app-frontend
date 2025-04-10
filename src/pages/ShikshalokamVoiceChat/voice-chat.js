@@ -154,7 +154,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [showFileInput, setShowFileInput] = useState(null);
   const [shouldSendMessage, ] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [acceptedTnc, setAcceptedTnC] = useState(localStorage.getItem('has_accepted_tnc')|| 'ONGOING');
   const [stateMachineLength, setStateMachineLength] = useState(localStorage.getItem('statemachine_length') || 0);
   const isGuestFlow = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'));
 
@@ -229,7 +228,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [projectId])
 
   useEffect(() => {
-    if (isLoading || isEndStoryLoading || isModalOpen || acceptedTnc==="ONGOING") {
+    if (isLoading || isEndStoryLoading || isModalOpen) {
       document.body.style.overflowY = "hidden";
     } else {
       document.body.style.overflowY = "auto";
@@ -1128,7 +1127,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       (shouldPlay) &&
       !isEndStoryLoading && !isLoading && !isPdfDownloading &&
       isMute &&
-      acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading && !isFetchingOldIntro
+      !isIntroLoading && !isFetchingOldIntro
     ) {
       const speakerButtons = document.querySelectorAll(".button-11.button-3");
       const lastSpeakerButton = speakerButtons[speakerButtons.length - 1];
@@ -1147,7 +1146,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     storyData,
     chatHistory,
     isMute,
-    acceptedTnc,
     isIntroLoading,
     noStoryFound
   ]);
@@ -1418,7 +1416,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [chatHistory]);
 
   useEffect(() => {
-    if(!isLoading && showFileInput && acceptedTnc!=="ONGOING"){
+    if(!isLoading && showFileInput){
       endPageToScrollRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [isLoading, showFileInput]);
@@ -1495,7 +1493,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const currentFlow = localStorage.getItem('flow');
     const handleBack = () => {
-      if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
+      if(currentFlow && 
       [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
         showGuestPopup(true)
       } else {
@@ -1513,7 +1511,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return () => {
       window.removeEventListener("popstate", handleBack);
     };
-  }, [navigate, acceptedTnc]);
+  }, [navigate]);
 
   useEffect(() => {
     localStorage.setItem('isChatVisible', JSON.stringify(isChatVisible));
@@ -1569,7 +1567,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
 
   const handleScrollToView = () => {
-    if(acceptedTnc==="ONGOING") return;
     try {
       document?.querySelector("#last-chat-boundary")?.scrollIntoView({
         behavior: "smooth",
@@ -2448,19 +2445,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }
 
-  function handleAcceptTnC() {
-    
-    localStorage.setItem('has_accepted_tnc', true)
-    setAcceptedTnC(true);
-  }
-
-  function handleDeclineTnC() {
-    
-    localStorage.setItem('has_accepted_tnc', false)
-    setAcceptedTnC(false);
-    navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
-  }
-
   function stopAllAudio(){
     if (audioRef.current) {
       audioRef.current.pause();
@@ -2471,7 +2455,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   return (
     <>
-      {(acceptedTnc==="ONGOING" && !isLoading)&& <PrivacyPolicyPage tncText={t('tncText')} onAccept={handleAcceptTnC} onDecline={handleDeclineTnC} />}
       <></>
       <div className={`div27 ${isOpen&& ' div70'} ${(projectId)&& ' div21'}`}>
         <div className={`div28 ${isOpen ? "div29" : ""}`}>
@@ -2757,6 +2740,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                           setFiles, setError, projectId, setIsLoading, navigate, t
                         )
                       }} 
+                      onClick={(e) => {
+                        if (files?.length >= 5) {
+                          setFileErrorText(fileExceedText);
+                        } else {
+                          setFileErrorText('');
+                        }
+                      }}
                       disabled={isLoading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
                       className="div17"
                     />
@@ -2934,7 +2924,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         </div>
         <Notification />
 
-        {(!showFileInput && !isLoading &&!isEndStoryLoading && (llmError==='' || !llmError) && 
+        {((!showFileInput || showFileInput===null) && !isLoading &&!isEndStoryLoading && (llmError==='' || !llmError) && 
          Array.isArray(chatHistory) &&
          chatHistory.some(item => item && Object.keys(item).length > 0)
         )&&       

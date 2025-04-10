@@ -5,6 +5,7 @@ const ROUTES = {
   SHIKSHALOKAM_GUEST_PAGE: "/flow",
   SHIKSHALOKAM_VOICE_CHAT: "/voice-chat",
   SHIKSHALOKAM_GUEST_VOICE_CHAT: "/voice-chat",
+  TERMS_AND_CONDITIONS: "/tnc",
   EXIT_ROUTE: "/exit",
 };
 
