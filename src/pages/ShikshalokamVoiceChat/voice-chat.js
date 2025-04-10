@@ -223,7 +223,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if(projectId){
       localStorage.setItem('flow', sessionFlowName.Reflection);
     } else if(!localStorage.getItem('flow')){
-      navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
+      // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
+      navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+
     }
   }, [projectId])
 
@@ -1500,7 +1502,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         setLanguage(languageList[0].value);
         localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
         stopAllAudio();
-        navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
+        // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
+        navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
       }
     };
 

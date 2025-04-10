@@ -295,7 +295,16 @@ function Login({ type, variant }) {
           path: "/",
         });
         setLocalUserData(response?.data);
-        navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE);
+        // temp code (need to remove below later)
+        const lang = localStorage.getItem('preferred_route');
+
+        if(lang){
+          localStorage.setItem('route', lang);
+          setLanguage(JSON.parse(lang));
+        }
+        // temp code (need to remove above later)
+
+        navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT);
       } else {
         navigate("/login");
         window.location.reload();
