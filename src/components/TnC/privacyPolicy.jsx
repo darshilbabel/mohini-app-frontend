@@ -8,37 +8,27 @@ import "./privacyPolicyStyle.css";
 import { useTranslation } from "react-i18next";
 
 
-const PrivacyPolicyPage = ({ tncText, onAccept, onDecline }) => {
+const PrivacyPolicyPage = ({ tncText, onAccept, onDecline, shouldShowAcceptDecline=true}) => {
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    window.scrollTo(0, 0);
-  
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
-  
   const { t } = useTranslation();
 
   return (
     <>
-        <div className="tnc-cover"></div>
-        <div className="tnc-bg">
-            <div className="tnc-container">
-            <div className="tnc-content">
+        <div className="">
+            <div className="">
+            <div className="">
                 <div className="tnc-text">
                     <MarkdownComponent markdownText={tncText} />
                 </div>
             </div>
-            <div className="tnc-buttons">
+            {(shouldShowAcceptDecline)&& <div className="tnc-buttons">
                 <button className="tnc-button accept" onClick={onAccept}>
                   {t('tncConfirm')}
                 </button>
                 <button className="tnc-button decline" onClick={onDecline}>
                   {t('tncDecline')}
                 </button>
-            </div>
+            </div>}
             </div>
         </div>
     </>
@@ -58,7 +48,8 @@ const MarkdownComponent = ({ markdownText }) => {
       <ReactMarkdown
         children={markdownText}
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]} // Enable raw HTML parsing
+        rehypePlugins={[rehypeRaw]}
+        className="prose max-w-none md:max-w-[90%]"
       />
     );
   };

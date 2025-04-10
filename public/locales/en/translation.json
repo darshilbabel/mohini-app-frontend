@@ -78,5 +78,7 @@
     "stateText": "State",
     "districtText": "District Name",
     "blockText": "Block Name",
-    "LetGetStartedBtn": "Let's Get Started"
+    "LetGetStartedBtn": "Let's Get Started",
+    "tncText1": "By signing up, you accept our",
+    "tncText2": "Terms and Conditions"
 }

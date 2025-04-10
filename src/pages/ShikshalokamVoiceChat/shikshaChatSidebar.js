@@ -25,7 +25,8 @@ const Sidebar = ({
     }
     setLanguage(languageList[0].value);
     localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
-    navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
+    navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+    // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
   }
 
   return (

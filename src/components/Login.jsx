@@ -25,6 +25,8 @@ function Login({ type, variant }) {
   const [firstName, setFirstName] = useState("");
   const [emailId, setEmailId] = useState("");
   const [userLanguage, setUserLanguage] = useState("");
+  const [isChecked, setIsChecked] = useState(false);
+
   const [pageLanguage, setPageLanguage] = useState(
     JSON.parse(localStorage.getItem("local_route")) || languageList[0].value
   );
@@ -293,7 +295,16 @@ function Login({ type, variant }) {
           path: "/",
         });
         setLocalUserData(response?.data);
-        navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE);
+        // temp code (need to remove below later)
+        const lang = localStorage.getItem('preferred_route');
+
+        if(lang){
+          localStorage.setItem('route', lang);
+          setLanguage(JSON.parse(lang));
+        }
+        // temp code (need to remove above later)
+
+        navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT);
       } else {
         navigate("/login");
         window.location.reload();
@@ -305,6 +316,10 @@ function Login({ type, variant }) {
       setIsLoading(false);
     }
     
+  };
+
+  const handleCheckboxChange = (e) => {
+    setIsChecked(e?.target?.checked);
   };
 
   return (
@@ -376,6 +391,14 @@ function Login({ type, variant }) {
                 />
               </div>
             </div>
+            <div className="mt-[150px] sm:hidden">
+            <div className="text-center sm:text-2xl text-md text-slate-700">
+              <b>{t('welcome_heading1')}</b>
+            </div>
+            <p className="pt-4 pb-4 text-center">
+              {t('welcome_paragraph1')}
+            </p>
+          </div>
             <>
               <div className="text-center sm:text-2xl text-md  mt-[100px] text-slate-700">
                 <b>{t('welcome_text')}</b>
@@ -415,14 +438,16 @@ function Login({ type, variant }) {
                     selectOnChange={handleLanguageChange}
                     isRequired={true}
                   />
-                  <FormData layOut={2} labelName={t('stateText')} id="stateNameID" selectID="stateNameID" selectName="stateName"
+                  <FormData layOut={2} labelName={`${t('stateText')}  *`} id="stateNameID" selectID="stateNameID" selectName="stateName"
                     selectOptions={stateLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userState?.value}
                     selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleStateChange}
                     isRequired={stateLabelArray?.length > 0 ? true : false}                 />
-                  <FormData layOut={2} labelName={t('districtText')} id="districtNameID" selectID="districtNameID" selectName="districtName"
+                  <FormData layOut={2} 
+                    labelName={`${t('districtText')}${districtLabelArray?.length > 0 ? ' *' : ''}`}
+                    id="districtNameID" selectID="districtNameID" selectName="districtName"
                     selectOptions={districtLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userDistrict?.value}
@@ -430,7 +455,9 @@ function Login({ type, variant }) {
                     selectOnChange={handleDistrictChange}
                     isRequired={districtLabelArray?.length > 0 ? true : false}
                   />
-                  <FormData layOut={2} labelName={t('blockText')} id="blockNameID" selectID="blockNameID" selectName="blockName"
+                  <FormData layOut={2} 
+                    labelName={`${t('blockText')}${blockLabelArray?.length > 0 ? ' *' : ''}`}
+                    id="blockNameID" selectID="blockNameID" selectName="blockName"
                     selectOptions={blockLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userBlock?.value}
@@ -438,6 +465,29 @@ function Login({ type, variant }) {
                     selectOnChange={handleBlockChange}
                     isRequired={blockLabelArray?.length > 0 ? true : false}
                   />
+                  <div className="text-left text-slate-700 ml-[4%] md:ml-[18%] mt-6">
+                    <label className="inline-block">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={handleCheckboxChange}
+                        className="w-5 h-5 border-2 border-slate-300 rounded-sm checked:bg-purple-600 checked:border-purple-600 focus:outline-none transition duration-300 transform scale-110 hover:scale-100 checked:scale-100 checked:transition-all align-middle"
+                        required
+                      />
+                      <span className="text-slate-700 ml-2">
+                        {t('tncText1')}{' '}
+                      </span>
+                      <button href="/terms-and-conditions"
+                       className="text-purple-600 hover:underline whitespace-nowrap"
+                       onClick={(e) => {
+                        e.preventDefault();
+                        navigate(ROUTES.TERMS_AND_CONDITIONS);
+                       }}
+                      >
+                      {' '}{t('tncText2')}
+                      </button>
+                    </label>
+                  </div>
                 </>
               
               <div>

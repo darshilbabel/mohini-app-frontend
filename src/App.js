@@ -10,6 +10,8 @@ import Shikshalokam from "./pages/shikshalokam";
 import ShikshalokamVoiceBasedChat from "./pages/ShikshalokamVoiceChat/voice-chat";
 import WelcomePage from "./components/Welcome";
 import GuestPage from "./components/GuestPage";
+import PrivacyPage from "./pages/privacyPage";
+import ShikshalokamChat from "./pages/shikshalokamChat";
 
 
 function App() {
@@ -49,13 +51,13 @@ const protected_routes = [
 ];
 
 const unprotected_old_routes = [
-
-  { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <WelcomePage /> },
-  { path: ROUTES.SHIKSHALOKAM_GUEST_PAGE, element: <GuestPage /> },
+  // { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <WelcomePage /> },
+  // { path: ROUTES.SHIKSHALOKAM_GUEST_PAGE, element: <GuestPage /> },
   { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN, element: <Shikshalokam type={'shikshalokam'} variant={'publicBot'}/> },
   { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>},
-  { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>},
-  
+  // { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>},
+  { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamChat />},
+  {path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage />},
 ];
 
 const unprotected_routes_config = [
