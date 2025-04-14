@@ -7,6 +7,7 @@ import ShikshalokamVoiceBasedChat, { clearFromStorage } from "./ShikshalokamVoic
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axios";
 import { setLanguage } from "../i18n";
+import { BiLoader } from "react-icons/bi";
 
 
 
@@ -114,7 +115,9 @@ function ShikshalokamChat({type, variant}) {
 	useEffect(()=>{
 		const runSetup = async () => {
 			if(!localStorage.getItem('sessionid')){
+				clearFromStorage();
 				setIsLoading(true);
+				localStorage.setItem('has_accepted_tnc', 'ONGOING');
 				localStorage.setItem('isNewChatOpen', JSON.stringify(true));
 				const locationData = await getIpLocation();
 				if (locationData && locationData?.location) {
@@ -139,6 +142,13 @@ function ShikshalokamChat({type, variant}) {
 				<>
 					<ShikshalokamVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>
 				</>
+			}
+			{(isLoading)&& 
+				<div className="loader-load-spinner">
+					<div className="div67">
+						<BiLoader className="loader-rotate-loader loader-icon" />
+					</div>
+				</div>
 			}
 		</>
 	);
