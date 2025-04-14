@@ -673,19 +673,9 @@
 }
 
 .button-8 {
-    animation: animate;
-    z-index: 10;
-    position: absolute;
-    right: -30px;
-    top: -20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 6rem;
-    width: 6rem;
-    font-size: 2.25rem;
-    background-color: #0d9488 !important;
-    color: #ffffff;
+    background-color: #f3f8f9 !important;
+    font-size: 1.25rem;
+    color: #E50046;
 }
 
 .button-8:disabled {
