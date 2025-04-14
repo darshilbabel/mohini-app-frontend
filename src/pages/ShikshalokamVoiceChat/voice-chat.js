@@ -2496,6 +2496,23 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }
 
+  const convertHeifToJpg = async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+  
+    const response = await axiosInstance.post("api/image-converter/", formData, {
+      responseType: "blob", 
+    });
+  
+    const convertedBlob = response.data;
+  
+    const originalName = file.name.split('.').slice(0, -1).join('.');
+    const jpgFile = new File([convertedBlob], `${originalName}.jpg`, { type: "image/jpeg" });
+  
+    return jpgFile;
+  };
+  
+
   const handleMultipleUploads = async (e, storyData) => {
     const filesArray = Array.from(e.target.files);
     const currentFiles = [...files];
@@ -2511,7 +2528,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     };
   
     const maxFileSize = 50 * 1024 * 1024;
-    const allowedExtensions = ["jpeg", "jpg", "png", "svg", "webp"];
+    const allowedExtensions = ["jpeg", "jpg", "png", "svg", "webp", "heif", "heic"];
   
     const uploadPromises = filesArray.map(async (file) => {
       if (file.size > maxFileSize) {
@@ -2530,6 +2547,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       }
   
       try {
+
+        if (["heic", "heif"].includes(fileExtension)) {
+          file = await convertHeifToJpg(file);
+        }
+        
         const res = await axiosInstance.post("api/get-presigned-url/", {
           fileName: fileName,
           fileType: file.type,
@@ -2881,7 +2903,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     <input 
                       id="file-upload"
                       type="file" 
-                      accept="image/jpeg, image/png, image/svg+xml, image/webp" 
+                      accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic" 
                       // multiple
                       onChange={(e) => {
                         handleMultipleUploads(e, storyData)
