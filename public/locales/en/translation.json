@@ -38,7 +38,7 @@
     "chooseAnOption": "Choose an option",
     "cancel": "Cancel",
     "uploadedFiles": "Uploaded Files",
-    "uploadLoadMsg": "Please wait, your image is uploading...",
+    "uploadLoadMsg": "Please wait, your images are loading...",
     "replyMsg": "Replying..",
     "fileExceedText": "You cannot upload more than 5 files",
     "fileSizeText": "File size cannot exceed 50MB",
@@ -80,5 +80,7 @@
     "blockText": "Block Name",
     "LetGetStartedBtn": "Let's Get Started",
     "tncText1": "By signing up, you accept our",
-    "tncText2": "Terms and Conditions"
+    "tncText2": "Terms and Conditions",
+    "challengesHeader": "Challenges",
+    "solutionsHeader": "Solutions"
 }

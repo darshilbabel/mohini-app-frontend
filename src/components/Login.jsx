@@ -288,6 +288,7 @@ function Login({ type, variant }) {
         localStorage.setItem('company', JSON.stringify(response?.data?.company));
         localStorage.setItem('state', JSON.stringify(response?.data?.state));
         localStorage.setItem('flow', sessionFlowName.LoginMiStory);
+				localStorage.setItem('has_accepted_tnc', true);
         cookies.set("profileid", JSON.stringify(response?.data?.id), {
           path: "/",
         });
@@ -481,7 +482,8 @@ function Login({ type, variant }) {
                        className="text-purple-600 hover:underline whitespace-nowrap"
                        onClick={(e) => {
                         e.preventDefault();
-                        navigate(ROUTES.TERMS_AND_CONDITIONS);
+                        window.open("/mohini"+ROUTES.TERMS_AND_CONDITIONS, "_blank");
+                        // navigate(ROUTES.TERMS_AND_CONDITIONS);
                        }}
                       >
                       {' '}{t('tncText2')}

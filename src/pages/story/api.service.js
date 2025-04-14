@@ -94,6 +94,8 @@ export const createStoryMedia = async ({
     story: "",
     name: "",
     file: [],
+    file_url: "",
+    media_type: ""
   },
 }) => {
   try {

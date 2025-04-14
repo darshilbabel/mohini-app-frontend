@@ -54,6 +54,7 @@ import { setLanguage } from "../../i18n";
 import Notification, { showNotification } from "../../components/ToastMessage/TotastMessage";
 import { toast } from "react-toastify";
 import { languageList, sessionFlowName } from "./enum";
+import PrivacyPolicyPopup from "../../components/TnC/privacyPolicyPopup";
 
 
 const cookies = new Cookies();
@@ -136,6 +137,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   });
   const [chatTitle, setChatTitle] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isImageUploading, setIsImageUploading] = useState(false);
   const [langProgress, setLangProgress] = useState(localStorage.getItem('lang_progress')|| null);
   const [isIntroLoading, setIsIntroLoading] = useState(false);
   const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false);
@@ -156,6 +158,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [stateMachineLength, setStateMachineLength] = useState(localStorage.getItem('statemachine_length') || 0);
   const isGuestFlow = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'));
+  const [acceptedTnc, setAcceptedTnC] = useState(localStorage.getItem('has_accepted_tnc')|| 'ONGOING');
 
 
   const { t } = useTranslation();
@@ -176,7 +179,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     status: 200,
   });
   const [llmError, setLlmError] = useState(localStorage.getItem('llmError') || "");
-  const [isUploading, ] = useState(false);
   const [files, setFiles] = useState([]);
   const [fileErrorText, setFileErrorText] = useState('');
 
@@ -230,7 +232,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [projectId])
 
   useEffect(() => {
-    if (isLoading || isEndStoryLoading || isModalOpen) {
+    if (isLoading || isEndStoryLoading || isModalOpen || acceptedTnc==="ONGOING") {
       document.body.style.overflowY = "hidden";
     } else {
       document.body.style.overflowY = "auto";
@@ -452,7 +454,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             {
               type: "header",
               data: {
-                text: "Challenges",
+                text: t('challengesHeader'),
                 level: 2,
                 customId: "challenges"
               },
@@ -467,7 +469,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             {
               type: "header",
               data: {
-                text: "Solutions",
+                text: t('solutionsHeader'),
                 level: 2,
                 customId: "solutions"
               },
@@ -537,7 +539,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           setTimeout(() => {
             document.querySelectorAll('.ce-header').forEach((el) => {
               const text = el.innerText.trim().toLowerCase();
-              if (text === 'challenges' || text === 'solutions') {
+              if (text === t('challengesHeader') || text === t('solutionsHeader')) {
                 el.setAttribute('contenteditable', 'false');
                 el.style.pointerEvents = 'none';
                 el.style.color = '#555'; 
@@ -728,8 +730,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
                     const blocks = outputData?.blocks || [];
             
-                    const challenges = getListAfterHeaderText("Challenges", blocks);
-                    const solutions = getListAfterHeaderText("Solutions", blocks);
+                    const challenges = getListAfterHeaderText(t('challengesHeader'), blocks);
+                    const solutions = getListAfterHeaderText(t('solutionsHeader'), blocks);
             
                     updatePayload = {
                       ...updatePayload,
@@ -1129,7 +1131,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       (shouldPlay) &&
       !isEndStoryLoading && !isLoading && !isPdfDownloading &&
       isMute &&
-      !isIntroLoading && !isFetchingOldIntro
+      acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading && !isFetchingOldIntro
     ) {
       const speakerButtons = document.querySelectorAll(".button-11.button-3");
       const lastSpeakerButton = speakerButtons[speakerButtons.length - 1];
@@ -1148,6 +1150,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     storyData,
     chatHistory,
     isMute,
+    acceptedTnc,
     isIntroLoading,
     noStoryFound
   ]);
@@ -1217,16 +1220,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
       getStoryAllMedia({
         setter: (data) => {
-          
+          setIsImageUploading(true);
           for (let item of Object.values(data?.results || [])) {
             
             if (item.include_in_story) {
-              item.base64_str = `data:image/jpeg;charset=utf-8;base64,${item.base64_str}`
               tempMediaArr.push(item);
             }
           }
-          
           setFiles(tempMediaArr);
+          setIsImageUploading(false);
         },
         data: {
           story: story_id,
@@ -1418,10 +1420,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [chatHistory]);
 
   useEffect(() => {
-    if(!isLoading && showFileInput){
+    if(!isLoading && showFileInput && acceptedTnc!=="ONGOING"){
       endPageToScrollRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [isLoading, showFileInput]);
+  }, [isLoading, showFileInput, acceptedTnc]);
 
   useEffect(() => {
     if (
@@ -1487,7 +1489,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         }
         clearTimeout(titleTime);
       }
-    } else if(!isEndStoryLoading) {
+    } else if(!isEndStoryLoading && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow))) {
       setIsLoading(false);
     }
   },[profileToUse, projectId, isEndStoryLoading, noStoryFound])
@@ -1495,7 +1497,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const currentFlow = localStorage.getItem('flow');
     const handleBack = () => {
-      if(currentFlow && 
+      if(acceptedTnc || acceptedTnc==="ONGOING" && currentFlow && 
       [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
         showGuestPopup(true)
       } else {
@@ -1514,7 +1516,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return () => {
       window.removeEventListener("popstate", handleBack);
     };
-  }, [navigate]);
+  }, [navigate, acceptedTnc]);
 
   useEffect(() => {
     localStorage.setItem('isChatVisible', JSON.stringify(isChatVisible));
@@ -1570,6 +1572,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
 
   const handleScrollToView = () => {
+    if(acceptedTnc==="ONGOING") return;
     try {
       document?.querySelector("#last-chat-boundary")?.scrollIntoView({
         behavior: "smooth",
@@ -2456,8 +2459,114 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }
 
+  const handleMultipleUploads = async (e, storyData) => {
+    const filesArray = Array.from(e.target.files);
+    const currentFiles = [...files];
+  
+    if (currentFiles?.length + filesArray.length > 5) {
+      setFileErrorText(fileExceedText);
+      return;
+    }
+  
+    const story_id = storyData?.id;
+    if (!story_id) {
+      return;
+    };
+  
+    const maxFileSize = 50 * 1024 * 1024;
+    const allowedExtensions = ["jpeg", "jpg", "png", "svg", "webp"];
+  
+    const uploadPromises = filesArray.map(async (file) => {
+      if (file.size > maxFileSize) {
+        setFileErrorText(fileSizeText);
+        throw new Error("File size exceeds limit");
+      }
+  
+      const fileName = file.name;
+      const fileExtension = fileName.split('.').pop().toLowerCase();
+  
+      console.log("In promise for file:", fileName);
+  
+      if (!allowedExtensions.includes(fileExtension)) {
+        setFileErrorText(t("fileTypeErrorText"));
+        throw new Error("Invalid file type");
+      }
+  
+      try {
+        const res = await axiosInstance.post("api/get-presigned-url/", {
+          fileName: fileName,
+          fileType: file.type,
+          storyId: story_id,
+        });
+  
+        const { uploadUrl, s3Url } = res.data;
+  
+        await fetch(uploadUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type,
+            "x-amz-acl": "public-read"
+          },
+          body: file,
+        });
+  
+        const formData = {
+          file_url: s3Url,
+          story: story_id,
+          name: fileName,
+          media_type: file.type,
+          include_in_story: true,
+          access_token,
+          flow: localStorage.getItem("flow"),
+          session: JSON.parse(localStorage.getItem("sessionid")),
+        };
+  
+        const uploadedFile = await uploadImage(formData, setError, projectId, navigate, setIsLoading, access_token, setFiles);
+        return uploadedFile;
+  
+      } catch (error) {
+        console.error({ error });
+        if (projectId) {
+          clearFromStorage();
+          navigate(-1);
+        }
+        setIsLoading(false);
+        return null;
+      }
+    });
+    
+    try{
+      const uploadedFiles = await Promise.allSettled(uploadPromises);
+      const validFiles = uploadedFiles
+      .filter(result => result.status === 'fulfilled' && result.value)
+      .map(result => result.value);
+  
+      setFiles([...currentFiles, ...validFiles]);
+    } catch (e) {
+      console.error("Upload handling error", e);
+    } 
+  };
+
+  function handleAcceptTnC() {
+    
+    localStorage.setItem('has_accepted_tnc', true)
+    setAcceptedTnC(true);
+  }
+
+  function handleDeclineTnC() {
+    
+    localStorage.setItem('has_accepted_tnc', false)
+    setAcceptedTnC(false);
+    navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
+  }
+
   return (
     <>
+      {(acceptedTnc==="ONGOING" && !isLoading && localStorage.getItem('flow') && 
+        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))
+      )&& 
+        <PrivacyPolicyPopup tncText={t('tncText')} onAccept={handleAcceptTnC} />
+      }
       <></>
       <div className={`div27 ${isOpen&& ' div70'} ${(projectId)&& ' div21'}`}>
         <div className={`div28 ${isOpen ? "div29" : ""}`}>
@@ -2735,14 +2844,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     <input 
                       id="file-upload"
                       type="file" 
-                      accept="image/*,image/svg+xml" 
-                      multiple
-                      onChange={(e)=>{
-                        handleFileUpload(
-                          e, storyData, files, setFileErrorText, fileSizeText, access_token, 
-                          setFiles, setError, projectId, setIsLoading, navigate, t
-                        )
-                      }} 
+                      accept="image/jpeg, image/png, image/svg+xml, image/webp" 
+                      // multiple
+                      onChange={(e) => {
+                        handleMultipleUploads(e, storyData)
+                      }}
                       onClick={(e) => {
                         if (files?.length >= 5) {
                           setFileErrorText(fileExceedText);
@@ -2750,12 +2856,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                           setFileErrorText('');
                         }
                       }}
-                      disabled={isLoading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
+                      disabled={isLoading || isImageUploading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
                       className="div17"
                     />
                   </label>
                 </div>
-
+                <>
+                  {isImageUploading && (  
+                    <p className="li-3">
+                      {t('uploadLoadMsg')}
+                    </p>
+                  )}
+                </>
                 {files?.length > 0 ? (
                   <div className="div18">
                     <h4 className="h4-1">{t('uploadedFiles')}:</h4>
@@ -2777,11 +2889,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                           </button>
                         </li>
                       ))}
-                      {isUploading && (
-                        <li className="li-3">
-                          {t('uploadLoadMsg')}
-                        </li>
-                      )}
                     </ul>
                   </div>
                 ):
@@ -3121,7 +3228,8 @@ export function clearFromStorage() {
     'botName', 'chat-history', 'company', 'first_name', 'has_accepted_tnc', 'intro_message', 
     'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
     'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type', 
-    'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress'
+    'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress',
+    'grit', 'device_id'
   ];
 
   keysToRemove.forEach((key) => {
