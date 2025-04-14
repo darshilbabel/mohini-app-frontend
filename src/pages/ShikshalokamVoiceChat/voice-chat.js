@@ -193,7 +193,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   let isMobile = useCustomMediaQuery('(max-width: 500px)');
   let chatToAddLength = isMobile? 10: 10;
   const [visibleItemCount, setVisibleItemCount] = useState(chatToAddLength);
-  const isNewChatOpen = JSON.parse(localStorage.getItem('isNewChatOpen'));
+  let isNewChatOpen = JSON.parse(localStorage.getItem('isNewChatOpen'));
 
   const projectId = searchParams.get("projectId");
 
@@ -227,6 +227,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(()=>{
     if(projectId){
       localStorage.setItem('flow', sessionFlowName.Reflection);
+      const tnc_status = localStorage.getItem('has_accepted_tnc');
+      if (!tnc_status) {
+        localStorage.setItem('has_accepted_tnc', "ONGOING");
+        setAcceptedTnC("ONGOING");
+      }
+      localStorage.setItem('isNewChatOpen', JSON.stringify(true));
+      isNewChatOpen = true;
+      
+      
     } else if(!localStorage.getItem('flow')){
       // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
       navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
@@ -1525,7 +1534,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const currentFlow = localStorage.getItem('flow');
     const handleBack = () => {
-      if(acceptedTnc || acceptedTnc==="ONGOING" && currentFlow && 
+      if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
       [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
         showGuestPopup(true)
       } else {
@@ -1533,7 +1542,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
         stopAllAudio();
         // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
-        navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+        if(projectId){
+          navigate(-1);
+        } else {
+          navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+        }
       }
     };
 
@@ -2622,7 +2635,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   return (
     <>
       {(acceptedTnc==="ONGOING" && !isLoading && localStorage.getItem('flow') && 
-        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))
+        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.Reflection].includes(localStorage.getItem('flow'))
       )&& 
         <PrivacyPolicyPopup tncText={t('tncText')} onAccept={handleAcceptTnC} />
       }
