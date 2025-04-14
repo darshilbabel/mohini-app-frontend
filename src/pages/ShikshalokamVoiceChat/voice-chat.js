@@ -1204,7 +1204,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         // setIsModalOpen(true);
         setNoStoryFound(false);
         setShowFileInput(true);
+        setIsLoading(false);
       } else {
+        setIsLoading(false);
         if(!llmError) {
           setNoStoryFound(true);
         }

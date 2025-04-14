@@ -46,7 +46,7 @@ body {
     border-top: 1px solid #ddd;
     position: fixed;
     width: 100%;
-    bottom: 15px;
+    bottom: 0;
 }
 
 .tnc-button {
