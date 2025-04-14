@@ -37,7 +37,7 @@ import Header from "@editorjs/header";
 import Paragraph from '@editorjs/paragraph';
 import List from "@editorjs/list";
 import PdfDownloader from "../story/upload-content/pdfDownloader";
-import { FaMicrophone } from "react-icons/fa";
+import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
 import "../../style.css"
 import "./shikshaChatStyle.css"
 import Swal from 'sweetalert2';
@@ -55,6 +55,7 @@ import Notification, { showNotification } from "../../components/ToastMessage/To
 import { toast } from "react-toastify";
 import { languageList, sessionFlowName } from "./enum";
 import PrivacyPolicyPopup from "../../components/TnC/privacyPolicyPopup";
+import { FaCircle } from "react-icons/fa6";
 
 
 const cookies = new Cookies();
@@ -159,6 +160,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [stateMachineLength, setStateMachineLength] = useState(localStorage.getItem('statemachine_length') || 0);
   const isGuestFlow = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'));
   const [acceptedTnc, setAcceptedTnC] = useState(localStorage.getItem('has_accepted_tnc')|| 'ONGOING');
+  const [seconds, setSeconds] = useState(0);
+  const [intervalId, setIntervalId] = useState(null);
 
 
   const { t } = useTranslation();
@@ -357,6 +360,26 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`; 
     }
   }, [textMessage]);
+
+  useEffect(() => {
+    if (hasStartedRecording) {
+      const id = setInterval(() => {
+        setSeconds(prev => prev + 1);
+      }, 1000);
+      setIntervalId(id);
+    } else {
+      clearInterval(intervalId);
+      setSeconds(0);
+    }
+
+    return () => clearInterval(intervalId);
+  }, [hasStartedRecording]);
+
+  const formatTime = (secs) => {
+    const minutes = Math.floor(secs / 60);
+    const seconds = secs % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
 
   async function callEndStory(hasClickedOnRegenerate=false) {
     let endStoryResponse;
@@ -841,7 +864,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     removeLocalChatHistory();
     localStorage.setItem('isOldChatOpen', JSON.stringify(false));
     localStorage.setItem('isNewChatOpen', JSON.stringify(true));
-    localStorage.removeItem('has_accepted_tnc');
     localStorage.removeItem('llmError');
 
     const session = await getSessionDetails();
@@ -852,7 +874,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     await cookies.set("sessionid", session.sessionid, {
         path: "/"
     });
-    
+    localStorage.setItem('has_accepted_tnc', true);
     window.location.reload();
   }
   
@@ -1216,28 +1238,32 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [access_token, globalSessionID])
 
   useEffect(() => {
-    if (storyData && storyData?.id !== '') {
-      const story_id = storyData?.id;
-      const tempMediaArr = []
-
-      getStoryAllMedia({
-        setter: (data) => {
-          setIsImageUploading(true);
-          for (let item of Object.values(data?.results || [])) {
-            
-            if (item.include_in_story) {
-              tempMediaArr.push(item);
+    const fetchMedia = async () => {
+      if (storyData && storyData?.id !== '') {
+        const story_id = storyData?.id;
+        const tempMediaArr = [];
+        setIsImageUploading(true);
+  
+        await getStoryAllMedia({
+          setter: (data) => {
+            for (let item of Object.values(data?.results || [])) {
+              if (item.include_in_story) {
+                tempMediaArr.push(item);
+              }
             }
-          }
-          setFiles(tempMediaArr);
-          setIsImageUploading(false);
-        },
-        data: {
-          story: story_id,
-        },
-      });
-    }
-
+            setFiles(tempMediaArr);
+          },
+          data: {
+            story: story_id,
+          },
+        });
+  
+        setIsImageUploading(false);
+      }
+    };
+  
+    fetchMedia();
+  
     return () => {};
   }, [access_token, storyData]);
 
@@ -2268,9 +2294,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   
               const wavBlob = await convertToWav(audioBlob);
               if (!wavBlob) {
-                setTextMessage(t('asrError'))
+                showNotification({
+                  message: t('asrError'),
+                  type: "error",
+                  options: {
+                    position: "top-center",
+                    autoClose: 4000,
+                    style: { fontWeight: "bold" },
+                  },
+                });
                 return;
               }
+
               setIsFetchingData(true);
               const base64Audio = await convertBlobToBase64(wavBlob);
               const transcriptResult = await ai4BharatASR(base64Audio);
@@ -2865,9 +2900,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 </div>
                 <>
                   {isImageUploading && (  
-                    <p className="li-3">
-                      {t('uploadLoadMsg')}
-                    </p>
+                    <div className="div18">
+                      <p className="li-3">
+                        {t('uploadLoadMsg')}
+                      </p>
+                    </div>
                   )}
                 </>
                 {files?.length > 0 ? (
@@ -3046,7 +3083,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             autoComplete="off"
           >
             <div
-              className="textarea-wrapper"
+              className="textarea-wrapper relative"
             >
               <textarea
                 className="input-2 input-1"
@@ -3085,6 +3122,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   }
                 }}
               />
+              {hasStartedRecording && (
+                <div className="absolute bottom-3 right-3 flex items-center space-x-1 text-red-600 text-sm font-medium pointer-events-none">
+                  <FaCircle className="text-red-500 animate-pulse text-xs" />
+                  <span>{formatTime(seconds)}</span>
+                </div>
+              )}
             </div>
             {(isTyping && !hasStartedListening) ? (
               <div className="button-container">
@@ -3098,7 +3141,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               </div>
             ) : (
               <div className="audio-recorder">
-                {hasStartedRecording && (
+                {/* {hasStartedRecording && (
                   <button
                     type="button"
                     onClick={() => {
@@ -3108,7 +3151,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   >
                     {t('cancel')}
                   </button>
-                )}
+                )} */}
 
                 <button
                   type="button"
@@ -3117,7 +3160,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   className={`button-7 ${hasStartedRecording ? 'button-8' : 'button-9'}`}
                 >
                   
-                  {hasStartedRecording ? <FaMicrophone /> : <FaMicrophone />}
+                  {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
                 </button>                
               </div>
             )}
