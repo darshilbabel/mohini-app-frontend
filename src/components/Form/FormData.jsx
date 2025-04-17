@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 
 function FormData({selectOptions, selectClassName, selectName, selectOnChange, selectID, selectValue, inputDivClass, isRequired, inputType, inputName, id,
     inputClass, inputOnChange, inputValue, labelDivClass, labelClass, labelName, layOut, isimportant, isMultiple, showWithinInput=false,
-    withinInputType, withinInputName, withinInputOnChange, withinInputValue, withinInputClass, withinInputDisabled, fieldError, showDefaultDropdownText=true, placeholder=''
+    withinInputType, withinInputName, withinInputOnChange, withinInputValue, withinInputClass, withinInputDisabled, fieldError, errorClass, 
+    showDefaultDropdownText=true, placeholder=''
 }){
     let optionArr = selectOptions;
     let multipleValue = false;
@@ -48,7 +49,6 @@ function FormData({selectOptions, selectClassName, selectName, selectOnChange, s
                 <div className={inputDivClass}>
                     {( isRequired ?
                     <>
-                        {(fieldError && fieldError!== '')&& <p className="error-phn-field">{fieldError}</p>}
                         {(showWithinInput)&& <input type={withinInputType} name={withinInputName} id={id} className={withinInputClass} 
                             onChange={withinInputOnChange} value={withinInputValue} required
                             disabled = {withinInputDisabled} placeholder={placeholder}
@@ -83,6 +83,7 @@ function FormData({selectOptions, selectClassName, selectName, selectOnChange, s
             <>
                 {showLabel()}
                 {showInput()}
+                {(fieldError && fieldError!== '')&& <p className={errorClass}>{fieldError}</p>}
             </>
         );
     } else if(layOut === 2){
@@ -90,7 +91,7 @@ function FormData({selectOptions, selectClassName, selectName, selectOnChange, s
             <>
                 {showLabel()}
                 {showDropDown()}
-                {(fieldError && fieldError!== '')&& <p className="error-phn-field">{fieldError}</p>}
+                {(fieldError && fieldError!== '')&& <p className={errorClass}>{fieldError}</p>}
             </>
         );
     } else{

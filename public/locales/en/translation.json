@@ -82,5 +82,13 @@
     "tncText1": "By signing up, you accept our",
     "tncText2": "Terms and Conditions",
     "challengesHeader": "Challenges",
-    "solutionsHeader": "Solutions"
+    "solutionsHeader": "Solutions",
+    "firstNameError": "First name is required",
+    "phoneNumberError": "Phone number is required",
+    "validPhoneNumberError": "Please enter a valid phone number",
+    "stateError": "State is required",
+    "districtError": "District is required",   
+    "blockError": "Block is required",
+    "languageError": "Language is required",
+    "tncError": "Please accept the terms and conditions to proceed"
 }

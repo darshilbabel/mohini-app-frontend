@@ -232,8 +232,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         localStorage.setItem('has_accepted_tnc', "ONGOING");
         setAcceptedTnC("ONGOING");
       }
-      localStorage.setItem('isNewChatOpen', JSON.stringify(true));
-      isNewChatOpen = true;
+      localStorage.setItem('isOldChatOpen', JSON.stringify(true));
+      isNewChatOpen = false;
       
       
     } else if(!localStorage.getItem('flow')){
@@ -467,10 +467,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(()=>{
     const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'))
     const flow = localStorage.getItem('flow')
-    if(isOldChatOpen === true && (hasFetchIntro || [sessionFlowName.LoginMiStory, sessionFlowName.LoginDiscussion].includes(flow)) && chatHistory?.length === 0 && sentences?.length === 0) {
+    if(isOldChatOpen === true && languageToUse && (hasFetchIntro || [sessionFlowName.LoginMiStory, sessionFlowName.LoginDiscussion, sessionFlowName.Reflection].includes(flow)) && chatHistory?.length === 0 && sentences?.length === 0) {
       handleChatSessionButtonClick({key: null})
     }
-  }, [isNewChatOpen, hasFetchIntro, chatHistory, sentences])
+  }, [isNewChatOpen, hasFetchIntro, chatHistory, sentences, languageToUse])
 
 
   useEffect(() => {
@@ -1285,8 +1285,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return res?.data?.company?.slug;
   }
 
-  async function getTranslatedIntroMessage(storedRoute){
-    let translate_api_url = `api/bot_vernacular/?language=${languageToUse}&company_bot__route=${storedRoute}`;
+  async function getTranslatedIntroMessage(storedRoute, lang=null){
+    if(!lang){
+      lang = languageToUse;
+    }
+    let translate_api_url = `api/bot_vernacular/?language=${lang}&company_bot__route=${storedRoute}`;
     try {
       const response = await axiosInstance.get(translate_api_url);
       return response?.data?.results;
@@ -1377,7 +1380,22 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         } else {
           firstName = '';
         }
-        let data = await getTranslatedIntroMessage(storedRoute)
+        const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'))
+        let tempLang = null;
+        if(isOldChatOpen) {
+          let sessionInfo = await getSessionInfo();
+          if(sessionInfo && sessionInfo.length>0) {
+            setStrandStep(sessionInfo[0]?.current_step)
+            localStorage.setItem('route', JSON.stringify(sessionInfo[0]?.session_language))
+            setLanguage(sessionInfo[0]?.session_language);
+            tempLang = sessionInfo[0]?.session_language;
+            if(sessionInfo[0]?.session_type) {
+              localStorage.setItem('selected_type', JSON.stringify(sessionInfo[0]?.session_type))
+              setSelectedType(sessionInfo[0]?.session_type)
+            }
+          }
+        }
+        let data = await getTranslatedIntroMessage(storedRoute, tempLang)
         let message = data[0]?.introductory_message;
         if (data && data[0]) {
           if(profileToUse && firstName && firstName !== 'null' && firstName !== '') {
@@ -1389,17 +1407,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         const botName = data[0]?.name || 'Bot';
         localStorage.setItem('botName', botName);
         setBotNameToDisplay(botName);
-        const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'))
-        if(isOldChatOpen) {
-          let sessionInfo = await getSessionInfo();
-          if(sessionInfo && sessionInfo.length>0) {
-            setStrandStep(sessionInfo[0]?.current_step)
-            if(sessionInfo[0]?.session_type) {
-              localStorage.setItem('selected_type', JSON.stringify(sessionInfo[0]?.session_type))
-              setSelectedType(sessionInfo[0]?.session_type)
-            }
-          }
-        }
         if (message && firstName) {
           const words = message.split(' ');
           words.splice(1, 0, firstName);
@@ -1434,7 +1441,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   useEffect(() => {
     const current_flow = localStorage.getItem('flow');
-    if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && 
+    if (languageToUse&& chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && 
         (profileToUse || [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(current_flow))
       ) {
       fetchBotInfo().then(() => {
@@ -1513,7 +1520,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(()=>{
     const currentFlow = localStorage.getItem('flow');
     if(profileToUse && !projectId && !isEndStoryLoading && 
-      !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow))
+      !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.Reflection].includes(currentFlow))
     ){
       setIsLoading(true);
       const titleTime = setTimeout(()=>{
@@ -1526,7 +1533,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         }
         clearTimeout(titleTime);
       }
-    } else if(!isEndStoryLoading && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow))) {
+    } else if(!isEndStoryLoading && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.Reflection].includes(currentFlow))) {
       setIsLoading(false);
     }
   },[profileToUse, projectId, isEndStoryLoading, noStoryFound])
@@ -1538,13 +1545,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
         showGuestPopup(true)
       } else {
-        setLanguage(languageList[0].value);
-        localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
         stopAllAudio();
-        // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
         if(projectId){
           navigate(-1);
         } else {
+          setLanguage(languageList[0].value);
+          localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
           navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
         }
       }
@@ -1792,9 +1798,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         console.error('Error fetching company chat data:', error);
     } finally {
         setIsFetchingOldIntro(false);
-        if(projectId) {
-          setIsLoading(false);
-        }
+        // if(projectId) {
+        //   setIsLoading(false);
+        // }
     }
   }
 
@@ -2551,8 +2557,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   
       const fileName = file.name;
       const fileExtension = fileName.split('.').pop().toLowerCase();
-  
-      console.log("In promise for file:", fileName);
   
       if (!allowedExtensions.includes(fileExtension)) {
         setFileErrorText(t("fileTypeErrorText"));
