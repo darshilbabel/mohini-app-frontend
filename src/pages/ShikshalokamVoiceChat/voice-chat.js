@@ -1092,6 +1092,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
             navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
           } else{
+            if(
+              localStorage.getItem('flow') && 
+              [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))
+            ){
+              localStorage.removeItem('botName');
+            }
             ResetChat();
           }
         }
@@ -1201,7 +1207,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   useEffect(()=>{
     const botName = localStorage.getItem('botName');
-    setBotNameToDisplay(botName);
+    const defaultBotName = localStorage.getItem('defaultBotName');
+    setBotNameToDisplay(botName?.trim() ? botName : defaultBotName);
 
   }, [])
 
@@ -1388,6 +1395,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         }
         const botName = data[0]?.name || 'Bot';
         localStorage.setItem('botName', botName);
+        localStorage.setItem('defaultBotName', data[0]?.default_name);
         setBotNameToDisplay(botName);
         const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'))
         if(isOldChatOpen) {
