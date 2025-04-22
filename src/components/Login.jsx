@@ -365,19 +365,14 @@ function Login({ type, variant }) {
       </div>
       <div className="">
         <div className="justify-center w-full flex sm:hidden">
-          <div className="w-[100%]">
-                <div className="flex p-2 mx-auto px-auto items-center justify-center">
-                  <img
-                    src="https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/shikshagrahaLogo.png"
-                    className="h-[100px] w-[200px] object-contain aspect-auto align-top object-[center_center] relative ml-0"
-                    alt="shikshalokam_logo"
-                  />
-              </div>
-          </div>
-        </div>
-        <div className="bg-slate-50 h-full sm:pt-6">
-            <div className="flex justify-end mr-6 relative block sm:hidden">
-              <div className="absolute top-0 right-6 min-w-[100px] max-w-fit">
+          <div className="w-full">
+          <div className="justify-between w-full flex sm:hidden items-center p-2">
+              <img
+                src="https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/shikshagrahaLogo.png"
+                className="h-[80px] w-[100px] object-contain"
+                alt="shikshalokam_logo"
+              />
+              <div className="w-[140px] flex justify-end p-2">
                 <FormData
                   layOut={2}
                   labelName=""
@@ -387,12 +382,25 @@ function Login({ type, variant }) {
                   selectOptions={languageList}
                   labelDivClass="text-left text-slate-700"
                   selectValue={pageLanguage}
-                  selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-max"
+                  selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-0 w-full"
                   selectOnChange={handlePageLanguageChange}
                 />
               </div>
             </div>
-            <div className="mt-[150px] sm:hidden">
+
+          </div>
+        </div>
+        <img
+          src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
+          width="200"
+          height="100"
+          className="center-img custom-login-image sm:hidden"
+          alt=""
+        />
+        <div className="bg-slate-50 h-full sm:pt-6">
+            <div className="flex justify-end mr-6 relative block sm:hidden">
+            </div>
+            <div className="mt-[50px] sm:hidden">
             <div className="text-center sm:text-2xl text-md text-slate-700">
               <b>{t('welcome_heading1')}</b>
             </div>
@@ -401,7 +409,7 @@ function Login({ type, variant }) {
             </p>
           </div>
             <>
-              <div className="text-center sm:text-2xl text-md  mt-[100px] text-slate-700">
+              <div className="text-center sm:text-2xl text-md  mt-[30px] sm:mt-[100px] text-slate-700">
                 <b>{t('welcome_text')}</b>
               </div>
             </>
