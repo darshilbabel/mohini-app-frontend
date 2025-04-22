@@ -3,7 +3,7 @@ import Login from "../components/Login";
 import { getIpLocation, getProfileDetails, getSessionDetails } from "../services/api.service";
 import { languageList, sessionFlowName } from "./ShikshalokamVoiceChat/enum";
 import ROUTES from "../url";
-import ShikshalokamVoiceBasedChat, { clearFromStorage } from "./ShikshalokamVoiceChat/voice-chat";
+import ShikshalokamVoiceBasedChat, { clearFromStorage, getFromStorage, setInStorage } from "./ShikshalokamVoiceChat/voice-chat";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axios";
 import { setLanguage } from "../i18n";
@@ -16,11 +16,11 @@ function ShikshalokamChat({type, variant}) {
 
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
-	const [userId, setUserId] = useState(localStorage.getItem('device_id') || null);
+	const [userId, setUserId] = useState(getFromStorage('device_id') || null);
 		  
 	useEffect(() => {
-		if (!localStorage.getItem("local_route")) {
-			localStorage.setItem("local_route", JSON.stringify(languageList[0].value));
+		if (!getFromStorage("local_route")) {
+			setInStorage("local_route", JSON.stringify(languageList[0].value), sessionFlowName.GuestDiscussion);
 		}
 	}, []);
 	
@@ -34,10 +34,10 @@ function ShikshalokamChat({type, variant}) {
 			window.screen.width +
 			window.screen.height;
 
-			const storedUserId = localStorage.getItem('device_id');
+			const storedUserId = getFromStorage('device_id');
 			const newUserId = storedUserId || btoa(fingerprint);
 
-			localStorage.setItem('device_id', newUserId);
+			setInStorage('device_id', newUserId, sessionFlowName.GuestDiscussion);
 			setUserId(newUserId);
 		} catch (error) {
 			console.error('Error handling user ID:', error);
@@ -47,9 +47,9 @@ function ShikshalokamChat({type, variant}) {
 
 	async function initialSetup() {
 		try{
-		  const deviceId = localStorage.getItem('device_id')
+		  const deviceId = getFromStorage('device_id')
 		  const customEmail = deviceId + "@shikshalokam.org"
-		  const currentFlow = localStorage.getItem('flow');
+		  const currentFlow = getFromStorage('flow');
 		  const body = {
 			email: customEmail,
 			company: "shikshalokamstaging",
@@ -57,9 +57,9 @@ function ShikshalokamChat({type, variant}) {
 			latest_flow_used: currentFlow,
 			other_params: {
 			  device_id: deviceId,
-			  city: localStorage.getItem('ip_city') || "",
-			  state: localStorage.getItem('ip_state') || "",
-			  country: localStorage.getItem('ip_country') || "",
+			  city: getFromStorage('ip_city') || "",
+			  state: getFromStorage('ip_state') || "",
+			  country: getFromStorage('ip_country') || "",
 			}
 		  }
 		  
@@ -71,10 +71,10 @@ function ShikshalokamChat({type, variant}) {
 			return;
 		  }
 	  
-		  localStorage.setItem('profileid', JSON.stringify(res.id));
+		  setInStorage('profileid', JSON.stringify(res.id), sessionFlowName.GuestDiscussion);
 	  
 		  let session = await getSessionDetails();
-		  localStorage.setItem('sessionid', JSON.stringify(session.sessionid));
+		  setInStorage('sessionid', JSON.stringify(session.sessionid), sessionFlowName.GuestDiscussion);
 	  
 		  const response = await axiosInstance({
 			url: login_api_url,
@@ -86,8 +86,8 @@ function ShikshalokamChat({type, variant}) {
 		  });
 	  
 		  if (!!response?.data?.access_token) {
-			localStorage.setItem('company', JSON.stringify(response?.data?.company));
-			localStorage.setItem('first_name', JSON.stringify(response?.data?.first_name));
+			setInStorage('company', JSON.stringify(response?.data?.company), sessionFlowName.GuestDiscussion);
+			setInStorage('first_name', JSON.stringify(response?.data?.first_name), sessionFlowName.GuestDiscussion);
 		  } else {
 			window.location.reload();
 		  }
@@ -102,7 +102,7 @@ function ShikshalokamChat({type, variant}) {
 	}
 
 	const setFinalLanguage = async () => {
-		const currentFlow = localStorage.getItem('flow');
+		const currentFlow = getFromStorage('flow');
 		if(currentFlow && [sessionFlowName.GuestDiscussion].includes(currentFlow)){
 			await initialSetup();
 		}
@@ -114,21 +114,21 @@ function ShikshalokamChat({type, variant}) {
 
 	useEffect(()=>{
 		const runSetup = async () => {
-			if(!localStorage.getItem('sessionid')){
+			if(!getFromStorage('sessionid')){
 				clearFromStorage();
 				setIsLoading(true);
-				localStorage.setItem('has_accepted_tnc', 'ONGOING');
-				localStorage.setItem('isNewChatOpen', JSON.stringify(true));
+				setInStorage('has_accepted_tnc', 'ONGOING', sessionFlowName.GuestDiscussion);
+				setInStorage('isNewChatOpen', JSON.stringify(true), sessionFlowName.GuestDiscussion);
 				const locationData = await getIpLocation();
 				if (locationData && locationData?.location) {
-				localStorage.setItem('ip_state', locationData?.location?.regionName);
-				localStorage.setItem('ip_city', locationData?.location?.city);
-				localStorage.setItem('ip_country', locationData?.location?.country);
+				setInStorage('ip_state', locationData?.location?.regionName, sessionFlowName.GuestDiscussion);
+				setInStorage('ip_city', locationData?.location?.city, sessionFlowName.GuestDiscussion);
+				setInStorage('ip_country', locationData?.location?.country, sessionFlowName.GuestDiscussion);
 				}
-				localStorage.setItem('flow', sessionFlowName.GuestDiscussion);
+				setInStorage('flow', sessionFlowName.GuestDiscussion, sessionFlowName.GuestDiscussion);
 				await setFinalLanguage();
 			}
-			else if (localStorage.getItem('flow') && !([sessionFlowName.GuestDiscussion].includes(localStorage.getItem('flow')))){
+			else if (getFromStorage('flow') && !([sessionFlowName.GuestDiscussion].includes(getFromStorage('flow')))){
 				clearFromStorage();
 				window.location.reload();
 			}

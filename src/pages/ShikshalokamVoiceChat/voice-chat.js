@@ -8,7 +8,7 @@ import {
 } from "react-icons/md";
 import { useMediaQuery } from "react-responsive";
 import getConfiguration, { bot_routes, bot_websocket } from "../../configure";
-import { useLocalStorage } from "react-use";
+import { useLocalStorage, useSessionStorage } from "react-use";
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord";
 import WaveSurferPlayer from "../interview-text-voice/voice-player";
 import ReactMarkdown from "react-markdown";
@@ -88,20 +88,19 @@ function useCustomMediaQuery(query) {
 
 
 const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
-  const [profileToUse, setProfileToUse] = useState(JSON.parse(localStorage.getItem('profileid')) || null);
+  const [profileToUse, setProfileToUse] = useState(getFromStorage('profileid', true) || null);
   const audioRef = useRef();
   const textAreaRef = useRef(null);
   const lastBotMessageIndex = useRef(-1);
-  let access_token = localStorage.getItem('accToken');
-  let globalSessionID = JSON.parse(localStorage.getItem('sessionid'))
+  let access_token =  getFromStorage('accToken')
+  let globalSessionID =  getFromStorage('sessionid', true)
 
   const isInitialLoadRef = useRef(true);
   const [storyMediaIdArray, ] = useState(null);
 
   const [searchParams] = useSearchParams();
   
-  const [localChatHistory, setLocalChatHistory, removeLocalChatHistory] =
-    useLocalStorage("chat-history", []);
+  const [localChatHistory, setLocalChatHistory, removeLocalChatHistory] = useSmartChatStorage();
   const [chatHistory, setChatHistory] = useState(
     !!localChatHistory?.length ? localChatHistory : []
   );
@@ -133,13 +132,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [shouldFetchIntro, setShouldFetchIntro] = useState(false);
   const [hasFetchIntro, setHasFetchIntro] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(() => {
-    const storedVisibility = localStorage.getItem('isChatVisible');
+    const storedVisibility = getFromStorage('isChatVisible', false)
     return storedVisibility !== null ? JSON.parse(storedVisibility) : false;
   });
   const [chatTitle, setChatTitle] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isImageUploading, setIsImageUploading] = useState(false);
-  const [langProgress, setLangProgress] = useState(localStorage.getItem('lang_progress')|| null);
+  const [langProgress, setLangProgress] = useState(getFromStorage('lang_progress', false) || null);
   const [isIntroLoading, setIsIntroLoading] = useState(false);
   const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false);
   const [sessionTitleDetail, setSessionTitleDetail] = useState(null);
@@ -157,9 +156,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [showFileInput, setShowFileInput] = useState(null);
   const [shouldSendMessage, ] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [stateMachineLength, setStateMachineLength] = useState(localStorage.getItem('statemachine_length') || 0);
-  const isGuestFlow = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'));
-  const [acceptedTnc, setAcceptedTnC] = useState(localStorage.getItem('has_accepted_tnc')|| 'ONGOING');
+  const [stateMachineLength, setStateMachineLength] = useState(getFromStorage('statemachine_length', false) || 0);
+  const isGuestFlow = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false));
+  const [acceptedTnc, setAcceptedTnC] = useState(getFromStorage('has_accepted_tnc', false) || 'ONGOING');
   const [seconds, setSeconds] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
 
@@ -173,7 +172,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     ]
  }; 
 
- const [selectedType, setSelectedType] = useState(JSON.parse(localStorage.getItem('selected_type')) || selectedLabel.types[0].value);
+ const [selectedType, setSelectedType] = useState(getFromStorage('selected_type', true) || selectedLabel.types[0].value);
 
   const endPageToScrollRef = useRef(null);
 
@@ -181,7 +180,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     response: "",
     status: 200,
   });
-  const [llmError, setLlmError] = useState(localStorage.getItem('llmError') || "");
+  const [llmError, setLlmError] = useState(getFromStorage('llmError', false) || "");
   const [files, setFiles] = useState([]);
   const [fileErrorText, setFileErrorText] = useState('');
 
@@ -193,12 +192,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   let isMobile = useCustomMediaQuery('(max-width: 500px)');
   let chatToAddLength = isMobile? 10: 10;
   const [visibleItemCount, setVisibleItemCount] = useState(chatToAddLength);
-  let isNewChatOpen = JSON.parse(localStorage.getItem('isNewChatOpen'));
+  let isNewChatOpen = getFromStorage('isNewChatOpen', true);
 
   const projectId = searchParams.get("projectId");
 
   const [languageToUse, setLanguageToUse] = useState(() => {
-    const savedLang = localStorage.getItem("route");
+    const savedLang =  getFromStorage('route', false);
     return savedLang ? JSON.parse(savedLang) : null;
   });
 
@@ -226,17 +225,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   useEffect(()=>{
     if(projectId){
-      localStorage.setItem('flow', sessionFlowName.Reflection);
-      const tnc_status = localStorage.getItem('has_accepted_tnc');
+      setInStorage('flow', sessionFlowName.Reflection, sessionFlowName.Reflection);
+      const tnc_status = getFromStorage('has_accepted_tnc', false);
       if (!tnc_status) {
-        localStorage.setItem('has_accepted_tnc', "ONGOING");
+        setInStorage('has_accepted_tnc', "ONGOING", sessionFlowName.Reflection);
         setAcceptedTnC("ONGOING");
       }
-      localStorage.setItem('isNewChatOpen', JSON.stringify(true));
+      setInStorage('isNewChatOpen', JSON.stringify(true), sessionFlowName.Reflection);
+      
       isNewChatOpen = true;
       
       
-    } else if(!localStorage.getItem('flow')){
+    } else if(!getFromStorage('flow', false)){
       // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
       navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
 
@@ -270,23 +270,24 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         
         if (response && response?.status === 200) {
           const data  = response?.data.profile_details;
-          const preferredLanguage = JSON.parse(localStorage.getItem('preferred_language') || '{}');
+          const preferredLanguage = getFromStorage('preferred_language', true) || '{}';
           const language = preferredLanguage.value || "en";
-          localStorage.setItem('route', JSON.stringify(language));
+          setInStorage('route', JSON.stringify(language));
           setLanguageToUse((language || "en"));
           setLanguage((language || "en"))
-          localStorage.setItem('profileid', data?.id);
+          setInStorage('profileid', data?.id);
           setProfileToUse(data?.id)
-          let sessionid = localStorage.getItem('sessionid');
+          let sessionid = getFromStorage('sessionid', false);
           if (!sessionid) {
             let session = await getSessionDetails();
-            localStorage.setItem('sessionid', JSON.stringify(session.sessionid));
+            setInStorage('sessionid', JSON.stringify(session.sessionid));
             globalSessionID = session?.sessionid;
           }
-          localStorage.setItem('isNewChatOpen', JSON.stringify(true));
-          localStorage.setItem('first_name', JSON.stringify(data?.first_name));
-          localStorage.setItem('company', JSON.stringify(data?.company?.slug));
-          localStorage.setItem('state', JSON.stringify(data?.profile_address[0]?.state));
+          setInStorage('isNewChatOpen', JSON.stringify(true));
+          setInStorage('first_name', JSON.stringify(data?.first_name));
+          setInStorage('company', JSON.stringify(data?.company?.slug));
+          setInStorage('state', JSON.stringify(data?.profile_address[0]?.state));
+
         } else {
           navigate(ROUTES.EXIT_ROUTE)
           clearFromStorage()
@@ -319,11 +320,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       })
       
       if (response?.status === 200 && response?.data?.results[0]?.session) {
-        localStorage.setItem('sessionid', JSON.stringify(response?.data?.results[0]?.session))
+        setInStorage('sessionid', JSON.stringify(response?.data?.results[0]?.session));
+
         globalSessionID = response?.data?.results[0]?.session
 
-        localStorage.setItem('isOldChatOpen', JSON.stringify(true));
-        localStorage.setItem('isNewChatOpen', JSON.stringify(false));
+        setInStorage('isOldChatOpen', JSON.stringify(true));
+        setInStorage('isNewChatOpen', JSON.stringify(false));
+
       }
     }
 
@@ -344,7 +347,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   useEffect(() =>{
     if(isFetchingOldIntro){
-      let temp_intro_message = localStorage.getItem('intro_message');
+      let temp_intro_message = getFromStorage('intro_message', false);
       introMessageRef.current = temp_intro_message;
     }
   },[isFetchingOldIntro])
@@ -397,10 +400,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         setIsLoading(true);
         setIsEndStoryLoading(true);
 
-        const sessionid = JSON.parse(localStorage.getItem('sessionid'));
+        const sessionid =  getFromStorage('sessionid', true);
         const end_story_api_url = `/api/end-story/`;
         
-        let sourceLanguage = JSON.parse(localStorage.getItem('preferred_language'))?.value || languageToUse;
+        let sourceLanguage = getFromStorage('preferred_language', true)?.value || languageToUse;
 
         endStoryResponse = await axiosInstance({
           url: end_story_api_url,
@@ -409,7 +412,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             profile_id: profileToUse,
             stage: 'COMPLETED',
             access_token: access_token,
-            flow: localStorage.getItem('flow'),
+            flow: getFromStorage('flow', false),
             language: sourceLanguage
           },
           method: "POST",
@@ -418,17 +421,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         if (endStoryResponse?.data?.id) {
           setFiles([]);
           setShowFileInput(true);
-          localStorage.removeItem('llmError');
+          removeFromStorage('llmError');
           window.location.reload();
         } else {
-          localStorage.setItem('llmError', endStoryResponse?.data?.error_message)
+          setInStorage('llmError', endStoryResponse?.data?.error_message);
           setLlmError(endStoryResponse?.data?.error_message)
           setIsEndStoryLoading(false);
           setIsLoading(false);
         }
       } catch (error) {
         console.error('Error completing the story:', error);
-        localStorage.setItem('llmError', error?.response?.data?.error_message)
+        setInStorage('llmError', error?.response?.data?.error_message);
         setLlmError(error?.response?.data?.error_message)
         setIsEndStoryLoading(false);
         setIsLoading(false);
@@ -439,10 +442,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }
 
     useEffect(()=>{
-    let profileid = cookies.get('profileid') || localStorage.getItem('profileid')
-    // if(!profileid && !access_token) window.location.href=ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN;
-    
-  
     if(isShikshalokamPublicType){
       setShouldFetchIntro(true);
       setIsStreamingComplete(true);
@@ -451,12 +450,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   useEffect(() => {
     if(shouldShowChatHistoryFeature) {
-      const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'));
+      const isOldChatOpen = getFromStorage('isOldChatOpen', true);
       if(isOldChatOpen === true){
         setShouldFetchIntro(true);
         setShowHomepage(false);
       } else if(isNewChatOpen === true){
-        const showStartPage = JSON.parse(localStorage.getItem('showHomepage'));
+        const showStartPage = getFromStorage('showHomepage', true);
         setShowHomepage(showStartPage !== null ? showStartPage : true);
       }
     } else{
@@ -465,8 +464,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isNewChatOpen]);
 
   useEffect(()=>{
-    const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'))
-    const flow = localStorage.getItem('flow')
+    const isOldChatOpen = getFromStorage('isOldChatOpen', true)
+    const flow = getFromStorage('flow', false)
     if(isOldChatOpen === true && (hasFetchIntro || [sessionFlowName.LoginMiStory, sessionFlowName.LoginDiscussion].includes(flow)) && chatHistory?.length === 0 && sentences?.length === 0) {
       handleChatSessionButtonClick({key: null})
     }
@@ -475,7 +474,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   useEffect(() => {
     if (!!editorCopyChanges && isModalOpen && storyData) {
-      const flow = localStorage.getItem('flow')
+      const flow = getFromStorage('flow', false)
       let parsed_content = [];
       try {
         if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
@@ -672,9 +671,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                         data: {
                           id: storyData?.id,
                           formatted_content: outputData?.blocks,
-                          access_token: localStorage.getItem('accToken'),
-                          session: JSON.parse(localStorage.getItem('sessionid')),
-                          flow: localStorage.getItem('flow')
+                          access_token: getFromStorage('accToken', false),
+                          session: getFromStorage('sessionid', true),
+                          flow: getFromStorage('flow', false)
                         },
                         token: access_token,
                       });
@@ -750,12 +749,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 try {
                   setIsLoading(true);
                   const outputData = await editor.save();
-                  const flow = localStorage.getItem('flow');
+                  const flow = getFromStorage('flow', false);
 
                   let updatePayload = {
                     id: storyData?.id,
-                    access_token: localStorage.getItem('accToken'),
-                    session: JSON.parse(localStorage.getItem('sessionid')),
+                    access_token: getFromStorage('accToken', false),
+                    session: getFromStorage('sessionid', true),
                     flow,
                   };
 
@@ -813,14 +812,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   async function updateReflectionStatus(){
     try{
-      const flow = localStorage.getItem('flow');
+      const flow = getFromStorage('flow', false);
 
       if(flow === sessionFlowName.LoginMiStory) return;
 
       const response = await axiosInstance.post('api/update-project-status/', {
-        access_token: localStorage.getItem('accToken'),
+        access_token: getFromStorage('accToken', false),
         project_id: projectId,
-        flow: localStorage.getItem('flow')
+        flow: getFromStorage('flow', false)
       });
 
       if (response?.status === 200) {
@@ -863,27 +862,26 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (isResetCalled && chatSocket && chatSocket.readyState === chatSocket.OPEN) {
       chatSocket.close();
     }
-    const currentFlow = localStorage.getItem('flow');
+    const currentFlow = getFromStorage('flow', false);
     if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)) {
-      localStorage.removeItem("route");
-      localStorage.removeItem("intro_message");
+      removeFromStorage('route');
+      removeFromStorage('intro_message');
+
       setSelectedLanguage("en");
-      localStorage.setItem('lang_progress', null);
+      setInStorage('lang_progress', null, currentFlow);
     }
     removeLocalChatHistory();
-    localStorage.setItem('isOldChatOpen', JSON.stringify(false));
-    localStorage.setItem('isNewChatOpen', JSON.stringify(true));
-    localStorage.removeItem('llmError');
+    setInStorage('isOldChatOpen', JSON.stringify(false), currentFlow);
+    setInStorage('isNewChatOpen', JSON.stringify(true), currentFlow);
+    removeFromStorage('llmError');
+
 
     const session = await getSessionDetails();
-    localStorage.setItem('sessionid', JSON.stringify(session.sessionid));
-    localStorage.setItem('isChatVisible', JSON.stringify(false));
-    localStorage.setItem('chatbot_clickedOn?', '');
-    localStorage.setItem('showHomepage', true);
-    await cookies.set("sessionid", session.sessionid, {
-        path: "/"
-    });
-    localStorage.setItem('has_accepted_tnc', true);
+    setInStorage('sessionid', JSON.stringify(session.sessionid), currentFlow);
+    setInStorage('isChatVisible', JSON.stringify(false), currentFlow);
+    setInStorage('chatbot_clickedOn?', '', currentFlow);
+    setInStorage('showHomepage', true, currentFlow);
+    setInStorage('has_accepted_tnc', true, currentFlow);
     window.location.reload();
   }
   
@@ -905,7 +903,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           url = `${wss_protocol}${window.location.host}/ws/chat/company/`;
         } else {
             const base_url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}`
-            let currentFlow = localStorage.getItem('flow');
+            let currentFlow = getFromStorage('flow', false);
             if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
               url = `${base_url+bot_websocket.shikshalokam_chaupal}`;
             } else if (selectedType === 'normal') {
@@ -990,10 +988,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           isReconnectInProgress = false;
           reconnectAttempts = 0;
           if (isShikshalokamPublicType){
-            let profileid = localStorage.getItem('profileid')
-            let sessionid = JSON.parse(localStorage.getItem('sessionid'))
-            let route = JSON.parse(localStorage.getItem("route"))
-            let currentFlow = localStorage.getItem('flow');
+            let profileid = getFromStorage('profileid', false)
+            let sessionid = getFromStorage('sessionid', true)
+            let route = getFromStorage('route', true)
+            let currentFlow = getFromStorage('flow', false);
 
             if((profileid || currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)) && sessionid){
               socket.send(JSON.stringify({
@@ -1044,10 +1042,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (reconnectAttempts >= maxReconnectAttempts) {
       console.error("Max reconnection attempts reached. Stopping.");
       try {
-        let chatHistory = JSON.parse(localStorage.getItem("chat-history")) || [];
+        let chatHistory = getFromStorage('chat-history', true) || [];
         if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].source === "user") {
           chatHistory.pop();
-          localStorage.setItem("chat-history", JSON.stringify(chatHistory));
+          setInStorage("chat-history", JSON.stringify(chatHistory));
           console.log("🗑️ Removed last user message from localStorage.");
         }
       } catch (error) {
@@ -1089,14 +1087,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             stopAllAudio();
             clearFromStorage();
             setLanguage(languageList[0].value);
-            localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
+            setInStorage('local_route', JSON.stringify(languageList[0].value));
             navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
           } else{
             if(
-              localStorage.getItem('flow') && 
-              [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))
+              getFromStorage('flow', false) && 
+              [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
             ){
-              localStorage.removeItem('botName');
+              removeFromStorage('botName');
             }
             ResetChat();
           }
@@ -1139,7 +1137,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (showFileInput) {
       shouldPlay = true;
     } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !isEndStoryLoading) {
-      const currentFlow = localStorage.getItem('flow');
+      const currentFlow = getFromStorage('flow', false);
       
       if (
         currentFlow &&
@@ -1195,19 +1193,19 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   useEffect(()=>{
     if(chatHistory?.length!== 0){
-      localStorage.setItem('isChatVisible', true);
+      setInStorage('isChatVisible', true);
       setIsChatVisible(true);
     }
   }, [])
 
   useEffect(()=>{
-    localStorage.setItem('showFileInput', showFileInput)
+    setInStorage('showFileInput', showFileInput);
 
   }, [showFileInput])
 
   useEffect(()=>{
-    const botName = localStorage.getItem('botName');
-    const defaultBotName = localStorage.getItem('defaultBotName');
+    const botName = getFromStorage('botName', false)
+    const defaultBotName = getFromStorage('defaultBotName', false);
     setBotNameToDisplay(botName?.trim() ? botName : defaultBotName);
 
   }, [])
@@ -1305,7 +1303,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }
 
   async function getSessionInfo(){
-    let currentSession = JSON.parse(localStorage.getItem('sessionid'));
+    let currentSession = getFromStorage('sessionid', true);
     let session_url = `api/chatsession/?session=${currentSession}`;
     try {
       const response = await axiosInstance.get(session_url);
@@ -1318,8 +1316,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }
 
   useEffect(() => {
-    if(localStorage.getItem('intro_message') && !isLoading) {
-      localStorage.setItem('lang_progress', true);
+    if(getFromStorage('intro_message', false) && !isLoading) {
+      setInStorage('lang_progress', true);
       setLangProgress(true);
     }
   }, [isLoading])
@@ -1331,7 +1329,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     let companyName = await getCompanyDetail();
     try {
       let storedRoute = bot_routes.reflection;
-      let currentFlow = localStorage.getItem('flow');
+      let currentFlow = getFromStorage('flow', false);
       if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
         storedRoute = bot_routes.shikshalokam_chaupal;
       } else if (selectedType === 'normal') {
@@ -1356,7 +1354,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         if (!selectedBot) {
           selectedBot = bots[0] || { route: '/' };
         }
-        localStorage.setItem('statemachine_length', selectedBot?.statemachine_length);
+        setInStorage('statemachine_length', selectedBot?.statemachine_length);
         setStateMachineLength(selectedBot?.statemachine_length)
       }
      
@@ -1378,7 +1376,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           return;
         }
         
-        let firstName = localStorage.getItem("first_name");
+        let firstName = getFromStorage('first_name', false);
         if (firstName && firstName !== 'null' && firstName !== '') {
           firstName = JSON.parse(firstName);
         } else {
@@ -1394,16 +1392,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }
         }
         const botName = data[0]?.name || 'Bot';
-        localStorage.setItem('botName', botName);
-        localStorage.setItem('defaultBotName', data[0]?.default_name);
+        setInStorage('botName', botName);
+        setInStorage('defaultBotName', data[0]?.default_name);
+
         setBotNameToDisplay(botName);
-        const isOldChatOpen = JSON.parse(localStorage.getItem('isOldChatOpen'))
+        const isOldChatOpen = getFromStorage('isOldChatOpen', true)
         if(isOldChatOpen) {
           let sessionInfo = await getSessionInfo();
           if(sessionInfo && sessionInfo.length>0) {
             setStrandStep(sessionInfo[0]?.current_step)
             if(sessionInfo[0]?.session_type) {
-              localStorage.setItem('selected_type', JSON.stringify(sessionInfo[0]?.session_type))
+              setInStorage('selected_type', JSON.stringify(sessionInfo[0]?.session_type));
               setSelectedType(sessionInfo[0]?.session_type)
             }
           }
@@ -1417,7 +1416,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           message && !!message?.trim() && (chatHistory[chatHistory?.length - 1]?.msg !== message) && 
           !sentences.some((msg) => msg.message === message)
         ) {
-          localStorage.setItem('intro_message', message);
+          setInStorage('intro_message', message);
           setSentences((prev) => [
             ...prev,
             {
@@ -1441,14 +1440,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   };
 
   useEffect(() => {
-    const current_flow = localStorage.getItem('flow');
+    const current_flow = getFromStorage('flow', false);
     if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && 
         (profileToUse || [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(current_flow))
       ) {
       fetchBotInfo().then(() => {
         setIsIntroLoading(false);
         if(!current_flow || current_flow !== sessionFlowName.LoginMiStory) {
-          const currentSession = JSON.parse(localStorage.getItem('sessionid'));
+          const currentSession = getFromStorage('sessionid', true);
           handleCompanyChatCall(currentSession);
         }
       });
@@ -1499,7 +1498,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [chatSocket, reconText, trigger, recordings]);
 
   useEffect(() =>{
-    localStorage.setItem('showHomepage', JSON.stringify(showHomepage));
+    setInStorage('showHomepage', JSON.stringify(showHomepage));
   }, [showHomepage])
 
   useEffect(() => {
@@ -1519,7 +1518,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isStreamingComplete, strandStep, access_token, stateMachineLength, languageToUse, noStoryFound]);
 
   useEffect(()=>{
-    const currentFlow = localStorage.getItem('flow');
+    const currentFlow = getFromStorage('flow', false);
     if(profileToUse && !projectId && !isEndStoryLoading && 
       !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow))
     ){
@@ -1540,14 +1539,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   },[profileToUse, projectId, isEndStoryLoading, noStoryFound])
 
   useEffect(() => {
-    const currentFlow = localStorage.getItem('flow');
+    const currentFlow = getFromStorage('flow', false);
     const handleBack = () => {
       if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
       [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
         showGuestPopup(true)
       } else {
         setLanguage(languageList[0].value);
-        localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
+        setInStorage('local_route', JSON.stringify(languageList[0].value));
         stopAllAudio();
         // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
         if(projectId){
@@ -1568,7 +1567,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [navigate, acceptedTnc]);
 
   useEffect(() => {
-    localStorage.setItem('isChatVisible', JSON.stringify(isChatVisible));
+    setInStorage('isChatVisible', JSON.stringify(isChatVisible));
+
   }, [isChatVisible]);
 
   useEffect(() => {
@@ -1638,14 +1638,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if(key){
       key_num = key?.split('-').pop();
       currentSession = chatTitle[key_num]?.session;
-      localStorage.removeItem('llmError');
-      localStorage.setItem('isOldChatOpen', JSON.stringify(true));
-      localStorage.setItem('isNewChatOpen', JSON.stringify(false));
-      localStorage.setItem('sessionid', JSON.stringify(currentSession))
-      localStorage.setItem('chat-history', JSON.stringify([]));
+      removeFromStorage('llmError');
+      setInStorage('isOldChatOpen', JSON.stringify(true));
+      setInStorage('isNewChatOpen', JSON.stringify(false));
+      setInStorage('sessionid', JSON.stringify(currentSession));
+      setInStorage('chat-history', JSON.stringify([]));
+
       window.location.reload()
     } else {
-      currentSession = JSON.parse(localStorage.getItem('sessionid'));
+      currentSession = getFromStorage('sessionid', true);
       await fetchBotInfo()
       setIsIntroLoading(false);
       await handleCompanyChatCall(currentSession);
@@ -1717,7 +1718,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }
 
   async function handleCompanyChatCall(currentSession) {  
-    const storedChatHistory = JSON.parse(localStorage.getItem('chat-history'));
+    const storedChatHistory = getFromStorage('chat-history', true)
     if (storedChatHistory.length >= 1) {
       return;
     }
@@ -1836,8 +1837,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   async function showChatTitle(){
     try{
-      const currentSessionID = JSON.parse(localStorage.getItem('sessionid'));
-      const currentFlow = localStorage.getItem('flow');
+      const currentSessionID = getFromStorage('sessionid', true);
+      const currentFlow = getFromStorage('flow', false);
       let sessionComplete;
       const TitleAndSession = [];
       const response = await axiosInstance({
@@ -1946,7 +1947,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         event.stopPropagation();
       }
       setLlmError('');
-      localStorage.removeItem('llmError');
+      removeFromStorage('llmError');
       handleOnStopSpeaking()
       try {
         const socket = await MakeSocketConnection(textMessage, currentSocket);
@@ -2034,7 +2035,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   async function getAI4BharatAudio(text, sourceLanguage = 'en', gender = 'female') {
     try {
       let storedRoute = '/'
-      let currentFlow = localStorage.getItem('flow');
+      let currentFlow = getFromStorage('flow', false);
       if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
         storedRoute=bot_routes.shikshalokam_chaupal
       } else if (selectedType === 'oneshot'){
@@ -2144,7 +2145,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     
     let sourceLanguage = languageToUse;
     let storedRoute = '/'
-    let currentFlow = localStorage.getItem('flow');
+    let currentFlow = getFromStorage('flow', false);
     if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
       storedRoute=bot_routes.shikshalokam_chaupal
     } else if (selectedType === 'oneshot'){
@@ -2208,13 +2209,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [appendix, chatHistory]);
 
   useEffect(() => {
-    const storedLanguage = (localStorage.getItem("route") && JSON.parse(localStorage.getItem("route"))) || null;
+    const storedLanguage = (getFromStorage('route', false) && getFromStorage('route', true)) || null;
     if (storedLanguage && storedLanguage !== null) {
       setSelectedLanguage(storedLanguage);
     } else {
-      const currentFlow = localStorage.getItem('flow');
+      const currentFlow = getFromStorage('flow', false);
       if (currentFlow && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow))) {
-        localStorage.setItem("route", JSON.stringify("en"));
+        setInStorage("route", JSON.stringify("en"));
         setSelectedLanguage("en");
       }
     }
@@ -2222,11 +2223,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const handleLanguageSelect = (language) => {
     if (chatHistory && chatHistory.length <= 1) {
-      localStorage.setItem('chat-history', JSON.stringify([]));
-      localStorage.removeItem('intro_message');
+      console.log("here11")
+      setInStorage('chat-history', JSON.stringify([]));
+      removeFromStorage('intro_message');
       setChatHistory([]);
-      localStorage.setItem("route", JSON.stringify(language));
-      localStorage.setItem('lang_progress', "IN_PROGRESS");
+      setInStorage("route", JSON.stringify(language));
+      setInStorage('lang_progress', "IN_PROGRESS");
+
       setLangProgress("IN_PROGRESS");
       setShouldFetchIntro(true);
       setLanguageToUse(language);
@@ -2467,8 +2470,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   };
 
   function downloadPdf(){
-    let storedState = localStorage.getItem('state');
-    let storedCompany = localStorage.getItem('company');
+    let storedState = getFromStorage('state', false);
+    let storedCompany = getFromStorage('company', false);
     let current_company = storedCompany? JSON.parse(storedCompany) : null;
     let currentState = storedState? JSON.parse(storedState) : null;
     if (!currentState) {
@@ -2499,10 +2502,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     let { value } = e?.target;
     function changeSelectedValue(value, e) {
       if(value==="") value = selectedLabel?.types[0]?.value;
-      localStorage.setItem('selected_type', JSON.stringify(value))
+      setInStorage('selected_type', JSON.stringify(value));
       ResetChat(e); 
     }
-    if ([sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))) {
+    if ([sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))) {
       showGuestPopup(false, () => changeSelectedValue(value, e));
     } else {
       changeSelectedValue(value, e);
@@ -2597,8 +2600,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           media_type: file.type,
           include_in_story: true,
           access_token,
-          flow: localStorage.getItem("flow"),
-          session: JSON.parse(localStorage.getItem("sessionid")),
+          flow: getFromStorage('flow', false),
+          session: getFromStorage('sessionid', true),
         };
   
         const uploadedFile = await uploadImage(formData, setError, projectId, navigate, setIsLoading, access_token, setFiles);
@@ -2627,31 +2630,29 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     } 
   };
 
-  function handleAcceptTnC() {
-    
-    localStorage.setItem('has_accepted_tnc', true)
+  function handleAcceptTnC() {    
+    setInStorage('has_accepted_tnc', true);
     setAcceptedTnC(true);
   }
 
   function handleDeclineTnC() {
-    
-    localStorage.setItem('has_accepted_tnc', false)
+    setInStorage('has_accepted_tnc', false);
     setAcceptedTnC(false);
     navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
   }
 
   return (
     <>
-      {(acceptedTnc==="ONGOING" && !isLoading && localStorage.getItem('flow') && 
-        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.Reflection].includes(localStorage.getItem('flow'))
+      {(acceptedTnc==="ONGOING" && !isLoading && getFromStorage('flow', false) && 
+        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.Reflection].includes(getFromStorage('flow', false))
       )&& 
         <PrivacyPolicyPopup tncText={t('tncText')} onAccept={handleAcceptTnC} />
       }
       <></>
       <div className={`div27 ${isOpen&& ' div70'} ${(projectId)&& ' div21'}`}>
         <div className={`div28 ${isOpen ? "div29" : ""}`}>
-          {(isShikshalokamPublicType && localStorage.getItem('flow') && 
-            !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))))&& 
+          {(isShikshalokamPublicType && getFromStorage('flow', false) && 
+            !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))))&& 
             <Sidebar
               isOpen={isOpen}
               toggle={setIsOpen}
@@ -2663,8 +2664,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               stopAllAudio={stopAllAudio}
               showGuestPopup={
                 (
-                  localStorage.getItem('flow') && 
-                  [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))
+                  getFromStorage('flow', false) && 
+                  [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
                 )&& showGuestPopup
               }
             />}
@@ -2681,7 +2682,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             showTheDots={false}
             content={
               <>
-                {([sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow')))&& 
+                {([sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)))&& 
                   <CustomFormData layOut={2} selectID="selectedTypeID" selectName="selectedType"
                     selectOptions={selectedLabel.types}  
                     selectValue = {selectedType}
@@ -2692,7 +2693,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 }
                 <button
                   onClick={async (e) => {
-                    if ([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(localStorage.getItem('flow'))) {
+                    if ([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))) {
                       showGuestPopup();
                     } else {
                       setIsResetCalled(true);
@@ -2724,8 +2725,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           {isEndStoryLoading&& 
             <div className="div69">
               <label className="form-label label1">
-                {(localStorage.getItem('flow') && 
-                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                {(getFromStorage('flow', false) && 
+                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                   )?
                     t('reportLoader') : t('storyLoader')
                 }
@@ -2809,7 +2810,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }
           {(showHomepage)&&
             <>
-              {(localStorage.getItem('flow'))&&<>
+              {(getFromStorage('flow', false))&&<>
                 <div className="div10" >
                   <h3 className="h3-1">
                     {t('homepageHeading')}
@@ -2823,7 +2824,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   <li>{t('homepageList2')}</li>
                 </ul>
               </>}
-              {(!projectId && (!profileToUse || !localStorage.getItem('first_name') || localStorage.getItem('first_name') === 'null' || localStorage.getItem('first_name')==='') && !access_token)&& 
+              {(!projectId && (!profileToUse || !getFromStorage('first_name', false) || getFromStorage('first_name', false) === 'null' || getFromStorage('first_name', false)==='') && !access_token)&& 
                 <div className="div13" >
                   <ChatMessage 
                     botNameToDisplay={botNameToDisplay}
@@ -2992,16 +2993,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   botNameToDisplay={botNameToDisplay}
                   userType="bot"
                   message={
-                    (localStorage.getItem('flow') && 
-                      [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                    (getFromStorage('flow', false) && 
+                      [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                     )?
                     t('reportText') : t('storyText')
                   }
                   isTalking={false}
                   handleOnStopSpeaking={() => handleOnStopSpeaking()}
                   handleOnSpeaking={(message, updatedAt, staticMessage) =>{
-                    const message_to_use = (localStorage.getItem('flow') && 
-                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                    const message_to_use = (getFromStorage('flow', false) && 
+                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                   )?
                   t('reportText') : t('storyText')
                     handleOnSpeaking(message_to_use, "download-story-id",
@@ -3019,7 +3020,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   <button
                     className="clickable-button"
                     onClick={()=>{
-                      const sessionToUse = JSON.parse(localStorage.getItem('sessionid'));
+                      const sessionToUse = getFromStorage('sessionid', true);
                       if (sessionToUse) {
                         pdfDownloadSidebar(sessionToUse);
                       }
@@ -3029,8 +3030,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     <div className="download-story-div">
                       <FiDownload className="icon-1" />
                       <span className="div16" ref={endPageToScrollRef}>
-                        {(localStorage.getItem('flow') && 
-                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                        {(getFromStorage('flow', false) && 
+                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                         )?
                           t('downloadReportText') : t('downloadStoryText')
                         }
@@ -3049,8 +3050,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     <div className="download-story-div">
                       <MdEdit className="icon-1" />
                       <span className="div16" ref={endPageToScrollRef}>
-                        {(localStorage.getItem('flow') && 
-                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                        {(getFromStorage('flow', false) && 
+                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                         )?
                           t('editReportText') : t('editStoryText')
                         }
@@ -3099,8 +3100,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     <div className="download-story-div">
                       <TbReload className="icon-1" />
                       <span className="div16" ref={endPageToScrollRef}>
-                      {(localStorage.getItem('flow') && 
-                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(localStorage.getItem('flow'))
+                      {(getFromStorage('flow', false) && 
+                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                         )?
                           t('reDownloadReportText') : t('reDownloadStoryText')
                       }
@@ -3317,11 +3318,11 @@ export function clearFromStorage() {
     'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
     'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type', 
     'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress',
-    'grit', 'device_id'
+    'grit', 'device_id', 'defaultBotName'
   ];
 
   keysToRemove.forEach((key) => {
-    localStorage.removeItem(key);
+    removeFromStorage(key);
   });
 }
 
@@ -3369,8 +3370,8 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
     formData.append("mediaType", mediaType);
     formData.append('include_in_story', true);
     formData.append('access_token', access_token);
-    formData.append('flow', localStorage.getItem('flow'));
-    formData.append('session', JSON.parse(localStorage.getItem('sessionid')));
+    formData.append('flow',getFromStorage('flow', false));
+    formData.append('session', getFromStorage('sessionid', true));
     formData.append("media_type", mediaType);
 
     return uploadImage(formData, setError, projectId, navigate, setIsLoading, access_token, setFiles);
@@ -3420,9 +3421,9 @@ export const partialUpdateMedia = (partialUpdateId, include_in_story=false, acce
   try {
     const formData = new FormData();
     formData.append('include_in_story', include_in_story);
-    formData.append('flow', localStorage.getItem('flow'));
+    formData.append('flow',getFromStorage('flow', false));
     formData.append('access_token', access_token);
-    formData.append('session', JSON.parse(localStorage.getItem('sessionid')));
+    formData.append('session', getFromStorage('sessionid', true));
 
     createAuthRequest({
       setter: () => {
@@ -3438,5 +3439,67 @@ export const partialUpdateMedia = (partialUpdateId, include_in_story=false, acce
     console.error({
       error,
     });
+  }
+};
+
+export const setInStorage = (key, value, currentFlow) => {
+  const flow = currentFlow || sessionStorage.getItem('flow') || localStorage.getItem('flow');
+  const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
+  const isTemporary = flow && sessionFlows.includes(flow);
+
+  const storage = isTemporary ? sessionStorage : localStorage;
+  storage.setItem(key, value);
+};
+
+export const getFromStorage = (key, parseValue = false) => {
+  const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
+  const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
+  const isTemporary = flow && sessionFlows.includes(flow);
+  const storage = isTemporary ? sessionStorage : localStorage;
+  const value = storage.getItem(key);
+
+  if (value && parseValue) {
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      console.error(`Error parsing value for key "${key}":`, e);
+      return null;
+    }
+  }
+
+  return value;
+};
+
+export const removeFromStorage = (key) => {
+  const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
+  const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
+  const isTemporary = flow && sessionFlows.includes(flow);
+
+  const storage = isTemporary ? sessionStorage : localStorage;
+  storage.removeItem(key);
+};
+
+export const useSmartChatStorage = () => {
+  const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
+  const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
+  const isTemporary = flow && sessionFlows.includes(flow);
+
+  const [sessionValue, setSessionValue] = useSessionStorage("chat-history", []);
+  const [localValue, setLocalValue, removeLocalValue] = useLocalStorage("chat-history", []);
+
+  const removeVal = () => {
+    if (isTemporary) {
+      sessionStorage.removeItem("chat-history");
+      setSessionValue([]); // Update state after removing
+    } else {
+      localStorage.removeItem("chat-history");
+      setLocalValue([]); // Update state after removing
+    }
+  };
+
+  if (isTemporary) {
+    return [sessionValue, setSessionValue, removeVal];
+  } else {
+    return [localValue, setLocalValue, removeVal];
   }
 };
