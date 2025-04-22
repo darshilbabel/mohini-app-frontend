@@ -82,14 +82,5 @@
     "tncText1": "साइन अप करके आप हमारी",
     "tncText2": "नियम और शर्तों को स्वीकार करते हैं",
     "challengesHeader": "चुनौतियां",
-    "solutionsHeader": "समाधान",
-    "firstNameError": "पहला नाम आवश्यक है",
-    "phoneNumberError": "फोन नंबर आवश्यक है",
-    "validPhoneNumberError": "कृपया एक वैध फोन नंबर दर्ज करें",
-    "stateError": "राज्य आवश्यक है",
-    "districtError": "जिला आवश्यक है",
-    "blockError": "ब्लॉक आवश्यक है",
-    "languageError": "भाषा आवश्यक है",
-    "tncError": "आपको नियम और शर्तों को स्वीकार करना होगा"
-
+    "solutionsHeader": "समाधान"
 }

@@ -82,14 +82,5 @@
     "tncText1": "ಸೈನ್ ಅಪ್ ಮಾಡುವ ಮೂಲಕ, ನೀವು ನಮ್ಮದನ್ನು ಸ್ವೀಕರಿಸುತ್ತೀರಿ",
     "tncText2": "ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು",
     "challengesHeader": "ಸವಾಲುಗಳು",
-    "solutionsHeader": "ಪರಿಹಾರಗಳು",
-    "firstNameError": "ಪ್ರಥಮ ಹೆಸರು ಅಗತ್ಯವಿದೆ",
-    "phoneNumberError": "ಫೋನ್ ನಂಬರ್ ಅಗತ್ಯವಿದೆ",
-    "validPhoneNumberError": "ದಯವಿಟ್ಟು Valid ಫೋನ್ ನಂಬರ್ ಅನ್ನು ನಮೂದಿಸಿ",
-    "stateError": "ರಾಜ್ಯ ಅಗತ್ಯವಿದೆ",
-    "districtError": "ಜಿಲ್ಲೆ ಅಗತ್ಯವಿದೆ",
-    "blockError": "ಬ್ಲಾಕ್ ಅಗತ್ಯವಿದೆ",
-    "languageError": "ಭಾಷೆ ಅಗತ್ಯವಿದೆ",
-    "tncError": "ಮುಂದುವರಿಯಲು ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳನ್ನು ಒಪ್ಪಬೇಕು"
-
+    "solutionsHeader": "ಪರಿಹಾರಗಳು"
 }

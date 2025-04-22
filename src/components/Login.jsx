@@ -16,7 +16,6 @@ import { languageList, sessionFlowName } from "../pages/ShikshalokamVoiceChat/en
 import i18n, { setLanguage } from '../i18n';
 import { clearFromStorage } from "../pages/ShikshalokamVoiceChat/voice-chat";
 import { useTranslation } from "react-i18next";
-import Notification, { showNotification } from "./ToastMessage/TotastMessage";
 
 const cookies = new Cookies();
 const login_api_url = `/api/login/`;
@@ -44,7 +43,7 @@ function Login({ type, variant }) {
     value: ""
   });
   const [phoneNumberField, setPhoneNumberField] = useState("");
-  const [fieldErrors, setFieldErrors] = useState({});
+  const [fieldError, setFieldError] = useState("");
   const [loginErrorMessage, setLoginErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const userDispatcher = useUserDispatcher();
@@ -71,25 +70,18 @@ function Login({ type, variant }) {
     setPageLanguage(e?.target?.value);
     setLanguage(e?.target?.value);
     localStorage.setItem('local_route', JSON.stringify(e?.target?.value));
-    setFieldErrors({})
   };
 
   const handleLanguageChange = (e) => {
     setUserLanguage(e.target.value);
     localStorage.setItem('preferred_route', JSON.stringify(e?.target?.value));
     // setLanguage(e.target.value)
-    if (e?.target?.value.trim()) {
-      setFieldErrors(prev => ({ ...prev, userLanguage: '' }));
-    }
   };
 
   const handlePhoneChange = (e) => {
     if (e?.target?.value?.length <= 10) {
       const numericInput = e?.target?.value?.replace(/[^0-9]/g, "");
       setPhoneNumberField(numericInput);
-    }
-    if (e?.target?.value.trim()) {
-      setFieldErrors(prev => ({ ...prev, phoneNumber: '' }));
     }
   };
 
@@ -137,9 +129,6 @@ function Login({ type, variant }) {
 
   const handleNameChange = (e) => {
     setFirstName(e.target.value);
-    if (e?.target?.value.trim()) {
-      setFieldErrors(prev => ({ ...prev, first_name: '' }));
-    }
   };
 
   const isValidIndianMobileNumber = (number) => {
@@ -230,39 +219,20 @@ function Login({ type, variant }) {
 
   const submitForm = async (event) => {
     try{
+      if (!event.target.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
     
       event.preventDefault();
-      const errors = {};
-
-      if (!firstName.trim()) {
-        errors.first_name = t('firstNameError');
-      } else if (!phoneNumberField.trim()) {
-        errors.phoneNumber = t('phoneNumberError');
-      } else if (!isValidIndianMobileNumber(phoneNumberField)) {
-        errors.phoneNumber = t('validPhoneNumberError');
-      } else if (!userLanguage) {
-        errors.userLanguage = t('languageError');
-      } else if (stateLabelArray.length > 0 && !userState?.key) {
-        errors.stateName = t('stateError');
-      } else if (districtLabelArray.length > 0 && !userDistrict?.key) {
-        errors.districtName = t('districtError');
-      } else if (blockLabelArray.length > 0 && !userBlock?.key) {
-        errors.blockName = t('blockError');
-      } else if (!isChecked) {
-        errors.tncBox = t('tncError');
-      }
-      
-      if (Object.keys(errors).length > 0) {
-        setFieldErrors(errors);
-      
-        const firstErrorField = document.querySelector(
-          `[name="${Object.keys(errors)[0]}"]`
-        );
-        if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          firstErrorField.focus();
-        }
-      
+      setFieldError("");
+  
+      if (phoneNumberField && !isValidIndianMobileNumber(phoneNumberField)) {
+        setFieldError("Please enter a valid phone number.");
+        setTimeout(() => {
+          setFieldError("");
+        }, 10000);
         return;
       }
       const customEmail = phoneNumberField + "@shikshalokam.org"
@@ -351,13 +321,9 @@ function Login({ type, variant }) {
 
   const handleCheckboxChange = (e) => {
     setIsChecked(e?.target?.checked);
-    if (e?.target?.value.trim()) {
-      setFieldErrors(prev => ({ ...prev, tncBox: '' }));
-    }
   };
 
   return (
-  <>
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 justify-center h-screen">
       <div className="absolute top-6 right-6 min-w-[100px] max-w-fit hidden sm:block">
         <FormData
@@ -447,64 +413,48 @@ function Login({ type, variant }) {
                 </div>
                 <div>
                   <input
-                    className={`bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-1 w-[95%] md:w-[65%] ${
-                      fieldErrors.first_name? 'outline-red-500' : 'outline-slate-300'
-                    }`}
+                    className="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     name="first_name"
-                    // required
+                    required
                     type="text"
                     value={firstName}
                     onChange={handleNameChange}
                     placeholder="First name"
                   />
                 </div>
-                {fieldErrors.first_name && (
-                    <p className="text-red-500 text-sm text-left mt-1 ml-[7%] md:ml-[18%]">{fieldErrors.first_name}</p>
-                  )}
               </>
                 <>
-                  <FormData layOut={1} labelName={`${t('phoneNumberText')} *`} id="phnNumID" inputType="text" inputName="phoneNumber" placeholder={t('phoneNumberText')}
+                  <FormData layOut={1} isRequired={true}  labelName={`${t('phoneNumberText')} *`} id="phnNumID" inputType="text" inputName="phoneNumber" placeholder={t('phoneNumberText')}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
-                    inputClass={`bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-1 w-[95%] md:w-[65%] ${
-                      fieldErrors.phoneNumber? 'outline-red-500' : 'outline-slate-300'
-                    }`}
+                    inputClass="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     inputOnChange={handlePhoneChange}
+                    fieldError={fieldError}
                     inputValue = {phoneNumberField}
-                    fieldError={fieldErrors.phoneNumber} errorClass="text-red-500 text-sm text-left mt-1 ml-[7%] md:ml-[18%]"
                   />
                   <FormData layOut={2} labelName={`${t('languageText')} *`} id="languageID" selectID="languageID" selectName="language"
                     selectOptions={languageList}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userLanguage}
-                    selectClassName={`bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-1 w-[95%] md:w-[65%] ${
-                      fieldErrors.userLanguage? 'outline-red-500' : 'outline-slate-300'
-                    }`}
+                    selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleLanguageChange}
-                    fieldError={fieldErrors.userLanguage} errorClass="text-red-500 text-sm text-left mt-1 ml-[7%] md:ml-[18%]"
+                    isRequired={true}
                   />
                   <FormData layOut={2} labelName={`${t('stateText')}  *`} id="stateNameID" selectID="stateNameID" selectName="stateName"
                     selectOptions={stateLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userState?.value}
-                    selectClassName={`bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-1 w-[95%] md:w-[65%] ${
-                      fieldErrors.stateName? 'outline-red-500' : 'outline-slate-300'
-                    }`}
+                    selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleStateChange}
-                    fieldError={fieldErrors.stateName} errorClass="text-red-500 text-sm text-left mt-1 ml-[7%] md:ml-[18%]"
-                    // isRequired={stateLabelArray?.length > 0 ? true : false}
-                  />
+                    isRequired={stateLabelArray?.length > 0 ? true : false}                 />
                   <FormData layOut={2} 
                     labelName={`${t('districtText')}${districtLabelArray?.length > 0 ? ' *' : ''}`}
                     id="districtNameID" selectID="districtNameID" selectName="districtName"
                     selectOptions={districtLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userDistrict?.value}
-                    selectClassName={`bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-1 w-[95%] md:w-[65%] ${
-                      fieldErrors.districtName? 'outline-red-500' : 'outline-slate-300'
-                    }`}
+                    selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleDistrictChange}
-                    fieldError={fieldErrors.districtName} errorClass="text-red-500 text-sm text-left mt-1 ml-[7%] md:ml-[18%]"
-                    // isRequired={districtLabelArray?.length > 0 ? true : false}
+                    isRequired={districtLabelArray?.length > 0 ? true : false}
                   />
                   <FormData layOut={2} 
                     labelName={`${t('blockText')}${blockLabelArray?.length > 0 ? ' *' : ''}`}
@@ -512,12 +462,9 @@ function Login({ type, variant }) {
                     selectOptions={blockLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userBlock?.value}
-                    selectClassName={`bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-1 w-[95%] md:w-[65%] ${
-                      fieldErrors.blockName? 'outline-red-500' : 'outline-slate-300'
-                    }`}
+                    selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
                     selectOnChange={handleBlockChange}
-                    fieldError={fieldErrors.blockName} errorClass="text-red-500 text-sm text-left mt-1 ml-[7%] md:ml-[18%]"
-                    // isRequired={blockLabelArray?.length > 0 ? true : false}
+                    isRequired={blockLabelArray?.length > 0 ? true : false}
                   />
                   <div className="text-left text-slate-700 ml-[4%] md:ml-[18%] mt-6">
                     <label className="inline-block">
@@ -525,10 +472,8 @@ function Login({ type, variant }) {
                         type="checkbox"
                         checked={isChecked}
                         onChange={handleCheckboxChange}
-                        name="tncBox"
-                        className={`w-5 h-5 border-2 border-slate-300 rounded-sm checked:bg-purple-600 checked:border-purple-600 focus:outline-none transition duration-300 transform scale-110 hover:scale-100 checked:scale-100 checked:transition-all align-middle ${
-                          fieldErrors.tncBox? 'outline-red-500' : ''
-                        }`}
+                        className="w-5 h-5 border-2 border-slate-300 rounded-sm checked:bg-purple-600 checked:border-purple-600 focus:outline-none transition duration-300 transform scale-110 hover:scale-100 checked:scale-100 checked:transition-all align-middle"
+                        required
                       />
                       <span className="text-slate-700 ml-2">
                         {t('tncText1')}{' '}
@@ -544,11 +489,6 @@ function Login({ type, variant }) {
                       {' '}{t('tncText2')}
                       </button>
                     </label>
-                    {fieldErrors.tncBox && (
-                      <p className="text-red-500 text-sm inline-block">
-                        {fieldErrors.tncBox}
-                      </p>
-                    )}
                   </div>
                 </>
               
@@ -585,8 +525,6 @@ function Login({ type, variant }) {
         </div> 
       }
     </div>
-    <Notification />
-  </>
   );
 }
 
