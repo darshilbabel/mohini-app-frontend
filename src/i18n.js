@@ -4,8 +4,8 @@ import HttpApi from 'i18next-http-backend';
 
 const preferredLanguage = JSON.parse(localStorage.getItem('preferred_language'))?.value;
 const languageToUse = 
-  JSON.parse(localStorage.getItem("route")) || 
-  JSON.parse(localStorage.getItem("local_route")) || 
+  JSON.parse(sessionStorage.getItem("route")) || JSON.parse(localStorage.getItem("route")) || 
+  JSON.parse(sessionStorage.getItem("local_route")) || JSON.parse(localStorage.getItem("local_route")) || 
   "en";
   
 i18n
@@ -24,7 +24,7 @@ i18n
   });
 
 export const setLanguage = (languageProp) => {
-  const route = JSON.parse(localStorage.getItem('route'));
+  const route = JSON.parse(sessionStorage.getItem('route')) || JSON.parse(localStorage.getItem('route'));
   const languageToUse = languageProp || route || 'en';
   console.log("Language set to: ", languageToUse);
   i18n.changeLanguage(languageToUse);
