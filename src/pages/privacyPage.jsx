@@ -86,7 +86,8 @@ function PrivacyPage() {
             <>
                 <div className="text-center sm:text-2xl mt-[100px] text-md text-slate-700">
                     <div className="container max-w-full md mx-auto py-6">
-                        <PrivacyPolicyPage tncText={t('tncText')} shouldShowAcceptDecline={false}/>
+                        <PrivacyPolicyPage tncText={t('tncText')} shouldShowAcceptDecline={false} 
+                        onAccept={()=>{}} onDecline={()=>{}} />
                     </div>
                 </div>
             </>
