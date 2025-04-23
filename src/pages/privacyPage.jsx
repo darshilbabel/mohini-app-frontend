@@ -59,35 +59,30 @@ function PrivacyPage() {
         />
       </div>
       <div className="">
-        <div className="justify-center w-full flex sm:hidden">
-          <div className="w-[100%]">
-                <div className="flex p-2 mx-auto px-auto items-center justify-center">
-                  <img
-                    src="https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/shikshagrahaLogo.png"
-                    className="h-[100px] w-[200px] object-contain aspect-auto align-top object-[center_center] relative ml-0"
-                    alt="shikshalokam_logo"
-                  />
-              </div>
-          </div>
-        </div>
+      <div className="flex justify-between w-full sm:hidden items-center p-2">
+  <img
+    src="https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/shikshagrahaLogo.png"
+    className="h-[80px] w-[100px] object-contain"
+    alt="shikshalokam_logo"
+  />
+  <div className="w-[140px] flex justify-end p-2">
+    <FormData
+      layOut={2}
+      labelName=""
+      id="languageID"
+      selectID="languageID"
+      selectName="language"
+      selectOptions={languageList}
+      labelDivClass="text-left text-slate-700"
+      selectValue={userLanguage}
+      selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-0 w-full"
+      selectOnChange={handleLanguageChange}
+      isRequired={true}
+    />
+  </div>
+</div>
+
         <div className="bg-slate-50 h-full sm:pt-6">
-          <div className="flex justify-end mr-6 relative block sm:hidden">
-            <div className="absolute top-0 right-6 min-w-[100px] max-w-fit">
-              <FormData
-                layOut={2}
-                labelName=""
-                id="languageID"
-                selectID="languageID"
-                selectName="language"
-                selectOptions={languageList}
-                labelDivClass="text-left text-slate-700"
-                selectValue={userLanguage}
-                selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-max"
-                selectOnChange={handleLanguageChange}
-                isRequired={true}
-              />
-            </div>
-          </div>
             <>
                 <div className="text-center sm:text-2xl mt-[100px] text-md text-slate-700">
                     <div className="container max-w-full md mx-auto py-6">

@@ -2873,7 +2873,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       botNameToDisplay={botNameToDisplay}
                       userType={chatHistory[0]?.source}
                       message={`${chatHistory[0]?.msg}`}
-                      name={"You"}
+                      name={t("userName")}
                       recording={chatHistory[0]?.recording}
                       hasAppendix={chatHistory[0]?.recording}
                       appendixURL={chatHistory[0]?.appendixURL}
