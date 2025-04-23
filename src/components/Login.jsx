@@ -390,6 +390,9 @@ function Login({ type, variant }) {
 
           </div>
         </div>
+        <div className="sm:hidden text-center sm:text-2xl text-xl mb-6 text-md text-slate-700">
+              <b>{t('welcome_heading1')}</b>
+            </div>
         <img
           src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
           width="200"
@@ -401,15 +404,12 @@ function Login({ type, variant }) {
             <div className="flex justify-end mr-6 relative block sm:hidden">
             </div>
             <div className="mt-[50px] sm:hidden">
-            <div className="text-center sm:text-2xl text-md text-slate-700">
-              <b>{t('welcome_heading1')}</b>
-            </div>
-            <p className="pt-4 pb-4 text-center">
+            <p className="pt-1 pb-4 text-center">
               {t('welcome_paragraph1')}
             </p>
           </div>
             <>
-              <div className="text-center sm:text-2xl text-md  mt-[30px] sm:mt-[100px] text-slate-700">
+              <div className="text-center sm:text-2xl text-xl text-md  mt-[30px] sm:mt-[100px] text-slate-700">
                 <b>{t('welcome_text')}</b>
               </div>
             </>
