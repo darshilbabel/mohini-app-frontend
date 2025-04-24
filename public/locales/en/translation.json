@@ -40,7 +40,7 @@
     "uploadedFiles": "Uploaded Files",
     "uploadLoadMsg": "Please wait, your images are loading...",
     "replyMsg": "Replying..",
-    "fileExceedText": "You cannot upload more than 5 files",
+    "fileExceedText": "You cannot upload more than 10 files",
     "fileSizeText": "File size cannot exceed 50MB",
     "completedStatusText": "Completed",
     "inProgressStatusText": "In Progress",
@@ -82,5 +82,6 @@
     "tncText1": "By signing up, you accept our",
     "tncText2": "Terms and Conditions",
     "challengesHeader": "Challenges",
-    "solutionsHeader": "Solutions"
+    "solutionsHeader": "Solutions",
+    "photosLimitMsg": "You can upload up to to 10 images."
 }
