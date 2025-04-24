@@ -319,6 +319,11 @@
     color: #f44336;
 }
 
+.li-message {
+    /* margin-bottom: 5px; */
+    font-size: 0.9rem;
+}
+
 .div19 {
     margin: 15px 0;
 }

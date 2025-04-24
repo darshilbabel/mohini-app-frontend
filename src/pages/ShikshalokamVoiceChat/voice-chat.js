@@ -869,19 +869,20 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
       setSelectedLanguage("en");
       setInStorage('lang_progress', null, currentFlow);
+      removeFromStorage('has_accepted_tnc');
+    } else{
+      setInStorage('has_accepted_tnc', true, currentFlow);
     }
     removeLocalChatHistory();
     setInStorage('isOldChatOpen', JSON.stringify(false), currentFlow);
     setInStorage('isNewChatOpen', JSON.stringify(true), currentFlow);
     removeFromStorage('llmError');
 
-
     const session = await getSessionDetails();
     setInStorage('sessionid', JSON.stringify(session.sessionid), currentFlow);
     setInStorage('isChatVisible', JSON.stringify(false), currentFlow);
     setInStorage('chatbot_clickedOn?', '', currentFlow);
     setInStorage('showHomepage', true, currentFlow);
-    setInStorage('has_accepted_tnc', true, currentFlow);
     window.location.reload();
   }
   
@@ -1416,16 +1417,22 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           message && !!message?.trim() && (chatHistory[chatHistory?.length - 1]?.msg !== message) && 
           !sentences.some((msg) => msg.message === message)
         ) {
+          const isGuestFlow = currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow);
           setInStorage('intro_message', message);
           setSentences((prev) => [
             ...prev,
             {
               message: message,
-              isNarrated: false,
+              isNarrated: isGuestFlow? true: false,
                 id: 'intro_msg_id',
               // id: new Date().valueOf(),
             },
           ]);
+          if(isGuestFlow) {
+            setHasOverRideId('intro_msg_id');
+            handleAI4BharatTTSRequest(message, 'intro_msg_id', languageToUse)
+          }
+
         }
       }
 
@@ -2223,18 +2230,22 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const handleLanguageSelect = (language) => {
     if (chatHistory && chatHistory.length <= 1) {
-      console.log("here11")
+      stopAllAudio()
+      setIsLoading(true);
+      removeFromStorage('chat-history')
       setInStorage('chat-history', JSON.stringify([]));
       removeFromStorage('intro_message');
       setChatHistory([]);
+      setSentences([]);
       setInStorage("route", JSON.stringify(language));
       setInStorage('lang_progress', "IN_PROGRESS");
-
       setLangProgress("IN_PROGRESS");
-      setShouldFetchIntro(true);
+      setIsNextAllowed(true);
+      setAudioCache({});
       setLanguageToUse(language);
-      setLanguage(language)
-      window.location.reload();
+      setLanguage(language);
+      setShouldFetchIntro(true);
+      // window.location.reload();
     }
   };
 
@@ -2465,7 +2476,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (mediaRecorder) {
       mediaRecorder.stop();
       setHasStartedRecording(false);
-      
     }
   };
 
@@ -2541,7 +2551,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     const filesArray = Array.from(e.target.files);
     const currentFiles = [...files];
   
-    if (currentFiles?.length + filesArray.length > 5) {
+    if (currentFiles?.length + filesArray.length > 10) {
       setFileErrorText(fileExceedText);
       return;
     }
@@ -2931,7 +2941,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                         handleMultipleUploads(e, storyData)
                       }}
                       onClick={(e) => {
-                        if (files?.length >= 5) {
+                        if (files?.length >= 10) {
                           setFileErrorText(fileExceedText);
                         } else {
                           setFileErrorText('');
@@ -2942,6 +2952,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     />
                   </label>
                 </div>
+                
+                <div className="div18">
+                      <p className="li-message">
+                        {t('photosLimitMsg')}
+                      </p>
+                    </div>
                 <>
                   {isImageUploading && (  
                     <div className="div18">
@@ -3248,7 +3264,7 @@ function ChatMessage({
         </div>
         <div className="div46">
           {userType === "bot" ? (
-            isPlaying ? (
+            (isPlaying) ? (
               <button
                 className={`button-10 button-3`}
                 onClick={handleOnStopSpeaking}
