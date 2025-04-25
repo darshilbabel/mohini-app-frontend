@@ -195,7 +195,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   let isNewChatOpen = getFromStorage('isNewChatOpen', true);
 
   const projectId = searchParams.get("projectId");
-
+  const isIntroPlayed = useRef(false);
   const [languageToUse, setLanguageToUse] = useState(() => {
     const savedLang =  getFromStorage('route', false);
     return savedLang ? JSON.parse(savedLang) : null;
@@ -1423,14 +1423,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             ...prev,
             {
               message: message,
-              isNarrated: isGuestFlow? true: false,
+              isNarrated: isGuestFlow? false: false,
                 id: 'intro_msg_id',
               // id: new Date().valueOf(),
             },
           ]);
           if(isGuestFlow) {
             setHasOverRideId('intro_msg_id');
-            handleAI4BharatTTSRequest(message, 'intro_msg_id', languageToUse)
+            setNotMute(false);
+            setIsNextAllowed(true)
           }
 
         }
@@ -1445,6 +1446,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       setIsLoading(false);
     }
   };
+
+  useEffect(()=>{
+    console.log("hasOverideId: ", hasOverRideId)
+  }, [hasOverRideId])
 
   useEffect(() => {
     const current_flow = getFromStorage('flow', false);
@@ -2071,7 +2076,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const handleAI4BharatTTSRequest = async (text, id, sourceLanguage) => {
     try {
-      
+      if(isIntroPlayed.current === true) {
+        return;
+      }
+      if(id === 'intro_msg_id') {
+        isIntroPlayed.current = true;
+      }
       let cachedAudioUrl = audioCache[id];
       let audio_result = "";
       let audio;
@@ -2186,7 +2196,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     let unnarratedMessages = sentences.filter((x) => !x?.isNarrated);
     let hasUnnarratedMessages = !!unnarratedMessages?.length;
     let sourceLanguage = languageToUse;
-
     if (isNextAllowed && hasUnnarratedMessages && !isLoading && !isEndStoryLoading) {
       handleAI4BharatTTSRequest(
         unnarratedMessages[0].message,
@@ -2231,6 +2240,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const handleLanguageSelect = (language) => {
     if (chatHistory && chatHistory.length <= 1) {
       stopAllAudio()
+      isIntroPlayed.current = false
       setIsLoading(true);
       removeFromStorage('chat-history')
       setInStorage('chat-history', JSON.stringify([]));
@@ -2240,7 +2250,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       setInStorage("route", JSON.stringify(language));
       setInStorage('lang_progress', "IN_PROGRESS");
       setLangProgress("IN_PROGRESS");
-      setIsNextAllowed(true);
+      // setIsNextAllowed(true);
       setAudioCache({});
       setLanguageToUse(language);
       setLanguage(language);
