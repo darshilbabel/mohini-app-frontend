@@ -2271,12 +2271,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   };
 
-  const handleOnSpeaking = async (text, id, staticMsg) => {
+  const handleOnSpeaking = async (text, id, staticMsg, hasClickedOnSpeaker=false) => {
     try {
       try {
         if (!!audioRef.current) await audioRef.current.pause();
       } catch (error) {
         console.error({ error });
+      }
+      if(id === 'intro_msg_id') {
+        isIntroPlayed.current = false;
       }
       setHasOverRideId(id);
       setIsNextAllowed(true);
@@ -3287,7 +3290,7 @@ function ChatMessage({
                 className={`button-11 button-3`}
                 onClick={() => {
                   setNotMute(false);
-                  handleOnSpeaking(message, chat?.updated_at, staticMessage);
+                  handleOnSpeaking(message, chat?.updated_at, staticMessage, true);
                 }}
                 disabled={!isStreamingComplete}
               >
