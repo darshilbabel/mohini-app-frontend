@@ -2076,7 +2076,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const handleAI4BharatTTSRequest = async (text, id, sourceLanguage) => {
     try {
-      if(isIntroPlayed.current === true) {
+      if(id === 'intro_msg_id' && isIntroPlayed.current === true) {
         return;
       }
       if(id === 'intro_msg_id') {
