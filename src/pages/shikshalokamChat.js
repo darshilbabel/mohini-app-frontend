@@ -19,6 +19,11 @@ function ShikshalokamChat({type, variant}) {
 	const [userId, setUserId] = useState(getFromStorage('device_id') || null);
 		  
 	useEffect(() => {
+		document.cookie.split(";").forEach((cookie) => {
+			const name = cookie.split("=")[0].trim();
+			document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+		});
+		localStorage.clear();
 		if (!getFromStorage("local_route")) {
 			setInStorage("local_route", JSON.stringify(languageList[0].value), sessionFlowName.GuestDiscussion);
 		}
