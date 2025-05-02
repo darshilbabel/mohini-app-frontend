@@ -19,6 +19,11 @@ function ShikshalokamChat({type, variant}) {
 	const [userId, setUserId] = useState(getFromStorage('device_id') || null);
 		  
 	useEffect(() => {
+		const tnc=getFromStorage("has_accepted_tnc");
+		if (!tnc || tnc === "ONGOING") {
+			sessionStorage.clear();
+			localStorage.clear();
+		}
 		if (!getFromStorage("local_route")) {
 			setInStorage("local_route", JSON.stringify(languageList[0].value), sessionFlowName.GuestDiscussion);
 		}
