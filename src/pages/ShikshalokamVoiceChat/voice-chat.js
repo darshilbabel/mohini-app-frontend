@@ -2737,7 +2737,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           />
         </div>
       </div>
-      {(isLoading || isIntroLoading || !isEndStoryLoading)&& <div className="loader-load-spinner">
+      {(isLoading || isIntroLoading || isEndStoryLoading)&& <div className="loader-load-spinner">
         <div className="div67">
           <BiLoader className="loader-rotate-loader loader-icon" />
           {isPdfDownloading&& 
@@ -2745,7 +2745,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               <label className="form-label label1">{t('downloadLoader')}</label>
             </div>
           }
-          {!isEndStoryLoading&& 
+          {isEndStoryLoading&& 
             <div className="div69 text-center">
               <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
                 {(getFromStorage('flow', false) && 
