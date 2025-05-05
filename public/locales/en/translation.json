@@ -16,6 +16,8 @@
     "reDownloadReportText": "Regenerate report",
     "editStoryText": "Edit Story",
     "editReportText": "Edit report",
+    "storyLoaderHeading": "Thank you for sharing your experiences with this Improvement Journey.",
+    "reportLoaderHeading": "Thank you for sharing the details of your discussion.",
     "storyLoader": "Creating your story, this may take a moment. Please wait...",
     "reportLoader": "Creating your report, this may take a moment. Please wait...",
     "downloadLoader": "Downloading please wait...",

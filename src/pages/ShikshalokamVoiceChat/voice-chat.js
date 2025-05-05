@@ -2746,8 +2746,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             </div>
           }
           {isEndStoryLoading&& 
-            <div className="div69">
-              <label className="form-label label1">
+            <div className="div69 text-center">
+              <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
+                {(getFromStorage('flow', false) && 
+                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
+                  )?
+                    t('reportLoaderHeading') : t('storyLoaderHeading')
+                }
+              </h2>
+              <label className="form-label label1 text-center">
                 {(getFromStorage('flow', false) && 
                     [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                   )?
