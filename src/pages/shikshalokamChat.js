@@ -17,7 +17,7 @@ function ShikshalokamChat({type, variant}) {
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
 	const [userId, setUserId] = useState(getFromStorage('device_id') || null);
-	const [companyName, setCompanyName] = useState(null);
+	const [companyName, setCompanyName] = useState(getFromStorage('company') || null);
 		  
 	useEffect(() => {
 		const tnc=getFromStorage("has_accepted_tnc");
