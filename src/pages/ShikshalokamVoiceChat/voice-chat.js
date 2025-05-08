@@ -2357,6 +2357,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               setIsFetchingData(true);
               const base64Audio = await convertBlobToBase64(wavBlob);
               const transcriptResult = await ai4BharatASR(base64Audio);
+              if(transcriptResult && transcriptResult !== ""){
+                let s3Url = await handleS3Upload(wavBlob, `${getFromStorage('sessionid', true)}-${Date.now()}`, 'chatbot/companychat/');
+                setAsrAudio(s3Url);
+              }
               setTextMessage(transcriptResult);
               setIsFetchingData(false);
             } else {
@@ -2477,8 +2481,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       const reader = new FileReader();
       reader.readAsDataURL(blob);
       reader.onloadend = () => {
-      setAsrAudio(reader.result);
-      const base64String = reader.result.split(',')[1];
+        const base64String = reader.result.split(',')[1];
         resolve(base64String);
       };
       reader.onerror = (error) => reject(error);
@@ -2559,6 +2562,27 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return jpgFile;
   };
   
+  const handleS3Upload = async (file, fileName, folderStructure) => {
+    const res = await axiosInstance.post("api/get-presigned-url/", {
+      fileName: fileName,
+      fileType: file.type,
+      storyId: storyData?.id,
+      folder_structure: folderStructure
+    });
+
+    const { uploadUrl, s3Url } = res.data;
+
+    await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type,
+        "x-amz-acl": "public-read"
+      },
+      body: file,
+    });
+    return s3Url;
+  }
+  
 
   const handleMultipleUploads = async (e, storyData) => {
     const filesArray = Array.from(e.target.files);
@@ -2599,22 +2623,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           file = await convertHeifToJpg(file);
         }
         
-        const res = await axiosInstance.post("api/get-presigned-url/", {
-          fileName: fileName,
-          fileType: file.type,
-          storyId: story_id,
-        });
-  
-        const { uploadUrl, s3Url } = res.data;
-  
-        await fetch(uploadUrl, {
-          method: "PUT",
-          headers: {
-            "Content-Type": file.type,
-            "x-amz-acl": "public-read"
-          },
-          body: file,
-        });
+        const s3Url = await handleS3Upload(file, fileName, 'chatbot/storymedia/');
   
         const formData = {
           file_url: s3Url,
@@ -2958,6 +2967,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic" 
                       // multiple
                       onChange={(e) => {
+                        setIsLoading(true);
                         handleMultipleUploads(e, storyData)
                       }}
                       onClick={(e) => {

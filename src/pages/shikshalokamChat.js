@@ -17,6 +17,7 @@ function ShikshalokamChat({type, variant}) {
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
 	const [userId, setUserId] = useState(getFromStorage('device_id') || null);
+	const [companyName, setCompanyName] = useState(null);
 		  
 	useEffect(() => {
 		const tnc=getFromStorage("has_accepted_tnc");
@@ -93,6 +94,7 @@ function ShikshalokamChat({type, variant}) {
 		  if (!!response?.data?.access_token) {
 			setInStorage('company', JSON.stringify(response?.data?.company), sessionFlowName.GuestDiscussion);
 			setInStorage('first_name', JSON.stringify(response?.data?.first_name), sessionFlowName.GuestDiscussion);
+			setCompanyName(response?.data?.company);
 		  } else {
 			window.location.reload();
 		  }
@@ -114,7 +116,6 @@ function ShikshalokamChat({type, variant}) {
 		if(currentFlow && [sessionFlowName.GuestDiscussion].includes(currentFlow)){
 			setLanguage(languageList[0].value);
 		}
-		getUserFingerPrint();
 	}
 
 	useEffect(()=>{
@@ -132,6 +133,7 @@ function ShikshalokamChat({type, variant}) {
 				}
 				setInStorage('flow', sessionFlowName.GuestDiscussion, sessionFlowName.GuestDiscussion);
 				await setFinalLanguage();
+				getUserFingerPrint();
 			}
 			else if (getFromStorage('flow') && !([sessionFlowName.GuestDiscussion].includes(getFromStorage('flow')))){
 				clearFromStorage();
@@ -143,7 +145,7 @@ function ShikshalokamChat({type, variant}) {
 
 	return (
 		<>
-			{(userId && !isLoading)&&
+			{(companyName && !isLoading)&&
 				<>
 					<ShikshalokamVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>
 				</>
