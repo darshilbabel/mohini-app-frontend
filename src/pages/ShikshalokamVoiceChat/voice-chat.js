@@ -2176,7 +2176,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
     try {
       const response = await axiosInstance.post('api/asr/', {
-        base_64: base64,
+        s3Url: base64,
         source_language: sourceLanguage,
         gender: gender,
         route: storedRoute
@@ -2356,11 +2356,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
               setIsFetchingData(true);
               const base64Audio = await convertBlobToBase64(wavBlob);
-              const transcriptResult = await ai4BharatASR(base64Audio);
-              if(transcriptResult && transcriptResult !== ""){
-                let s3Url = await handleS3Upload(wavBlob, `${getFromStorage('sessionid', true)}-${Date.now()}`, 'chatbot/companychat/');
-                setAsrAudio(s3Url);
-              }
+              let s3Url = await handleS3Upload(wavBlob, `${getFromStorage('sessionid', true)}-${Date.now()}`, 'chatbot/companychat/');
+              setAsrAudio(s3Url);
+              const transcriptResult = await ai4BharatASR(s3Url);
               setTextMessage(transcriptResult);
               setIsFetchingData(false);
             } else {
