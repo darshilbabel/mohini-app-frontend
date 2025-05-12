@@ -2320,7 +2320,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then((stream) => {
-          const recorder = new MediaRecorder(stream);
+          const options = {
+            mimeType: 'audio/webm;codecs=opus',
+            audioBitsPerSecond: 16000
+          };
+          const recorder = new MediaRecorder(stream, options);
           setMediaRecorder(recorder);
   
           const localAudioChunks = [];
@@ -2339,9 +2343,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             if (localAudioChunks.length > 0) {
               const audioBlob = new Blob(localAudioChunks, { type: 'audio/webm;codecs=opus' });
               
-  
-              const wavBlob = await convertToWav(audioBlob);
-              if (!wavBlob) {
+              if (!audioBlob) {
                 showNotification({
                   message: t('asrError'),
                   type: "error",
@@ -2355,8 +2357,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               }
 
               setIsFetchingData(true);
-              const base64Audio = await convertBlobToBase64(wavBlob);
-              let s3Url = await handleS3Upload(wavBlob, `${getFromStorage('sessionid', true)}-${Date.now()}`, 'chatbot/companychat/');
+              let s3Url = await handleS3Upload(audioBlob, `${getFromStorage('sessionid', true)}-${Date.now()}`, 'chatbot/companychat/');
               setAsrAudio(s3Url);
               const transcriptResult = await ai4BharatASR(s3Url);
               setTextMessage(transcriptResult);
