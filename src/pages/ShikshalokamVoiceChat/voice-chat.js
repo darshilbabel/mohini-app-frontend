@@ -2357,9 +2357,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               }
 
               setIsFetchingData(true);
+              let transcriptResult = '';
               let s3Url = await handleS3Upload(audioBlob, `${getFromStorage('sessionid', true)}-${Date.now()}`, 'chatbot/companychat/');
+              if(!s3Url || s3Url === '') {
+                transcriptResult = t('asrError');
+              }
               setAsrAudio(s3Url);
-              const transcriptResult = await ai4BharatASR(s3Url);
+              transcriptResult = await ai4BharatASR(s3Url);
+              if (!transcriptResult || transcriptResult === '') {
+                transcriptResult = t('asrError');
+              }
               setTextMessage(transcriptResult);
               setIsFetchingData(false);
             } else {
@@ -2562,24 +2569,30 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   };
   
   const handleS3Upload = async (file, fileName, folderStructure) => {
-    const res = await axiosInstance.post("api/get-presigned-url/", {
-      fileName: fileName,
-      fileType: file.type,
-      storyId: storyData?.id,
-      folder_structure: folderStructure
-    });
-
-    const { uploadUrl, s3Url } = res.data;
-
-    await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type,
-        "x-amz-acl": "public-read"
-      },
-      body: file,
-    });
-    return s3Url;
+    try{
+      const res = await axiosInstance.post("api/get-presigned-url/", {
+        fileName: fileName,
+        fileType: file.type,
+        storyId: storyData?.id,
+        folder_structure: folderStructure
+      });
+  
+      const { uploadUrl, s3Url } = res.data;
+  
+      await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+          "x-amz-acl": "public-read"
+        },
+        body: file,
+      });
+      return s3Url;
+    } catch (error) {
+      console.error("Error uploading to S3:", error);
+      return '';
+    }
+    
   }
   
 
