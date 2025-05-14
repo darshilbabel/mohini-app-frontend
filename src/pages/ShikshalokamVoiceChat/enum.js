@@ -9,7 +9,8 @@ export const modelLabel = {
  export const languageList = [
     {label:'English', value:'en'},
     {label:'हिंदी', value:'hi'},
-    {label:'ಕನ್ನಡ', value:'kn'}
+    {label:'ಕನ್ನಡ', value:'kn'},
+    // {label:'తెలుగు', value:'te'},
 ];
 
 export const sessionFlowName = {

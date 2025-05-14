@@ -1860,7 +1860,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       if (response) {
         let sortedResult = quickSort(response?.data?.results, compareByIdDesc);
         sortedResult.forEach((sessionObj, index)=>{
-          const status = sessionObj.session_status?.toLowerCase() === 'completed' ? completedStatusText: inProgressStatusText;
+          const status = sessionObj.session_status?.toLowerCase() === 'completed' ? t('completedStatusText'): t('inProgressStatusText');
           TitleAndSession.push({ session: sessionObj.session, title: sessionObj.title, sessionStatus: status });
           if (sessionObj.session === currentSessionID) {
             sessionComplete = sessionObj.session_status?.toLowerCase() === 'completed';
@@ -1925,13 +1925,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 {item?.title}
               </span>
               <span
-                className={`span2 ${(item?.sessionStatus === completedStatusText) ? 'span3' :'span4'}`}
+                className={`span2 ${(item?.sessionStatus === t('completedStatusText')) ? 'span3' :'span4'}`}
               >
                 {item?.sessionStatus}
               </span>
             </div>
 
-            {(item?.sessionStatus === completedStatusText)&& <button
+            {(item?.sessionStatus === t('completedStatusText'))&& <button
               className="span5"
               onClick={() => {
                 
@@ -1941,7 +1941,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             >
               <FiDownload />
             </button>}
-            {(item?.sessionStatus !== completedStatusText)&& <button
+            {(item?.sessionStatus !== t('completedStatusText'))&& <button
               className="span5"
             >
             </button>}
