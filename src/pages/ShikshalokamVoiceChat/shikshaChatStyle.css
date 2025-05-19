@@ -618,11 +618,32 @@
     color: #475569;
     overflow-y: auto;
     box-sizing: border-box;
-    scrollbar-width: none;
-    align-content: center;
     padding: 0 14px;
+    /* scrollbar-color: #44aec8 #f9f9ff; */
 }
 
+#textBoxID::-webkit-scrollbar {
+    width: 8px;
+    position: absolute;
+    left: 0;
+  }
+  
+  #textBoxID::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 6px;
+  }
+
+  #textBoxID:hover::-webkit-scrollbar-track {
+    background: #b5b7b7;
+  }
+  
+  #textBoxID::-webkit-scrollbar-thumb {
+    background: transparent; 
+  }
+  
+  #textBoxID:hover::-webkit-scrollbar-thumb {
+    background: #4192a6;
+  }
 
 .input-2:disabled{
     background-color: #e2e8f0;
