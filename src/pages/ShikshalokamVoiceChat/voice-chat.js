@@ -2185,7 +2185,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       return response.data.transcript;
     } catch (error) {
       console.error('Error fetching AI4Bharat audio:', error);
-      return t('asrError');
+      return '';
     } 
   }
 
