@@ -2365,9 +2365,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               setAsrAudio(s3Url);
               transcriptResult = await ai4BharatASR(s3Url);
               if (!transcriptResult || transcriptResult === '') {
-                transcriptResult = t('asrError');
+                showNotification({
+                  message: t('asrError'),
+                  type: "error",
+                  options: {
+                    position: "top-center",
+                    autoClose: 4000,
+                    style: { fontWeight: "bold" },
+                  },
+                });
+              } else {
+                setTextMessage(transcriptResult);
               }
-              setTextMessage(transcriptResult);
               setIsFetchingData(false);
             } else {
               console.warn("No audio chunks were recorded.");
@@ -3189,14 +3198,20 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         )&&       
           <form
             className="div39 form-1"
-            onSubmit={handleSendMessage}
+            onSubmit={(event)=>{
+              if(!hasStartedListening && !isFetchingData){
+                handleSendMessage(event);
+              }
+            }}
             autoComplete="off"
           >
             <div
               className="textarea-wrapper relative"
             >
               <textarea
-                className="input-2 input-1"
+                id="textBoxID"
+                className={`input-2 input-1 ${(isFetchingData) ? "min-h-[68px] sm:min-h-0 py-0" : ""}`}
+                style={{ alignContent: isFetchingData? "normal" : "center" }}
                 onChange={handleOnInputText}
                 placeholder={hasStartedRecording? 
                   t('placeholder1'): 
@@ -3212,7 +3227,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   const maxHeight = 150;
                   if (e.target.scrollHeight > maxHeight) {
                     e.target.style.height = `${maxHeight}px`;
-                    e.target.style.overflowY = 'auto';
+                    e.target.style.overflowY = 'scroll';
                   } else {
                     e.target.style.height = `${e.target.scrollHeight}px`;
                     e.target.style.overflowY = 'hidden';
@@ -3239,7 +3254,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 </div>
               )}
             </div>
-            {(isTyping && !hasStartedListening) ? (
+            {(isTyping && !hasStartedListening && !isFetchingData) ? (
               <div className="button-container">
                 <button
                   type="submit"
@@ -3250,7 +3265,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 </button>
               </div>
             ) : (
-              <div className="audio-recorder">
+              <div className= {`audio-recorder ${isFetchingData ? 'button-container' : ''}`}>
                 {/* {hasStartedRecording && (
                   <button
                     type="button"

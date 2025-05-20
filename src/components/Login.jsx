@@ -421,20 +421,20 @@ function Login({ type, variant }) {
                 </div>
                 <div>
                   <input
-                    className="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
+                    className="bg-white text-slate-600 rounded-md px-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[70%] min-h-[68px]"
                     name="first_name"
                     required
                     type="text"
                     value={firstName}
                     onChange={handleNameChange}
-                    placeholder="First name"
+                    placeholder={t('firstNameText')}
                   />
                 </div>
               </>
                 <>
                   <FormData layOut={1} isRequired={true}  labelName={`${t('phoneNumberText')} *`} id="phnNumID" inputType="text" inputName="phoneNumber" placeholder={t('phoneNumberText')}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
-                    inputClass="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
+                    inputClass="bg-white text-slate-600 rounded-md px-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[70%] min-h-[68px]"
                     inputOnChange={handlePhoneChange}
                     fieldError={fieldError}
                     inputValue = {phoneNumberField}
@@ -443,7 +443,7 @@ function Login({ type, variant }) {
                     selectOptions={languageList}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userLanguage}
-                    selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
+                    selectClassName="bg-white text-slate-600 rounded-md px-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[70%] min-h-[68px]"
                     selectOnChange={handleLanguageChange}
                     isRequired={true}
                   />
@@ -451,7 +451,7 @@ function Login({ type, variant }) {
                     selectOptions={stateLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userState?.value}
-                    selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
+                    selectClassName="bg-white text-slate-600 rounded-md px-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[70%] min-h-[68px]"
                     selectOnChange={handleStateChange}
                     isRequired={stateLabelArray?.length > 0 ? true : false}                 />
                   <FormData layOut={2} 
@@ -460,7 +460,7 @@ function Login({ type, variant }) {
                     selectOptions={districtLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userDistrict?.value}
-                    selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
+                    selectClassName="bg-white text-slate-600 rounded-md px-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[70%] min-h-[68px]"
                     selectOnChange={handleDistrictChange}
                     isRequired={districtLabelArray?.length > 0 ? true : false}
                   />
@@ -470,7 +470,7 @@ function Login({ type, variant }) {
                     selectOptions={blockLabelArray}
                     labelDivClass="text-left text-slate-700 mt-6 ml-[7%] md:ml-[18%]"
                     selectValue = {userBlock?.value}
-                    selectClassName="bg-white text-slate-600 rounded-md p-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[65%]"
+                    selectClassName="bg-white text-slate-600 rounded-md px-3 mt-1 outline outline-slate-300 outline-1 outline-offset w-[95%] md:w-[70%] min-h-[68px]"
                     selectOnChange={handleBlockChange}
                     isRequired={blockLabelArray?.length > 0 ? true : false}
                   />
@@ -496,6 +496,9 @@ function Login({ type, variant }) {
                       >
                       {' '}{t('tncText2')}
                       </button>
+                      <span className="text-slate-700 ml-2">
+                        {t('tncText3')}{' '}
+                      </span>
                     </label>
                   </div>
                 </>
