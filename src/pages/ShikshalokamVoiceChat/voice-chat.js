@@ -2356,7 +2356,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               const audioBlob = new Blob(localAudioChunks, { type: 'audio/webm;codecs=opus' });
               const isSilent = await isSilentAudio(audioBlob, 0.02);
 
-              if (!audioBlob) {
+              if (!audioBlob || isSilent) {
                 showNotification({
                   message: t('asrError'),
                   type: "error",
