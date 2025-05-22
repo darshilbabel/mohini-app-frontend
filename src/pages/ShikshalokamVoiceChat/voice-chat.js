@@ -2313,6 +2313,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   };
 
+  const isSilentAudio = async (blob, silenceThreshold = 0.01) => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const arrayBuffer = await blob.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    const rawData = audioBuffer.getChannelData(0);
+  
+    const rms = Math.sqrt(rawData.reduce((acc, val) => acc + val * val, 0) / rawData.length);
+    console.log("RMS (volume):", rms);
+  
+    return rms < silenceThreshold;
+  };
+
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       handleOnStopSpeaking()
@@ -2342,7 +2354,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             
             if (localAudioChunks.length > 0) {
               const audioBlob = new Blob(localAudioChunks, { type: 'audio/webm;codecs=opus' });
-              
+              const isSilent = await isSilentAudio(audioBlob, 0.02);
+
               if (!audioBlob) {
                 showNotification({
                   message: t('asrError'),
