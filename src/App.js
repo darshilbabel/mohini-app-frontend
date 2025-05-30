@@ -12,6 +12,7 @@ import WelcomePage from "./components/Welcome";
 import GuestPage from "./components/GuestPage";
 import PrivacyPage from "./pages/privacyPage";
 import ShikshalokamChat from "./pages/shikshalokamChat";
+import SsoFlow from "./pages/ssoFlow";
 
 
 function App() {
@@ -58,6 +59,7 @@ const unprotected_old_routes = [
   // { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>},
   { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamChat />},
   {path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage />},
+  {path: ROUTES.SSO_FLOW, element: <SsoFlow />},
 ];
 
 const unprotected_routes_config = [
