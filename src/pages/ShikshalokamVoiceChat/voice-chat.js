@@ -2259,7 +2259,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       setShouldFetchIntro(true);
       // setInStorage('has_accepted_tnc', true);
       const isTncAccepted = getFromStorage('has_accepted_tnc');
-      if(isTncAccepted || isTncAccepted === 'true') {
+      if(isTncAccepted && isTncAccepted !== 'ONGOING') {
         setAcceptedTnC(true);
       }
       // window.location.reload();
