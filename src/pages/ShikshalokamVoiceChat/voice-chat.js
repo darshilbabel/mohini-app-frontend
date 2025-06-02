@@ -2258,7 +2258,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       setLanguage(language);
       setShouldFetchIntro(true);
       // setInStorage('has_accepted_tnc', true);
-      // setAcceptedTnC(true);
+      const isTncAccepted = getFromStorage('has_accepted_tnc');
+      if(isTncAccepted && isTncAccepted !== 'ONGOING') {
+        setAcceptedTnC(true);
+      }
       // window.location.reload();
     }
   };
