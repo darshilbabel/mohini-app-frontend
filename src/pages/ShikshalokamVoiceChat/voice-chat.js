@@ -56,6 +56,7 @@ import { toast } from "react-toastify";
 import { languageList, sessionFlowName } from "./enum";
 import PrivacyPolicyPopup from "../../components/TnC/privacyPolicyPopup";
 import { FaCircle } from "react-icons/fa6";
+import LanguageSelectionPopup from "../../components/Popup/languageSelection";
 
 
 const cookies = new Cookies();
@@ -859,6 +860,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (e) {
       e.preventDefault();
     }
+    setIsLoading(true);
     if (isResetCalled && chatSocket && chatSocket.readyState === chatSocket.OPEN) {
       chatSocket.close();
     }
@@ -869,7 +871,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
       setSelectedLanguage("en");
       setInStorage('lang_progress', null, currentFlow);
-      removeFromStorage('has_accepted_tnc');
+      // removeFromStorage('has_accepted_tnc');
     } else{
       setInStorage('has_accepted_tnc', true, currentFlow);
     }
@@ -2255,6 +2257,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       setLanguageToUse(language);
       setLanguage(language);
       setShouldFetchIntro(true);
+      // setInStorage('has_accepted_tnc', true);
+      // setAcceptedTnC(true);
       // window.location.reload();
     }
   };
@@ -2714,12 +2718,20 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       )&& 
         <PrivacyPolicyPopup tncText={t('tncText')} onAccept={handleAcceptTnC} />
       }
-      {(acceptedTnc==="ONGOING" && !isLoading && getFromStorage('flow', false) && 
+      {(!getFromStorage('route') && !isLoading && getFromStorage('flow', false) && 
+        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)))&&
+        <LanguageSelectionPopup
+          languageList={languageList}
+          selectedLanguage={selectedLanguage}
+          onSelect={handleLanguageSelect}
+        />
+      }
+      {(getFromStorage('route') && acceptedTnc==="ONGOING" && !isLoading && getFromStorage('flow', false) && 
         [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
       )&& 
         <PrivacyPolicyPopup 
-          tncText="**उपयोग की शर्तें और नियम**<br/><br/>स्वागत है! कृपया हमारे प्लेटफॉर्म का उपयोग करने से पहले इन शर्तों और नियमों को ध्यानपूर्वक पढ़ें। सामग्री अपलोड करके और बोट के साथ इंटरैक्ट करके, आप नीचे उल्लिखित नियमों का पालन करने के लिए सहमति देते हैं। इनका पालन न करने पर प्रतिबंधित उपयोग या कानूनी परिणाम हो सकते हैं।<br/><br/><h4 style='font-weight: bold'>1. प्लेटफॉर्म का उद्देश्य</h4>हमारा प्लेटफॉर्म उपयोगकर्ताओं को यह करने की अनुमति देता है:<br/>- विशिष्ट कार्यों या उद्देश्यों के लिए चित्र अपलोड करना।<br/>- बोट के साथ इंटरैक्ट करके सहायता प्राप्त करना, जानकारी प्रदान करना, या कार्य पूरा करना।<br/><br/><h4 style='font-weight: bold'>2. उपयोगकर्ता की जिम्मेदारियाँ</h4>प्लेटफॉर्म का उपयोग करते समय, आप सहमति देते हैं कि आप:<br/>- केवल सही और संबंधित चित्र अपलोड करेंगे जो कार्य के लिए आवश्यक हैं।<br/>- झूठी, भ्रामक या अनुपयुक्त सामग्री साझा करने से बचेंगे।<br/>- सुनिश्चित करेंगे कि सभी चित्र और संवाद लागू कानूनों और नैतिक मानकों के अनुरूप हों।<br/>- बोट और प्लेटफॉर्म के साथ सम्मानपूर्वक व्यवहार करेंगे, अपशब्दों का उपयोग करने या हानिकारक गतिविधियों में संलिप्त होने से बचेंगे।<br/><br/><h4 style='font-weight: bold'>3. निषिद्ध क्रियाएँ</h4>उपयोगकर्ताओं को सख्त रूप से निम्नलिखित कार्यों से रोका गया है:<br/>- बिना उचित अनुमति के अवैध, अश्लील या कॉपीराइट सामग्री अपलोड करना।<br/>- ऐसी चित्रों या सामग्री को साझा करना जो आपत्तिजनक, हानिकारक या दूसरों के अधिकारों का उल्लंघन करती हो।<br/>- प्लेटफॉर्म का उपयोग करके किसी व्यक्ति या संस्था को उत्पीड़ित करना, धोखाधड़ी करना या हानि पहुँचाना।<br/><br/><h4 style='font-weight: bold'>4. निगरानी और प्रवर्तन</h4>आपके द्वारा बोट के साथ किए गए इंटरैक्शन, अपलोड किए गए चित्र एवं इंटरेक्शन के बाद बोट द्वारा बनाई गई रिपोर्ट एडमिनिस्ट्रेटर या प्रोग्राम मैनेजर के साथ साझा किया जा सकता है। प्रोग्राम मैनेजर या एडमिनिस्ट्रेटर इसका उपयोग सावधानी एवं समझदारी से केवल प्रोग्राम के लिए और उसके दायरे में ही प्रयोग करेंगे । एक सुरक्षित और सम्मानजनक वातावरण बनाए रखने के लिए:<br/>- प्लेटफॉर्म पर अपलोड किए गए चित्रों और चैट इंटरैक्शन की निगरानी कर सकता है ताकि यह सुनिश्चित किया जा सके कि इन शर्तों का पालन हो रहा है।<br/>- किसी भी उल्लंघन के परिणामस्वरूप प्लेटफॉर्म से तत्काल निलंबन या स्थायी प्रतिबंध हो सकता है।<br/>- गंभीर कदाचार के मामलों में कानूनी कार्रवाई की जा सकती है।<br/><br/><h4 style='font-weight: bold'>5. अस्वीकरण</h4>प्लेटफॉर्म और बोट उपयोगकर्ताओं को सहायता देने के उपकरण हैं। हालांकि हम सटीकता और सुरक्षा बनाए रखने की कोशिश करते हैं, हम निम्नलिखित के लिए उत्तरदायी नहीं हैं:<br/>- उपयोगकर्ताओं द्वारा प्लेटफॉर्म का दुरुपयोग।<br/>- उपयोगकर्ताओं द्वारा अपलोड की गई झूठी या अनुपयुक्त सामग्री के परिणामस्वरूप कार्यों के लिए।<br/>- हमारे नियंत्रण से बाहर की तकनीकी समस्याओं के लिए।<br/><br/><h4 style='font-weight: bold'><h4 style='font-weight: bold'>6. शर्तों की स्वीकृति</h4>इस प्लेटफॉर्म का उपयोग करके, आप यह स्वीकार करते हैं कि आपने इन शर्तों और नियमों को पढ़ा, समझा और सहमति दी है। यदि आप सहमत नहीं हैं, तो कृपया सेवा का उपयोग न करें।<br/>सभी उपयोगकर्ताओं के लिए एक सुरक्षित और उत्पादक वातावरण सुनिश्चित करने के लिए धन्यवाद।"
-          onAccept={handleAcceptTnC} useStaticText={true}
+          tncText={t('tncText')}  
+          onAccept={handleAcceptTnC} useStaticText={false}
         />
       }
       <></>
@@ -2905,7 +2917,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   <li>{t('homepageList2')}</li>
                 </ul>
               </>}
-              {(!projectId && (!profileToUse || !getFromStorage('first_name', false) || getFromStorage('first_name', false) === 'null' || getFromStorage('first_name', false)==='') && !access_token)&& 
+              {/* {(!projectId && (!profileToUse || !getFromStorage('first_name', false) || getFromStorage('first_name', false) === 'null' || getFromStorage('first_name', false)==='') && !access_token)&& 
                 <div className="div13" >
                   <ChatMessage 
                     botNameToDisplay={botNameToDisplay}
@@ -2946,7 +2958,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   </div>
 
                 </div>
-              }
+              } */}
               {chatHistory?.length > 0 && (
                 <div className="div26">
                   <div className="div36 div12" >
@@ -3210,7 +3222,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
          chatHistory.some(item => item && Object.keys(item).length > 0)
         )&&       
           <form
-            className="div39 form-1"
+            className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
             onSubmit={(event)=>{
               if(!hasStartedListening && !isFetchingData){
                 handleSendMessage(event);
@@ -3272,7 +3284,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 <button
                   type="submit"
                   disabled={hasStartedRecording || isFetchingData}
-                  className="button-6"
+                  className="button-6 sm:ml-[1.3rem] ml-[0.8rem]"
                 >
                   <MdSend />
                 </button>
@@ -3295,7 +3307,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   type="button"
                   onClick={hasStartedRecording ? stopRecording : startRecording}
                   disabled={isFetchingData}
-                  className={`button-7 ${hasStartedRecording ? 'button-8' : 'button-9'}`}
+                  className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${hasStartedRecording ? 'button-8' : 'button-9'}`}
                 >
                   
                   {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}

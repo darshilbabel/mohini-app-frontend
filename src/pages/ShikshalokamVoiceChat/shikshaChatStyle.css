@@ -595,13 +595,14 @@
 }
 
 .div39 {
-    padding-left: 0.25rem;
+    /* padding-left: 0.25rem;
     padding-right: 0.25rem;
     padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.5rem; */
     display: flex;
     justify-content: center;
     background-color: #ffffff;
+    /* padding: 10px 35px; */
 }
 
 .input-2 {
@@ -666,7 +667,8 @@
     border-radius: 9999px;
     background-color: #f3f8f9 !important;
     padding: 0.75rem;
-    margin-left: 0.5rem;
+    /* margin-left: 0.5rem; */
+    /* margin-left: 1.3rem; */
     margin-right: 0.5rem;
     font-size: 1.5rem;
     color: #0d9488;
@@ -693,7 +695,7 @@
 .button-7 {
     border-radius: 9999px;
     padding: 0.9rem;
-    margin-left: 0.5rem;
+    /* margin-left: 0.5rem; */
     margin-right: 0.5rem;
     font-size: 1.5rem;
 }
