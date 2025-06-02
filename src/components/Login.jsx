@@ -342,7 +342,7 @@ function Login({ type, variant }) {
       <div className="px-5 hidden sm:block">
           <div className="flex">
             <img
-              src="https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/shikshagrahaLogo.png"
+              src={t('pageLogo')}
               className="h-[100px] w-[200px] object-contain aspect-auto align-top object-[center_center] relative ml-0"
               alt="shikshalokam_logo"
             />
@@ -368,7 +368,7 @@ function Login({ type, variant }) {
           <div className="w-full">
           <div className="justify-between w-full flex sm:hidden items-center p-2">
               <img
-                src="https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/shikshagrahaLogo.png"
+                src={t('pageLogo')}
                 className="h-[80px] w-[100px] object-contain"
                 alt="shikshalokam_logo"
               />
