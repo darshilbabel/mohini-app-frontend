@@ -1461,13 +1461,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && 
         (profileToUse || [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(current_flow))
       ) {
+
+      setIsIntroLoading(true);
       fetchBotInfo().then(() => {
-        setIsIntroLoading(false);
-        if(!current_flow || current_flow !== sessionFlowName.LoginMiStory) {
+        if (!current_flow || current_flow !== sessionFlowName.LoginMiStory) {
           const currentSession = getFromStorage('sessionid', true);
           handleCompanyChatCall(currentSession);
         }
-      });
+      }).finally(() => {
+        setIsIntroLoading(false);
+      });      
     }
     
     return () => {};
@@ -2817,7 +2820,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           />
         </div>
       </div>
-      {(isLoading || isIntroLoading || isEndStoryLoading)&& <div className="loader-load-spinner">
+      {(isLoading || isIntroLoading || isEndStoryLoading || isFetchingOldIntro)&& <div className="loader-load-spinner">
         <div className="div67">
           <BiLoader className="loader-rotate-loader loader-icon" />
           {isPdfDownloading&& 
