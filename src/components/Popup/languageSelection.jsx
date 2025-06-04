@@ -20,8 +20,8 @@ const LanguageSelectionPopup = ({ languageList, selectedLanguage, onSelect, onCl
             <div className="language-select-cover"></div>
             <div className="language-select-bg">
                 <div className="language-select-container">
-                    <div className="language-select-content">
-                        <p className="mb-4 ml-[12%] sm:ml-[8%] text-lg font-semibold">{t('languageQuestion')}</p>
+                    <div className="language-select-content px-0">
+                        <p className="mb-4 sm:text-xl text-lg font-bold text-center">{t('languageQuestion')}</p>
                         <div className="flex flex-wrap gap-x-2 gap-y-2 md:gap-y-10 justify-start">
                         {languageList.map((lang) => (
                             <div

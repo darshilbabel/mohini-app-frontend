@@ -1091,7 +1091,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             clearFromStorage();
             setLanguage(languageList[0].value);
             setInStorage('local_route', JSON.stringify(languageList[0].value));
-            navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
+            // navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
+            // navigate("/", { replace: true });
+            window.location.href = 'https://www.google.com';
+
           } else{
             if(
               getFromStorage('flow', false) && 
@@ -2256,11 +2259,20 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       setAudioCache({});
       setLanguageToUse(language);
       setLanguage(language);
-      setShouldFetchIntro(true);
+      // setShouldFetchIntro(true);
       // setInStorage('has_accepted_tnc', true);
       const isTncAccepted = getFromStorage('has_accepted_tnc');
+      console.log("isTncAccepted: ", isTncAccepted)
       if(isTncAccepted && isTncAccepted !== 'ONGOING') {
+        console.log("Tnc is ongoing")
+        setIsLoading(false);
         setAcceptedTnC(true);
+        const flow = getFromStorage('flow', false);
+        if(flow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(flow)) {
+          setShouldFetchIntro(true);
+        }
+      } else {
+        setIsLoading(false);
       }
       // window.location.reload();
     }
@@ -2706,6 +2718,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   function handleAcceptTnC() {    
     setInStorage('has_accepted_tnc', true);
     setAcceptedTnC(true);
+    const flow = getFromStorage('flow', false);
+    if(flow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(flow)) {
+      setShouldFetchIntro(true);
+    }
   }
 
   function handleDeclineTnC() {
