@@ -17,7 +17,7 @@ const PrivacyPolicyPage = ({ tncText, onAccept, onDecline, shouldShowAcceptDecli
         <div className="">
             <div className="">
             <div className="">
-                <div className="tnc-text">
+                <div className="tnc-text-login">
                     <MarkdownComponent markdownText={tncText} />
                 </div>
             </div>
