@@ -3264,7 +3264,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 }
                 name="message-box"
                 value={textMessage}
-                autoFocus={true}
+                autoFocus={false}
                 disabled={hasStartedRecording || isFetchingData}
                 ref={textAreaRef}
                 onInput={(e) => {
