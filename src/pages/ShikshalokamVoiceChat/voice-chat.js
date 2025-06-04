@@ -2262,9 +2262,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       // setShouldFetchIntro(true);
       // setInStorage('has_accepted_tnc', true);
       const isTncAccepted = getFromStorage('has_accepted_tnc');
-      console.log("isTncAccepted: ", isTncAccepted)
       if(isTncAccepted && isTncAccepted !== 'ONGOING') {
-        console.log("Tnc is ongoing")
         setIsLoading(false);
         setAcceptedTnC(true);
         const flow = getFromStorage('flow', false);
