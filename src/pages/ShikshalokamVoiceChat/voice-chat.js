@@ -3278,6 +3278,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     e.target.style.overflowY = 'hidden';
                   }
                 }}
+                onFocus={() => {
+                  setTimeout(() => {
+                    if (textAreaRef.current) {
+                      textAreaRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                  }, 300);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     if (e.shiftKey) {
