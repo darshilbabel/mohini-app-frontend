@@ -1,3 +1,4 @@
+import { bot_routes } from "../configure";
 import axiosInstance from "../utils/axios";
 
 
@@ -80,3 +81,66 @@ export const readElevateProfile = async (accessToken) => {
 			return error?.response?.data;
 		});
 };
+
+export async function getAI4BharatAudio(text, sourceLanguage = 'en', storedRoute = bot_routes.normal) {
+    try {
+
+    const response = await axiosInstance.post('api/text_to_speech/', {
+        text: text,
+        source_language: sourceLanguage,
+        route: storedRoute
+    });
+    
+    return response.data.audio;
+    } catch (error) {
+    console.error('Error fetching AI4Bharat audio:', error);
+    throw error;
+    }
+}
+
+export async function ai4BharatASR(base64, sourceLanguage = 'en', storedRoute = bot_routes.normal) {
+    
+    try {
+      const response = await axiosInstance.post('api/asr/', {
+        s3Url: base64,
+        source_language: sourceLanguage,
+        route: storedRoute
+      });
+      
+      return response.data.transcript;
+    } catch (error) {
+      console.error('Error fetching AI4Bharat audio:', error);
+      return '';
+    } 
+}
+
+export const getUserProfile = async (filter) => {
+	const endpoint = `user_profile${filter}`;
+	return await getWithoutAuth(endpoint);
+};
+
+
+export async function transliterateApi(message, sourceLanguage = 'en', targetLanguage = 'en', storedRoute = bot_routes.shikshalokam_chaupal, detect_language=false) {
+    
+    try {
+		const response = await axiosInstance.post('api/text_transliterate/', {
+			message_body: message,
+			source_language: sourceLanguage,
+			target_language: targetLanguage,
+			route: storedRoute,
+			detect_language: detect_language
+		});
+		const content = response.data?.transcript?.content;
+		if (Array.isArray(content)) {
+			return content[0];
+		} else if (typeof content === 'string') {
+		return content; 
+		} else {
+			console.warn('Unexpected content type:', content);
+			return '';
+		}
+    } catch (error) {
+      	console.error('Error fetching Transliterate text:', error);
+      	return '';
+    } 
+}

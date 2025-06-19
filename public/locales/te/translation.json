@@ -87,5 +87,8 @@
     "challengesHeader": "సవాళ్లు",
     "solutionsHeader": "పరిష్కారాలు",
     "photosLimitMsg": "మీరు గరిష్ఠంగా 10 చిత్రాలు అప్‌లోడ్ చేయవచ్చు.",
-    "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/Telugu Horizontal.png"
+    "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/Telugu Horizontal.png",
+    "continueBtnText": "తరువాతకు కొనసాగించండి",
+    "commonPageButtonText1": "ఎంఐ కథను నమోదు చేయండి",
+    "commonPageButtonText2": "చర్చను నమోదు చేయండి"
 }

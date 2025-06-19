@@ -87,5 +87,8 @@
     "challengesHeader": "ಸವಾಲುಗಳು",
     "solutionsHeader": "ಪರಿಹಾರಗಳು",
     "photosLimitMsg": "ನೀವು ಗರಿಷ್ಠ 10 ಚಿತ್ರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಬಹುದು.",
-    "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/Kannada Horizontal.png"
+    "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/Kannada Horizontal.png",
+    "continueBtnText": "ಮುಂದುವರಿಯಿರಿ",
+    "commonPageButtonText1": "ಎಂಐ ಕಥೆ ದಾಖಲಿಸಿ",
+    "commonPageButtonText2": "ಚರ್ಚೆ ದಾಖಲಿಸಿ"
 }

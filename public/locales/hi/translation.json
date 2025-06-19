@@ -87,5 +87,8 @@
     "challengesHeader": "चुनौतियां",
     "solutionsHeader": "समाधान",
     "photosLimitMsg": "आप अधिकतम 10 छवियाँ अपलोड कर सकते हैं।",
-    "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/Hindi Horizontal.png"
+    "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/Hindi Horizontal.png",
+    "continueBtnText": "आगे बढ़ें",
+    "commonPageButtonText1": "एमआई कहानी दर्ज करें",
+    "commonPageButtonText2": "चर्चा दर्ज करें"
 }

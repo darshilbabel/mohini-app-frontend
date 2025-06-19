@@ -87,5 +87,8 @@
     "challengesHeader": "Challenges",
     "solutionsHeader": "Solutions",
     "photosLimitMsg": "You can upload up to to 10 images.",
-    "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/English Horizontal.png"
+    "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/English Horizontal.png",
+    "continueBtnText": "Continue",
+    "commonPageButtonText1": "Capture MI story",
+    "commonPageButtonText2": "Capture discussion"
 }
