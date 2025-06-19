@@ -23,7 +23,7 @@ import rehypeRaw from 'rehype-raw';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { BiLoader } from "react-icons/bi";
 import { AiOutlineEye } from "react-icons/ai";
-import { getSessionDetails } from "../../services/api.service";
+import { ai4BharatASR, getAI4BharatAudio, getSessionDetails } from "../../services/api.service";
 import Sidebar from "./shikshaChatSidebar";
 import MainHeader from "./shikshaChatHeader";
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2";
@@ -57,6 +57,7 @@ import { languageList, sessionFlowName } from "./enum";
 import PrivacyPolicyPopup from "../../components/TnC/privacyPolicyPopup";
 import { FaCircle } from "react-icons/fa6";
 import LanguageSelectionPopup from "../../components/Popup/languageSelection";
+import { clearFromStorage, getFromStorage, handleS3Upload, removeFromStorage, setInStorage } from "../../services/storage_service";
 
 
 const cookies = new Cookies();
@@ -910,13 +911,19 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
               url = `${base_url+bot_websocket.shikshalokam_chaupal}`;
             } else if (selectedType === 'normal') {
-              if (currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+              if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
                 url = `${base_url+bot_websocket.normal}`;
+              } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
+                url = `${base_url+bot_websocket.guest_normal}`;
               } else {
                 url = `${base_url+bot_websocket.reflection}`;
               }
             } else {
-              url = `${base_url+bot_websocket.oneshot}`;
+              if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
+                url = `${base_url+bot_websocket.oneshot}`;
+              } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
+                url = `${base_url+bot_websocket.guest_oneshot}`;
+              } 
             }
         }
         socket = new WebSocket(url);
@@ -1087,13 +1094,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           executeCustomFunction();
         } else {
           if(wantToNavigateBack){
+            let rerouteUrl = getFromStorage('previousUrl');
             stopAllAudio();
             clearFromStorage();
             setLanguage(languageList[0].value);
             setInStorage('local_route', JSON.stringify(languageList[0].value));
             // navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
             // navigate("/", { replace: true });
-            window.location.href = 'https://www.google.com';
+            if(rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== ""){
+              window.location.href = rerouteUrl;
+            } else {
+              window.location.href = 'https://www.google.com';
+            }
 
           } else{
             if(
@@ -1321,6 +1333,28 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   }
 
+  const getSessionRoute = () => {
+    let storedRoute = bot_routes.reflection;
+    let currentFlow = getFromStorage('flow', false);
+    if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
+      storedRoute = bot_routes.shikshalokam_chaupal;
+    } else if (selectedType === 'normal') {
+      if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
+        storedRoute=bot_routes.normal
+      } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
+        storedRoute=bot_routes.guest_normal
+      } 
+    } else {
+      if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
+        storedRoute=bot_routes.oneshot
+      } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
+        storedRoute=bot_routes.guest_oneshot
+      } 
+    }
+
+    return storedRoute;
+  }
+
   useEffect(() => {
     if(getFromStorage('intro_message', false) && !isLoading) {
       setInStorage('lang_progress', true);
@@ -1334,17 +1368,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setIsLoading(true);
     let companyName = await getCompanyDetail();
     try {
-      let storedRoute = bot_routes.reflection;
+      let storedRoute = getSessionRoute();
       let currentFlow = getFromStorage('flow', false);
-      if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
-        storedRoute = bot_routes.shikshalokam_chaupal;
-      } else if (selectedType === 'normal') {
-        if (currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(currentFlow)) {
-          storedRoute=bot_routes.normal
-        } 
-      } else {
-        storedRoute=bot_routes.oneshot
-      }
+
       const response = await axiosInstance({
         url: company_bot_list_url,
         params: {
@@ -1461,7 +1487,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && 
         (profileToUse || [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(current_flow))
       ) {
-
       setIsIntroLoading(true);
       fetchBotInfo().then(() => {
         if (!current_flow || current_flow !== sessionFlowName.LoginMiStory) {
@@ -1494,7 +1519,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       !!recordings?.length &&
       chatHistory[chatHistory?.length - 1]?.source !== "bot"
     ) {
-        
         setChatHistory((prev) => {
         prev[chatHistory?.length - 1] = {
           ...prev[chatHistory?.length - 1],
@@ -2052,36 +2076,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     ]);
   }, []);
 
-  async function getAI4BharatAudio(text, sourceLanguage = 'en', gender = 'female') {
-    try {
-      let storedRoute = '/'
-      let currentFlow = getFromStorage('flow', false);
-      if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
-        storedRoute=bot_routes.shikshalokam_chaupal
-      } else if (selectedType === 'oneshot'){
-        storedRoute = '/oneshot_bot';
-      } else {
-        if(currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(currentFlow)){
-          storedRoute = '/';
-        } else {
-          storedRoute = '/reflection';
-        }
-      }
-
-      const response = await axiosInstance.post('api/text_to_speech/', {
-        text: text,
-        source_language: sourceLanguage,
-        route: storedRoute
-      });
-      
-      return response.data.audio;
-    } catch (error) {
-      console.error('Error fetching AI4Bharat audio:', error);
-      throw error;
-    }
-  }
-
-
   const handleAI4BharatTTSRequest = async (text, id, sourceLanguage) => {
     try {
       if(id === 'intro_msg_id' && isIntroPlayed.current === true) {
@@ -2098,6 +2092,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         sourceLanguage = "en"
       }
 
+      let storedRoute = getSessionRoute();
+
       if (!hasOverRideId) {
         handleMessagesForBot(text);
       }
@@ -2113,7 +2109,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       }
   
       if (!cachedAudioUrl) {
-        audio_result = await getAI4BharatAudio(text, sourceLanguage);
+        audio_result = await getAI4BharatAudio(text, sourceLanguage, storedRoute);
         if (audio_result?.length) {
           cachedAudioUrl = `data:audio/wav;base64,${audio_result}`;
           setAudioCache((prevCache) => ({
@@ -2165,37 +2161,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       handleOnStopSpeaking()
     }
   };
-
-  async function ai4BharatASR(base64, gender = 'female'){
-    
-    let sourceLanguage = languageToUse;
-    let storedRoute = '/'
-    let currentFlow = getFromStorage('flow', false);
-    if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
-      storedRoute=bot_routes.shikshalokam_chaupal
-    } else if (selectedType === 'oneshot'){
-      storedRoute = '/oneshot_bot';
-    } else {
-      if(currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(currentFlow)){
-        storedRoute = '/';
-      } else {
-        storedRoute = '/reflection';
-      }
-    }
-    try {
-      const response = await axiosInstance.post('api/asr/', {
-        s3Url: base64,
-        source_language: sourceLanguage,
-        gender: gender,
-        route: storedRoute
-      });
-      
-      return response.data.transcript;
-    } catch (error) {
-      console.error('Error fetching AI4Bharat audio:', error);
-      return '';
-    } 
-  }
 
 
   const isTyping = !!textMessage.trim();
@@ -2391,12 +2356,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
               setIsFetchingData(true);
               let transcriptResult = '';
-              let s3Url = await handleS3Upload(audioBlob, `${getFromStorage('sessionid', true)}-${Date.now()}`, 'chatbot/companychat/');
+              let s3Url = await handleS3Upload(audioBlob, `${getFromStorage('sessionid', true)}-${Date.now()}`, 'chatbot/companychat/', storyData);
               if(!s3Url || s3Url === '') {
                 transcriptResult = t('asrError');
               }
               setAsrAudio(s3Url);
-              transcriptResult = await ai4BharatASR(s3Url);
+              let storedRoute = getSessionRoute();
+              transcriptResult = await ai4BharatASR(s3Url, languageToUse, storedRoute);
               if (!transcriptResult || transcriptResult === '') {
                 showNotification({
                   message: t('asrError'),
@@ -2610,34 +2576,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return jpgFile;
   };
   
-  const handleS3Upload = async (file, fileName, folderStructure) => {
-    try{
-      const res = await axiosInstance.post("api/get-presigned-url/", {
-        fileName: fileName,
-        fileType: file.type,
-        storyId: storyData?.id,
-        folder_structure: folderStructure
-      });
-  
-      const { uploadUrl, s3Url } = res.data;
-  
-      await fetch(uploadUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": file.type,
-          "x-amz-acl": "public-read"
-        },
-        body: file,
-      });
-      return s3Url;
-    } catch (error) {
-      console.error("Error uploading to S3:", error);
-      return '';
-    }
-    
-  }
-  
-
   const handleMultipleUploads = async (e, storyData) => {
     const filesArray = Array.from(e.target.files);
     const currentFiles = [...files];
@@ -2677,7 +2615,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           file = await convertHeifToJpg(file);
         }
         
-        const s3Url = await handleS3Upload(file, fileName, 'chatbot/storymedia/');
+        const s3Url = await handleS3Upload(file, fileName, 'chatbot/storymedia/', storyData);
   
         const formData = {
           file_url: s3Url,
@@ -3280,6 +3218,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 }}
                 onFocus={() => {
                   setTimeout(() => {
+                    handleScrollToView();
                     if (textAreaRef.current) {
                       textAreaRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
                     }
@@ -3445,21 +3384,6 @@ function ChatMessage({
 /* eslint-disable react-hooks/exhaustive-deps */
 
 
-export function clearFromStorage() {
-  const keysToRemove = [
-    'botName', 'chat-history', 'company', 'first_name', 'has_accepted_tnc', 'intro_message', 
-    'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
-    'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type', 
-    'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress',
-    'grit', 'device_id', 'defaultBotName'
-  ];
-
-  keysToRemove.forEach((key) => {
-    removeFromStorage(key);
-  });
-}
-
-
 export async function handleFileUpload(e, storyData, files, setFileErrorText, fileSizeText, access_token, setFiles, setError, projectId, setIsLoading, navigate, t) {
     
   const story_id = storyData?.id;
@@ -3525,7 +3449,7 @@ const uploadImage = (formData, setError, projectId, navigate, setIsLoading, acce
         },
         errorHandler: (err) => {
           if (projectId){
-            clearFromStorage()
+            clearFromStorage();
             navigate(-1)
 
           }
@@ -3573,43 +3497,6 @@ export const partialUpdateMedia = (partialUpdateId, include_in_story=false, acce
       error,
     });
   }
-};
-
-export const setInStorage = (key, value, currentFlow) => {
-  const flow = currentFlow || sessionStorage.getItem('flow') || localStorage.getItem('flow');
-  const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
-  const isTemporary = flow && sessionFlows.includes(flow);
-
-  const storage = isTemporary ? sessionStorage : localStorage;
-  storage.setItem(key, value);
-};
-
-export const getFromStorage = (key, parseValue = false) => {
-  const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
-  const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
-  const isTemporary = flow && sessionFlows.includes(flow);
-  const storage = isTemporary ? sessionStorage : localStorage;
-  const value = storage.getItem(key);
-
-  if (value && parseValue) {
-    try {
-      return JSON.parse(value);
-    } catch (e) {
-      console.error(`Error parsing value for key "${key}":`, e);
-      return null;
-    }
-  }
-
-  return value;
-};
-
-export const removeFromStorage = (key) => {
-  const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
-  const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
-  const isTemporary = flow && sessionFlows.includes(flow);
-
-  const storage = isTemporary ? sessionStorage : localStorage;
-  storage.removeItem(key);
 };
 
 export const useSmartChatStorage = () => {

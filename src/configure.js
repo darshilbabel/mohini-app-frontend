@@ -21,15 +21,19 @@ export const lang_codes = {
 
 export const bot_routes = {
   normal: "/",
+  guest_normal: "/guided_guest",
   reflection: "/reflection",
   oneshot: "/oneshot_bot",
+  guest_oneshot: "/oneshot_guest",
   shikshalokam_chaupal: "/shikshalokam_chaupal"
 };
 
 export const bot_websocket = {
   normal: "/ws/shikshalokam_new/",
+  guest_normal: "/ws/guided_guest/",
   reflection: "/ws/reflection/",
   oneshot: "/ws/shikshalokam_one_shot/",
+  guest_oneshot: "/ws/oneshot_guest/",
   shikshalokam_chaupal: "/ws/shikshalokam_chaupal/"
 };
 

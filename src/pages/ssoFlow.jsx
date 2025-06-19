@@ -6,7 +6,7 @@ import ROUTES from "../url";
 import { BiLoader } from "react-icons/bi";
 import "../components/custom-style.css"
 import "../index.css"
-import { clearFromStorage, getFromStorage, setInStorage } from "./ShikshalokamVoiceChat/voice-chat";
+import { clearFromStorage, getFromStorage, setInStorage } from "../services/storage_service";
 import { setLanguage } from "../i18n";
 
 

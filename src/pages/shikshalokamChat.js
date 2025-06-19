@@ -3,11 +3,12 @@ import Login from "../components/Login";
 import { getIpLocation, getProfileDetails, getSessionDetails } from "../services/api.service";
 import { languageList, sessionFlowName } from "./ShikshalokamVoiceChat/enum";
 import ROUTES from "../url";
-import ShikshalokamVoiceBasedChat, { clearFromStorage, getFromStorage, setInStorage } from "./ShikshalokamVoiceChat/voice-chat";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axios";
 import { setLanguage } from "../i18n";
 import { BiLoader } from "react-icons/bi";
+import { clearFromStorage, getFromStorage, removeFromStorage, setInStorage } from "../services/storage_service";
+import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat";
 
 
 
@@ -22,12 +23,29 @@ function ShikshalokamChat({type, variant}) {
 	useEffect(() => {
 		const tnc=getFromStorage("has_accepted_tnc");
 		if (!tnc || tnc === "ONGOING") {
-			sessionStorage.clear();
-			localStorage.clear();
+			clearFromStorage(true);
 		}
 		if (!getFromStorage("local_route")) {
-			setInStorage("local_route", JSON.stringify(languageList[0].value), sessionFlowName.GuestDiscussion);
+			setInStorage("local_route", JSON.stringify(languageList[0].value), type);
 		}
+		// if(!getFromStorage('tempCode')){
+		// 	removeFromStorage('previousUrl');
+		// }
+		if(getFromStorage('tempCode', false, 'localStorage')){
+			const previousUrl = getFromStorage('previousUrl', false, 'localStorage');
+			console.log('previousUrl chk', previousUrl);
+			console.log('currentUrl chk', window.location.href);
+			if(previousUrl && previousUrl !== '') {
+				console.log('type chk', type);
+				if(type === sessionFlowName.GuestDiscussion || type === sessionFlowName.GuestMiStory){
+					console.log("Setting previousUrl in sessionStorage");
+					setInStorage('previousUrl', previousUrl, type, 'sessionStorage');
+				}
+			}
+		}
+		removeFromStorage('tempCode', false, 'localStorage');
+		removeFromStorage('previousUrl', false, 'localStorage');
+
 	}, []);
 	
 	function getUserFingerPrint() {
@@ -43,7 +61,7 @@ function ShikshalokamChat({type, variant}) {
 			const storedUserId = getFromStorage('device_id');
 			const newUserId = storedUserId || btoa(fingerprint);
 
-			setInStorage('device_id', newUserId, sessionFlowName.GuestDiscussion);
+			setInStorage('device_id', newUserId, type);
 			setUserId(newUserId);
 		} catch (error) {
 			console.error('Error handling user ID:', error);
@@ -77,10 +95,10 @@ function ShikshalokamChat({type, variant}) {
 			return;
 		  }
 	  
-		  setInStorage('profileid', JSON.stringify(res.id), sessionFlowName.GuestDiscussion);
+		  setInStorage('profileid', JSON.stringify(res.id), type);
 	  
 		  let session = await getSessionDetails();
-		  setInStorage('sessionid', JSON.stringify(session.sessionid), sessionFlowName.GuestDiscussion);
+		  setInStorage('sessionid', JSON.stringify(session.sessionid), type);
 	  
 		  const response = await axiosInstance({
 			url: login_api_url,
@@ -92,8 +110,8 @@ function ShikshalokamChat({type, variant}) {
 		  });
 	  
 		  if (!!response?.data?.access_token) {
-			setInStorage('company', JSON.stringify(response?.data?.company), sessionFlowName.GuestDiscussion);
-			setInStorage('first_name', JSON.stringify(response?.data?.first_name), sessionFlowName.GuestDiscussion);
+			setInStorage('company', JSON.stringify(response?.data?.company), type);
+			setInStorage('first_name', JSON.stringify(response?.data?.first_name), type);
 			setCompanyName(response?.data?.company);
 		  } else {
 			window.location.reload();
@@ -110,10 +128,10 @@ function ShikshalokamChat({type, variant}) {
 
 	const setFinalLanguage = async () => {
 		const currentFlow = getFromStorage('flow');
-		if(currentFlow && [sessionFlowName.GuestDiscussion].includes(currentFlow)){
+		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
 			await initialSetup();
 		}
-		if(currentFlow && [sessionFlowName.GuestDiscussion].includes(currentFlow)){
+		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
 			setLanguage(languageList[0].value);
 		}
 	}
@@ -123,19 +141,19 @@ function ShikshalokamChat({type, variant}) {
 			if(!getFromStorage('sessionid')){
 				clearFromStorage();
 				setIsLoading(true);
-				setInStorage('has_accepted_tnc', 'ONGOING', sessionFlowName.GuestDiscussion);
-				setInStorage('isNewChatOpen', JSON.stringify(true), sessionFlowName.GuestDiscussion);
+				setInStorage('has_accepted_tnc', 'ONGOING', type);
+				setInStorage('isNewChatOpen', JSON.stringify(true), type);
 				const locationData = await getIpLocation();
 				if (locationData && locationData?.location) {
-				setInStorage('ip_state', locationData?.location?.regionName, sessionFlowName.GuestDiscussion);
-				setInStorage('ip_city', locationData?.location?.city, sessionFlowName.GuestDiscussion);
-				setInStorage('ip_country', locationData?.location?.country, sessionFlowName.GuestDiscussion);
+				setInStorage('ip_state', locationData?.location?.regionName, type);
+				setInStorage('ip_city', locationData?.location?.city, type);
+				setInStorage('ip_country', locationData?.location?.country, type);
 				}
-				setInStorage('flow', sessionFlowName.GuestDiscussion, sessionFlowName.GuestDiscussion);
+				setInStorage('flow', type, type);
 				await setFinalLanguage();
 				getUserFingerPrint();
 			}
-			else if (getFromStorage('flow') && !([sessionFlowName.GuestDiscussion].includes(getFromStorage('flow')))){
+			else if (getFromStorage('flow') && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow')))){
 				clearFromStorage();
 				window.location.reload();
 			}
