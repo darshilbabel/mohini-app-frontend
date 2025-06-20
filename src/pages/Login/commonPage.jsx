@@ -20,8 +20,10 @@ function CommonHomePage() {
         JSON.parse(localStorage.getItem("local_route")) || languageList[0].value
     );
     const [selectedFlow, setSelectedFlow] = useState(null);
+    const [stopAudioTriggered, setStopAudioTriggered] = useState(false);
 
     const { t } = useTranslation();
+    const audioRef = useRef();
     
     useEffect(() => {
         clearFromStorage(true)
@@ -34,24 +36,42 @@ function CommonHomePage() {
 
     const handleLanguageChange = (e) => {
         setUserLanguage(e?.target?.value);
+        setStopAudioTriggered(true);
+        stopAllAudio();
         setLanguage(e?.target?.value);
         localStorage.setItem('local_route', JSON.stringify(e?.target?.value));
     };
+
+    const controllerRef = useRef(null);
+
+    async function stopAllAudio(){
+        console.log("Stopping all audio in common page: ", audioRef);
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+            audioRef.current = null;
+        }
+        if (controllerRef.current) {
+            controllerRef.current.abort(); // cancel ongoing API
+        }
+        controllerRef.current = new AbortController();
+
+    }
 
     return (
         <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 justify-center">
             <div className="absolute top-6 right-6 min-w-[100px] max-w-fit hidden sm:block">
                 <FormData
-                layOut={2}
-                labelName=""
-                id="pagelanguageID"
-                selectID="pagelanguageID"
-                selectName="language"
-                selectOptions={languageList}
-                labelDivClass="text-left text-slate-700"
-                selectValue={userLanguage}
-                selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-max"
-                selectOnChange={handleLanguageChange}
+                    layOut={2}
+                    labelName=""
+                    id="pagelanguageID"
+                    selectID="pagelanguageID"
+                    selectName="language"
+                    selectOptions={languageList}
+                    labelDivClass="text-left text-slate-700"
+                    selectValue={userLanguage}
+                    selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-max"
+                    selectOnChange={handleLanguageChange}
                 />
             </div>
             <div className="px-5 hidden sm:block">
@@ -71,11 +91,11 @@ function CommonHomePage() {
                     </p>
                 </div>
                 <img
-                src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
-                width="500"
-                height="900"
-                className="center-img custom-login-image"
-                alt=""
+                    src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
+                    width="500"
+                    height="900"
+                    className="center-img custom-login-image"
+                    alt=""
                 />
             </div>
             <div className="">
@@ -89,16 +109,16 @@ function CommonHomePage() {
                     />
                     <div className="w-[140px] flex justify-end p-2">
                         <FormData
-                        layOut={2}
-                        labelName=""
-                        id="pagelanguageID"
-                        selectID="pagelanguageID"
-                        selectName="language"
-                        selectOptions={languageList}
-                        labelDivClass="text-left text-slate-700"
-                        selectValue={userLanguage}
-                        selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-0 w-full"
-                        selectOnChange={handleLanguageChange}
+                            layOut={2}
+                            labelName=""
+                            id="pagelanguageID"
+                            selectID="pagelanguageID"
+                            selectName="language"
+                            selectOptions={languageList}
+                            labelDivClass="text-left text-slate-700"
+                            selectValue={userLanguage}
+                            selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-0 w-full"
+                            selectOnChange={handleLanguageChange}
                         />
                     </div>
                     </div>
@@ -109,11 +129,11 @@ function CommonHomePage() {
                     <b>{t('welcome_heading1')}</b>
                     </div>
                 <img
-                src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
-                width="200"
-                height="100"
-                className="center-img custom-login-image sm:hidden"
-                alt=""
+                    src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
+                    width="200"
+                    height="100"
+                    className="center-img custom-login-image sm:hidden"
+                    alt=""
                 />
                 <div className="bg-slate-50 sm:pt-6 sm:h-[100%]">
                     <div className="flex justify-end mr-6 relative block sm:hidden">
@@ -146,6 +166,10 @@ function CommonHomePage() {
                                         showSpeaker={true}
                                         forcePlayAudio={selectedFlow === sessionFlowName.GuestMiStory}
                                         selectedFlow={selectedFlow}
+                                        audioRef={audioRef}
+                                        stopAudioTriggered={stopAudioTriggered}
+                                        setStopAudioTriggered={setStopAudioTriggered}
+                                        controllerRef={controllerRef}
                                     />
                                 </span>
                             </span>
@@ -162,6 +186,10 @@ function CommonHomePage() {
                                         showSpeaker={true}
                                         forcePlayAudio={selectedFlow === sessionFlowName.GuestDiscussion}
                                         selectedFlow={selectedFlow}
+                                        audioRef={audioRef}
+                                        stopAudioTriggered={stopAudioTriggered}
+                                        setStopAudioTriggered={setStopAudioTriggered}
+                                        controllerRef={controllerRef}
                                     />
                                 </span>
                             </span>
@@ -171,20 +199,22 @@ function CommonHomePage() {
                         <button
                             className={`mt-2 px-16 py-2 rounded-xl text-white text-lg font-medium ${selectedFlow? 'bg-[#572E91] cursor-pointer': 'bg-[#8d888857] cursor-not-allowed'}`}
                             disabled={!selectedFlow}
-                            onClick={() => {
-                                console.log("selectedFlow", selectedFlow);
+                            onClick={async () => {
+                                await stopAllAudio();
                                 if(selectedFlow === sessionFlowName.GuestDiscussion) {
                                     console.log("previousUrl", window.location.href);
                                     setInStorage('previousUrl', window.location.href)
                                     setInStorage('tempCode', 'xyz123');
                                     if(getFromStorage('previousUrl')) {
                                         navigate(ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
+                                        window.location.reload();
                                     }
                                 } else if(selectedFlow === sessionFlowName.GuestMiStory) {
                                     setInStorage('previousUrl', window.location.href)
                                     setInStorage('tempCode', 'xyz123');
                                     if(getFromStorage('previousUrl')) {
                                         navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
+                                        window.location.reload();
                                     }
                                 }
                             }}
@@ -201,9 +231,8 @@ function CommonHomePage() {
 
 export default CommonHomePage;
 
-export function ShowPageButton({text, id, userLanguage='en', selectedFlow, showSpeaker=false, forcePlayAudio=false}){
+export function ShowPageButton({text, id, audioRef, stopAudioTriggered, setStopAudioTriggered, controllerRef, userLanguage='en', selectedFlow, showSpeaker=false, forcePlayAudio=false}){
 
-    const audioRef = useRef();
     const [audioCache, setAudioCache] = useState({});
 
     const [isPlaying, setIsPlaying] = useState(false);
@@ -227,13 +256,19 @@ export function ShowPageButton({text, id, userLanguage='en', selectedFlow, showS
 
      useEffect(() => {
         if (forcePlayAudio && !isPlaying && text && hasForcedPlay.current === 2) {
-            console.log("Flow changed, resetting audio state");
             hasForcedPlay.current = 3;
+            setStopAudioTriggered(false);
             setIsPlaying(true);
-            handleOnSpeaking(text, id, userLanguage, audioRef, audioCache, setAudioCache, setIsPlaying);
+            handleOnSpeaking(text, id, userLanguage, audioRef, audioCache, setAudioCache, setIsPlaying)
         }
     }, [forcePlayAudio, text, id, isPlaying, audioCache]);
 
+    useEffect(() => {
+        if (stopAudioTriggered) {
+            console.log("Stopping audio due to stopAudioTriggered");
+            setIsPlaying(false);
+        }
+    }, [stopAudioTriggered]);
 
     return (
         <div className={`flex items-center gap-2`}>
@@ -252,8 +287,9 @@ export function ShowPageButton({text, id, userLanguage='en', selectedFlow, showS
                             type="button"
                             className="speaker-off-button"
                             onClick={() => {
+                                setStopAudioTriggered(false);
                                 setIsPlaying(true);
-                                handleOnSpeaking(text, id, userLanguage, audioRef, audioCache, setAudioCache, setIsPlaying);
+                                handleOnSpeaking(text, id, userLanguage, audioRef, audioCache, setAudioCache, setIsPlaying)
                             }}
                         >
                             <HiOutlineSpeakerXMark />
