@@ -40,6 +40,7 @@ function CommonHomePage() {
         stopAllAudio();
         setLanguage(e?.target?.value);
         localStorage.setItem('local_route', JSON.stringify(e?.target?.value));
+        audioRef.current=null;
     };
 
     const controllerRef = useRef(null);
