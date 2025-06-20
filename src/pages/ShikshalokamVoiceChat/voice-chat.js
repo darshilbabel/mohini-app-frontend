@@ -2772,7 +2772,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 {(getFromStorage('flow', false) && 
                     [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                   )?
-                    t('reportLoaderHeading') : t('storyLoaderHeading')
+                    t('reportLoaderHeading') : 
+                  (getFromStorage('flow', false) && 
+                    [sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
+                  )?
+                    t('storyGuestLoaderHeading') : t('storyLoaderHeading')
                 }
               </h2>
               <label className="form-label label1 text-center">
@@ -2951,11 +2955,21 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 <ChatMessage 
                   botNameToDisplay={botNameToDisplay}
                   userType="bot"
-                  message={t('evidence')}
+                   message={
+                    (() => {
+                      const flow = getFromStorage('flow', false);
+                      return flow && [sessionFlowName.GuestMiStory].includes(flow)
+                        ? t('evidenceStory')
+                        : t('evidence');
+                    })()
+                  }
                   isTalking={false}
                   handleOnStopSpeaking={() => handleOnStopSpeaking()}
                   handleOnSpeaking={(message, updatedAt, staticMessage) =>{
-                    const message_to_use = t('evidence')
+                    const flow = getFromStorage('flow', false);
+                    const message_to_use = flow && [sessionFlowName.GuestMiStory].includes(flow)
+                      ? t('evidenceStory')
+                      : t('evidence');
                     handleOnSpeaking(message_to_use, "upload-img-id",
                       {msg: message_to_use, updated_at: "upload-img-id", source:"bot"}
                     )}
