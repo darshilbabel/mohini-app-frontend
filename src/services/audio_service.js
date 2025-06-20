@@ -3,6 +3,8 @@ import { showNotification } from "../components/ToastMessage/TotastMessage";
 import { ai4BharatASR, getAI4BharatAudio } from "./api.service";
 import { getFromStorage, handleS3Upload } from "./storage_service";
 
+let currentAudio = null;
+
 export const isSilentAudio = async (blob, silenceThreshold = 0.01) => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const arrayBuffer = await blob.arrayBuffer();
@@ -205,10 +207,11 @@ export const handleAI4BharatTTSRequest = async (text, id, sourceLanguage='en', a
 
         if (cachedAudioUrl) {
             if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0; 
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0; 
             }
             audioRef.current = new Audio(cachedAudioUrl);
+            setCurrentAudio(audioRef.current);
             audio = audioRef.current;
 
             audio.onplay = () => {
@@ -228,4 +231,30 @@ export const handleAI4BharatTTSRequest = async (text, id, sourceLanguage='en', a
         console.error('Error in handleAI4BharatTTSRequest:', error);
         handleOnStopSpeaking(audioRef, setIsPlaying)
     }
+};
+
+export const setCurrentAudio = (audio) => {
+    // console.log("Setting current audio: ", audio);
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch (e) {}
+  }
+  currentAudio = audio;
+};
+
+export const stopCurrentAudio = () => {
+  if (currentAudio) {
+    console.log("✅ Stopping global audio", currentAudio);
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch (e) {
+      console.warn("⚠️ Audio stop error:", e);
+    }
+    currentAudio = null;
+  } else {
+    console.log("⚠️ No global audio to stop.");
+  }
 };
