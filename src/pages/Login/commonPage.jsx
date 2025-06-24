@@ -254,17 +254,18 @@ function CommonHomePage() {
                         <p className="sm:text-xl text-md font-semibold text-center">{t('languageQuestion')}</p>
                         <div className="mt-4 mb-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 md:justify-items-center lg:px-[80px] md:px-[20px] sm:px-[20px] px-[10px]">
                             {languageList.map((lang) => (
-                                <div key={lang.value} className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
+                                <div key={lang.value} className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center"
+                                    onClick={() => {
+                                        setInStorage('hasSelectedLanguage', true);
+                                        setLanguageButtonSelect(lang.value);
+                                        setUserLanguage(lang.value);
+                                        setStopAudioTriggered(true);
+                                        stopAllAudio();
+                                        setLanguage(lang.value);
+                                        localStorage.setItem('local_route', JSON.stringify(lang.value));
+                                    }}
+                                >
                                     <button className="w-full" 
-                                        onClick={() => {
-                                            setInStorage('hasSelectedLanguage', true);
-                                            setLanguageButtonSelect(lang.value);
-                                            setUserLanguage(lang.value);
-                                            setStopAudioTriggered(true);
-                                            stopAllAudio();
-                                            setLanguage(lang.value);
-                                            localStorage.setItem('local_route', JSON.stringify(lang.value));
-                                        }}
                                     >
                                         {lang.label}
                                     </button>
