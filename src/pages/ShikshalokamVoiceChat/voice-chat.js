@@ -887,34 +887,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setInStorage('chatbot_clickedOn?', '', currentFlow);
     setInStorage('showHomepage', true, currentFlow);
 
-    // const cleanedPath = (() => {
-    //   const parts = location.pathname.split('/');
-    //   if (parts.length > 2) return '/' + parts.slice(2).join('/');
-    //   return location.pathname;
-    // })();
-
-
-    // const cleanedPath = location.pathname;
-
-
-    // console.log("Cleaned Reset Path", cleanedPath);
-    // window.history.pushState({ fromReload: true }, "", cleanedPath);
-
-
     window.location.reload();
-
-    // if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
-    //   console.log("Pathname", location.pathname);
-    //   const parts = location.pathname.split('/'); 
-    //   let cleanedPath = location.pathname;
-    //   if (parts.length > 2) {
-    //     cleanedPath = '/' + parts.slice(2).join('/');
-    //   }
-    //   console.log("Cleaned Path", cleanedPath);
-    //   navigate(cleanedPath, { replace: true });
-    // } else {
-    //   window.location.reload();
-    // }
   }
   
   let isReconnectInProgress = false;
@@ -1632,7 +1605,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     };
 
     window.history.pushState({ isCustom: true }, "", window.location.href);
-    
+
     window.addEventListener("popstate", handleBack);
 
     return () => {
