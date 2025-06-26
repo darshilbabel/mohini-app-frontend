@@ -8,7 +8,7 @@ import {
 } from "react-icons/md";
 import { useMediaQuery } from "react-responsive";
 import getConfiguration, { bot_routes, bot_websocket } from "../../configure";
-import { useLocalStorage, useSessionStorage } from "react-use";
+import { useLocalStorage, useLocation, useSessionStorage } from "react-use";
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord";
 import WaveSurferPlayer from "../interview-text-voice/voice-player";
 import ReactMarkdown from "react-markdown";
@@ -164,8 +164,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [seconds, setSeconds] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
 
-
   const { t } = useTranslation();
+  const location = useLocation();
 
   const selectedLabel = {
     types: [
@@ -867,11 +867,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
     const currentFlow = getFromStorage('flow', false);
     if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)) {
-      removeFromStorage('route');
-      removeFromStorage('intro_message');
+      // removeFromStorage('route');
+      // removeFromStorage('intro_message');
 
-      setSelectedLanguage("en");
-      setInStorage('lang_progress', null, currentFlow);
+      // setSelectedLanguage("en");
+      // setInStorage('lang_progress', null, currentFlow);
       // removeFromStorage('has_accepted_tnc');
     } else{
       setInStorage('has_accepted_tnc', true, currentFlow);
@@ -886,7 +886,35 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setInStorage('isChatVisible', JSON.stringify(false), currentFlow);
     setInStorage('chatbot_clickedOn?', '', currentFlow);
     setInStorage('showHomepage', true, currentFlow);
+
+    // const cleanedPath = (() => {
+    //   const parts = location.pathname.split('/');
+    //   if (parts.length > 2) return '/' + parts.slice(2).join('/');
+    //   return location.pathname;
+    // })();
+
+
+    // const cleanedPath = location.pathname;
+
+
+    // console.log("Cleaned Reset Path", cleanedPath);
+    // window.history.pushState({ fromReload: true }, "", cleanedPath);
+
+
     window.location.reload();
+
+    // if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
+    //   console.log("Pathname", location.pathname);
+    //   const parts = location.pathname.split('/'); 
+    //   let cleanedPath = location.pathname;
+    //   if (parts.length > 2) {
+    //     cleanedPath = '/' + parts.slice(2).join('/');
+    //   }
+    //   console.log("Cleaned Path", cleanedPath);
+    //   navigate(cleanedPath, { replace: true });
+    // } else {
+    //   window.location.reload();
+    // }
   }
   
   let isReconnectInProgress = false;
@@ -1365,7 +1393,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const fetchBotInfo = async () => {
       
     setIsIntroLoading(true);
-    setIsLoading(true);
+    if (getFromStorage('flow', false) && ![sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))) {
+      setIsLoading(true);
+    }
     let companyName = await getCompanyDetail();
     try {
       let storedRoute = getSessionRoute();
@@ -1601,7 +1631,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       }
     };
 
-    window.history.pushState(null, "", window.location.href);
+    window.history.pushState({ isCustom: true }, "", window.location.href);
     
     window.addEventListener("popstate", handleBack);
 
@@ -2169,6 +2199,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     let unnarratedMessages = sentences.filter((x) => !x?.isNarrated);
     let hasUnnarratedMessages = !!unnarratedMessages?.length;
     let sourceLanguage = languageToUse;
+    const tnc_status = getFromStorage('has_accepted_tnc', false);
+    if (tnc_status === 'ONGOING') {
+      return () => {};
+    }
     if (isNextAllowed && hasUnnarratedMessages && !isLoading && !isEndStoryLoading) {
       handleAI4BharatTTSRequest(
         unnarratedMessages[0].message,
@@ -2178,7 +2212,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
 
     return () => {};
-  }, [isNextAllowed, sentences, languageToUse, isLoading, isEndStoryLoading]);
+  }, [isNextAllowed, sentences, languageToUse, isLoading, isEndStoryLoading, acceptedTnc]);
 
   useEffect(() => {
     if (
@@ -2196,6 +2230,19 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
     return () => {};
   }, [appendix, chatHistory]);
+
+  useEffect(() => {
+    const currentFlow = getFromStorage('flow', false);
+    if (getFromStorage('chatLanguage', true) && !getFromStorage('route') && currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+      setIsLoading(true);
+      console.log("Setting default language for guest flow");
+      const storedLanguage = getFromStorage('chatLanguage', true);
+      console.log("Stored language for guest flow:", storedLanguage);
+      setSelectedLanguage(storedLanguage);
+      handleLanguageSelect(storedLanguage);
+      removeFromStorage('chatLanguage');
+    }
+  }, []);
 
   useEffect(() => {
     const storedLanguage = (getFromStorage('route', false) && getFromStorage('route', true)) || null;
@@ -2676,14 +2723,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       )&& 
         <PrivacyPolicyPopup tncText={t('tncText')} onAccept={handleAcceptTnC} />
       }
-      {(!getFromStorage('route') && !isLoading && getFromStorage('flow', false) && 
+      {/* {(!getFromStorage('route') && !isLoading && getFromStorage('flow', false) && 
         [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)))&&
         <LanguageSelectionPopup
           languageList={languageList}
           selectedLanguage={selectedLanguage}
           onSelect={handleLanguageSelect}
         />
-      }
+      } */}
       {(getFromStorage('route') && acceptedTnc==="ONGOING" && !isLoading && getFromStorage('flow', false) && 
         [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
       )&& 
