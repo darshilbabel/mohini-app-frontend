@@ -44,6 +44,7 @@ function ShikshalokamChat({type, variant}) {
 		}
 		removeFromStorage('tempCode', false, 'localStorage');
 		removeFromStorage('previousUrl', false, 'localStorage');
+		setInStorage("chatLanguage", JSON.stringify(getFromStorage("local_route", true, 'localStorage') || languageList[0].value), type);
 
 	}, []);
 	
