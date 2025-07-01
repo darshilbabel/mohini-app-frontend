@@ -24,8 +24,8 @@
     "reportLoader": "Creating your report, this may take a moment. Please wait...",
     "downloadLoader": "Downloading please wait...",
     "homepageHeading": "Micro Improvement Report",
-    "homepageHeading1": "with Mitra!",
-    "homepageList": "Start chatting with Mitra below",
+    "homepageHeading1": "with MItra!",
+    "homepageList": "Start chatting with MItra below",
     "homepageList1": "Add photos to your report",
     "homepageList2": "Download your report",
     "placeholder1": "Listening... Speak now",
@@ -69,6 +69,7 @@
     "welcome_paragraph1": "MItra is a multilingual, AI-powered, voice-enabled chatbot that empowers education leaders—teachers, school leaders, community members, parents, and youth leaders—to reflect on and share their school improvement journey.",
     "welcome_heading1": "MItra: Amplifying Voices, Capturing Impact",
     "welcome_text": "Welcome",
+    "commonPageSelectionText": "What would you like to do today?",
     "loginBtnText": "Login/Signup",
     "guestBtnText": "Continue as a Guest",
     "start_chat": "Start chatting with MItra below",
@@ -91,6 +92,6 @@
     "photosLimitMsg": "You can upload upto 10 images.",
     "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/English Horizontal.png",
     "continueBtnText": "Continue",
-    "commonPageButtonText1": "Capture MI story",
+    "commonPageButtonText1": "Capture improvement story",
     "commonPageButtonText2": "Capture discussion"
 }

@@ -69,6 +69,7 @@
     "welcome_paragraph1": "మిత్ర అనేది బహుభాషా, AI ఆధారిత, వాయిస్-ఎనేబుల్డ్ చాట్‌బాట్. ఇది ఉపాధ్యాయులు, పాఠశాల నాయకులు, సముదాయ సభ్యులు, తల్లిదండ్రులు మరియు యువ నాయకులు వంటి విద్యా నాయకులకు తమ పాఠశాల అభివృద్ధి ప్రయాణాన్ని ఆత్మపరిశీలించడానికి మరియు పంచుకునేందుకు శక్తి ఇవ్వడమే లక్ష్యంగా ఉంది.",
     "welcome_heading1": "మిత్రా: స్వరాలను విస్తరించడం, ప్రభావాన్ని సంగ్రహించడం",
     "welcome_text": "స్వాగతం",
+    "commonPageSelectionText": "మీరు ఈ రోజు ఏమి చేయాలనుకుంటున్నారు?",
     "loginBtnText": "లాగిన్/సైన్ అప్",
     "guestBtnText": "అతిథిగా కొనసాగించండి",
     "start_chat": "కింద మిత్రతో చాట్ ప్రారంభించండి",
@@ -91,6 +92,6 @@
     "photosLimitMsg": "మీరు గరిష్ఠంగా 10 చిత్రాలు అప్‌లోడ్ చేయవచ్చు.",
     "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/Telugu Horizontal.png",
     "continueBtnText": "తరువాతకు కొనసాగించండి",
-    "commonPageButtonText1": "ఎంఐ కథను నమోదు చేయండి",
+    "commonPageButtonText1": "దిద్దుబాటు కథనాన్ని నమోదు చేయండి",
     "commonPageButtonText2": "చర్చను నమోదు చేయండి"
 }

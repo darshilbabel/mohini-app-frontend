@@ -69,6 +69,7 @@
     "welcome_paragraph1": "मित्रा एक बहुभाषी, एआई-संचालित, आवाज-सक्षम चैटबॉट है जो शिक्षा नेताओं - शिक्षकों, स्कूल नेताओं, समुदाय के सदस्यों, अभिभावकों और युवा नेताओं को अपने स्कूल सुधार की यात्रा पर विचार करने और उसे साझा करने के लिए सशक्त बनाता है।",
     "welcome_heading1": "मित्र: आवाज़ों को बढ़ावा, प्रभाव को संजोना",
     "welcome_text": "स्वागत है",
+    "commonPageSelectionText": "आज आप क्या करना चाहेंगे?",
     "loginBtnText": "लॉगिन/साइनअप",
     "guestBtnText": "अतिथि के रूप में जारी रखें",
     "start_chat": "नीचे मित्र के साथ बातचीत शुरू करें",
@@ -91,6 +92,6 @@
     "photosLimitMsg": "आप अधिकतम 10 छवियाँ अपलोड कर सकते हैं।",
     "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/Hindi Horizontal.png",
     "continueBtnText": "आगे बढ़ें",
-    "commonPageButtonText1": "एमआई कहानी दर्ज करें",
+    "commonPageButtonText1": "सुधार कहानी दर्ज करें",
     "commonPageButtonText2": "चर्चा दर्ज करें"
 }
