@@ -162,95 +162,98 @@ function CommonHomePage() {
                             </p>
                         } */}
                     </div>
+                    {(languageButtonSelect && ![null, ''].includes(languageButtonSelect))? 
+                        <>
+                            <div className="text-center text-lg md:text-xl sm:text-md mt-0 sm:mt-[100px] text-slate-700">
+                                <b>{t('commonPageSelectionText')}</b>
+                            </div>
+                            <div className="py-2 px-0 text-center">
+                                {/* Form here */}
+                                <div className="flex flex-col items-center gap-8 py-6 px-0 font-inter">
+                                    {/* Top Buttons */}
+                                    <div className="flex w-full justify-center flow-button-custom">
+                                        <span 
+                                            className={`flex items-center gap-3 px-3 sm:py-4 py-4 rounded-2xl text-[#322f2f] cursor-pointer 
+                                                ${selectedFlow == sessionFlowName.GuestMiStory? 'bg-[#efeafe]': 'bg-[#e3ecf48f]'} max-w-[210px] w-full`
+                                            }
+                                            onClick={() => {
+                                                setSelectedFlow(sessionFlowName.GuestMiStory);
+                                            }}
+                                        >
+                                            <span className="text-base font-medium">
+                                                <ShowPageButton
+                                                    text={t('commonPageButtonText1')}
+                                                    id="capture-mi-story"
+                                                    userLanguage={userLanguage}
+                                                    showSpeaker={true}
+                                                    forcePlayAudio={selectedFlow === sessionFlowName.GuestMiStory}
+                                                    selectedFlow={selectedFlow}
+                                                    audioRef={audioRef}
+                                                    stopAudioTriggered={stopAudioTriggered}
+                                                    setStopAudioTriggered={setStopAudioTriggered}
+                                                    controllerRef={controllerRef}
+                                                />
+                                            </span>
+                                        </span>
+                                        <span 
+                                            className={`flex items-center gap-3 px-3 sm:py-6 py-4 rounded-2xl text-[#322f2f] cursor-pointer 
+                                                ${selectedFlow == sessionFlowName.GuestDiscussion? 'bg-[#efeafe]': 'bg-[#e3ecf48f]'} max-w-[210px] w-full`
+                                            }
+                                            onClick={() => {
+                                                setSelectedFlow(sessionFlowName.GuestDiscussion);
+                                            }}
+                                        >
+                                            <span className="text-base font-medium">
+                                                <ShowPageButton
+                                                    text={t('commonPageButtonText2')}
+                                                    id="capture-discussion"
+                                                    userLanguage={userLanguage}
+                                                    showSpeaker={true}
+                                                    forcePlayAudio={selectedFlow === sessionFlowName.GuestDiscussion}
+                                                    selectedFlow={selectedFlow}
+                                                    audioRef={audioRef}
+                                                    stopAudioTriggered={stopAudioTriggered}
+                                                    setStopAudioTriggered={setStopAudioTriggered}
+                                                    controllerRef={controllerRef}
+                                                />
+                                            </span>
+                                        </span>
+                                    </div>
+
+                                    {/* Continue Button */}
+                                    <button
+                                        className={`mt-2 px-16 py-2 rounded-xl text-white text-lg font-medium flex items-center ${selectedFlow? 'bg-[#572E91] cursor-pointer': 'bg-[#8d888857] cursor-not-allowed'}`}
+                                        disabled={!selectedFlow}
+                                        onClick={async () => {
+                                            await stopAllAudio();
+                                            if(selectedFlow === sessionFlowName.GuestDiscussion) {
+                                                console.log("previousUrl", window.location.href);
+                                                setInStorage('previousUrl', window.location.href)
+                                                setInStorage('tempCode', 'xyz123');
+                                                if(getFromStorage('previousUrl')) {
+                                                    navigate(ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
+                                                    window.location.reload();
+                                                }
+                                            } else if(selectedFlow === sessionFlowName.GuestMiStory) {
+                                                setInStorage('previousUrl', window.location.href)
+                                                setInStorage('tempCode', 'xyz123');
+                                                if(getFromStorage('previousUrl')) {
+                                                    navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
+                                                    window.location.reload();
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        {t('continueBtnText')} <FaArrowRightLong className="ml-2 text-xl"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    :
                     <>
                         <div className="text-center text-lg md:text-2xl sm:text-md mt-0 sm:mt-[100px] text-slate-700">
                             <b>{t('welcome_text')}</b>
                         </div>
-                    </>
-                    {(languageButtonSelect && ![null, ''].includes(languageButtonSelect))? 
-                        <div className="py-2 px-2 text-center">
-                            {/* Form here */}
-                            <div className="flex flex-col items-center gap-8 py-6 px-0 font-inter">
-                                {/* Top Buttons */}
-                                <div className="flex w-full justify-center flow-button-custom">
-                                    <span 
-                                        className={`flex items-center gap-3 px-3 sm:py-4 py-4 rounded-2xl text-[#322f2f] cursor-pointer 
-                                            ${selectedFlow == sessionFlowName.GuestMiStory? 'bg-[#efeafe]': 'bg-[#e3ecf48f]'} max-w-[210px] w-full`
-                                        }
-                                        onClick={() => {
-                                            setSelectedFlow(sessionFlowName.GuestMiStory);
-                                        }}
-                                    >
-                                        <span className="text-base font-medium">
-                                            <ShowPageButton
-                                                text={t('commonPageButtonText1')}
-                                                id="capture-mi-story"
-                                                userLanguage={userLanguage}
-                                                showSpeaker={true}
-                                                forcePlayAudio={selectedFlow === sessionFlowName.GuestMiStory}
-                                                selectedFlow={selectedFlow}
-                                                audioRef={audioRef}
-                                                stopAudioTriggered={stopAudioTriggered}
-                                                setStopAudioTriggered={setStopAudioTriggered}
-                                                controllerRef={controllerRef}
-                                            />
-                                        </span>
-                                    </span>
-                                    <span 
-                                        className={`flex items-center gap-3 px-3 sm:py-6 py-4 rounded-2xl text-[#322f2f] cursor-pointer 
-                                            ${selectedFlow == sessionFlowName.GuestDiscussion? 'bg-[#efeafe]': 'bg-[#e3ecf48f]'} max-w-[210px] w-full`
-                                        }
-                                        onClick={() => {
-                                            setSelectedFlow(sessionFlowName.GuestDiscussion);
-                                        }}
-                                    >
-                                        <span className="text-base font-medium">
-                                            <ShowPageButton
-                                                text={t('commonPageButtonText2')}
-                                                id="capture-discussion"
-                                                userLanguage={userLanguage}
-                                                showSpeaker={true}
-                                                forcePlayAudio={selectedFlow === sessionFlowName.GuestDiscussion}
-                                                selectedFlow={selectedFlow}
-                                                audioRef={audioRef}
-                                                stopAudioTriggered={stopAudioTriggered}
-                                                setStopAudioTriggered={setStopAudioTriggered}
-                                                controllerRef={controllerRef}
-                                            />
-                                        </span>
-                                    </span>
-                                </div>
-
-                                {/* Continue Button */}
-                                <button
-                                    className={`mt-2 px-16 py-2 rounded-xl text-white text-lg font-medium flex items-center ${selectedFlow? 'bg-[#572E91] cursor-pointer': 'bg-[#8d888857] cursor-not-allowed'}`}
-                                    disabled={!selectedFlow}
-                                    onClick={async () => {
-                                        await stopAllAudio();
-                                        if(selectedFlow === sessionFlowName.GuestDiscussion) {
-                                            console.log("previousUrl", window.location.href);
-                                            setInStorage('previousUrl', window.location.href)
-                                            setInStorage('tempCode', 'xyz123');
-                                            if(getFromStorage('previousUrl')) {
-                                                navigate(ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-                                                window.location.reload();
-                                            }
-                                        } else if(selectedFlow === sessionFlowName.GuestMiStory) {
-                                            setInStorage('previousUrl', window.location.href)
-                                            setInStorage('tempCode', 'xyz123');
-                                            if(getFromStorage('previousUrl')) {
-                                                navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-                                                window.location.reload();
-                                            }
-                                        }
-                                    }}
-                                >
-                                    {t('continueBtnText')} <FaArrowRightLong className="ml-2 text-xl"/>
-                                </button>
-                            </div>
-                        </div>
-                    :
-                    <>
                         <p className="sm:text-xl text-md font-semibold text-center">{t('languageQuestion')}</p>
                         <div className="mt-4 mb-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 md:justify-items-center lg:px-[80px] md:px-[20px] sm:px-[20px] px-[10px]">
                             {languageList.map((lang) => (
