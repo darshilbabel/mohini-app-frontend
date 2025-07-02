@@ -22,7 +22,7 @@ function ShikshalokamChat({type, variant}) {
 	useEffect(() => {
 		const tnc=getFromStorage("has_accepted_tnc");
 		if (!tnc || tnc === "ONGOING") {
-			clearFromStorage(true);
+			clearFromStorage(true, ['local_route']);
 		}
 		if (!getFromStorage("local_route")) {
 			setInStorage("local_route", JSON.stringify(languageList[0].value), type);
@@ -132,14 +132,15 @@ function ShikshalokamChat({type, variant}) {
 			await initialSetup();
 		}
 		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
-			setLanguage(languageList[0].value);
+			const storedLanguage = getFromStorage("local_route", true, 'localStorage') || languageList[0].value;
+			setLanguage(storedLanguage);
 		}
 	}
 
 	useEffect(()=>{
 		const runSetup = async () => {
 			if(!getFromStorage('sessionid')){
-				clearFromStorage();
+				clearFromStorage(false, ['local_route']);
 				setIsLoading(true);
 				setInStorage('has_accepted_tnc', 'ONGOING', type);
 				setInStorage('isNewChatOpen', JSON.stringify(true), type);
@@ -154,7 +155,7 @@ function ShikshalokamChat({type, variant}) {
 				getUserFingerPrint();
 			}
 			else if (getFromStorage('flow') && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow')))){
-				clearFromStorage();
+				clearFromStorage(false, ['local_route']);
 				window.location.reload();
 			}
 		};
