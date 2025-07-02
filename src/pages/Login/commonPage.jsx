@@ -18,7 +18,7 @@ import { FaArrowRightLong } from "react-icons/fa6";
 function CommonHomePage() {
     const navigate = useNavigate();
     const [userLanguage, setUserLanguage] = useState(
-        JSON.parse(localStorage.getItem("local_route")) || languageList[0].value
+        getFromStorage('local_route', true, 'localStorage') || languageList[0].value
     );
     const [selectedFlow, setSelectedFlow] = useState(null);
     const [stopAudioTriggered, setStopAudioTriggered] = useState(false);
@@ -30,11 +30,14 @@ function CommonHomePage() {
     
     useEffect(() => {
         if(!languageButtonSelect) {
-            localStorage.setItem("local_route", JSON.stringify(languageList[0].value));
-            setUserLanguage(languageList[0].value);
+            if(!userLanguage || userLanguage === null || userLanguage === '') {
+                localStorage.setItem("local_route", JSON.stringify(languageList[0].value));
+                setUserLanguage(languageList[0].value);
+            }
+            setUserLanguage(userLanguage);
         }
 
-        clearFromStorage(true, ['hasSelectedLanguage'])
+        clearFromStorage(true, ['hasSelectedLanguage', 'local_route']);
         if (!localStorage.getItem("local_route")) {
             localStorage.setItem("local_route", JSON.stringify(languageList[0].value));
         }
