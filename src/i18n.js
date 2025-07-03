@@ -12,7 +12,6 @@ i18n
   .use(HttpApi)
   .use(initReactI18next)
   .init({
-    fallbackLng: 'en',
     lng: languageToUse,
     debug: true,
     interpolation: {
