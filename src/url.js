@@ -1,6 +1,8 @@
 const ROUTES = {
   LOGOUT: "/logout",
   SHIKSHALOKAM_HOME_PAGE: "/home",
+  SHIKSHALOKAM_PTM_HOME_PAGE: "/ptm/start",
+  SHIKSHALOKAM_PTM_CHAT_PAGE: "/ptm/chat",
   SHIKSHALOKAM_VOICE_CHAT_LOGIN: "/login",
   SHIKSHALOKAM_GUEST_PAGE: "/flow",
   SHIKSHALOKAM_VOICE_CHAT: "/voice-chat",
