@@ -11,17 +11,16 @@ import PTMVoiceBasedChat from "./PTMVoiceBasedChat";
 
 
 
-function PTMChat({type, variant}) {
+function PTMChat({type}) {
     const login_api_url = `/api/login/`;
 
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
-    const [userId, setUserId] = useState(getFromStorage('device_id') || null);
     const [companyName, setCompanyName] = useState(getFromStorage('company') || null);
           
     useEffect(() => {
         const tnc=getFromStorage("has_accepted_tnc");
-        if (!tnc || tnc === "ONGOING") {
+        if (!tnc) {
             clearFromStorage(true, ['local_route']);
         }
         if (!getFromStorage("local_route")) {
@@ -31,7 +30,7 @@ function PTMChat({type, variant}) {
         if(getFromStorage('tempCode', false, 'localStorage')){
             const previousUrl = getFromStorage('previousUrl', false, 'localStorage');
             if(previousUrl && previousUrl !== '') {
-                if(type === sessionFlowName.GuestDiscussion || type === sessionFlowName.GuestMiStory){
+                if(type === sessionFlowName.megaPTM || type === sessionFlowName.GuestMiStory){
                     setInStorage('previousUrl', previousUrl, type, 'sessionStorage');
                 }
             }
@@ -56,10 +55,8 @@ function PTMChat({type, variant}) {
             const newUserId = storedUserId || btoa(fingerprint);
 
             setInStorage('device_id', newUserId, type);
-            setUserId(newUserId);
         } catch (error) {
             console.error('Error handling user ID:', error);
-            setUserId('guest_' + Date.now());
         }
     }
 
@@ -122,21 +119,23 @@ function PTMChat({type, variant}) {
 
     const setFinalLanguage = async () => {
         const currentFlow = getFromStorage('flow');
-        if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
+        if(currentFlow && [sessionFlowName.megaPTM, sessionFlowName.GuestMiStory].includes(currentFlow)){
             await initialSetup();
         }
-        if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
+        if(currentFlow && [sessionFlowName.megaPTM, sessionFlowName.GuestMiStory].includes(currentFlow)){
             const storedLanguage = getFromStorage("local_route", true, 'localStorage') || languageList[0].value;
             setLanguage(storedLanguage);
         }
     }
 
     useEffect(()=>{
+        console.log("PTMChat component mounted with type:", type);
         const runSetup = async () => {
-            if(!getFromStorage('sessionid')){
+            console.log("Running setup for PTMChat with type:", getFromStorage('sessionid'));
+            if(!!!getFromStorage('sessionid')){
                 clearFromStorage(false, ['local_route']);
                 setIsLoading(true);
-                setInStorage('has_accepted_tnc', 'ONGOING', type);
+                setInStorage('has_accepted_tnc', false, type);
                 setInStorage('isNewChatOpen', JSON.stringify(true), type);
                 const locationData = await getIpLocation();
                 if (locationData && locationData?.location) {
@@ -148,10 +147,7 @@ function PTMChat({type, variant}) {
                 await setFinalLanguage();
                 getUserFingerPrint();
             }
-            else if (getFromStorage('flow') && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow')))){
-                clearFromStorage(false, ['local_route']);
-                window.location.reload();
-            }
+      
         };
         runSetup();
     }, [])
@@ -160,7 +156,7 @@ function PTMChat({type, variant}) {
         <>
             {(companyName && !isLoading)&&
                 <>
-                    <PTMVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>
+                    <PTMVoiceBasedChat type={type} variant={'publicBot'}/>
                 </>
             }
             {(isLoading)&& 
