@@ -153,7 +153,7 @@ const PTMVoiceBasedChat = () => {
     if (hasStartedRecording) {
       const id = setInterval(() => {
         setSeconds((prev) => prev + 1);
-      }, 1000);
+      }, 500);
       setIntervalId(id);
     } else {
       clearInterval(intervalId);
@@ -186,12 +186,12 @@ const PTMVoiceBasedChat = () => {
   }
 
   useEffect(() => {
- if(!( questionCounter.current + 1 > Object.keys(questions).length)) {
+ if(!((questionCounter.current === Object.keys(questions).length && chatHistory.length === (Object.keys(questions).length*2)))) {
 
   if(chatHistory[chatHistory.length - 1]?.source === "bot" && acceptedTnc) {
     setTimeout(() => {
       narrateLastMessage();
-    }, 1000);
+    }, 500);
   }
  }
     return () => {
@@ -315,6 +315,8 @@ const PTMVoiceBasedChat = () => {
         showCancelButton: false,
         allowEscapeKey: false,
         allowOutsideClick: false,
+        imageUrl: "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/check-mark.png",
+        imageHeight: "100"
       }).then((result) => {
         if (result.isConfirmed) {
           clearFromStorage();
@@ -645,7 +647,28 @@ const PTMVoiceBasedChat = () => {
   function stopAllAudio() {
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.src = "";
+      audioRef.current.removeAttribute("src");
+      audioRef.current.load();
+      audioRef.current.muted = true;
       audioRef.current.currentTime = 0;
+      setHasOverRideId(null);
+      setSentences([]);
+      setIsNextAllowed(true);
+      setNotMute(true);
+      setIsRecognizing(false);
+      setHasStartedListening(false);
+      setHasStartedRecording(false);
+      setTextMessage("");
+      setAsrAudio(null);
+      setIntervalId(null);
+      setSeconds(0);
+      setMediaRecorder(null);
+      setAudioCache({});
+      if (textAreaRef.current) {
+        textAreaRef.current.value = "";
+        textAreaRef.current.style.height = "auto";
+      }
       audioRef.current = null;
     }
   }
@@ -739,6 +762,7 @@ const PTMVoiceBasedChat = () => {
             onSubmit={async (event) => {
               event.stopPropagation();
               event.preventDefault();
+              stopAllAudio();
               if (!hasStartedListening && !isFetchingData) {
                 // next question + saving
                 const last_question = chatHistory
