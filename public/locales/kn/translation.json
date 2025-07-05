@@ -94,5 +94,7 @@
     "continueBtnText": "ಮುಂದುವರಿಯಿರಿ",
     "commonPageButtonText1": "ತಿದ್ದುಪಡಿ ಕಥೆಯನ್ನು ನಮೂದಿಸಿ",
     "commonPageButtonText2": "ಚರ್ಚೆ ದಾಖಲಿಸಿ",
-    "botName": "ಮಿತ್ರ"
+    "botName": "ಮಿತ್ರ",
+    "ptmCompletionMessage": "<div class='text-class'>ಧನ್ಯವಾದಗಳು! ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ.</div>",
+    "ptmCompletionCTA":"ಇನ್ನೊಂದು ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಸಲ್ಲಿಸಿ"
 }

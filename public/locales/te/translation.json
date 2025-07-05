@@ -94,5 +94,9 @@
     "continueBtnText": "తరువాతకు కొనసాగించండి",
     "commonPageButtonText1": "దిద్దుబాటు కథనాన్ని నమోదు చేయండి",
     "commonPageButtonText2": "చర్చను నమోదు చేయండి",
-    "botName": "మిత్రా"
+    "botName": "మిత్రా",
+    "ptmCompletionMessage": "<div class='text-class'>ధన్యవాదాలు! మీ ప్రతిస్పందన విజయవంతంగా సమర్పించబడింది.</div>",
+    "ptmCompletionCTA": "మరొక ప్రతిస్పందనను సమర్పించండి"
+
+    
 }
