@@ -93,5 +93,8 @@
     "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/English Horizontal.png",
     "continueBtnText": "Continue",
     "commonPageButtonText1": "Capture improvement story",
-    "commonPageButtonText2": "Capture discussion"
+    "commonPageButtonText2": "Capture discussion",
+    "botName": "MItra",
+    "ptmCompletionMessage": "<div class='text-class'>Thank you! Your response has been successfully submitted.</div>",
+    "ptmCompletionCTA": "Submit another response"
 }

@@ -13,8 +13,9 @@ import GuestPage from "./components/GuestPage";
 import PrivacyPage from "./pages/privacyPage";
 import ShikshalokamChat from "./pages/shikshalokamChat";
 import SsoFlow from "./pages/ssoFlow";
-import { sessionFlowName } from "./pages/ShikshalokamVoiceChat/enum";
+import { sessionFlowName, sessionUsecaseType } from "./pages/ShikshalokamVoiceChat/enum";
 import CommonHomePage from "./pages/Login/commonPage";
+import PTMChat from "./pages/ShikshalokamMegaPTM";
 
 
 function App() {
@@ -61,6 +62,8 @@ const unprotected_old_routes = [
   // { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>},
   { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamChat type={sessionFlowName.GuestDiscussion} />},
   { path: ROUTES.SHIKSHALOKAM_GUEST_MI_STORY, element: <ShikshalokamChat type={sessionFlowName.GuestMiStory} />},
+  { path: ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE, element: <PTMChat type={sessionFlowName.megaPTM} />},
+  { path: ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE, element: <CommonHomePage usecaseType={sessionUsecaseType.MEGA_PTM} /> },
   {path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage />},
   { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <CommonHomePage /> },
   {path: ROUTES.SSO_FLOW, element: <SsoFlow />},

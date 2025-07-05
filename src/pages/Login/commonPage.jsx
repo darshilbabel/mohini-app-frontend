@@ -6,7 +6,7 @@ import FormData from "../../components/Form/FormData";
 import { setLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { clearFromStorage, getFromStorage, setInStorage } from "../../services/storage_service";
-import { languageList, sessionFlowName } from "../ShikshalokamVoiceChat/enum";
+import { languageList, sessionFlowName, sessionUsecaseType } from "../ShikshalokamVoiceChat/enum";
 import { handleOnSpeaking, handleOnStopSpeaking } from "../../services/audio_service";
 import { HiOutlineSpeakerWave, HiOutlineSpeakerXMark } from "react-icons/hi2";
 import "../../components/custom-style.css"
@@ -15,7 +15,7 @@ import "./commonPageStyle.css"
 import { FaArrowRightLong } from "react-icons/fa6";
 
 
-function CommonHomePage() {
+function CommonHomePage({usecaseType}) {
     const navigate = useNavigate();
     const [userLanguage, setUserLanguage] = useState(
         getFromStorage('local_route', true, 'localStorage') || languageList[0].value
@@ -27,7 +27,6 @@ function CommonHomePage() {
     const { t } = useTranslation();
     const audioRef = useRef();
 
-    
     useEffect(() => {
         if(!languageButtonSelect) {
             if(!userLanguage || userLanguage === null || userLanguage === '') {
@@ -57,7 +56,6 @@ function CommonHomePage() {
     const controllerRef = useRef(null);
 
     async function stopAllAudio(){
-        console.log("Stopping all audio in common page: ", audioRef);
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
@@ -68,6 +66,8 @@ function CommonHomePage() {
         }
         controllerRef.current = new AbortController();
     }
+
+    const ptm_case = [sessionUsecaseType.MEGA_PTM].some(x => x === usecaseType);
 
     return (
         <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 px-0">
@@ -165,7 +165,7 @@ function CommonHomePage() {
                             </p>
                         } */}
                     </div>
-                    {(languageButtonSelect && ![null, ''].includes(languageButtonSelect))? 
+                    {(languageButtonSelect && ![null, ''].includes(languageButtonSelect)) && !ptm_case ? 
                         <>
                             <div className="text-center text-lg md:text-xl sm:text-md mt-0 sm:mt-[100px] text-slate-700">
                                 <b>{t('commonPageSelectionText')}</b>
@@ -230,7 +230,6 @@ function CommonHomePage() {
                                         onClick={async () => {
                                             await stopAllAudio();
                                             if(selectedFlow === sessionFlowName.GuestDiscussion) {
-                                                console.log("previousUrl", window.location.href);
                                                 setInStorage('previousUrl', window.location.href)
                                                 setInStorage('tempCode', 'xyz123');
                                                 if(getFromStorage('previousUrl')) {
@@ -259,16 +258,20 @@ function CommonHomePage() {
                         </div>
                         <p className="sm:text-xl text-md font-semibold text-center">{t('languageQuestion')}</p>
                         <div className="mt-4 mb-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 md:justify-items-center lg:px-[80px] md:px-[20px] sm:px-[20px] px-[10px]">
-                            {languageList.map((lang) => (
+                            {languageList.filter(lang => !lang.excludeFor.some(x => x === usecaseType)).map((lang) => (
                                 <div key={lang.value} className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center"
                                     onClick={() => {
                                         setInStorage('hasSelectedLanguage', true);
-                                        setLanguageButtonSelect(lang.value);
                                         setUserLanguage(lang.value);
                                         setStopAudioTriggered(true);
                                         stopAllAudio();
                                         setLanguage(lang.value);
                                         localStorage.setItem('local_route', JSON.stringify(lang.value));
+                                        if(ptm_case) {
+                                            return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
+                                        }
+                                        setLanguageButtonSelect(lang.value);
+                                     
                                     }}
                                 >
                                     <button className="w-full" 
@@ -323,7 +326,6 @@ export function ShowPageButton({text, id, audioRef, stopAudioTriggered, setStopA
 
     useEffect(() => {
         if (stopAudioTriggered) {
-            console.log("Stopping audio due to stopAudioTriggered");
             setIsPlaying(false);
         }
     }, [stopAudioTriggered]);
@@ -337,8 +339,6 @@ export function ShowPageButton({text, id, audioRef, stopAudioTriggered, setStopA
                             type="button"
                             className="speaker-off-button text-[1.3rem] md:text-lg sm:text-[1.3rem] text-[#322f2f] vertical-center"
                             onClick={(e) => {
-                                console.log("Has forced play: ", hasForcedPlay.current);
-                                console.log("forcePlayAudio: ", forcePlayAudio);
                                 // e.stopPropagation();
                                 if(!forcePlayAudio) {
                                     handleOnStopSpeaking(audioRef, setIsPlaying)
@@ -353,9 +353,6 @@ export function ShowPageButton({text, id, audioRef, stopAudioTriggered, setStopA
                             className="speaker-off-button text-[1.3rem] md:text-lg sm:text-[1.3rem] vertical-center"
                             onClick={(e) => {
                                 forcePlayAudio = false;
-                                console.log("Has forced play: ", hasForcedPlay.current);
-                                console.log("forcePlayAudio: ", forcePlayAudio);
-                                // e.stopPropagation();
                                 if(!forcePlayAudio && hasForcedPlay.current !== 1) {
                                     setStopAudioTriggered(false);
                                     setIsPlaying(true);
