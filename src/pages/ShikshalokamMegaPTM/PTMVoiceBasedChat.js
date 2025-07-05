@@ -327,7 +327,6 @@ const PTMVoiceBasedChat = () => {
   useEffect(() => {
     // if it's completed -> show guest popup with correct message -> remove option to chat
     // they can click on + to open new chat
-    console.log("chatHistory changed", questionCounter.current, Object.keys(questions).length, questionCounter.current <= Object.keys(questions).length);
     if ((questionCounter.current === Object.keys(questions).length && chatHistory.length === (Object.keys(questions).length*2))) {
       showCompletionPopup();
     }
@@ -544,8 +543,6 @@ const PTMVoiceBasedChat = () => {
     const rms = Math.sqrt(
       rawData.reduce((acc, val) => acc + val * val, 0) / rawData.length
     );
-    console.log("RMS (volume):", rms);
-
     return rms < silenceThreshold;
   };
 
@@ -742,7 +739,6 @@ const PTMVoiceBasedChat = () => {
             onSubmit={async (event) => {
               event.stopPropagation();
               event.preventDefault();
-              console.log("form submitted");
               if (!hasStartedListening && !isFetchingData) {
                 // next question + saving
                 const last_question = chatHistory

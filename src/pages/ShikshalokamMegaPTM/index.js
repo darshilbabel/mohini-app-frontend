@@ -129,9 +129,7 @@ function PTMChat({type}) {
     }
 
     useEffect(()=>{
-        console.log("PTMChat component mounted with type:", type);
         const runSetup = async () => {
-            console.log("Running setup for PTMChat with type:", getFromStorage('sessionid'));
             if(!!!getFromStorage('sessionid')){
                 clearFromStorage(false, ['local_route']);
                 setIsLoading(true);
