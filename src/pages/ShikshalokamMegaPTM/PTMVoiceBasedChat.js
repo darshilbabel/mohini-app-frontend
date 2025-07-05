@@ -39,6 +39,7 @@ import useCustomMediaQuery from "../../hooks/useCustomMediaQuery";
 import SpeedNotification from "./SpeedNotification";
 import useSmartChatStorage from "../../hooks/useSmartChatStorage";
 import questions from "./../../services/const/questions";
+import ROUTES from "../../url";
 
 export function randomise(length) {
   return Math.floor(Math.random() * length);
@@ -49,6 +50,7 @@ const PTMVoiceBasedChat = () => {
   const textAreaRef = useRef(null);
   const lastBotMessageIndex = useRef(-1);
   const FLOW_ROUTE = "/mega_ptm";
+  const { t } = useTranslation();
 
   const [localChatHistory, setLocalChatHistory, removeLocalChatHistory] =
     useSmartChatStorage();
@@ -62,7 +64,7 @@ const PTMVoiceBasedChat = () => {
   const [audioCache, setAudioCache] = useState({});
   const [hasStartedListening, setHasStartedListening] = useState(false);
   const [trigger, setTrigger] = useState(false);
-  const botNameToDisplay = "MItra"; // need to change this and get it from in18
+  const botNameToDisplay = t("botName"); // need to change this and get it from in18
   const [hasStartedRecording, setHasStartedRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [sentences, setSentences] = useState([]);
@@ -77,7 +79,6 @@ const PTMVoiceBasedChat = () => {
   const [seconds, setSeconds] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
   const questionCounter = useRef(1);
-  const { t } = useTranslation();
 
   const endPageToScrollRef = useRef(null);
 
@@ -171,6 +172,33 @@ const PTMVoiceBasedChat = () => {
     )}`;
   };
 
+  const narrateLastMessage = () => {
+    try {
+      const speakerButtons = document.querySelectorAll(".button-11.button-3");
+      const lastSpeakerButton = speakerButtons[speakerButtons.length - 1];
+
+      if (lastSpeakerButton) {
+        lastSpeakerButton.click();
+      }
+    } catch (error) {
+      console.error("Error narrating last message:", error);
+    }
+  }
+
+  useEffect(() => {
+ if(!( questionCounter.current + 1 > Object.keys(questions).length)) {
+
+  if(chatHistory[chatHistory.length - 1]?.source === "bot") {
+    setTimeout(() => {
+      narrateLastMessage();
+    }, 1000);
+  }
+ }
+    return () => {
+      
+    }
+  }, [chatHistory])
+
   const sendQuestionToUser = async () => {
     try {
       const profileId = getFromStorage("profileid", true);
@@ -178,14 +206,14 @@ const PTMVoiceBasedChat = () => {
       let sessionId = getFromStorage("sessionid", true);
       const selected_question = questions[`${questionCounter.current}`];
       const current_questions = selected_question.questions;
-      const question =
-        current_questions[randomise(current_questions?.length)].title[
-          languageToUse
-        ];
+      const question_to_use =
+        current_questions[randomise(current_questions?.length)];
+      const question = question_to_use.title[languageToUse];
 
       const bot_messsage = {
         sequence: selected_question.sequence,
-        translated_question: languageToUse !== "en" ? question : null,
+        translated_question:
+          languageToUse !== "en" ? question_to_use?.title?.en : null,
         session: sessionId,
         flow: flow,
         profile_id: profileId,
@@ -193,6 +221,7 @@ const PTMVoiceBasedChat = () => {
         msg: question,
         source: "bot",
         updated_at: Date.now(),
+        question_id: question_to_use.variant_id,
       };
 
       setChatHistory((prev) => [...prev, bot_messsage]);
@@ -200,6 +229,7 @@ const PTMVoiceBasedChat = () => {
       setInStorage("isOldChatOpen", JSON.stringify(true), flow);
       setInStorage("sessionid", JSON.stringify(sessionId), flow);
       setInStorage("isNewChatOpen", JSON.stringify(false), flow);
+
     } catch (error) {
       console.error("Error sending question to user:", error);
       showNotification({
@@ -230,7 +260,7 @@ const PTMVoiceBasedChat = () => {
     setIsLoading(false);
   }
 
-  function showGuestPopup(wantToNavigateBack, executeCustomFunction) {
+  function showInterruptionPopup(wantToNavigateBack, executeCustomFunction) {
     <div className="div-popup">
       {Swal.fire({
         title: t("guestPopUpChanges"),
@@ -275,37 +305,48 @@ const PTMVoiceBasedChat = () => {
     </div>;
   }
 
-  useEffect(() => {
-    let shouldPlay = false;
-    if (!isLoading) {
-      const currentFlow = getFromStorage("flow", false);
-
-      if (currentFlow) {
-        if (chatHistory.length > 0) {
-          if (chatHistory[chatHistory.length - 1]?.source === "bot") {
-            shouldPlay = true;
-          }
-        } else {
-          shouldPlay = true;
+  function showCompletionPopup() {
+    <div className="div-popup">
+      {Swal.fire({
+        title: t("ptmCompletionMessage"),
+        showCancelButton: true,
+        confirmButtonText: t("ptmCompletionCTA"),
+        showCloseButton: false,
+        showCancelButton: false,
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          clearFromStorage();
+          navigate(ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE);
         }
-      } else if (
-        chatHistory &&
-        chatHistory.length > 0 &&
-        chatHistory[chatHistory.length - 1]?.source === "bot" &&
-        !isLoading
-      ) {
-        shouldPlay = true;
-      }
-    }
-    if (shouldPlay && !isLoading && isMute && acceptedTnc) {
-      const speakerButtons = document.querySelectorAll(".button-11.button-3");
-      const lastSpeakerButton = speakerButtons[speakerButtons.length - 1];
+      })}
+    </div>;
+  }
 
-      if (lastSpeakerButton) {
-        lastSpeakerButton.click();
-      }
+  useEffect(() => {
+    // if it's completed -> show guest popup with correct message -> remove option to chat
+    // they can click on + to open new chat
+    if (questionCounter.current + 1 > Object.keys(questions).length
+    ) {
+      showCompletionPopup();
     }
-  }, [isLoading, chatHistory, isMute, acceptedTnc]);
+  }, [chatHistory]);
+
+  useEffect(() => {
+    const handleBack = () => {
+      
+      showInterruptionPopup(true);
+    };
+
+    window.history.pushState({ isCustom: true }, "", window.location.href);
+
+    window.addEventListener("popstate", handleBack);
+
+    return () => {
+      window.removeEventListener("popstate", handleBack);
+    };
+  }, []);
 
   useEffect(() => {
     setLocalChatHistory(chatHistory);
@@ -313,26 +354,8 @@ const PTMVoiceBasedChat = () => {
   }, [chatHistory]);
 
   useEffect(() => {
-    if (!isLoading) {
-      endPageToScrollRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [isLoading, acceptedTnc]);
-
-  useEffect(() => {
-    if (
-      !!recordings?.length &&
-      chatHistory[chatHistory?.length - 1]?.source !== "bot"
-    ) {
-      setChatHistory((prev) => {
-        prev[chatHistory?.length - 1] = {
-          ...prev[chatHistory?.length - 1],
-          recording: recordings[recordings?.length - 1],
-        };
-        return prev;
-      });
-    }
-    return () => {};
-  }, [recordings, chatHistory]);
+    handleScrollToView();
+  }, [chatHistory?.length]);
 
   useEffect(() => {
     try {
@@ -375,36 +398,6 @@ const PTMVoiceBasedChat = () => {
     }
   };
 
-  const handleMessagesForBot = useCallback(
-    (sentence) => {
-      if (isRecognizing || hasStartedListening) return;
-
-      const lastMessage = chatHistory[chatHistory?.length - 1];
-      if (lastMessage?.msg === sentence && lastMessage?.source === "bot") {
-        return;
-      }
-
-      if (chatHistory[chatHistory?.length - 1]?.source === "bot") {
-        setChatHistory((prevMessages) => {
-          const lastMessage = prevMessages[prevMessages?.length - 1];
-          lastMessage.msg += " " + sentence;
-          return [...prevMessages];
-        });
-      } else {
-        setChatHistory((prevMessages) => {
-          return [
-            ...prevMessages,
-            createMessage({
-              msg: sentence,
-              source: "bot",
-            }),
-          ];
-        });
-      }
-    },
-    [chatHistory]
-  );
-
   const handleTTSRequest = async (text, id, sourceLanguage) => {
     try {
       let cachedAudioUrl = audioCache[id];
@@ -413,10 +406,6 @@ const PTMVoiceBasedChat = () => {
 
       if (!sourceLanguage) {
         sourceLanguage = "en";
-      }
-
-      if (!hasOverRideId) {
-        handleMessagesForBot(text);
       }
 
       if (isMute && !hasOverRideId) {
@@ -687,33 +676,6 @@ const PTMVoiceBasedChat = () => {
         />
       )}
       <></>
-      <div className={`div27`}>
-        <div className={isMobile ? "div30_a" : "div30"}>
-          <MainHeader
-            isMobileFirst={isMobile}
-            showTheDots={false}
-            content={
-              <button
-                onClick={async (e) => {
-                  if (
-                    [
-                      sessionFlowName.GuestDiscussion,
-                      sessionFlowName.GuestMiStory,
-                    ].includes(getFromStorage("flow", false))
-                  ) {
-                    showGuestPopup();
-                  } else {
-                    await resetChatState(e);
-                  }
-                }}
-                className="div32"
-              >
-                <div className="div8">+</div>
-              </button>
-            }
-          />
-        </div>
-      </div>
       {isLoading && (
         <div className="loader-load-spinner">
           <div className="div67">
@@ -799,11 +761,12 @@ const PTMVoiceBasedChat = () => {
                   session: getFromStorage("sessionid", true),
                   status: status,
                   profile_id: getFromStorage("profileid", true),
-                  id: last_question.id,
-                  answer_id: last_question.id + "_answer",
+                  id: last_question.question_id,
+                  answer_id: `answer_${last_question.sequence}_${last_question.question_id}`,
                   sequence: last_question.sequence,
                   question: question,
-                  translated_question: languageToUse !== "en" ? question : null,
+                  translated_question:
+                    last_question?.translated_question || null,
                   answer: textMessage,
                   language: languageToUse,
                   sent_at: new Date().toISOString(),
@@ -830,7 +793,6 @@ const PTMVoiceBasedChat = () => {
                 setSeconds(0);
                 setIntervalId(null);
                 setHasOverRideId(null);
-                setSentences([]);
                 setIsNextAllowed(true);
                 setTimeout(() => {
                   if (questionCounter.current < Object.keys(questions).length) {
@@ -935,6 +897,7 @@ const PTMVoiceBasedChat = () => {
           </form>
         }
       </div>
+      <div ref={endPageToScrollRef} id="last-chat-boundary" />
     </>
   );
 };
