@@ -188,7 +188,7 @@ const PTMVoiceBasedChat = () => {
   useEffect(() => {
  if(!( questionCounter.current + 1 > Object.keys(questions).length)) {
 
-  if(chatHistory[chatHistory.length - 1]?.source === "bot") {
+  if(chatHistory[chatHistory.length - 1]?.source === "bot" && acceptedTnc) {
     setTimeout(() => {
       narrateLastMessage();
     }, 1000);
@@ -197,7 +197,7 @@ const PTMVoiceBasedChat = () => {
     return () => {
       
     }
-  }, [chatHistory])
+  }, [chatHistory, acceptedTnc])
 
   const sendQuestionToUser = async () => {
     try {
@@ -327,8 +327,8 @@ const PTMVoiceBasedChat = () => {
   useEffect(() => {
     // if it's completed -> show guest popup with correct message -> remove option to chat
     // they can click on + to open new chat
-    if (questionCounter.current + 1 > Object.keys(questions).length
-    ) {
+    console.log("chatHistory changed", questionCounter.current, Object.keys(questions).length, questionCounter.current <= Object.keys(questions).length);
+    if ((questionCounter.current === Object.keys(questions).length && chatHistory.length === (Object.keys(questions).length*2))) {
       showCompletionPopup();
     }
   }, [chatHistory]);
