@@ -589,12 +589,7 @@ const PTMVoiceBasedChat = () => {
 
               setIsFetchingData(true);
               let transcriptResult = "";
-              let s3Url = await handleS3Upload(
-                audioBlob,
-                `${getFromStorage("sessionid", true)}-${Date.now()}`,
-                "chatbot/companychat/",
-                { id: null }
-              );
+              let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${getFromStorage('sessionid', true)}/`, null);
               if (!s3Url || s3Url === "") {
                 transcriptResult = t("asrError");
               }
