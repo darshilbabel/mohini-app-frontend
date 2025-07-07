@@ -1,6 +1,4 @@
-import { IoIosHelpCircle } from "react-icons/io";
-import { MdHelpOutline, MdMoreVert, MdOutlineLogout, MdViewList } from "react-icons/md";
-import { useState } from "react";
+import { MdHelpOutline} from "react-icons/md";
 import "./shikshaChatStyle.css"
 
 function Header({ name, hasInfo, isMobileFirst=false, content, logo,showCompanyLogo=false, showTheDots=false }) {

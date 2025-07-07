@@ -38,6 +38,7 @@ import SpeedNotification from "./SpeedNotification";
 import useSmartChatStorage from "../../hooks/useSmartChatStorage";
 import questions from "./../../services/const/questions";
 import ROUTES from "../../url";
+import Header from "../ShikshalokamVoiceChat/shikshaChatHeader";
 
 export function randomise(length) {
   return Math.floor(Math.random() * length);
@@ -690,6 +691,18 @@ const PTMVoiceBasedChat = () => {
         />
       )}
       <></>
+              <div className={isMobile? 'div30_a': 'div30'}>
+
+          <Header
+            isMobileFirst={isMobile}
+            showTheDots={false}
+            content={
+              <div style={{ height: "30px"}}>
+                  <div className="div32"/>
+              </div>
+            }
+          />
+          </div>
       {isLoading && (
         <div className="loader-load-spinner">
           <div className="div67">
