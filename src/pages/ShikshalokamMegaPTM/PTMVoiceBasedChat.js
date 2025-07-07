@@ -290,7 +290,7 @@ const PTMVoiceBasedChat = () => {
               ) {
                 window.location.href = rerouteUrl;
               } else {
-                window.location.href = "https://www.google.com";
+                navigate(ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE);
               }
             } else {
               resetChatState();
