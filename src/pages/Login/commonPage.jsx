@@ -92,6 +92,17 @@ function CommonHomePage({ usecaseType }) {
 
   const ptm_case = [sessionUsecaseType.MEGA_PTM].some((x) => x === usecaseType);
 
+useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    window.history.replaceState(null, "", window.location.href);
+    window.onpopstate = function () {
+        window.history.go(1);
+    };
+    return () => {
+        window.onpopstate = null;
+    };
+}, []);
+
   return (
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 px-0">
       {languageButtonSelect && ![null, ""].includes(languageButtonSelect) && (
