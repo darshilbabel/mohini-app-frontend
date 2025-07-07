@@ -97,12 +97,6 @@ function PTMChat({type}) {
                 setIsLoading(true);
                 setInStorage('has_accepted_tnc', false, type);
                 setInStorage('isNewChatOpen', JSON.stringify(true), type);
-                const locationData = await getIpLocation();
-                if (locationData && locationData?.location) {
-                setInStorage('ip_state', locationData?.location?.regionName, type);
-                setInStorage('ip_city', locationData?.location?.city, type);
-                setInStorage('ip_country', locationData?.location?.country, type);
-                }
                 setInStorage('flow', type, type);
                 await setFinalLanguage();
                 getUserFingerPrint();
