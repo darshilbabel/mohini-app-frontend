@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MdSend } from "react-icons/md";
 import useVoiceRecord from "../interview-text-voice/useVoiceRecord";
 import { createMessage } from "../interview-voice";
@@ -10,7 +10,6 @@ import {
   getSessionDetails,
   savePTMQuestion,
 } from "../../services/api.service";
-import MainHeader from "../ShikshalokamVoiceChat/shikshaChatHeader";
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
 import "../../style.css";
 import "../ShikshalokamVoiceChat/shikshaChatStyle.css";
@@ -24,7 +23,6 @@ import Notification, {
 import {
   languageList,
   PTM_CONVERSATION_STATUS_TYPE,
-  sessionFlowName,
 } from "../ShikshalokamVoiceChat/enum";
 import PrivacyPolicyPopup from "../../components/TnC/privacyPolicyPopup";
 import { FaCircle } from "react-icons/fa6";
@@ -72,7 +70,6 @@ const PTMVoiceBasedChat = () => {
   const [isMute, setNotMute] = useState(true);
   const [hasOverRideId, setHasOverRideId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isRecognizing, setIsRecognizing] = useState(false);
   const [acceptedTnc, setAcceptedTnC] = useState(
     getFromStorage("has_accepted_tnc", true)
   );
@@ -87,7 +84,6 @@ const PTMVoiceBasedChat = () => {
   let isMobile = useCustomMediaQuery("(max-width: 500px)");
   let chatToAddLength = isMobile ? 10 : 10;
   const [visibleItemCount, setVisibleItemCount] = useState(chatToAddLength);
-  const isIntroPlayed = useRef(false);
   const [languageToUse, setLanguageToUse] = useState(() => {
     const savedLang = getFromStorage("local_route", false);
     return savedLang ? JSON.parse(savedLang) : null;
@@ -394,7 +390,6 @@ const PTMVoiceBasedChat = () => {
     setTextMessage(e.target.value);
 
     if (e.target.value.trim() === "") {
-      setIsRecognizing(false);
       setHasStartedListening(false);
     }
   };
@@ -656,7 +651,6 @@ const PTMVoiceBasedChat = () => {
       setSentences([]);
       setIsNextAllowed(true);
       setNotMute(true);
-      setIsRecognizing(false);
       setHasStartedListening(false);
       setHasStartedRecording(false);
       setTextMessage("");
