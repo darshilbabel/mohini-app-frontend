@@ -63,7 +63,7 @@ function PTMChat({type}) {
     async function initialSetup() {
         try{
           setIsLoading(true);
-          const profile_id = 87; // Default profile ID for PTM
+          const profile_id = process.env.REACT_APP_PROFILE_ID; // Default profile ID for PTM
           // remove hardcoded profile id after testing
           setInStorage('profileid', JSON.stringify(profile_id), type);
       
