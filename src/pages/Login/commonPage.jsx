@@ -27,8 +27,6 @@ import { FaArrowRightLong } from "react-icons/fa6";
 // get default language based on usecase type
 function getDefaultLanguage(usecaseType) {
     switch (usecaseType) {
-        case sessionUsecaseType.MEGA_PTM:
-            return languageList[3].value;
         default:
             return languageList[0].value;
     }
