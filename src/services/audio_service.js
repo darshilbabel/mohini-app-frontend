@@ -131,7 +131,7 @@ export const startRecording = (
                         : `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
                     
                     let s3Url = await handleS3Upload(
-                        audioBlob, `${getFromStorage('sessionid', true)}-${Date.now()}`, 'chatbot/companychat/',
+                        audioBlob, `${Date.now()}`, `chatbot/companychat/${getFromStorage('sessionid', true)}/`,
                         null
                     );
                     if(!s3Url || s3Url === '') {
