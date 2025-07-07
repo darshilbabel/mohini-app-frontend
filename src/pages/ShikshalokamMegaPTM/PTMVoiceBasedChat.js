@@ -352,8 +352,11 @@ const PTMVoiceBasedChat = () => {
   }, [chatHistory]);
 
   useEffect(() => {
-    handleScrollToView();
-  }, [chatHistory?.length]);
+    if(acceptedTnc===true)
+   {
+       handleScrollToView();
+   }
+  }, [chatHistory?.length, acceptedTnc]);
 
   useEffect(() => {
     try {
@@ -543,6 +546,19 @@ const PTMVoiceBasedChat = () => {
     );
     return rms < silenceThreshold;
   };
+
+
+  useEffect(() => {
+    if (acceptedTnc===false) {
+      document.body.style.overflowY = "hidden";
+    } else {
+      document.body.style.overflowY = "auto";
+    }
+
+    return () => {
+      document.body.style.overflowY = "auto";
+    };
+  }, [acceptedTnc]);
 
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
