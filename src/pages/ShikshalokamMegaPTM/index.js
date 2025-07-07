@@ -62,56 +62,18 @@ function PTMChat({type}) {
 
     async function initialSetup() {
         try{
-          const deviceId = getFromStorage('device_id')
-          const customEmail = deviceId + "@shikshalokam.org"
-          const currentFlow = getFromStorage('flow');
-          const body = {
-            email: customEmail,
-            company: "shikshalokamstaging",
-            password: "grit@123",
-            latest_flow_used: currentFlow,
-            other_params: {
-              device_id: deviceId,
-              city: getFromStorage('ip_city') || "",
-              state: getFromStorage('ip_state') || "",
-              country: getFromStorage('ip_country') || "",
-            }
-          }
-          
           setIsLoading(true);
-          const res = await getProfileDetails(body);
-          
-          if (res?.status === "error") {
-            setIsLoading(false);
-            return;
-          }
+          const profile_id = 87; // Default profile ID for PTM
+          // remove hardcoded profile id after testing
+          setInStorage('profileid', JSON.stringify(), type);
       
-          setInStorage('profileid', JSON.stringify(res.id), type);
-      
-          let session = await getSessionDetails();
-          setInStorage('sessionid', JSON.stringify(session.sessionid), type);
-      
-          const response = await axiosInstance({
-            url: login_api_url,
-            method: "POST",
-            data: {
-              email: customEmail,
-              password: "grit@123",
-            },
-          });
-      
-          if (!!response?.data?.access_token) {
-            setInStorage('company', JSON.stringify(response?.data?.company), type);
-            setInStorage('first_name', JSON.stringify(response?.data?.first_name), type);
-            setCompanyName(response?.data?.company);
-          } else {
-            window.location.reload();
-          }
-      
+          const {sessionid} = await getSessionDetails();
+          setInStorage('sessionid', JSON.stringify(sessionid), type);
+    
           setIsLoading(false);
         } catch (error) {
           console.error("Error during initial setup:", error);
-          navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
+          navigate(ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE);
           setIsLoading(false);
         }
         
