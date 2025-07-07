@@ -65,7 +65,7 @@ function PTMChat({type}) {
           setIsLoading(true);
           const profile_id = 87; // Default profile ID for PTM
           // remove hardcoded profile id after testing
-          setInStorage('profileid', JSON.stringify(), type);
+          setInStorage('profileid', JSON.stringify(profile_id), type);
       
           const {sessionid} = await getSessionDetails();
           setInStorage('sessionid', JSON.stringify(sessionid), type);
@@ -105,10 +105,9 @@ function PTMChat({type}) {
         };
         runSetup();
     }, [])
-
     return (
         <>
-            {(companyName && !isLoading)&&
+            {(!isLoading)&&
                 <>
                     <PTMVoiceBasedChat type={type} variant={'publicBot'}/>
                 </>
