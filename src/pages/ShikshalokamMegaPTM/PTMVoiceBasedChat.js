@@ -352,8 +352,11 @@ const PTMVoiceBasedChat = () => {
   }, [chatHistory]);
 
   useEffect(() => {
-    handleScrollToView();
-  }, [chatHistory?.length]);
+    if(acceptedTnc===true)
+   {
+       handleScrollToView();
+   }
+  }, [chatHistory?.length, acceptedTnc]);
 
   useEffect(() => {
     try {
@@ -544,6 +547,19 @@ const PTMVoiceBasedChat = () => {
     return rms < silenceThreshold;
   };
 
+
+  useEffect(() => {
+    if (acceptedTnc===false) {
+      document.body.style.overflowY = "hidden";
+    } else {
+      document.body.style.overflowY = "auto";
+    }
+
+    return () => {
+      document.body.style.overflowY = "auto";
+    };
+  }, [acceptedTnc]);
+
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       handleOnStopSpeaking();
@@ -589,12 +605,7 @@ const PTMVoiceBasedChat = () => {
 
               setIsFetchingData(true);
               let transcriptResult = "";
-              let s3Url = await handleS3Upload(
-                audioBlob,
-                `${getFromStorage("sessionid", true)}-${Date.now()}`,
-                "chatbot/companychat/",
-                { id: null }
-              );
+              let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${getFromStorage('sessionid', true)}/`, null);
               if (!s3Url || s3Url === "") {
                 transcriptResult = t("asrError");
               }
