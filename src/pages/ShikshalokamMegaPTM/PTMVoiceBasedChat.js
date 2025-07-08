@@ -672,7 +672,6 @@ const PTMVoiceBasedChat = () => {
       setIntervalId(null);
       setSeconds(0);
       setMediaRecorder(null);
-      setAudioCache({});
       if (textAreaRef.current) {
         textAreaRef.current.value = "";
         textAreaRef.current.style.height = "auto";
