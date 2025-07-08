@@ -40,10 +40,6 @@ import questions from "./../../services/const/questions";
 import ROUTES from "../../url";
 import Header from "../ShikshalokamVoiceChat/shikshaChatHeader";
 
-export function randomise(length) {
-  return Math.floor(Math.random() * length);
-}
-
 const PTMVoiceBasedChat = () => {
   const audioRef = useRef();
   const textAreaRef = useRef(null);
@@ -180,21 +176,26 @@ const PTMVoiceBasedChat = () => {
     } catch (error) {
       console.error("Error narrating last message:", error);
     }
-  }
+  };
 
   useEffect(() => {
- if(!((questionCounter.current === Object.keys(questions).length && chatHistory.length === (Object.keys(questions).length*2)))) {
-
-  if(chatHistory[chatHistory.length - 1]?.source === "bot" && acceptedTnc) {
-    setTimeout(() => {
-      narrateLastMessage();
-    }, 500);
-  }
- }
-    return () => {
-      
+    if (
+      !(
+        questionCounter.current === Object.keys(questions).length &&
+        chatHistory.length === Object.keys(questions).length * 2
+      )
+    ) {
+      if (
+        chatHistory[chatHistory.length - 1]?.source === "bot" &&
+        acceptedTnc
+      ) {
+        setTimeout(() => {
+          narrateLastMessage();
+        }, 500);
+      }
     }
-  }, [chatHistory, acceptedTnc])
+    return () => {};
+  }, [chatHistory, acceptedTnc]);
 
   const sendQuestionToUser = async () => {
     try {
@@ -203,8 +204,7 @@ const PTMVoiceBasedChat = () => {
       let sessionId = getFromStorage("sessionid", true);
       const selected_question = questions[`${questionCounter.current}`];
       const current_questions = selected_question.questions;
-      const question_to_use =
-        current_questions[randomise(current_questions?.length)];
+      const question_to_use = current_questions[0];
       const question = question_to_use.title[languageToUse];
 
       const bot_messsage = {
@@ -215,7 +215,8 @@ const PTMVoiceBasedChat = () => {
         flow: flow,
         profile_id: profileId,
         id: selected_question.id,
-        msg: question,
+        msg: question.text,
+        audio: question.audio,
         source: "bot",
         updated_at: Date.now(),
         question_id: question_to_use.variant_id,
@@ -226,7 +227,6 @@ const PTMVoiceBasedChat = () => {
       setInStorage("isOldChatOpen", JSON.stringify(true), flow);
       setInStorage("sessionid", JSON.stringify(sessionId), flow);
       setInStorage("isNewChatOpen", JSON.stringify(false), flow);
-
     } catch (error) {
       console.error("Error sending question to user:", error);
       showNotification({
@@ -312,11 +312,15 @@ const PTMVoiceBasedChat = () => {
         showCancelButton: false,
         allowEscapeKey: false,
         allowOutsideClick: false,
-        imageUrl: "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/check-mark.png",
-        imageHeight: "100"
+        imageUrl:
+          "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/check-mark.png",
+        imageHeight: "100",
       }).then((result) => {
         if (result.isConfirmed) {
           clearFromStorage();
+          setInStorage("local_route", JSON.stringify(languageList[0].value));
+          setLanguage(languageList[0].value);
+          stopAllAudio();
           navigate(ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE);
         }
       })}
@@ -326,14 +330,16 @@ const PTMVoiceBasedChat = () => {
   useEffect(() => {
     // if it's completed -> show guest popup with correct message -> remove option to chat
     // they can click on + to open new chat
-    if ((questionCounter.current === Object.keys(questions).length && chatHistory.length === (Object.keys(questions).length*2))) {
+    if (
+      questionCounter.current === Object.keys(questions).length &&
+      chatHistory.length === Object.keys(questions).length * 2
+    ) {
       showCompletionPopup();
     }
   }, [chatHistory]);
 
   useEffect(() => {
     const handleBack = () => {
-      
       showInterruptionPopup(true);
     };
 
@@ -352,10 +358,9 @@ const PTMVoiceBasedChat = () => {
   }, [chatHistory]);
 
   useEffect(() => {
-    if(acceptedTnc===true)
-   {
-       handleScrollToView();
-   }
+    if (acceptedTnc === true) {
+      handleScrollToView();
+    }
   }, [chatHistory?.length, acceptedTnc]);
 
   useEffect(() => {
@@ -398,16 +403,48 @@ const PTMVoiceBasedChat = () => {
     }
   };
 
-  const handleTTSRequest = async (text, id, sourceLanguage) => {
+  const handleTTSRequest = async (_audio, id, sourceLanguage) => {
     try {
-      let cachedAudioUrl = audioCache[id];
-      let audio_result = "";
-      let audio;
+      async function handleSpeaking(cachedAudioUrl) {
+        let audio = null;
+        if (cachedAudioUrl) {
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+          }
+          audioRef.current = new Audio(cachedAudioUrl);
+          audio = audioRef.current;
 
-      if (!sourceLanguage) {
-        sourceLanguage = "en";
+          audio.onplay = () => {
+            setIsNextAllowed(false);
+          };
+          audio.onended = () => {
+            setSentences((prev) => {
+              let all_sentences = JSON.parse(JSON.stringify([...prev]));
+              let index = prev.findIndex((x) => x.id === id);
+              if (index > -1) all_sentences[index].isNarrated = true;
+              return all_sentences;
+            });
+            setIsNextAllowed(true);
+            setHasOverRideId(null);
+          };
+
+          try {
+            await audio.play();
+          } catch (error) {
+            console.error("Error playing audio:", error);
+            setSentences((prev) => {
+              let all_sentences = JSON.parse(JSON.stringify([...prev]));
+              let index = prev.findIndex((x) => x.id === id);
+              if (index > -1) all_sentences[index].isNarrated = true;
+              return all_sentences;
+            });
+            setIsNextAllowed(true);
+            setHasOverRideId(null);
+          }
+        }
       }
-
+      let cachedAudioUrl = audioCache[id];
       if (isMute && !hasOverRideId) {
         setSentences((prev) => {
           let all_sentences = JSON.parse(JSON.stringify([...prev]));
@@ -417,59 +454,24 @@ const PTMVoiceBasedChat = () => {
         setHasOverRideId(null);
         return;
       }
-
+      if(_audio?.length){
       if (!cachedAudioUrl) {
-        audio_result = await getAI4BharatAudio(
-          text,
-          sourceLanguage,
-          FLOW_ROUTE
-        );
-        if (audio_result?.length) {
-          cachedAudioUrl = `data:audio/wav;base64,${audio_result}`;
-          setAudioCache((prevCache) => ({
-            ...prevCache,
-            [id]: cachedAudioUrl,
-          }));
-        }
-      }
-
-      if (cachedAudioUrl) {
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        }
-        audioRef.current = new Audio(cachedAudioUrl);
-        audio = audioRef.current;
-
-        audio.onplay = () => {
-          setIsNextAllowed(false);
-        };
-
-        audio.onended = () => {
-          setSentences((prev) => {
-            let all_sentences = JSON.parse(JSON.stringify([...prev]));
-            let index = prev.findIndex((x) => x.id === id);
-            if (index > -1) all_sentences[index].isNarrated = true;
-            return all_sentences;
+        fetch(_audio)
+          .then((res) => res.text())
+          .then((base64) => {
+            cachedAudioUrl = `data:audio/mpeg;base64,${base64}`;
+            setAudioCache((prevCache) => ({
+              ...prevCache,
+              [id]: cachedAudioUrl,
+            }));
+            handleSpeaking(cachedAudioUrl);
+          })
+          .catch((err) => {
+            console.error("Error fetching audio:", err);
           });
-          setIsNextAllowed(true);
-          setHasOverRideId(null);
-        };
-
-        try {
-          await audio.play();
-        } catch (error) {
-          console.error("Error playing audio:", error);
-          setSentences((prev) => {
-            let all_sentences = JSON.parse(JSON.stringify([...prev]));
-            let index = prev.findIndex((x) => x.id === id);
-            if (index > -1) all_sentences[index].isNarrated = true;
-            return all_sentences;
-          });
-          setIsNextAllowed(true);
-          setHasOverRideId(null);
-        }
-      }
+      } else {
+        handleSpeaking(cachedAudioUrl);
+      }}
     } catch (error) {
       console.error("Error in handleAI4BharatTTSRequest:", error);
       handleOnStopSpeaking();
@@ -494,7 +496,7 @@ const PTMVoiceBasedChat = () => {
     return () => {};
   }, [isNextAllowed, sentences, languageToUse, isLoading, acceptedTnc]);
 
-  const handleOnSpeaking = async (text, id) => {
+  const handleOnSpeaking = async (audio, id) => {
     try {
       try {
         if (!!audioRef.current) await audioRef.current.pause();
@@ -504,11 +506,10 @@ const PTMVoiceBasedChat = () => {
 
       setHasOverRideId(id);
       setIsNextAllowed(true);
-
       setSentences((prev) => {
         return [
           {
-            message: text,
+            message: audio,
             isNarrated: false,
             id: id,
           },
@@ -547,9 +548,8 @@ const PTMVoiceBasedChat = () => {
     return rms < silenceThreshold;
   };
 
-
   useEffect(() => {
-    if (acceptedTnc===false) {
+    if (acceptedTnc === false) {
       document.body.style.overflowY = "hidden";
     } else {
       document.body.style.overflowY = "auto";
@@ -605,7 +605,12 @@ const PTMVoiceBasedChat = () => {
 
               setIsFetchingData(true);
               let transcriptResult = "";
-              let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${getFromStorage('sessionid', true)}/`, null);
+              let s3Url = await handleS3Upload(
+                audioBlob,
+                `${Date.now()}`,
+                `chatbot/companychat/${getFromStorage("sessionid", true)}/`,
+                null
+              );
               if (!s3Url || s3Url === "") {
                 transcriptResult = t("asrError");
               }
@@ -670,7 +675,6 @@ const PTMVoiceBasedChat = () => {
       setIntervalId(null);
       setSeconds(0);
       setMediaRecorder(null);
-      setAudioCache({});
       if (textAreaRef.current) {
         textAreaRef.current.value = "";
         textAreaRef.current.style.height = "auto";
@@ -702,18 +706,17 @@ const PTMVoiceBasedChat = () => {
         />
       )}
       <></>
-              <div className={isMobile? 'div30_a': 'div30'}>
-
-          <Header
-            isMobileFirst={isMobile}
-            showTheDots={false}
-            content={
-              <div style={{ height: "30px"}}>
-                  <div className="div32"/>
-              </div>
-            }
-          />
-          </div>
+      <div className={isMobile ? "div30_a" : "div30"}>
+        <Header
+          isMobileFirst={isMobile}
+          showTheDots={false}
+          content={
+            <div style={{ height: "30px" }}>
+              <div className="div32" />
+            </div>
+          }
+        />
+      </div>
       {isLoading && (
         <div className="loader-load-spinner">
           <div className="div67">
@@ -750,7 +753,7 @@ const PTMVoiceBasedChat = () => {
                       }
                       handleOnStopSpeaking={() => handleOnStopSpeaking()}
                       handleOnSpeaking={() => {
-                        handleOnSpeaking(chat?.msg, chat?.updated_at);
+                        handleOnSpeaking(chat?.audio, chat?.updated_at);
                       }}
                       isAnyPlaying={!!hasOverRideId}
                       isPlaying={hasOverRideId === chat?.updated_at}
@@ -809,6 +812,7 @@ const PTMVoiceBasedChat = () => {
                   language: languageToUse,
                   sent_at: new Date().toISOString(),
                   audio_url: asrAudio,
+                  audio: last_question.audio,
                 };
                 savePTMQuestion(data);
                 setChatHistory((prev) => [
@@ -818,7 +822,6 @@ const PTMVoiceBasedChat = () => {
                     ...createMessage({
                       msg: textMessage,
                       source: "user",
-                      recording: asrAudio,
                       updated_at: Date.now(),
                     }),
                   },
