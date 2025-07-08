@@ -76,6 +76,19 @@ function CommonHomePage({ usecaseType }) {
     localStorage.setItem("local_route", JSON.stringify(e?.target?.value));
   };
 
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+
+    window.onpopstate = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    return () => {
+      window.onpopstate = null;
+    };
+  }, [navigate]);
+
+
   const controllerRef = useRef(null);
 
   async function stopAllAudio() {
@@ -92,16 +105,16 @@ function CommonHomePage({ usecaseType }) {
 
   const ptm_case = [sessionUsecaseType.MEGA_PTM].some((x) => x === usecaseType);
 
-useEffect(() => {
-    window.history.pushState(null, "", window.location.href);
-    window.history.replaceState(null, "", window.location.href);
-    window.onpopstate = function () {
-        window.history.go(1);
-    };
-    return () => {
-        window.onpopstate = null;
-    };
-}, []);
+  useEffect(() => {
+      window.history.pushState(null, "", window.location.href);
+      window.history.replaceState(null, "", window.location.href);
+      window.onpopstate = function () {
+          window.history.go(1);
+      };
+      return () => {
+          window.onpopstate = null;
+      };
+  }, []);
 
   return (
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 px-0">
