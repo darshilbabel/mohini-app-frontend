@@ -96,7 +96,9 @@
     "commonPageButtonText2": "చర్చను నమోదు చేయండి",
     "botName": "మిత్రా",
     "ptmCompletionMessage": "<div class='text-class'>ధన్యవాదాలు! మీ ప్రతిస్పందన విజయవంతంగా సమర్పించబడింది.</div>",
-    "ptmCompletionCTA": "మరొక ప్రతిస్పందనను సమర్పించండి"
-
-    
+    "ptmCompletionCTA": "మరొక ప్రతిస్పందనను సమర్పించండి",
+    "ptmIntroductionHeading": "మీ అభిప్రాయాన్ని మిత్రాతో పంచుకోండి!",
+    "ptmIntroductionDescriptionLine1": "మిత్రాతో చాట్ చేయడం ప్రారంభించండి",
+    "ptmIntroductionDescriptionLine2": "మీ ఆలోచనలను మీ భాషలో పంచుకోండి.",
+    "ptmIntroductionDescriptionLine3": "మీ అభిప్రాయాన్ని సమర్పించండి"
 }

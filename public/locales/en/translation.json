@@ -96,5 +96,10 @@
     "commonPageButtonText2": "Capture discussion",
     "botName": "MItra",
     "ptmCompletionMessage": "<div class='text-class'>Thank you! Your response has been successfully submitted.</div>",
-    "ptmCompletionCTA": "Submit another response"
+    "ptmCompletionCTA": "Submit another response",
+    "ptmIntroductionHeading": "Share Your Feedback with MItra!",
+    "ptmIntroductionDescriptionLine1": "Start chatting with MItra",
+    "ptmIntroductionDescriptionLine2": "Share your thoughts in your language.",
+    "ptmIntroductionDescriptionLine3": "Submit your feedback"
+
 }
