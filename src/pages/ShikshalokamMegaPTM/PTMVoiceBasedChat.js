@@ -318,6 +318,9 @@ const PTMVoiceBasedChat = () => {
       }).then((result) => {
         if (result.isConfirmed) {
           clearFromStorage();
+          setInStorage("local_route", JSON.stringify(languageList[0].value));
+          setLanguage(languageList[0].value);
+          stopAllAudio();
           navigate(ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE);
         }
       })}
