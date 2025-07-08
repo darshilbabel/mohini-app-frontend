@@ -229,46 +229,18 @@ function CommonHomePage({ usecaseType }) {
               </div>
               <div className="py-2 px-0 text-center">
                 {/* Form here */}
-                <div className="flex flex-col items-center gap-8 py-6 px-0 font-inter">
+                <div className="flex flex-col items-center gap-8 py-2 px-0 font-inter">
                   {/* Top Buttons */}
-                  <div className="flex w-full justify-center flow-button-custom">
-                    <span
-                      className={`flex items-center gap-3 px-3 sm:py-4 py-4 rounded-2xl text-[#322f2f] cursor-pointer 
-                                                ${
-                                                  selectedFlow ==
-                                                  sessionFlowName.GuestMiStory
-                                                    ? "bg-[#efeafe]"
-                                                    : "bg-[#e3ecf48f]"
-                                                } max-w-[210px] w-full`}
-                      onClick={() => {
-                        setSelectedFlow(sessionFlowName.GuestMiStory);
-                      }}
-                    >
-                      <span className="text-base font-medium">
-                        <ShowPageButton
-                          text={t("commonPageButtonText1")}
-                          id="capture-mi-story"
-                          userLanguage={userLanguage}
-                          showSpeaker={true}
-                          forcePlayAudio={
-                            selectedFlow === sessionFlowName.GuestMiStory
-                          }
-                          selectedFlow={selectedFlow}
-                          audioRef={audioRef}
-                          stopAudioTriggered={stopAudioTriggered}
-                          setStopAudioTriggered={setStopAudioTriggered}
-                          controllerRef={controllerRef}
-                        />
-                      </span>
-                    </span>
-                    <span
-                      className={`flex items-center gap-3 px-3 sm:py-6 py-4 rounded-2xl text-[#322f2f] cursor-pointer 
-                                                ${
-                                                  selectedFlow ==
-                                                  sessionFlowName.GuestDiscussion
-                                                    ? "bg-[#efeafe]"
-                                                    : "bg-[#e3ecf48f]"
-                                                } max-w-[210px] w-full`}
+                  <div className="flex flex-col w-full justify-center items-center gap-4 flow-button-custom px-4">
+                                        <span
+                      className={`flex items-center gap-3 px-3 justify-center sm:py-4 py-3 rounded-2xl text-[#322f2f] cursor-pointer 
+                        ${
+                          selectedFlow ==
+                          sessionFlowName.GuestDiscussion
+                            ? "bg-[#efeafe]"
+                            : "bg-[#e3ecf48f]"
+                        } sm:max-w-[500px] w-full`
+                      }
                       onClick={() => {
                         setSelectedFlow(sessionFlowName.GuestDiscussion);
                       }}
@@ -287,6 +259,38 @@ function CommonHomePage({ usecaseType }) {
                           stopAudioTriggered={stopAudioTriggered}
                           setStopAudioTriggered={setStopAudioTriggered}
                           controllerRef={controllerRef}
+                          logo="https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/discussion_capture_logo.png"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      className={`flex items-center justify-center gap-3 px-3 sm:py-4 py-3 rounded-2xl text-[#322f2f] cursor-pointer 
+                          ${
+                            selectedFlow ==
+                            sessionFlowName.GuestMiStory
+                              ? "bg-[#efeafe]"
+                              : "bg-[#e3ecf48f]"
+                        } sm:max-w-[500px] w-full`
+                      }
+                      onClick={() => {
+                        setSelectedFlow(sessionFlowName.GuestMiStory);
+                      }}
+                    >
+                      <span className="text-base font-medium">
+                        <ShowPageButton
+                          text={t("commonPageButtonText1")}
+                          id="capture-mi-story"
+                          userLanguage={userLanguage}
+                          showSpeaker={true}
+                          forcePlayAudio={
+                            selectedFlow === sessionFlowName.GuestMiStory
+                          }
+                          selectedFlow={selectedFlow}
+                          audioRef={audioRef}
+                          stopAudioTriggered={stopAudioTriggered}
+                          setStopAudioTriggered={setStopAudioTriggered}
+                          controllerRef={controllerRef}
+                          logo="https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/mi_story_capture_logo.png"
                         />
                       </span>
                     </span>
@@ -294,7 +298,7 @@ function CommonHomePage({ usecaseType }) {
 
                   {/* Continue Button */}
                   <button
-                    className={`mt-2 px-16 py-2 rounded-xl text-white text-lg font-medium flex items-center ${
+                    className={`mt-0 px-16 py-2 rounded-xl text-white text-lg font-medium flex items-center ${
                       selectedFlow
                         ? "bg-[#572E91] cursor-pointer"
                         : "bg-[#8d888857] cursor-not-allowed"
@@ -385,6 +389,7 @@ export function ShowPageButton({
   selectedFlow,
   showSpeaker = false,
   forcePlayAudio = false,
+  logo=""
 }) {
   const [audioCache, setAudioCache] = useState({});
 
@@ -431,51 +436,58 @@ export function ShowPageButton({
   }, [stopAudioTriggered]);
 
   return (
-    <div className={`flex items-center gap-2 vertical-center`}>
-      {showSpeaker && (
-        <span className="speaker-div vertical-center">
-          {isPlaying ? (
-            <button
-              type="button"
-              className="speaker-off-button text-[1.3rem] md:text-lg sm:text-[1.3rem] text-[#322f2f] vertical-center"
-              onClick={(e) => {
-                // e.stopPropagation();
-                if (!forcePlayAudio) {
-                  handleOnStopSpeaking(audioRef, setIsPlaying);
-                }
-              }}
-            >
-              <HiOutlineSpeakerWave />
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="speaker-off-button text-[1.3rem] md:text-lg sm:text-[1.3rem] vertical-center"
-              onClick={(e) => {
-                forcePlayAudio = false;
-                if (!forcePlayAudio && hasForcedPlay.current !== 1) {
-                  setStopAudioTriggered(false);
-                  setIsPlaying(true);
-                  handleOnSpeaking(
-                    text,
-                    id,
-                    userLanguage,
-                    audioRef,
-                    audioCache,
-                    setAudioCache,
-                    setIsPlaying
-                  );
-                }
-              }}
-            >
-              <HiOutlineSpeakerXMark />
-            </button>
-          )}
-        </span>
-      )}
-      <label htmlFor={id} className="text-[1rem] md:text-md sm:text-[1rem]">
-        {text}
-      </label>
+    <div className="flex flex-col items-center vertical-center text-center">
+      {(logo && logo!=='')&&
+        <div className="w-[40px] mb-2">
+          <img src={logo} alt="Logo" />
+        </div>
+      }
+      <div className={`flex items-center gap-2 vertical-center`}>
+        {showSpeaker && (
+          <span className="speaker-div vertical-center">
+            {isPlaying ? (
+              <button
+                type="button"
+                className="speaker-off-button text-[1.3rem] md:text-lg sm:text-[1.3rem] text-[#322f2f] vertical-center"
+                onClick={(e) => {
+                  // e.stopPropagation();
+                  if (!forcePlayAudio) {
+                    handleOnStopSpeaking(audioRef, setIsPlaying);
+                  }
+                }}
+              >
+                <HiOutlineSpeakerWave />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="speaker-off-button text-[1.3rem] md:text-lg sm:text-[1.3rem] vertical-center"
+                onClick={(e) => {
+                  forcePlayAudio = false;
+                  if (!forcePlayAudio && hasForcedPlay.current !== 1) {
+                    setStopAudioTriggered(false);
+                    setIsPlaying(true);
+                    handleOnSpeaking(
+                      text,
+                      id,
+                      userLanguage,
+                      audioRef,
+                      audioCache,
+                      setAudioCache,
+                      setIsPlaying
+                    );
+                  }
+                }}
+              >
+                <HiOutlineSpeakerXMark />
+              </button>
+            )}
+          </span>
+        )}
+        <label htmlFor={id} className="text-[1rem] md:text-md sm:text-[1rem]">
+          {text}
+        </label>
+      </div>
     </div>
   );
 }
