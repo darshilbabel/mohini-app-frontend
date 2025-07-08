@@ -697,7 +697,6 @@ const PTMVoiceBasedChat = () => {
   return (
     <>
       <SpeedNotification />
-      <Notification />
       {getFromStorage("local_route") && !isLoading && !acceptedTnc && (
         <PrivacyPolicyPopup
           tncText={t("tncText")}
@@ -725,9 +724,23 @@ const PTMVoiceBasedChat = () => {
         </div>
       )}
 
+
       <div>
+        
         <HiddenRecorder />
         <div className={`div33 div9`}>
+          {(getFromStorage('flow', false))&&<>
+                <div className="div10" >
+                  <h3 className="h3-1">
+                    {t('ptmIntroductionHeading')}
+                  </h3>
+                </div>
+                <ul className="div11 pb-6" >
+                  <li>{t('ptmIntroductionDescriptionLine1')}</li>
+                  <li>{t('ptmIntroductionDescriptionLine2')}</li>
+                  <li>{t('ptmIntroductionDescriptionLine3')}</li>
+                </ul>
+              </>}
           {
             <ul className="div34">
               {chatHistory?.map((chat, i) => (

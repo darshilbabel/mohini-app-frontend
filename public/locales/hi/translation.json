@@ -96,6 +96,9 @@
     "commonPageButtonText2": "चर्चा दर्ज करें",
     "botName": "मित्रा",
     "ptmCompletionMessage": "<div class='text-class'>धन्यवाद! आपका जवाब सफलतापूर्वक सबमिट कर दिया गया है।</div>",
-    "ptmCompletionCTA": "एक और प्रतिक्रिया भेजें"
-
+    "ptmCompletionCTA": "एक और प्रतिक्रिया भेजें",
+    "ptmIntroductionHeading": "मित्रा के साथ अपनी प्रतिक्रिया साझा करें!",
+    "ptmIntroductionDescriptionLine1": "मित्रा के साथ चैटिंग शुरू करें",
+    "ptmIntroductionDescriptionLine2": "अपनी भाषा में अपने विचार साझा करें।",
+    "ptmIntroductionDescriptionLine3": "अपनी प्रतिक्रिया सबमिट करें"
 }

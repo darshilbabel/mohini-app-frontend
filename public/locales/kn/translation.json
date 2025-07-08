@@ -96,5 +96,10 @@
     "commonPageButtonText2": "ಚರ್ಚೆ ದಾಖಲಿಸಿ",
     "botName": "ಮಿತ್ರ",
     "ptmCompletionMessage": "<div class='text-class'>ಧನ್ಯವಾದಗಳು! ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ.</div>",
-    "ptmCompletionCTA":"ಇನ್ನೊಂದು ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಸಲ್ಲಿಸಿ"
+    "ptmCompletionCTA":"ಇನ್ನೊಂದು ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಸಲ್ಲಿಸಿ",
+    "ptmIntroductionHeading": "ಮಿತ್ರದೊಂದಿಗೆ ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ!",
+    "ptmIntroductionDescriptionLine1": "ಮಿತ್ರದೊಂದಿಗೆ ಚಾಟ್ ಪ್ರಾರಂಭಿಸಿ",
+    "ptmIntroductionDescriptionLine2": "ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ನಿಮ್ಮ ಆಲೋಚನೆಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ.",
+    "ptmIntroductionDescriptionLine3": "ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಸಲ್ಲಿಸಿ"
+
 }
