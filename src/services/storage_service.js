@@ -137,7 +137,8 @@ export function clearFromStorage(removeFromAll=false, excludeKeys = []) {
     'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
     'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type', 
     'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress',
-    'grit', 'device_id', 'defaultBotName', 'phoneNumber', 'english_first_name', 'hasSelectedLanguage', 'chatLanguage'
+    'grit', 'device_id', 'defaultBotName', 'phoneNumber', 'english_first_name', 'hasSelectedLanguage', 'chatLanguage',
+    'projectId', 'taskId'
   ];
 
   keysToRemove.forEach((key) => {

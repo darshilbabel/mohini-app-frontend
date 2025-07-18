@@ -26,9 +26,11 @@ function SsoFlow({ type, variant }) {
     async function fetchProfileDetails(){
       const urlParams = new URLSearchParams(location.search);
       const accessToken = urlParams.get("accToken");
+      const projectId = urlParams.get("projectId");
+      const taskId = urlParams.get("taskId");
 
       if(!accessToken || accessToken === '') {
-        navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+        navigate(-1);
         window.location.reload();
       }
       try {
@@ -48,20 +50,19 @@ function SsoFlow({ type, variant }) {
             setInStorage('profileid', JSON.stringify(profile_details.profileid));
             setInStorage('sessionid', JSON.stringify(session.sessionid));
             setInStorage('isNewChatOpen', JSON.stringify(true));
+            setInStorage('projectId', JSON.stringify(projectId));
+            setInStorage('taskId', JSON.stringify(taskId));
             setLanguage(profile_details.route);
             navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT);
           } else {
-            navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
-            window.location.reload();
+            navigate(-1);
           }
         } else {
-          navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
-          window.location.reload();
+          navigate(-1);
         }
       } catch (err) {
         console.error("Error fetching profile:", err);
-        navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
-        window.location.reload();
+        navigate(-1);
       }
     }
 
