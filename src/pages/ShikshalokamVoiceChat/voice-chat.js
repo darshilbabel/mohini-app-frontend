@@ -240,8 +240,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       
     } else if(!getFromStorage('flow', false)){
       // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
-      navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
-
+      try{
+        const storedProjectId = getFromStorage('projectId', true);
+        if(storedProjectId) {
+          navigate(-2);
+          clearFromStorage(true);
+        } else{
+          navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+        }
+      } catch (error) {
+        navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+      }
     }
   }, [projectId])
 
@@ -1009,7 +1018,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 type: 'authenticate',
                 sessionid: sessionid,
                 profileid: profileid,
-                projectid: searchParams.get("projectId"),
+                projectid: searchParams.get("projectId") || getFromStorage('projectId', true),
+                taskid: searchParams.get("taskId") || getFromStorage('taskId', true),
                 access_token: access_token,
                 route: route,
               }));
@@ -1596,8 +1606,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         setInStorage('local_route', JSON.stringify(languageList[0].value));
         stopAllAudio();
         // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
+        const storedProjectId = getFromStorage('projectId', false);
         if(projectId){
           navigate(-1);
+        } else if(storedProjectId) {
+          navigate(-2);
+          clearFromStorage(true);
         } else {
           navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
         }
