@@ -8,7 +8,8 @@ import { FaArrowLeft, FaPowerOff } from "react-icons/fa6";
 import "./shikshaChatStyle.css"
 import { useTranslation } from "react-i18next";
 import { setLanguage } from "../../i18n";
-import { languageList } from "./enum";
+import { languageList, sessionFlowName } from "./enum";
+import { clearFromStorage, getFromStorage } from "../../services/storage_service";
 
 
 const Sidebar = ({ 
@@ -25,8 +26,13 @@ const Sidebar = ({
     }
     setLanguage(languageList[0].value);
     localStorage.setItem('local_route', JSON.stringify(languageList[0].value));
-    navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
-    // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
+    const storedFlow = getFromStorage('flow', false)
+    if(storedFlow === sessionFlowName.SsoFlow) {
+      clearFromStorage(true);
+      window.location.href = 'https://www.google.com';
+    } else {
+      navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+    }
   }
 
   return (

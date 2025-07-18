@@ -477,7 +477,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(()=>{
     const isOldChatOpen = getFromStorage('isOldChatOpen', true)
     const flow = getFromStorage('flow', false)
-    if(isOldChatOpen === true && (hasFetchIntro || [sessionFlowName.LoginMiStory, sessionFlowName.LoginDiscussion].includes(flow)) && chatHistory?.length === 0 && sentences?.length === 0) {
+    if(isOldChatOpen === true && (hasFetchIntro || [sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow, sessionFlowName.LoginDiscussion].includes(flow)) && chatHistory?.length === 0 && sentences?.length === 0) {
       handleChatSessionButtonClick({key: null})
     }
   }, [isNewChatOpen, hasFetchIntro, chatHistory, sentences])
@@ -825,7 +825,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     try{
       const flow = getFromStorage('flow', false);
 
-      if(flow === sessionFlowName.LoginMiStory) return;
+      if([sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(flow)) return;
 
       const response = await axiosInstance.post('api/update-project-status/', {
         access_token: getFromStorage('accToken', false),
@@ -921,7 +921,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
               url = `${base_url+bot_websocket.shikshalokam_chaupal}`;
             } else if (selectedType === 'normal') {
-              if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
+              if (currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(currentFlow)) {
                 url = `${base_url+bot_websocket.normal}`;
               } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
                 url = `${base_url+bot_websocket.guest_normal}`;
@@ -929,7 +929,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 url = `${base_url+bot_websocket.reflection}`;
               }
             } else {
-              if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
+              if (currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(currentFlow)) {
                 url = `${base_url+bot_websocket.oneshot}`;
               } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
                 url = `${base_url+bot_websocket.guest_oneshot}`;
@@ -1350,13 +1350,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
       storedRoute = bot_routes.shikshalokam_chaupal;
     } else if (selectedType === 'normal') {
-      if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
+      if (currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(currentFlow)) {
         storedRoute=bot_routes.normal
       } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
         storedRoute=bot_routes.guest_normal
       } 
     } else {
-      if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
+      if (currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(currentFlow)) {
         storedRoute=bot_routes.oneshot
       } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
         storedRoute=bot_routes.guest_oneshot
@@ -1502,7 +1502,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       ) {
       setIsIntroLoading(true);
       fetchBotInfo().then(() => {
-        if (!current_flow || current_flow !== sessionFlowName.LoginMiStory) {
+        if (!current_flow || ![sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(current_flow)) {
+
           const currentSession = getFromStorage('sessionid', true);
           handleCompanyChatCall(currentSession);
         }
@@ -2718,7 +2719,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         />
       } */}
       {(getFromStorage('route') && acceptedTnc==="ONGOING" && !isLoading && getFromStorage('flow', false) && 
-        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
+        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow].includes(getFromStorage('flow', false))
       )&& 
         <PrivacyPolicyPopup 
           tncText={t('tncText')}  
@@ -2759,7 +2760,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             showTheDots={false}
             content={
               <>
-                {([sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)))&& 
+                {([sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)))&& 
                   <CustomFormData layOut={2} selectID="selectedTypeID" selectName="selectedType"
                     selectOptions={selectedLabel.types}  
                     selectValue = {selectedType}
