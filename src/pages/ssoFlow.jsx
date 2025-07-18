@@ -45,7 +45,8 @@ function SsoFlow({ type, variant }) {
             setInStorage('state', JSON.stringify(profile_details.state));
             setInStorage('flow', profile_details.flow);
             setInStorage('route', JSON.stringify(profile_details.route));
-            setInStorage('has_accepted_tnc', JSON.stringify(profile_details.has_accepted_tnc));
+            const hasAcc = profile_details.has_accepted_tnc;
+            setInStorage('has_accepted_tnc', typeof hasAcc === 'string' ? hasAcc : JSON.stringify(hasAcc));
             setInStorage('access_token', JSON.stringify(accessToken));
             setInStorage('profileid', JSON.stringify(profile_details.profileid));
             setInStorage('sessionid', JSON.stringify(session.sessionid));

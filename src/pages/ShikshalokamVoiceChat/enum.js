@@ -22,6 +22,7 @@ export const sessionFlowName = {
   LoginDiscussion: "login-discussion",
   GuestMiStory: "guest-mi-story",
   LoginMiStory: "login",
+  SsoFlow: "sso",
   Reflection: "reflection",
   megaPTM: "megaPTM",
 };
