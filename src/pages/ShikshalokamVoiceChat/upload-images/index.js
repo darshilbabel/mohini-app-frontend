@@ -1,15 +1,36 @@
 import { useEffect, useState } from "react";
 import { BiTrash } from "react-icons/bi";
 import { GoPlusCircle } from "react-icons/go";
-import { handleFileUpload, partialUpdateMedia } from "../voice-chat";
+import { partialUpdateMedia } from "../voice-chat";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-const UploadImages = ({ storyData, access_token, projectId, files, setFiles, setIsLoading }) => {
+const UploadImages = ({ 
+  storyData, 
+  access_token, 
+  projectId, 
+  files, 
+  setFiles, 
+  isLoading,
+  setIsLoading,
+  showImages = false,
+  handleMultipleUploads, // Pass this function from parent
+  fileExceedText,
+  fileSizeText
+}) => {
   const [fileErrorText, setFileErrorText] = useState('');
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const fileSizeText = t('fileSizeText');
+
+  useEffect(() => {
+    const textErrorTime = setTimeout(() => {
+      setFileErrorText("")
+    }, 5000);
+
+    return () => {
+      clearTimeout(textErrorTime);
+    }
+  }, [fileErrorText])
 
   return (
     <div className="mt-4">
@@ -24,29 +45,79 @@ const UploadImages = ({ storyData, access_token, projectId, files, setFiles, set
           <input
             type="file"
             className="hidden"
-            accept="image/*"
+            accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic"
             onChange={(e) => {
-              handleFileUpload(
-                e, storyData, files, setFileErrorText, fileSizeText, access_token, setFiles, {}, projectId, setIsLoading, navigate
-              );
+              if (files?.length >= 10) {
+                setFileErrorText(fileExceedText);
+                return;
+              }
+              setIsLoading(true);
+              // Use the more advanced function if provided
+              if (handleMultipleUploads) {
+                handleMultipleUploads(e, storyData);
+              }
             }}
+            onClick={(e) => {
+              if (files?.length >= 10) {
+                setFileErrorText(fileExceedText);
+              } else {
+                setFileErrorText('');
+              }
+            }}
+            disabled={isLoading || (fileErrorText !== '' && fileErrorText === fileExceedText)}
           />
         </label>
       </div>
 
-      <div className="grid grid-cols-3 max-sm:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto">
-        {files?.map((image, index) => (
-          <div key={index} className="relative group bg-gray-200 rounded-lg overflow-hidden">
-            <img src={image?.public_url} alt="Uploaded" className="w-full h-32 object-cover" />
-            <button
-              className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => partialUpdateMedia(image?.id, false, access_token, setIsLoading)}
-            >
-              <BiTrash className="text-white text-2xl" />
-            </button>
-          </div>
-        ))}
+      <div className="mb-2">
+        <p className="text-sm text-gray-600">
+          {t('photosLimitMsg')}
+        </p>
       </div>
+
+      {/* Conditional rendering based on showImages prop */}
+      {showImages ? (
+        // Show actual images
+        <div className="grid grid-cols-3 max-sm:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto">
+          {files?.map((image, index) => (
+            <div key={index} className="relative group bg-gray-200 rounded-lg overflow-hidden">
+              <img src={image?.public_url} alt="Uploaded" className="w-full h-32 object-cover" />
+              <button
+                className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => partialUpdateMedia(image?.id, false, access_token, setIsLoading)}
+              >
+                <BiTrash className="text-white text-2xl" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        // Show file names only
+        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+          {files?.map((file, index) => (
+            <div key={index} className="flex items-center justify-between bg-gray-100 p-0 rounded-lg">
+              <span className="text-sm font-medium text-gray-700 truncate">
+                {file.name || `Image ${index + 1}`}
+              </span>
+              <button
+                className="text-red-500 hover:text-red-700 p-1"
+                onClick={() => partialUpdateMedia(file?.id, false, access_token, setIsLoading)}
+              >
+                <BiTrash className="text-lg" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {files?.length > 0 && (
+        <div className="mt-4">
+          <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('uploadedFiles')}:</h4>
+          <div className="text-sm text-gray-600">
+            {files.length}/10 files uploaded
+          </div>
+        </div>
+      )}
     </div>
   );
 };

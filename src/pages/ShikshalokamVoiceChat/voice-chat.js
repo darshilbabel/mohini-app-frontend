@@ -23,7 +23,7 @@ import rehypeRaw from 'rehype-raw';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { BiLoader } from "react-icons/bi";
 import { AiOutlineEye } from "react-icons/ai";
-import { ai4BharatASR, getAI4BharatAudio, getSessionDetails } from "../../services/api.service";
+import { ai4BharatASR, getAI4BharatAudio, getSessionDetails, updateReflectionStatus } from "../../services/api.service";
 import Sidebar from "./shikshaChatSidebar";
 import MainHeader from "./shikshaChatHeader";
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2";
@@ -633,20 +633,20 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const defaultEditorClick = (title, name, location) => {
     return (
       <>
-        <div className="fixed inset-0 bg-white flex items-center justify-center p-4 max-sm:px-0 z-[100]">
+        <div className="fixed inset-0 bg-white flex items-center justify-center p-0 max-sm:px-0 z-[100]">
           
           <div
-            className="bg-gray-100 rounded-lg shadow-lg w-full h-full max-w-2xl p-[60px_0_0] relative"
+            className="bg-gray-100 rounded-lg shadow-lg w-full h-full max-w-2xl p-[30px_0_0] relative"
             onClick={(e) => e.stopPropagation()}
           >
-            {(!projectId)&&<div className="absolute top-4 left-4 z-10">
+            {/* {(!projectId)&&<div className="absolute top-4 left-4 z-10">
               <button
                 onClick={closeModal}
                 className="text-2xl text-gray-700 hover:text-black flex items-center"
               >
                 <IoMdArrowRoundBack />
               </button>
-            </div>}
+            </div>} */}
             <div className="overflow-y-auto h-full w-full">
               <div className="px-[73px] max-sm:px-[23px]">
 
@@ -661,13 +661,23 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   </p>
                 </div>
 
-                <div className="mt-4 bg-gray-100 rounded-md h-60 overflow-y-auto text-sm">
+                <div className="mt-4 h-60 overflow-y-auto">
                   <div id="editorjs" ref={editorContainerRef} className=""></div>
                 </div>
+                
                 <div className="mt-4">
                   <UploadImages 
-                    storyData={storyData} access_token={access_token} projectId={projectId} 
-                    files={files} setFiles={setFiles} setIsLoading={setIsLoading}
+                    storyData={storyData} 
+                    access_token={access_token} 
+                    projectId={projectId} 
+                    files={files} 
+                    setFiles={setFiles} 
+                    isLoading={isLoading}
+                    setIsLoading={setIsLoading}
+                    handleMultipleUploads={handleMultipleUploads}
+                    fileExceedText={fileExceedText}
+                    fileSizeText={fileSizeText}
+                    showImages={false}
                   />
                 </div>
               </div>
@@ -676,20 +686,31 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   onClick={async () => {
                     try {
                       const outputData = await editor.save();
+                      let updatePayload = {
+                        id: storyData?.id,
+                        token: getFromStorage('accToken', false),
+                        session: getFromStorage('sessionid', true),
+                        flow: getFromStorage('flow', false),
+                        formatted_content: outputData?.blocks,
+                      };
                       await partialUpdateStoryById({
                         setter: setStoryData,
                         loader: setIsSaving,
-                        data: {
-                          id: storyData?.id,
-                          formatted_content: outputData?.blocks,
-                          access_token: getFromStorage('accToken', false),
-                          session: getFromStorage('sessionid', true),
-                          flow: getFromStorage('flow', false)
-                        },
-                        token: access_token,
+                        data:updatePayload
                       });
-                      if(projectId){
-                        await updateReflectionStatus();
+                      if([sessionFlowName.SsoFlow].includes(getFromStorage('flow', false))){
+                        const statusRes = await updateReflectionStatus(projectId);
+                          if (statusRes?.status === 200) {
+                            if (projectId){
+                              clearFromStorage()
+                              navigate(-1)
+                            }
+                          } else {
+                            if (projectId){
+                              clearFromStorage()
+                              navigate(-1)
+                            }
+                          }
                       } else{
                         window.location.reload();
                       }
@@ -820,37 +841,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       </>
     );
   };
-
-  async function updateReflectionStatus(){
-    try{
-      const flow = getFromStorage('flow', false);
-
-      if([sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(flow)) return;
-
-      const response = await axiosInstance.post('api/update-project-status/', {
-        access_token: getFromStorage('accToken', false),
-        project_id: projectId,
-        flow: getFromStorage('flow', false)
-      });
-
-      if (response?.status === 200) {
-        if (projectId){
-          clearFromStorage()
-          navigate(-1)
-
-        }
-      }
-      
-      return response;
-    } catch (error) {
-      if (projectId){
-        clearFromStorage()
-        navigate(-1)
-
-      }
-    }
-
-  }
 
   const handleDownloadClick = () => {
     setIsLoading(true);
@@ -1283,6 +1273,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const fetchMedia = async () => {
       if (storyData && storyData?.id !== '') {
+        openModal()
         const story_id = storyData?.id;
         const tempMediaArr = [];
         setIsImageUploading(true);
@@ -2824,9 +2815,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }
         </div>
       </div> }
-      {(storyData && isModalOpen)&& 
-        handleEditClick()
-      }
+      {storyData && isModalOpen && (
+        [sessionFlowName.SsoFlow].includes(getFromStorage('flow', false))
+          ? defaultEditorClick(
+              storyData?.title,
+              getFromStorage('first_name', true),
+              storyData?.location
+            )
+          : handleEditClick()
+      )}
       <div className={`${projectId? 'div72' : isOpen? 'div71': ''}`}>
       {(projectId)&& 
         <>
@@ -2983,7 +2980,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             </>
           }
           {(isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading &&
-            !isLoading && !isPdfDownloading && storyData?.id !== '') && (
+            !isLoading && !isPdfDownloading && storyData?.id !== '' && !(
+              [sessionFlowName.SsoFlow].includes(getFromStorage('flow', false)))
+            ) && (
             <>
               <div className="div13" >
                 <ChatMessage 
@@ -3171,7 +3170,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     onClick={async ()=>{
                       if(projectId){
                         setIsLoading(true);
-                        await updateReflectionStatus();
+                        await updateReflectionStatus(projectId);
                       } else{
                         window.location.reload()
                       }
