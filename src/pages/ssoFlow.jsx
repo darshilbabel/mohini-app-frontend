@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
-import { getSessionDetails, readElevateProfile } from "../services/api.service";
+import { getSessionDetails, readElevateProfile, updateReflectionStatus } from "../services/api.service";
 import { useLocation, useNavigate } from "react-router-dom";
 import ROUTES from "../url";
 import { BiLoader } from "react-icons/bi";
@@ -35,11 +35,17 @@ function SsoFlow({ type, variant }) {
       }
       try {
         const data = await readElevateProfile(accessToken);
-        console.log(data)
         if (data && data?.status.toLowerCase() === 'ok') {
           const profile_details = data?.profile_details;
           if(profile_details) {
             let session = await getSessionDetails();
+            const statusRes = await updateReflectionStatus(projectId, "started");
+            if (statusRes?.status !== 200) {
+              if (projectId){
+                clearFromStorage()
+                navigate(-1)
+              }
+            }
             setInStorage('first_name', JSON.stringify(profile_details.first_name));
             setInStorage('company', JSON.stringify(profile_details.company));
             setInStorage('state', JSON.stringify(profile_details.state));

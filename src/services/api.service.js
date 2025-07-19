@@ -1,5 +1,7 @@
 import { bot_routes } from "../configure";
+import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
 import axiosInstance from "../utils/axios";
+import { getFromStorage } from "./storage_service";
 
 const postWithoutAuth = async (body, endpoint) => {
   const headers = {
@@ -207,3 +209,23 @@ export const savePTMQuestion = async ({
     endpoint
   );
 };
+
+export async function updateReflectionStatus(projectId, status="completed"){
+  try{
+    const flow = getFromStorage('flow', false);
+
+    if([sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(flow)) return;
+
+    const response = await axiosInstance.post('api/update-project-status/', {
+      access_token: getFromStorage('accToken', false),
+      project_id: projectId,
+      flow: getFromStorage('flow', false),
+      status: status
+    });
+    
+    return response;
+  } catch (error) {
+    return {'error': 'Error updating reflection status.'}
+  }
+
+}
