@@ -225,6 +225,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setIsModalOpen(true);
   };
 
+  const navigateSsoFlow = ()=>{
+     const rerouteURL = getFromStorage('ssoRerouteURL', false)
+    if(rerouteURL){
+      window.location.href = rerouteURL;
+    } else {
+      navigate(-2);
+    }
+  }
+
   useEffect(()=>{
     if(projectId){
       setInStorage('flow', sessionFlowName.Reflection, sessionFlowName.Reflection);
@@ -243,8 +252,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       try{
         const storedProjectId = getFromStorage('projectId', true);
         if(storedProjectId) {
-          navigate(-2);
           clearFromStorage(true);
+          navigateSsoFlow();
         } else{
           navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
         }
@@ -695,15 +704,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       };
                       await partialUpdateStoryById({
                         setter: setStoryData,
-                        loader: setIsSaving,
+                        loader: setIsLoading,
                         data:updatePayload
                       });
                       if([sessionFlowName.SsoFlow].includes(getFromStorage('flow', false))){
-                        const statusRes = await updateReflectionStatus(projectId);
+                        setIsLoading(true);
+                        const statusRes = await updateReflectionStatus(
+                          getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('sso_accessToken', false)
+                        );
                           if (statusRes?.status === 200) {
-                            if (projectId){
+                            if (getFromStorage('projectId', true)){
                               clearFromStorage()
-                              navigate(-1)
+                              navigateSsoFlow();
                             }
                           } else {
                             if (projectId){
@@ -1602,8 +1614,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         if(projectId){
           navigate(-1);
         } else if(storedProjectId) {
-          navigate(-2);
           clearFromStorage(true);
+          navigateSsoFlow();
         } else {
           navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
         }
@@ -2661,6 +2673,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         if (projectId) {
           clearFromStorage();
           navigate(-1);
+        } else if([sessionFlowName.SsoFlow].includes(getFromStorage('flow', false))) {
+          clearFromStorage();
+          navigateSsoFlow();
         }
         setIsLoading(false);
         return null;
