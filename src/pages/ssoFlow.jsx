@@ -40,7 +40,7 @@ function SsoFlow({ type, variant }) {
           const profile_details = data?.profile_details;
           if(profile_details) {
             let session = await getSessionDetails();
-            const statusRes = await updateReflectionStatus(projectId, "started", sessionFlowName.SsoFlow);
+            const statusRes = await updateReflectionStatus(projectId, "started", sessionFlowName.SsoFlow, accessToken);
             if (statusRes?.status !== 200) {
               if (projectId){
                 clearFromStorage()
