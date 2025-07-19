@@ -8,6 +8,7 @@ import "../components/custom-style.css"
 import "../index.css"
 import { clearFromStorage, getFromStorage, setInStorage } from "../services/storage_service";
 import { setLanguage } from "../i18n";
+import { sessionFlowName } from "./ShikshalokamVoiceChat/enum";
 
 
 
@@ -39,13 +40,14 @@ function SsoFlow({ type, variant }) {
           const profile_details = data?.profile_details;
           if(profile_details) {
             let session = await getSessionDetails();
-            const statusRes = await updateReflectionStatus(projectId, "started");
+            const statusRes = await updateReflectionStatus(projectId, "started", sessionFlowName.SsoFlow);
             if (statusRes?.status !== 200) {
               if (projectId){
                 clearFromStorage()
                 navigate(-1)
               }
             }
+            setInStorage('sso_accessToken', accessToken);
             setInStorage('first_name', JSON.stringify(profile_details.first_name));
             setInStorage('company', JSON.stringify(profile_details.company));
             setInStorage('state', JSON.stringify(profile_details.state));
