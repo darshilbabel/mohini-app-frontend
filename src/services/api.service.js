@@ -210,14 +210,17 @@ export const savePTMQuestion = async ({
   );
 };
 
-export async function updateReflectionStatus(projectId, status="completed"){
+export async function updateReflectionStatus(projectId, status="completed",  flow = null){
   try{
-    const flow = getFromStorage('flow', false);
+
+    if (!flow) {
+      flow = getFromStorage('flow', false);
+    }
 
     if([sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(flow)) return;
 
     const response = await axiosInstance.post('api/update-project-status/', {
-      access_token: getFromStorage('accToken', false),
+      access_token: getFromStorage('accToken', false) || getFromStorage('sso_accessToken', false),
       project_id: projectId,
       flow: getFromStorage('flow', false),
       status: status
