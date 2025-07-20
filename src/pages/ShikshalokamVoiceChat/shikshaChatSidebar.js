@@ -20,6 +20,15 @@ const Sidebar = ({
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  const navigateSsoFlow = ()=>{
+       const rerouteURL = getFromStorage('ssoRerouteURL', false)
+      if(rerouteURL){
+        window.location.href = rerouteURL;
+      } else {
+        navigate(-2);
+      }
+  }
+
   function handleLogout(){
     if(stopAllAudio){
       stopAllAudio();
@@ -29,7 +38,7 @@ const Sidebar = ({
     const storedFlow = getFromStorage('flow', false)
     if(storedFlow === sessionFlowName.SsoFlow) {
       clearFromStorage(true);
-      window.location.href = 'https://www.google.com';
+      navigateSsoFlow()
     } else {
       navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
     }

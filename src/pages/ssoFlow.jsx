@@ -48,6 +48,7 @@ function SsoFlow({ type, variant }) {
               }
             }
             setInStorage('sso_accessToken', accessToken);
+            setInStorage('ssoRerouteURL', profile_details.reroute_url);
             setInStorage('first_name', JSON.stringify(profile_details.first_name));
             setInStorage('company', JSON.stringify(profile_details.company));
             setInStorage('state', JSON.stringify(profile_details.state));
