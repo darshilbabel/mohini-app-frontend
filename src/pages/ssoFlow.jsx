@@ -27,6 +27,7 @@ function SsoFlow({ type, variant }) {
     async function fetchProfileDetails(){
       const urlParams = new URLSearchParams(location.search);
       const accessToken = urlParams.get("accToken");
+      const flow_type = urlParams.get("flow");
       const projectId = urlParams.get("projectId");
       const taskId = urlParams.get("taskId");
 
@@ -52,7 +53,7 @@ function SsoFlow({ type, variant }) {
             setInStorage('first_name', JSON.stringify(profile_details.first_name));
             setInStorage('company', JSON.stringify(profile_details.company));
             setInStorage('state', JSON.stringify(profile_details.state));
-            setInStorage('flow', profile_details.flow);
+            setInStorage('flow', flow_type);
             setInStorage('route', JSON.stringify(profile_details.route));
             const hasAcc = profile_details.has_accepted_tnc;
             setInStorage('has_accepted_tnc', typeof hasAcc === 'string' ? hasAcc : JSON.stringify(hasAcc));
@@ -63,7 +64,7 @@ function SsoFlow({ type, variant }) {
             setInStorage('projectId', JSON.stringify(projectId));
             setInStorage('taskId', JSON.stringify(taskId));
             setLanguage(profile_details.route);
-            navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT);
+            navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
           } else {
             navigate(-1);
           }

@@ -2830,15 +2830,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }
         </div>
       </div> }
-      {storyData && isModalOpen && (
-        [sessionFlowName.SsoFlow].includes(getFromStorage('flow', false))
+     {storyData && isModalOpen && (() => {
+        const flow = getFromStorage('flow', false);
+        const projectId = getFromStorage('projectId', false);
+        return [sessionFlowName.GuestMiStory].includes(flow) && projectId
           ? defaultEditorClick(
               storyData?.title,
               getFromStorage('first_name', true),
               storyData?.location
             )
-          : handleEditClick()
-      )}
+          : handleEditClick();
+      })()}
       <div className={`${projectId? 'div72' : isOpen? 'div71': ''}`}>
       {(projectId)&& 
         <>
