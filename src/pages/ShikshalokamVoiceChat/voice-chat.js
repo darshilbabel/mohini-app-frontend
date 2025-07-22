@@ -225,8 +225,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setIsModalOpen(true);
   };
 
-  const navigateSsoFlow = ()=>{
-     const rerouteURL = getFromStorage('ssoRerouteURL', false)
+  const navigateSsoFlow = (rerouteURL)=>{
     if(rerouteURL){
       window.location.href = rerouteURL;
     } else {
@@ -252,8 +251,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       try{
         const storedProjectId = getFromStorage('projectId', true);
         if(storedProjectId) {
+          const rerouteURL = getFromStorage('ssoRerouteURL', false)
           clearFromStorage(true);
-          navigateSsoFlow();
+          navigateSsoFlow(rerouteURL);
         } else{
           navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
         }
@@ -712,17 +712,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                         const statusRes = await updateReflectionStatus(
                           getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('sso_accessToken', false)
                         );
-                          if (statusRes?.status === 200) {
-                            if (getFromStorage('projectId', true)){
-                              clearFromStorage()
-                              navigateSsoFlow();
-                            }
-                          } else {
-                            if (projectId){
-                              clearFromStorage()
-                              navigate(-1)
-                            }
-                          }
+                          const rerouteURL = getFromStorage('ssoRerouteURL', false)
+                          clearFromStorage()
+                          navigateSsoFlow(rerouteURL);
                       } else{
                         window.location.reload();
                       }
@@ -1111,8 +1103,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             stopAllAudio();
             const storedProjectId = getFromStorage('projectId', false);
             if(storedProjectId) {
+              const rerouteURL = getFromStorage('ssoRerouteURL', false)
               clearFromStorage(true);
-              navigateSsoFlow();
+              navigateSsoFlow(rerouteURL);
               return;
             }
             clearFromStorage();
@@ -1620,8 +1613,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         if(projectId){
           navigate(-1);
         } else if(storedProjectId) {
+          const rerouteURL = getFromStorage('ssoRerouteURL', false)
           clearFromStorage(true);
-          navigateSsoFlow();
+          navigateSsoFlow(rerouteURL);
         } else {
           navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
         }
@@ -2680,8 +2674,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           clearFromStorage();
           navigate(-1);
         } else if([sessionFlowName.SsoFlow].includes(getFromStorage('flow', false)) && getFromStorage('projectId', true)) {
-          clearFromStorage();
-          navigateSsoFlow();
+          const rerouteURL = getFromStorage('ssoRerouteURL', false)
+          clearFromStorage(true);
+          navigateSsoFlow(rerouteURL);
         }
         setIsLoading(false);
         return null;

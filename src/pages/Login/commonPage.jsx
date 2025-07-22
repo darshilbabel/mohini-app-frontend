@@ -24,6 +24,7 @@ import "../../components/custom-style.css";
 import "../../index.css";
 import "./commonPageStyle.css";
 import { FaArrowRightLong } from "react-icons/fa6";
+import { useLocation } from "react-use";
 // get default language based on usecase type
 function getDefaultLanguage(usecaseType) {
     switch (usecaseType) {
@@ -79,17 +80,52 @@ function CommonHomePage({ usecaseType }) {
     localStorage.setItem("local_route", JSON.stringify(e?.target?.value));
   };
 
+  // useEffect(() => {
+  //   window.history.pushState(null, "", window.location.href);
+
+  //   window.onpopstate = () => {
+  //     window.history.pushState(null, "", window.location.href);
+  //   };
+
+  //   return () => {
+  //     window.onpopstate = null;
+  //   };
+  // }, [navigate]);
+  const location = useLocation();
+
   useEffect(() => {
-    window.history.pushState(null, "", window.location.href);
-
-    window.onpopstate = () => {
+    const projectId = getFromStorage('projectId');
+    console.log("projectId:", projectId)
+    if (!projectId) {
+      // Trap the back button
       window.history.pushState(null, "", window.location.href);
-    };
+      
+      const handlePopState = () => {
+        window.history.pushState(null, "", window.location.href);
+      };
 
-    return () => {
-      window.onpopstate = null;
-    };
-  }, [navigate]);
+      window.addEventListener('popstate', handlePopState);
+
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    } else {
+      const handlePopState = () => {
+        const rerouteURL = getFromStorage('ssoRerouteURL', false);
+        if (rerouteURL) {
+          clearFromStorage(true, ['ssoRerouteURL'])
+          console.log("reroute: ", rerouteURL)
+          window.location.href = rerouteURL;
+        }
+      };
+
+      window.addEventListener('popstate', handlePopState);
+
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [location.pathname]);
 
 
   const controllerRef = useRef(null);
