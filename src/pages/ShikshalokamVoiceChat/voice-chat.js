@@ -486,7 +486,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(()=>{
     const isOldChatOpen = getFromStorage('isOldChatOpen', true)
     const flow = getFromStorage('flow', false)
-    if(isOldChatOpen === true && (hasFetchIntro || [sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow, sessionFlowName.LoginDiscussion].includes(flow)) && chatHistory?.length === 0 && sentences?.length === 0) {
+    if(isOldChatOpen === true && (hasFetchIntro || [sessionFlowName.LoginMiStory, sessionFlowName.LoginDiscussion].includes(flow)) && chatHistory?.length === 0 && sentences?.length === 0) {
       handleChatSessionButtonClick({key: null})
     }
   }, [isNewChatOpen, hasFetchIntro, chatHistory, sentences])
@@ -707,7 +707,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                         loader: setIsLoading,
                         data:updatePayload
                       });
-                      if([sessionFlowName.SsoFlow].includes(getFromStorage('flow', false))){
+                      if([sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)) && getFromStorage('projectId')){
                         setIsLoading(true);
                         const statusRes = await updateReflectionStatus(
                           getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('sso_accessToken', false)
@@ -923,7 +923,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
               url = `${base_url+bot_websocket.shikshalokam_chaupal}`;
             } else if (selectedType === 'normal') {
-              if (currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(currentFlow)) {
+              if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
                 url = `${base_url+bot_websocket.normal}`;
               } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
                 url = `${base_url+bot_websocket.guest_normal}`;
@@ -931,7 +931,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 url = `${base_url+bot_websocket.reflection}`;
               }
             } else {
-              if (currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(currentFlow)) {
+              if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
                 url = `${base_url+bot_websocket.oneshot}`;
               } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
                 url = `${base_url+bot_websocket.guest_oneshot}`;
@@ -1112,6 +1112,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             clearFromStorage();
             setLanguage(languageList[0].value);
             setInStorage('local_route', JSON.stringify(languageList[0].value));
+            const storedProjectId = getFromStorage('projectId', false);
+            if(storedProjectId) {
+              clearFromStorage(true);
+              navigateSsoFlow();
+            }
             // navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
             // navigate("/", { replace: true });
             if(rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== ""){
@@ -1353,13 +1358,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
       storedRoute = bot_routes.shikshalokam_chaupal;
     } else if (selectedType === 'normal') {
-      if (currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(currentFlow)) {
+      if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
         storedRoute=bot_routes.normal
       } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
         storedRoute=bot_routes.guest_normal
       } 
     } else {
-      if (currentFlow && [sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(currentFlow)) {
+      if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
         storedRoute=bot_routes.oneshot
       } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
         storedRoute=bot_routes.guest_oneshot
@@ -1505,7 +1510,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       ) {
       setIsIntroLoading(true);
       fetchBotInfo().then(() => {
-        if (!current_flow || ![sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow].includes(current_flow)) {
+        if (!current_flow || ![sessionFlowName.LoginMiStory].includes(current_flow)) {
 
           const currentSession = getFromStorage('sessionid', true);
           handleCompanyChatCall(currentSession);
@@ -2725,7 +2730,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         />
       } */}
       {(getFromStorage('route') && acceptedTnc==="ONGOING" && !isLoading && getFromStorage('flow', false) && 
-        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow].includes(getFromStorage('flow', false))
+        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
       )&& 
         <PrivacyPolicyPopup 
           tncText={t('tncText')}  
@@ -2766,7 +2771,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             showTheDots={false}
             content={
               <>
-                {([sessionFlowName.LoginMiStory, sessionFlowName.SsoFlow, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)))&& 
+                {([sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)))&& 
                   <CustomFormData layOut={2} selectID="selectedTypeID" selectName="selectedType"
                     selectOptions={selectedLabel.types}  
                     selectValue = {selectedType}
@@ -2998,7 +3003,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }
           {(isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading &&
             !isLoading && !isPdfDownloading && storyData?.id !== '' && !(
-              [sessionFlowName.SsoFlow].includes(getFromStorage('flow', false)))
+              [sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)) && getFromStorage('projectId'))
             ) && (
             <>
               <div className="div13" >

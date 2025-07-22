@@ -48,21 +48,21 @@ function SsoFlow({ type, variant }) {
                 navigate(-1)
               }
             }
-            setInStorage('sso_accessToken', accessToken);
-            setInStorage('ssoRerouteURL', profile_details.reroute_url);
-            setInStorage('first_name', JSON.stringify(profile_details.first_name));
-            setInStorage('company', JSON.stringify(profile_details.company));
-            setInStorage('state', JSON.stringify(profile_details.state));
-            setInStorage('flow', flow_type);
-            setInStorage('route', JSON.stringify(profile_details.route));
+            setInStorage('sso_accessToken', accessToken, flow_type, localStorage);
+            setInStorage('ssoRerouteURL', profile_details.reroute_url, flow_type, localStorage);
+            setInStorage('first_name', JSON.stringify(profile_details.first_name), flow_type, localStorage);
+            setInStorage('company', JSON.stringify(profile_details.company), flow_type, localStorage);
+            setInStorage('state', JSON.stringify(profile_details.state), flow_type, localStorage);
+            setInStorage('flow', flow_type, flow_type, localStorage);
+            setInStorage('route', JSON.stringify(profile_details.route), flow_type, localStorage);
             const hasAcc = profile_details.has_accepted_tnc;
-            setInStorage('has_accepted_tnc', typeof hasAcc === 'string' ? hasAcc : JSON.stringify(hasAcc));
-            setInStorage('access_token', JSON.stringify(accessToken));
-            setInStorage('profileid', JSON.stringify(profile_details.profileid));
-            setInStorage('sessionid', JSON.stringify(session.sessionid));
-            setInStorage('isNewChatOpen', JSON.stringify(true));
-            setInStorage('projectId', JSON.stringify(projectId));
-            setInStorage('taskId', JSON.stringify(taskId));
+            setInStorage('has_accepted_tnc', typeof hasAcc === 'string' ? hasAcc : JSON.stringify(hasAcc), flow_type, localStorage);
+            setInStorage('access_token', JSON.stringify(accessToken), flow_type, localStorage);
+            setInStorage('profileid', JSON.stringify(profile_details.profileid), flow_type, localStorage);
+            setInStorage('sessionid', JSON.stringify(session.sessionid), flow_type, localStorage);
+            setInStorage('isNewChatOpen', JSON.stringify(true), flow_type, localStorage);
+            setInStorage('projectId', JSON.stringify(projectId), flow_type, localStorage);
+            setInStorage('taskId', JSON.stringify(taskId), flow_type, localStorage);
             setLanguage(profile_details.route);
             navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
           } else {

@@ -9,7 +9,10 @@ export const setInStorage = (key, value, currentFlow, storageName='') => {
   } else{
     const flow = currentFlow || sessionStorage.getItem('flow') || localStorage.getItem('flow');
     const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
-    const isTemporary = flow && sessionFlows.includes(flow);
+    const isTemporary = flow && sessionFlows.includes(flow) && !(
+      localStorage.getItem('projectId') ||
+      sessionStorage.getItem('projectId')
+    );
     storage = isTemporary ? sessionStorage : localStorage;
   }
   storage.setItem(key, value);
@@ -22,7 +25,10 @@ export const getFromStorage = (key, parseValue = false, storageName='') => {
   } else{
     const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
     const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
-    const isTemporary = flow && sessionFlows.includes(flow);
+    const isTemporary = flow && sessionFlows.includes(flow) && !(
+      localStorage.getItem('projectId') ||
+      sessionStorage.getItem('projectId')
+    );
     storage = isTemporary ? sessionStorage : localStorage;
   }
   const value = storage.getItem(key);
@@ -138,7 +144,7 @@ export function clearFromStorage(removeFromAll=false, excludeKeys = []) {
     'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type', 
     'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress',
     'grit', 'device_id', 'defaultBotName', 'phoneNumber', 'english_first_name', 'hasSelectedLanguage', 'chatLanguage',
-    'projectId', 'taskId', 'sso_accessToken'
+    'projectId', 'taskId', 'sso_accessToken', 'ssoRerouteURL'
   ];
 
   keysToRemove.forEach((key) => {
