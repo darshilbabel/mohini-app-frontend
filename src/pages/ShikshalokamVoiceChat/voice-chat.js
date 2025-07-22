@@ -2673,7 +2673,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         if (projectId) {
           clearFromStorage();
           navigate(-1);
-        } else if([sessionFlowName.SsoFlow].includes(getFromStorage('flow', false))) {
+        } else if([sessionFlowName.SsoFlow].includes(getFromStorage('flow', false)) && getFromStorage('projectId', true)) {
           clearFromStorage();
           navigateSsoFlow();
         }
