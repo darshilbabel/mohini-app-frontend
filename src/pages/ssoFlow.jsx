@@ -30,6 +30,7 @@ function SsoFlow({ type, variant }) {
       const flow_type = urlParams.get("flow");
       const projectId = urlParams.get("projectId");
       const taskId = urlParams.get("taskId");
+      const rerouteUrl = urlParams.get("rerouteUrl");
 
       if(!accessToken || accessToken === '') {
         navigate(-1);
@@ -50,7 +51,7 @@ function SsoFlow({ type, variant }) {
             }
             clearFromStorage(true);
             setInStorage('sso_accessToken', accessToken, flow_type, localStorage);
-            setInStorage('ssoRerouteURL', profile_details.reroute_url, flow_type, localStorage);
+            setInStorage('ssoRerouteURL', rerouteUrl, flow_type, localStorage);
             setInStorage('first_name', JSON.stringify(profile_details.first_name), flow_type, localStorage);
             setInStorage('company', JSON.stringify(profile_details.company), flow_type, localStorage);
             setInStorage('state', JSON.stringify(profile_details.state), flow_type, localStorage);
