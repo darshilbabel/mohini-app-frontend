@@ -640,6 +640,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [editorCopyChanges, isModalOpen, storyData]);
 
   const defaultEditorClick = (title, name, location) => {
+    stopAllAudio();
     return (
       <>
         <div className="fixed inset-0 bg-white flex items-center justify-center p-0 max-sm:px-0 z-[100]">
