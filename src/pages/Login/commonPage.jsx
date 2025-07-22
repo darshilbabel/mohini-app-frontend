@@ -57,7 +57,9 @@ function CommonHomePage({ usecaseType }) {
       setUserLanguage(userLanguage);
     }
 
+    if(!getFromStorage("projectId", true)) 
     clearFromStorage(true, ["hasSelectedLanguage", "local_route"]);
+
     if (!localStorage.getItem("local_route")) {
       localStorage.setItem(
         "local_route",
@@ -74,7 +76,7 @@ function CommonHomePage({ usecaseType }) {
     stopAllAudio();
     setLanguage(e?.target?.value);
     localStorage.setItem("local_route", JSON.stringify(e?.target?.value));
-    if(getFromStorage("flow") === sessionFlowName.GuestMiStory) {
+    if(getFromStorage("flow") === sessionFlowName.GuestMiStory && getFromStorage("projectId", true)) {
       return navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
     }
   };
