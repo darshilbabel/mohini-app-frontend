@@ -18,9 +18,9 @@ function SsoFlow({ type, variant }) {
   
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    clearFromStorage();
-  }, []);
+  // useEffect(() => {
+  //   clearFromStorage();
+  // }, []);
 
   useEffect(() => {
 
@@ -48,6 +48,7 @@ function SsoFlow({ type, variant }) {
                 navigate(-1)
               }
             }
+            clearFromStorage(true);
             setInStorage('sso_accessToken', accessToken, flow_type, localStorage);
             setInStorage('ssoRerouteURL', profile_details.reroute_url, flow_type, localStorage);
             setInStorage('first_name', JSON.stringify(profile_details.first_name), flow_type, localStorage);
@@ -77,9 +78,7 @@ function SsoFlow({ type, variant }) {
       }
     }
 
-    if(!getFromStorage('profileid')) {
-      fetchProfileDetails();
-    }
+    fetchProfileDetails();
   }, []);
 
   return (

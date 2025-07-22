@@ -138,18 +138,21 @@ export const handleS3Upload = async (file, fileName, folderStructure, storyData,
 };
 
 export function clearFromStorage(removeFromAll=false, excludeKeys = []) {
-  const keysToRemove = [
-    'botName', 'chat-history', 'company', 'first_name', 'has_accepted_tnc', 'intro_message', 
-    'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
-    'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type', 
-    'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress',
-    'grit', 'device_id', 'defaultBotName', 'phoneNumber', 'english_first_name', 'hasSelectedLanguage', 'chatLanguage',
-    'projectId', 'taskId', 'sso_accessToken', 'ssoRerouteURL'
-  ];
-
-  keysToRemove.forEach((key) => {
-    if (!excludeKeys.includes(key)) {
-      removeFromStorage(key, removeFromAll);
-    }
-  });
+  try{
+    const keysToRemove = [
+      'botName', 'chat-history', 'company', 'first_name', 'has_accepted_tnc', 'intro_message', 
+      'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
+      'showHomepage', 'state', 'access_token', 'flow', 'statemachine_length', 'selected_type', 
+      'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress',
+      'grit', 'device_id', 'defaultBotName', 'phoneNumber', 'english_first_name', 'hasSelectedLanguage', 'chatLanguage',
+      'projectId', 'taskId', 'sso_accessToken', 'ssoRerouteURL'
+    ];
+    keysToRemove.forEach((key) => {
+      if (!excludeKeys.includes(key)) {
+        removeFromStorage(key, removeFromAll);
+      }
+    });
+  } catch (error){
+    console.error("Error while clearing: ", error);
+  }
 }
