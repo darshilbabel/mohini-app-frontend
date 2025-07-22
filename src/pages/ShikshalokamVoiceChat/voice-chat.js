@@ -1109,14 +1109,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           if(wantToNavigateBack){
             let rerouteUrl = getFromStorage('previousUrl');
             stopAllAudio();
-            clearFromStorage();
-            setLanguage(languageList[0].value);
-            setInStorage('local_route', JSON.stringify(languageList[0].value));
             const storedProjectId = getFromStorage('projectId', false);
             if(storedProjectId) {
               clearFromStorage(true);
               navigateSsoFlow();
+              return;
             }
+            clearFromStorage();
+            setLanguage(languageList[0].value);
+            setInStorage('local_route', JSON.stringify(languageList[0].value));
             // navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
             // navigate("/", { replace: true });
             if(rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== ""){
