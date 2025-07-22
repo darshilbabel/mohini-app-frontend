@@ -74,6 +74,9 @@ function CommonHomePage({ usecaseType }) {
     stopAllAudio();
     setLanguage(e?.target?.value);
     localStorage.setItem("local_route", JSON.stringify(e?.target?.value));
+    if(getFromStorage("flow") === sessionFlowName.GuestMiStory) {
+      return navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
+    }
   };
 
   useEffect(() => {
