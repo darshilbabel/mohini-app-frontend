@@ -30,7 +30,11 @@ function SsoFlow({ type, variant }) {
       const flow_type = urlParams.get("flow");
       const projectId = urlParams.get("projectId");
       const taskId = urlParams.get("taskId");
-      const rerouteUrl = urlParams.get("rerouteUrl");
+      let rerouteRaw = urlParams.get("rerouteUrl") || "";
+      if (rerouteRaw.startsWith('"') && rerouteRaw.endsWith('"')) {
+        rerouteRaw = rerouteRaw.slice(1, -1);
+      }
+      const rerouteUrl = decodeURIComponent(rerouteRaw);
 
       if(!accessToken || accessToken === '') {
         navigate(-1);
