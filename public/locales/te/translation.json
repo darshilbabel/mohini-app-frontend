@@ -50,7 +50,7 @@
     "inProgressStatusText": "ప్రోగ్రెస్లో ఉంది",                             
     "EditorConfirm": "కథను రూపొందించండి",
     "uploadImagesStory": "మీడియా జోడించండి",
-    "editorHeading": "చివరి దశ! మీ కథ మరియు శీర్షికను సమీక్షించి సవరించండి.",
+    "editorHeading": "చివరి దశ! మీ కథనాన్ని సమీక్షించి, సవరించండి.",
     "addImage": "చిత్రాన్ని జోడించండి",
     "UploadErrorMsg": "అయ్యో, మీరు ఈ ఫైల్‌ను ఇప్పటికే అప్‌లోడ్ చేసినట్లు కనిపిస్తోంది!",
     "removeImage": "తొలగించండి",
@@ -100,5 +100,6 @@
     "ptmIntroductionHeading": "మీ అభిప్రాయాన్ని మిత్రాతో పంచుకోండి!",
     "ptmIntroductionDescriptionLine1": "మిత్రాతో చాట్ చేయడం ప్రారంభించండి",
     "ptmIntroductionDescriptionLine2": "మీ ఆలోచనలను మీ భాషలో పంచుకోండి.",
-    "ptmIntroductionDescriptionLine3": "మీ అభిప్రాయాన్ని సమర్పించండి"
+    "ptmIntroductionDescriptionLine3": "మీ అభిప్రాయాన్ని సమర్పించండి",
+    "filesUploadedMessage": "ఫైల్‌లు అప్‌లోడ్ చేయబడ్డాయి"
 }

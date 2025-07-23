@@ -667,7 +667,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 <div className="mt-4">
                   <h3 className="text-md font-semibold">{title}</h3>
                   <p className="text-gray-600 text-sm">
-                    by {name}, {location}
+                    {name}, {location}
                   </p>
                 </div>
 

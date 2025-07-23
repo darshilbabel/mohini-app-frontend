@@ -50,7 +50,7 @@
     "inProgressStatusText": "प्रगति पर है",
     "EditorConfirm": "कहानी बनाएं",
     "uploadImagesStory": "छवियाँ जोड़ें",
-    "editorHeading": "अंतिम चरण! अपनी कहानी और शीर्षक की समीक्षा करें और संपादित करें।",
+    "editorHeading": "अंतिम चरण! अपनी कहानी की समीक्षा करें और संपादित करें।",
     "addImage": "छवि जोड़ें",
     "UploadErrorMsg": "उफ़, ऐसा लगता है कि आपने पहले ही इस फ़ाइल को अपलोड किया है!",
     "removeImage": "हटाएं",
@@ -100,5 +100,6 @@
     "ptmIntroductionHeading": "मित्रा के साथ अपनी प्रतिक्रिया साझा करें!",
     "ptmIntroductionDescriptionLine1": "मित्रा के साथ चैटिंग शुरू करें",
     "ptmIntroductionDescriptionLine2": "अपनी भाषा में अपने विचार साझा करें।",
-    "ptmIntroductionDescriptionLine3": "अपनी प्रतिक्रिया सबमिट करें"
+    "ptmIntroductionDescriptionLine3": "अपनी प्रतिक्रिया सबमिट करें",
+    "filesUploadedMessage": "फ़ाइलें अपलोड की गईं"
 }
