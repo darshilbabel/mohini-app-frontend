@@ -50,7 +50,7 @@
     "inProgressStatusText": "In Progress",
     "EditorConfirm": "Create story",
     "uploadImagesStory": "Add media",
-    "editorHeading": "Last step! Review and edit your story and title.",
+    "editorHeading": "Last step! Review and edit your story.",
     "addImage": "Add image",
     "UploadErrorMsg":"Opps, It seems you have already uploaded this file!",
     "removeImage": "Remove",
@@ -100,6 +100,7 @@
     "ptmIntroductionHeading": "Share Your Feedback with MItra!",
     "ptmIntroductionDescriptionLine1": "Start chatting with MItra",
     "ptmIntroductionDescriptionLine2": "Share your thoughts in your language.",
-    "ptmIntroductionDescriptionLine3": "Submit your feedback"
+    "ptmIntroductionDescriptionLine3": "Submit your feedback",
+    "filesUploadedMessage": "files uploaded"
 
 }

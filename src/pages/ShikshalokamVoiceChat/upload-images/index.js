@@ -114,7 +114,7 @@ const UploadImages = ({
         <div className="mt-4">
           <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('uploadedFiles')}:</h4>
           <div className="text-sm text-gray-600">
-            {files.length}/10 files uploaded
+            {files.length}/10 {t('filesUploadedMessage')}
           </div>
         </div>
       )}

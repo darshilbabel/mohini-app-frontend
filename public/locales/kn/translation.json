@@ -50,7 +50,7 @@
     "inProgressStatusText": "ಪ್ರಗತಿಯಲ್ಲಿದೆ",
     "EditorConfirm": "ಕಥೆ ರಚಿಸಿ",
     "uploadImagesStory": "ಚಿತ್ರಗಳನ್ನು ಸೇರಿಸಿ",
-    "editorHeading": "ಕೊನೆಯ ಹಂತ! ನಿಮ್ಮ ಕಥೆ ಮತ್ತು ಶೀರ್ಷಿಕೆಯನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಸಂಪಾದಿಸಿ.",
+    "editorHeading": "ಕೊನೆಯ ಹಂತ! ನಿಮ್ಮ ಕಥೆಯನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ತಿದ್ದೀರಿ.",
     "addImage": "ಚಿತ್ರ ಸೇರಿಸಿ",
     "UploadErrorMsg": "ಅಯ್ಯೋ, ನೀವು ಈ ಫೈಲ್ ಈಗಾಗಲೇ ಅಪ್‌ಲೋಡ್ ಮಾಡಿರುವಂತೆ ತೋರುತ್ತದೆ!",
     "removeImage": "ತೆಗೆದುಹಾಕಿ",
@@ -100,6 +100,7 @@
     "ptmIntroductionHeading": "ಮಿತ್ರದೊಂದಿಗೆ ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ!",
     "ptmIntroductionDescriptionLine1": "ಮಿತ್ರದೊಂದಿಗೆ ಚಾಟ್ ಪ್ರಾರಂಭಿಸಿ",
     "ptmIntroductionDescriptionLine2": "ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ನಿಮ್ಮ ಆಲೋಚನೆಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ.",
-    "ptmIntroductionDescriptionLine3": "ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಸಲ್ಲಿಸಿ"
+    "ptmIntroductionDescriptionLine3": "ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಸಲ್ಲಿಸಿ",
+    "filesUploadedMessage": "ಚಿತ್ರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ"
 
 }
