@@ -71,7 +71,7 @@ function SsoFlow({ type, variant }) {
             setInStorage('projectId', JSON.stringify(projectId), flow_type, localStorage);
             setInStorage('taskId', JSON.stringify(taskId), flow_type, localStorage);
             setLanguage(profile_details.route);
-            navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
+            navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE, {replace: true});
           } else {
             navigate(-1);
           }
