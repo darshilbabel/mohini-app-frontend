@@ -718,7 +718,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                           getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('sso_accessToken', false)
                         );
                           const rerouteURL = getFromStorage('ssoRerouteURL', false)
-                          clearFromStorage(true);
+                          clearFromStorage();
                           window.location.href = rerouteURL;
                           return;
                           // navigateSsoFlow(rerouteURL);
