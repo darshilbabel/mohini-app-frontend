@@ -227,7 +227,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   };
 
   const navigateSsoFlow = (rerouteURL)=>{
-    isProgrammaticNavigation.current = true; 
+    // isProgrammaticNavigation.current = true; 
     navigate(-3);
     if(rerouteURL){
 
@@ -718,8 +718,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                           getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('sso_accessToken', false)
                         );
                           const rerouteURL = getFromStorage('ssoRerouteURL', false)
-                          clearFromStorage(true)
-                          navigateSsoFlow(rerouteURL);
+                          clearFromStorage(true);
+                          window.location.href = rerouteURL;
+                          return;
+                          // navigateSsoFlow(rerouteURL);
                       } else{
                         window.location.reload();
                       }
@@ -1606,11 +1608,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const currentFlow = getFromStorage('flow', false);
     const handleBack = () => {
-      if (isProgrammaticNavigation.current) {
-        isProgrammaticNavigation.current = false; 
-        navigateSsoFlow('');
-        return;
-      }
+      // if (isProgrammaticNavigation.current) {
+      //   isProgrammaticNavigation.current = false; 
+      //   navigateSsoFlow('');
+      //   return;
+      // }
       if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
       [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
         showGuestPopup(true)
