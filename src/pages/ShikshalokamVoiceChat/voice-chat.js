@@ -227,7 +227,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const navigateSsoFlow = (rerouteURL)=>{
     if(rerouteURL){
-      window.location.href = rerouteURL;
+
+      // window.location.href = rerouteURL;
+      navigate(-3);
     } else {
       navigate(-2);
     }
