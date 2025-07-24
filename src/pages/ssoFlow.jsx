@@ -8,7 +8,7 @@ import "../components/custom-style.css"
 import "../index.css"
 import { clearFromStorage, getFromStorage, setInStorage } from "../services/storage_service";
 import { setLanguage } from "../i18n";
-import { sessionFlowName } from "./ShikshalokamVoiceChat/enum";
+import { languageList, sessionFlowName } from "./ShikshalokamVoiceChat/enum";
 
 
 
@@ -23,7 +23,8 @@ function SsoFlow({ type, variant }) {
   // }, []);
 
   useEffect(() => {
-
+    setLanguage('en');
+    setInStorage('local_route', JSON.stringify(languageList[0].value));
     async function fetchProfileDetails(){
       const urlParams = new URLSearchParams(location.search);
       const accessToken = urlParams.get("accToken");
