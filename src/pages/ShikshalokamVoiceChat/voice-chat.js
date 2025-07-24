@@ -166,6 +166,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const { t } = useTranslation();
   const location = useLocation();
+  const isProgrammaticNavigation = useRef(false);
 
   const selectedLabel = {
     types: [
@@ -226,6 +227,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   };
 
   const navigateSsoFlow = (rerouteURL)=>{
+    isProgrammaticNavigation.current = true; 
     if(rerouteURL){
 
       // window.location.href = rerouteURL;
@@ -1604,6 +1606,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const currentFlow = getFromStorage('flow', false);
     const handleBack = () => {
+      if (isProgrammaticNavigation.current) {
+        isProgrammaticNavigation.current = false; // Reset flag
+        return; // Don't show popup for programmatic navigation
+      }
       if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
       [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
         showGuestPopup(true)
