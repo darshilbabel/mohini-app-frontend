@@ -228,10 +228,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const navigateSsoFlow = (rerouteURL)=>{
     isProgrammaticNavigation.current = true; 
+    navigate(-3);
     if(rerouteURL){
 
       // window.location.href = rerouteURL;
-      navigate(-3);
     } else {
       navigate(-2);
     }
@@ -718,7 +718,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                           getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('sso_accessToken', false)
                         );
                           const rerouteURL = getFromStorage('ssoRerouteURL', false)
-                          clearFromStorage()
+                          clearFromStorage(true)
                           navigateSsoFlow(rerouteURL);
                       } else{
                         window.location.reload();
@@ -1607,8 +1607,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     const currentFlow = getFromStorage('flow', false);
     const handleBack = () => {
       if (isProgrammaticNavigation.current) {
-        isProgrammaticNavigation.current = false; // Reset flag
-        return; // Don't show popup for programmatic navigation
+        isProgrammaticNavigation.current = false; 
+        navigateSsoFlow('');
+        return;
       }
       if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
       [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
