@@ -23,6 +23,9 @@ const UploadImages = ({
   const { t } = useTranslation();
 
   useEffect(() => {
+    if(fileErrorText!==""){
+      setIsLoading(false);
+    }
     const textErrorTime = setTimeout(() => {
       setFileErrorText("")
     }, 5000);

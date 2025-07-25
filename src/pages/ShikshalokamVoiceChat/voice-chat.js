@@ -718,8 +718,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                           getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('sso_accessToken', false)
                         );
                           const rerouteURL = getFromStorage('ssoRerouteURL', false)
-                          clearFromStorage();
-                          window.location.href = rerouteURL;
+                          clearFromStorage(true);
+                          // window.location.href = rerouteURL;
+                          window.location.replace(rerouteURL)
                           return;
                           // navigateSsoFlow(rerouteURL);
                       } else{
@@ -2645,6 +2646,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     const uploadPromises = filesArray.map(async (file) => {
       if (file.size > maxFileSize) {
         setFileErrorText(fileSizeText);
+        setIsLoading(false);
         throw new Error("File size exceeds limit");
       }
   
@@ -2655,6 +2657,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   
       if (!allowedExtensions.includes(fileExtension)) {
         setFileErrorText(t("fileTypeErrorText"));
+        setIsLoading(false);
         throw new Error("Invalid file type");
       }
   
