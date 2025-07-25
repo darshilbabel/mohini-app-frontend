@@ -401,7 +401,8 @@ function CommonHomePage({ usecaseType }) {
                           return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
                         } else if (getFromStorage("flow") === sessionFlowName.GuestMiStory && getFromStorage("projectId", true)) {
                           setInStorage('route', JSON.stringify(lang.value));
-                          return navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY, {replace:true});
+                          // return navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY, {replace:true});
+                          return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
                         }
                         setLanguageButtonSelect(lang.value);
                       }}

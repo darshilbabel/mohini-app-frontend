@@ -71,7 +71,8 @@ function SsoFlow({ type, variant }) {
             setInStorage('projectId', JSON.stringify(projectId), flow_type, localStorage);
             setInStorage('taskId', JSON.stringify(taskId), flow_type, localStorage);
             setLanguage(profile_details.route);
-            navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE, {replace: true});
+            // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE, {replace: true});
+            window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_HOME_PAGE);
           } else {
             navigate(-1);
           }
