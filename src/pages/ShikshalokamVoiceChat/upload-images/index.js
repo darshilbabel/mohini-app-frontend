@@ -48,13 +48,28 @@ const UploadImages = ({
           {fileErrorText && <span className="text-red-500 block px-2">{fileErrorText}</span>}
           <input
             type="file" 
+            className="hidden"
             accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic" 
-            onChange={(e) => {
-              setIsLoading(true);
-              // Use the more advanced function if provided
-              if (handleMultipleUploads) {
-                handleMultipleUploads(e, storyData);
-              }
+            onChange={async(e) => {
+                const selected = Array.from(e.target.files || []);
+                
+                // User canceled -> do nothing
+                if (!selected.length) return;
+
+                setIsLoading(true);
+
+                try {
+                  if (handleMultipleUploads) {
+                    await handleMultipleUploads(e, storyData);
+                  }
+                } catch (err) {
+                  console.error(err);
+                  setFileErrorText(t("somethingWentWrong") || "Upload failed");
+                } finally {
+                  setIsLoading(false);
+                  // Reset input value so user can pick the same file again
+                  e.target.value = "";
+                }
             }}
             onClick={(e) => {
               if (files?.length >= 10) {

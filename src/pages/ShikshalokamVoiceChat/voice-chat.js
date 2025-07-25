@@ -229,7 +229,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const navigateSsoFlow = (rerouteURL)=>{
     // isProgrammaticNavigation.current = true; 
-    navigate(-3);
+    navigate(-2);
     if(rerouteURL){
 
       // window.location.href = rerouteURL;
@@ -726,9 +726,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                           console.log("Can go back 1?", window.history.length > 1);
                           console.log("Can go back 3?", window.history.length > 3);
 
-                          console.log("navigating from the condtion to -2");
+                          console.log("navigating from the condtion to -3");
                           setSsoNavigationTriggered(true)
-                          navigate(-2, {replace: true})
+                          navigate(-3, {replace: true})
                           return;
                           // navigateSsoFlow(rerouteURL);
                       } else{
@@ -1617,7 +1617,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const currentFlow = getFromStorage('flow', false);
     const handleBack = () => {
-      if(ssoNavigationTriggered) return;
+      console.log("heeeee")
+      console.log("History length:", window.history.length);
+      console.log("Can go back 1?", window.history.length > 1);
+      console.log("Can go back 3?", window.history.length > 3);
+      // if(ssoNavigationTriggered) return;
       // if (isProgrammaticNavigation.current) {
       //   isProgrammaticNavigation.current = false; 
       //   navigateSsoFlow('');
@@ -1625,7 +1629,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       // }
       if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
       [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
-        showGuestPopup(true)
+        if(ssoNavigationTriggered&& getFromStorage('projectId')){
+          console.log("isnide navigate happens")
+          navigate(-2)
+        } else{
+          showGuestPopup(true)
+        }
       } else {
         setLanguage(languageList[0].value);
         setInStorage('local_route', JSON.stringify(languageList[0].value));
@@ -1643,12 +1652,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         }
       }
     };
-    const shouldPushState = !ssoNavigationTriggered && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow) && !getFromStorage('projectId');
+    const shouldPushState = true//!ssoNavigationTriggered && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow) && !getFromStorage('projectId');
   
     if (shouldPushState) {
-      console.log("shouldPushState is true so pushing state now.")
       // Check if we already pushed a custom state
       if (!window.history.state?.isCustom) {
+        console.log("shouldPushState is true so pushing state now.")
         window.history.pushState({ isCustom: true }, "", window.location.href);
       }
     }
@@ -1658,7 +1667,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return () => {
       window.removeEventListener("popstate", handleBack);
     };
-  }, [navigate, acceptedTnc, ssoNavigationTriggered]);
+  }, [navigate, acceptedTnc]);
 
   useEffect(() => {
     setInStorage('isChatVisible', JSON.stringify(isChatVisible));
@@ -2668,6 +2677,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   
       const fileName = file.name;
       const fileExtension = fileName.split('.').pop().toLowerCase();
+      console.log("fileName: ", fileName)
+      console.log("fileExtension: ", fileExtension)
   
       console.log("In promise for file:", fileName);
   
