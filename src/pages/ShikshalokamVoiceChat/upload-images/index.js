@@ -15,12 +15,13 @@ const UploadImages = ({
   setIsLoading,
   showImages = false,
   handleMultipleUploads, // Pass this function from parent
-  fileExceedText,
-  fileSizeText
+  fileErrorText,
+  setFileErrorText
 }) => {
-  const [fileErrorText, setFileErrorText] = useState('');
+  // const [fileErrorText, setFileErrorText] = useState('');
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const fileExceedText = t('fileExceedText')
 
   useEffect(() => {
     if(fileErrorText!==""){
@@ -46,14 +47,9 @@ const UploadImages = ({
           </span>
           {fileErrorText && <span className="text-red-500 block px-2">{fileErrorText}</span>}
           <input
-            type="file"
-            className="hidden"
-            accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic"
+            type="file" 
+            accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic" 
             onChange={(e) => {
-              if (files?.length >= 10) {
-                setFileErrorText(fileExceedText);
-                return;
-              }
               setIsLoading(true);
               // Use the more advanced function if provided
               if (handleMultipleUploads) {

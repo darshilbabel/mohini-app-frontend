@@ -690,8 +690,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     isLoading={isLoading}
                     setIsLoading={setIsLoading}
                     handleMultipleUploads={handleMultipleUploads}
-                    fileExceedText={fileExceedText}
-                    fileSizeText={fileSizeText}
+                    fileErrorText={fileErrorText}
+                    setFileErrorText={setFileErrorText}
                     showImages={false}
                   />
                 </div>
