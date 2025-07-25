@@ -163,6 +163,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [acceptedTnc, setAcceptedTnC] = useState(getFromStorage('has_accepted_tnc', false) || 'ONGOING');
   const [seconds, setSeconds] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
+  const [ssoNavigationTriggered, setSsoNavigationTriggered] = useState(false);
 
   const { t } = useTranslation();
   const location = useLocation();
@@ -689,8 +690,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     isLoading={isLoading}
                     setIsLoading={setIsLoading}
                     handleMultipleUploads={handleMultipleUploads}
-                    fileExceedText={fileExceedText}
-                    fileSizeText={fileSizeText}
+                    fileErrorText={fileErrorText}
+                    setFileErrorText={setFileErrorText}
                     showImages={false}
                   />
                 </div>
@@ -718,9 +719,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                           getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('sso_accessToken', false)
                         );
                           const rerouteURL = getFromStorage('ssoRerouteURL', false)
-                          clearFromStorage(true);
+                          clearFromStorage(false);
                           // window.location.href = rerouteURL;
-                          window.location.replace(rerouteURL)
+                          // window.location.replace(rerouteURL)
+                          console.log("History length:", window.history.length);
+                          console.log("Can go back 1?", window.history.length > 1);
+                          console.log("Can go back 3?", window.history.length > 3);
+
+                          console.log("navigating from the condtion to -2");
+                          setSsoNavigationTriggered(true)
+                          navigate(-2, {replace: true})
                           return;
                           // navigateSsoFlow(rerouteURL);
                       } else{
@@ -1609,6 +1617,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const currentFlow = getFromStorage('flow', false);
     const handleBack = () => {
+      if(ssoNavigationTriggered) return;
       // if (isProgrammaticNavigation.current) {
       //   isProgrammaticNavigation.current = false; 
       //   navigateSsoFlow('');
@@ -1634,15 +1643,22 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         }
       }
     };
-
-    window.history.pushState({ isCustom: true }, "", window.location.href);
+    const shouldPushState = !ssoNavigationTriggered && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow) && !getFromStorage('projectId');
+  
+    if (shouldPushState) {
+      console.log("shouldPushState is true so pushing state now.")
+      // Check if we already pushed a custom state
+      if (!window.history.state?.isCustom) {
+        window.history.pushState({ isCustom: true }, "", window.location.href);
+      }
+    }
 
     window.addEventListener("popstate", handleBack);
 
     return () => {
       window.removeEventListener("popstate", handleBack);
     };
-  }, [navigate, acceptedTnc]);
+  }, [navigate, acceptedTnc, ssoNavigationTriggered]);
 
   useEffect(() => {
     setInStorage('isChatVisible', JSON.stringify(isChatVisible));
