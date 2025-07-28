@@ -726,15 +726,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                           console.log("Can go back 1?", window.history.length > 1);
                           console.log("Can go back 3?", window.history.length > 3);
 
-                          console.log("navigating from the condtion to -3");
                           setSsoNavigationTriggered(true)
                           const message = { type: 'MItra', name: "MItra" };
-                          window.postMessage(message, '*');
-                          console.log("Postmessage called");
-                          
                           setTimeout(() => {
-                            navigate(-3, {replace: true});
-                          }, 100);
+                            window.postMessage(message, '*');
+                            console.log("Postmessage called");
+                          }, 500);
+
+                          console.log("navigating from the condtion to -3");
+                          navigate(-3, {replace: true});
+
                           return;
                           // navigateSsoFlow(rerouteURL);
                       } else{
