@@ -728,7 +728,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
                           console.log("navigating from the condtion to -3");
                           setSsoNavigationTriggered(true)
-                          navigate(-3, {replace: true})
+                          const message = { type: 'MItra', name: "MItra" };
+                          window.postMessage(message, '*');
+                          console.log("Postmessage called");
+                          
+                          setTimeout(() => {
+                            navigate(-3, {replace: true});
+                          }, 100);
                           return;
                           // navigateSsoFlow(rerouteURL);
                       } else{
@@ -1652,14 +1658,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         }
       }
     };
-    const shouldPushState = true//!ssoNavigationTriggered && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow) && !getFromStorage('projectId');
-  
-    if (shouldPushState) {
-      // Check if we already pushed a custom state
-      if (!window.history.state?.isCustom) {
-        console.log("shouldPushState is true so pushing state now.")
-        window.history.pushState({ isCustom: true }, "", window.location.href);
-      }
+    // Check if we already pushed a custom state
+    if (!window.history.state?.isCustom) {
+      console.log("shouldPushState is true so pushing state now.")
+      window.history.pushState({ isCustom: true }, "", window.location.href);
     }
 
     window.addEventListener("popstate", handleBack);
