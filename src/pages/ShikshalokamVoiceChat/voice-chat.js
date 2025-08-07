@@ -1771,7 +1771,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         const pdfMedia = story_media?.filter(media => media.media_type === 'application/pdf') || [];
         
         
-        const pdfFileName = pdfMedia[0]?.name;
+        const pdfFileName = story[0]?.title+".pdf";
         const fileUrl = pdfMedia[0]?.public_url;
 
         if (fileUrl && pdfFileName) {
