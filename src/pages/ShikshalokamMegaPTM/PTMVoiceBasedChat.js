@@ -234,7 +234,7 @@ const PTMVoiceBasedChat = () => {
         type: "error",
         options: {
           position: "top-center",
-          autoClose: 4000,
+          autoClose: 6000,
           style: { fontWeight: "bold" },
         },
       });
@@ -596,7 +596,7 @@ const PTMVoiceBasedChat = () => {
                   type: "error",
                   options: {
                     position: "top-center",
-                    autoClose: 4000,
+                    autoClose: 6000,
                     style: { fontWeight: "bold" },
                   },
                 });
@@ -626,7 +626,7 @@ const PTMVoiceBasedChat = () => {
                   type: "error",
                   options: {
                     position: "top-center",
-                    autoClose: 4000,
+                    autoClose: 6000,
                     style: { fontWeight: "bold" },
                   },
                 });

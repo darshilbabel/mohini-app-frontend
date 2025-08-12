@@ -116,7 +116,7 @@ export const startRecording = (
                         type: "error",
                         options: {
                             position: "top-center",
-                            autoClose: 4000,
+                            autoClose: 6000,
                             style: { fontWeight: "bold" },
                         },
                         });
@@ -144,7 +144,7 @@ export const startRecording = (
                         type: "error",
                         options: {
                             position: "top-center",
-                            autoClose: 4000,
+                            autoClose: 6000,
                             style: { fontWeight: "bold" },
                         },
                         });
@@ -158,7 +158,7 @@ export const startRecording = (
                                 type: "error",
                                 options: {
                                     position: "top-center",
-                                    autoClose: 4000,
+                                    autoClose: 6000,
                                     style: { fontWeight: "bold" },
                                 },
                             });

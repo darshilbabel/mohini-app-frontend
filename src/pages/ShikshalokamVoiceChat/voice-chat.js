@@ -1307,7 +1307,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const fetchMedia = async () => {
       if (storyData && storyData?.id !== '') {
-        openModal()
+        if(access_token) {
+          openModal()
+        }
         const story_id = storyData?.id;
         const tempMediaArr = [];
         setIsImageUploading(true);
@@ -2426,7 +2428,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   type: "error",
                   options: {
                     position: "top-center",
-                    autoClose: 4000,
+                    autoClose: 6000,
                     style: { fontWeight: "bold" },
                   },
                 });
@@ -2447,7 +2449,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   type: "error",
                   options: {
                     position: "top-center",
-                    autoClose: 4000,
+                    autoClose: 6000,
                     style: { fontWeight: "bold" },
                   },
                 });
