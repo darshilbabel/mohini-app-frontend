@@ -1307,7 +1307,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const fetchMedia = async () => {
       if (storyData && storyData?.id !== '') {
-        if(access_token) {
+        if(access_token || getFromStorage('access_token', false, 'localStorage')) {
           openModal()
         }
         const story_id = storyData?.id;
