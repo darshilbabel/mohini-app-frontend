@@ -94,7 +94,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const audioRef = useRef();
   const textAreaRef = useRef(null);
   const lastBotMessageIndex = useRef(-1);
-  let access_token =  getFromStorage('accToken')
+  let access_token =  getFromStorage('accessToken')
   let globalSessionID =  getFromStorage('sessionid', true)
 
   const isInitialLoadRef = useRef(true);
@@ -703,7 +703,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       const outputData = await editor.save();
                       let updatePayload = {
                         id: storyData?.id,
-                        token: getFromStorage('accToken', false),
+                        token: getFromStorage('accessToken', false),
                         session: getFromStorage('sessionid', true),
                         flow: getFromStorage('flow', false),
                         formatted_content: outputData?.blocks,
@@ -812,7 +812,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
                   let updatePayload = {
                     id: storyData?.id,
-                    access_token: getFromStorage('accToken', false),
+                    access_token: getFromStorage('accessToken', false),
                     session: getFromStorage('sessionid', true),
                     flow,
                   };
@@ -1307,7 +1307,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const fetchMedia = async () => {
       if (storyData && storyData?.id !== '') {
-        if(access_token || getFromStorage('access_token', false, 'localStorage')) {
+        if(access_token || getFromStorage('accessToken', false, 'localStorage')) {
           openModal()
         }
         const story_id = storyData?.id;
@@ -3538,7 +3538,7 @@ export async function handleFileUpload(e, storyData, files, setFileErrorText, fi
     formData.append("name", fileName);
     formData.append("mediaType", mediaType);
     formData.append('include_in_story', true);
-    formData.append('access_token', access_token);
+    formData.append('accessToken', access_token);
     formData.append('flow',getFromStorage('flow', false));
     formData.append('session', getFromStorage('sessionid', true));
     formData.append("media_type", mediaType);
