@@ -58,7 +58,7 @@ function CommonHomePage({ usecaseType }) {
       setUserLanguage(userLanguage);
     }
 
-    if(!getFromStorage("projectId", false, 'localStorage')){
+    if(!getFromStorage("accessToken", false, 'localStorage')){
       clearFromStorage(true, ["hasSelectedLanguage", "local_route"]);
     }
 
@@ -80,23 +80,12 @@ function CommonHomePage({ usecaseType }) {
     localStorage.setItem("local_route", JSON.stringify(e?.target?.value));
   };
 
-  // useEffect(() => {
-  //   window.history.pushState(null, "", window.location.href);
-
-  //   window.onpopstate = () => {
-  //     window.history.pushState(null, "", window.location.href);
-  //   };
-
-  //   return () => {
-  //     window.onpopstate = null;
-  //   };
-  // }, [navigate]);
   const location = useLocation();
 
   useEffect(() => {
-    const projectId = getFromStorage('projectId');
-    console.log("projectId:", projectId)
-    if (!projectId) {
+    const accessToken = getFromStorage('accessToken');
+    console.log("accessToken:", accessToken)
+    if (!accessToken) {
       // Trap the back button
       window.history.pushState(null, "", window.location.href);
       
@@ -185,15 +174,10 @@ function CommonHomePage({ usecaseType }) {
           <div className="text-center sm:text-md text-xl mb-2 text-slate-700">
             <b>{t("welcome_heading1")}</b>
           </div>
-          {/* {(languageButtonSelect && ![null, ''].includes(languageButtonSelect))&&       
-                            <p className="pt-4 pb-0">
-                                {t('welcome_paragraph1')}
-                            </p>
-                        } */}
+
         </div>
         <img
           src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
-          // width={`${(languageButtonSelect && ![null, ''].includes(languageButtonSelect))? "360": "450"}`}
           width="360"
           height="300"
           className="center-img custom-login-image"
@@ -252,16 +236,10 @@ function CommonHomePage({ usecaseType }) {
         />
         <div className="bg-slate-50 sm:pt-6 sm:h-[100%] flex flex-col justify-center mt-0 w-full">
           <div className="flex justify-end mr-6 relative block sm:hidden"></div>
-          <div className="sm:hidden">
-            {/* {(languageButtonSelect && ![null, ''].includes(languageButtonSelect))&&       
-                            <p className="pt-1 pb-4 text-center">
-                                {t('welcome_paragraph1')}
-                            </p>
-                        } */}
-          </div>
+    
           {languageButtonSelect &&
           ![null, ""].includes(languageButtonSelect) &&
-          !ptm_case ? (
+          !ptm_case && !getFromStorage("flow") ? (
             <>
               <div className="text-center text-lg md:text-xl sm:text-md mt-0 sm:mt-[100px] text-slate-700">
                 <b>{t("commonPageSelectionText")}</b>
@@ -397,14 +375,21 @@ function CommonHomePage({ usecaseType }) {
                           "local_route",
                           JSON.stringify(lang.value)
                         );
+                          // if acccess token exists --> send them to flow if flow exists if not let them select!
+                        setInStorage('route', JSON.stringify(lang.value));
+                        setLanguageButtonSelect(lang.value);
+                        // case for ptm
                         if (ptm_case) {
                           return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
-                        } else if (getFromStorage("flow") === sessionFlowName.GuestMiStory && getFromStorage("projectId", true)) {
-                          setInStorage('route', JSON.stringify(lang.value));
-                          // return navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY, {replace:true});
-                          return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
                         }
-                        setLanguageButtonSelect(lang.value);
+                        if (getFromStorage("accessToken", true)) {
+                          if(getFromStorage("flow") === sessionFlowName.GuestMiStory){
+                            return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
+                          }
+                          if(getFromStorage("flow") === sessionFlowName.GuestDiscussion){
+                            return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
+                          }
+                        }
                       }}
                     >
                       <button className="w-full">{lang.label}</button>
@@ -493,7 +478,6 @@ export function ShowPageButton({
                 type="button"
                 className="speaker-off-button text-[1.3rem] md:text-lg sm:text-[1.3rem] text-[#322f2f] vertical-center"
                 onClick={(e) => {
-                  // e.stopPropagation();
                   if (!forcePlayAudio) {
                     handleOnStopSpeaking(audioRef, setIsPlaying);
                   }

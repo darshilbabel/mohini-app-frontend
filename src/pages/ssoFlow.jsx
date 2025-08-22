@@ -1,22 +1,21 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { getSessionDetails, readElevateProfile, updateReflectionStatus } from "../services/api.service";
 import { useLocation, useNavigate } from "react-router-dom";
 import ROUTES from "../url";
 import { BiLoader } from "react-icons/bi";
 import "../components/custom-style.css"
 import "../index.css"
-import { clearFromStorage, getFromStorage, setInStorage } from "../services/storage_service";
+import { clearFromStorage, setInStorage } from "../services/storage_service";
 import { setLanguage } from "../i18n";
 import { languageList, sessionFlowName } from "./ShikshalokamVoiceChat/enum";
 
 
 
-function SsoFlow({ type, variant }) {
+function SsoFlow() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [isLoading, setIsLoading] = useState(true);
 
   // useEffect(() => {
   //   clearFromStorage();
@@ -47,15 +46,20 @@ function SsoFlow({ type, variant }) {
           const profile_details = data?.profile_details;
           if(profile_details) {
             let session = await getSessionDetails();
-            const statusRes = await updateReflectionStatus(projectId, "started", sessionFlowName.SsoFlow, accessToken);
-            if (statusRes?.status !== 200) {
-              if (projectId){
-                clearFromStorage()
-                navigate(-1)
+            if (!!projectId) {
+              const statusRes = await updateReflectionStatus(
+                projectId,
+                "started",
+                sessionFlowName.SsoFlow,
+                accessToken
+              );
+              if (!!projectId && statusRes?.status !== 200) {
+                  clearFromStorage();
+                  navigate(-1);
               }
             }
+
             clearFromStorage(true);
-            setInStorage('sso_accessToken', accessToken, flow_type, localStorage);
             setInStorage('ssoRerouteURL', rerouteUrl, flow_type, localStorage);
             setInStorage('first_name', JSON.stringify(profile_details.first_name), flow_type, localStorage);
             setInStorage('company', JSON.stringify(profile_details.company), flow_type, localStorage);
@@ -90,13 +94,11 @@ function SsoFlow({ type, variant }) {
 
   return (
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 justify-center h-screen">
-      {isLoading&& 
         <div className="login-load-spinner">
           <div className="login-div67">
             <BiLoader className="login-rotate-loader login-loader-icon" />
           </div>
         </div> 
-      }
     </div>
   );
 }

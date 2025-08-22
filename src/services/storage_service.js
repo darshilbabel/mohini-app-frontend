@@ -145,7 +145,7 @@ export function clearFromStorage(removeFromAll=false, excludeKeys = []) {
       'showHomepage', 'state', 'accessToken', 'flow', 'statemachine_length', 'selected_type', 
       'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress',
       'grit', 'device_id', 'defaultBotName', 'phoneNumber', 'english_first_name', 'hasSelectedLanguage', 'chatLanguage',
-      'projectId', 'taskId', 'sso_accessToken', 'ssoRerouteURL'
+      'projectId', 'taskId', 'ssoRerouteURL'
     ];
     keysToRemove.forEach((key) => {
       if (!excludeKeys.includes(key)) {

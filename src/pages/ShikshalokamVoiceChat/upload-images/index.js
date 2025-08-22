@@ -8,7 +8,6 @@ import { useTranslation } from "react-i18next";
 const UploadImages = ({ 
   storyData, 
   access_token, 
-  projectId, 
   files, 
   setFiles, 
   isLoading,
