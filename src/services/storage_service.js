@@ -6,7 +6,7 @@ export const setInStorage = (key, value, currentFlow, storageName='') => {
   if (storageName && storageName !== '') {
     const isTemporary = storageName === 'sessionStorage';
     storage = isTemporary ? sessionStorage : localStorage;
-  } else{
+  } else {
     const flow = currentFlow || sessionStorage.getItem('flow') || localStorage.getItem('flow');
     const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
     const isTemporary = flow && sessionFlows.includes(flow) && !(

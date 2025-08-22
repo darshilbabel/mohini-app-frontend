@@ -20,7 +20,7 @@ function ShikshalokamChat({type, variant}) {
 	const [companyName, setCompanyName] = useState(getFromStorage('company') || null);
 		  
 	useEffect(() => {
-		if(getFromStorage('projectId', false, 'localStorage')) return;
+		if(getFromStorage('accessToken', false, 'localStorage')) return;
 		const tnc=getFromStorage("has_accepted_tnc");
 		if (!tnc || tnc === "ONGOING") {
 			clearFromStorage(true, ['local_route']);
@@ -50,7 +50,7 @@ function ShikshalokamChat({type, variant}) {
 	}, []);
 	
 	function getUserFingerPrint() {
-		if(getFromStorage('projectId', false, 'localStorage')) return;
+		if(getFromStorage('accessToken', false, 'localStorage')) return;
 
 		try {
 			const fingerprint =
@@ -73,7 +73,7 @@ function ShikshalokamChat({type, variant}) {
 	}
 
 	async function initialSetup() {
-		if(getFromStorage('projectId', false, 'localStorage')) return;
+		if(getFromStorage('accessToken', false, 'localStorage')) return;
 
 		try{
 		  const deviceId = getFromStorage('device_id')
@@ -132,7 +132,7 @@ function ShikshalokamChat({type, variant}) {
 	}
 
 	const setFinalLanguage = async () => {
-		if(getFromStorage('projectId', false, 'localStorage')) return;
+		if(getFromStorage('accessToken', false, 'localStorage')) return;
 
 		const currentFlow = getFromStorage('flow');
 		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
@@ -146,7 +146,7 @@ function ShikshalokamChat({type, variant}) {
 
 	useEffect(()=>{
 		const runSetup = async () => {
-			if(getFromStorage('projectId', false, 'localStorage')) return;
+			if(getFromStorage('accessToken', false, 'localStorage')) return;
 
 			if(!getFromStorage('sessionid')){
 				clearFromStorage(false, ['local_route']);

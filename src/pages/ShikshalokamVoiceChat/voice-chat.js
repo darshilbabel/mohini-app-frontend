@@ -1560,13 +1560,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const currentFlow = getFromStorage('flow', false);
     const handleBack = () => {
+      const _access_token = getFromStorage('accessToken')
+      console.log("here token", _access_token, "global",access_token)
       console.log("heeeee")
       console.log("History length:", window.history.length);
       console.log("Can go back 1?", window.history.length > 1);
       console.log("Can go back 3?", window.history.length > 3);
       if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
-      [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
-        if(ssoNavigationTriggered && getFromStorage('accessToken')){
+      [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow].includes(currentFlow)){
+        if(ssoNavigationTriggered && _access_token){
           console.log("isnide navigate happens")
           navigate(-2)
         } else{
@@ -1576,7 +1578,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         setLanguage(languageList[0].value);
         setInStorage('local_route', JSON.stringify(languageList[0].value));
         stopAllAudio();
-      if(access_token) {
+      if(_access_token) {
           const rerouteURL = getFromStorage('ssoRerouteURL', false)
           clearFromStorage(true);
           navigateSsoFlow(rerouteURL);
