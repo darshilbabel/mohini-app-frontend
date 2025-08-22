@@ -38,7 +38,7 @@ const Logout = () => {
         cookies.remove("profileid", {
           path: "/",
         });
-        cookies.remove("access_token", {
+        cookies.remove("accessToken", {
           path: "/",
         });
         cookies.remove("company", {
@@ -98,7 +98,7 @@ const Logout = () => {
         localStorage.removeItem('timerStart');
         localStorage.removeItem('botName');
         localStorage.removeItem('type');
-        localStorage.removeItem('access_token');
+        localStorage.removeItem('accessToken');
         localStorage.removeItem('company');
         localStorage.removeItem('state');
         localStorage.removeItem('showHomepage');
@@ -120,7 +120,7 @@ const Logout = () => {
         cookies.remove("profileid", {
           path: "/",
         });
-        cookies.remove("access_token", {
+        cookies.remove("accessToken", {
           path: "/",
         });
         cookies.remove("company", {

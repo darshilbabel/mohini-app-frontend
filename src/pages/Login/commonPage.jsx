@@ -27,15 +27,16 @@ import { FaArrowRightLong } from "react-icons/fa6";
 import { useLocation } from "react-use";
 // get default language based on usecase type
 function getDefaultLanguage(usecaseType) {
-    switch (usecaseType) {
-        default:
-            return languageList[0].value;
-    }
+  switch (usecaseType) {
+    default:
+      return languageList[0].value;
+  }
 }
 function CommonHomePage({ usecaseType }) {
   const navigate = useNavigate();
   const defaultLanguage =
-    getFromStorage("local_route", true, "localStorage") || getDefaultLanguage(usecaseType)
+    getFromStorage("local_route", true, "localStorage") ||
+    getDefaultLanguage(usecaseType);
   const [userLanguage, setUserLanguage] = useState(defaultLanguage);
   const [selectedFlow, setSelectedFlow] = useState(null);
   const [stopAudioTriggered, setStopAudioTriggered] = useState(false);
@@ -58,7 +59,7 @@ function CommonHomePage({ usecaseType }) {
       setUserLanguage(userLanguage);
     }
 
-    if(!getFromStorage("projectId", false, 'localStorage')){
+    if (!getFromStorage("accessToken", false, "localStorage")) {
       clearFromStorage(true, ["hasSelectedLanguage", "local_route"]);
     }
 
@@ -80,53 +81,41 @@ function CommonHomePage({ usecaseType }) {
     localStorage.setItem("local_route", JSON.stringify(e?.target?.value));
   };
 
-  // useEffect(() => {
-  //   window.history.pushState(null, "", window.location.href);
-
-  //   window.onpopstate = () => {
-  //     window.history.pushState(null, "", window.location.href);
-  //   };
-
-  //   return () => {
-  //     window.onpopstate = null;
-  //   };
-  // }, [navigate]);
   const location = useLocation();
 
   useEffect(() => {
-    const projectId = getFromStorage('projectId');
-    console.log("projectId:", projectId)
-    if (!projectId) {
+    const accessToken = getFromStorage("accessToken");
+    console.log("accessToken:", accessToken);
+    if (!accessToken) {
       // Trap the back button
       window.history.pushState(null, "", window.location.href);
-      
+
       const handlePopState = () => {
         window.history.pushState(null, "", window.location.href);
       };
 
-      window.addEventListener('popstate', handlePopState);
+      window.addEventListener("popstate", handlePopState);
 
       return () => {
-        window.removeEventListener('popstate', handlePopState);
+        window.removeEventListener("popstate", handlePopState);
       };
     } else {
       const handlePopState = () => {
-        const rerouteURL = getFromStorage('ssoRerouteURL', false);
+        const rerouteURL = getFromStorage("ssoRerouteURL", false);
         if (rerouteURL) {
-          clearFromStorage(true, ['ssoRerouteURL'])
-          console.log("reroute: ", rerouteURL)
+          clearFromStorage(true, ["ssoRerouteURL"]);
+          console.log("reroute: ", rerouteURL);
           window.location.href = rerouteURL;
         }
       };
 
-      window.addEventListener('popstate', handlePopState);
+      window.addEventListener("popstate", handlePopState);
 
       return () => {
-        window.removeEventListener('popstate', handlePopState);
+        window.removeEventListener("popstate", handlePopState);
       };
     }
   }, [location.pathname]);
-
 
   const controllerRef = useRef(null);
 
@@ -145,14 +134,14 @@ function CommonHomePage({ usecaseType }) {
   const ptm_case = [sessionUsecaseType.MEGA_PTM].some((x) => x === usecaseType);
 
   useEffect(() => {
-      window.history.pushState(null, "", window.location.href);
-      window.history.replaceState(null, "", window.location.href);
-      window.onpopstate = function () {
-          window.history.go(1);
-      };
-      return () => {
-          window.onpopstate = null;
-      };
+    window.history.pushState(null, "", window.location.href);
+    window.history.replaceState(null, "", window.location.href);
+    window.onpopstate = function () {
+      window.history.go(1);
+    };
+    return () => {
+      window.onpopstate = null;
+    };
   }, []);
 
   return (
@@ -185,15 +174,9 @@ function CommonHomePage({ usecaseType }) {
           <div className="text-center sm:text-md text-xl mb-2 text-slate-700">
             <b>{t("welcome_heading1")}</b>
           </div>
-          {/* {(languageButtonSelect && ![null, ''].includes(languageButtonSelect))&&       
-                            <p className="pt-4 pb-0">
-                                {t('welcome_paragraph1')}
-                            </p>
-                        } */}
         </div>
         <img
           src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
-          // width={`${(languageButtonSelect && ![null, ''].includes(languageButtonSelect))? "360": "450"}`}
           width="360"
           height="300"
           className="center-img custom-login-image"
@@ -252,124 +235,132 @@ function CommonHomePage({ usecaseType }) {
         />
         <div className="bg-slate-50 sm:pt-6 sm:h-[100%] flex flex-col justify-center mt-0 w-full">
           <div className="flex justify-end mr-6 relative block sm:hidden"></div>
-          <div className="sm:hidden">
-            {/* {(languageButtonSelect && ![null, ''].includes(languageButtonSelect))&&       
-                            <p className="pt-1 pb-4 text-center">
-                                {t('welcome_paragraph1')}
-                            </p>
-                        } */}
-          </div>
+
           {languageButtonSelect &&
           ![null, ""].includes(languageButtonSelect) &&
-          !ptm_case ? (
-            <>
-              <div className="text-center text-lg md:text-xl sm:text-md mt-0 sm:mt-[100px] text-slate-700">
-                <b>{t("commonPageSelectionText")}</b>
-              </div>
-              <div className="py-2 px-0 text-center">
-                {/* Form here */}
-                <div className="flex flex-col items-center gap-8 py-2 px-0 font-inter">
-                  {/* Top Buttons */}
-                  <div className="flex flex-col w-full justify-center items-center gap-4 flow-button-custom px-4">
-                                        <span
-                      className={`flex items-center gap-3 px-3 justify-center sm:py-4 py-3 rounded-2xl text-[#322f2f] cursor-pointer 
+          !ptm_case &&
+          !getFromStorage("flow", true) ? (
+            !getFromStorage("flow", true) && (
+              <>
+                <div className="text-center text-lg md:text-xl sm:text-md mt-0 sm:mt-[100px] text-slate-700">
+                  <b>{t("commonPageSelectionText")}</b>
+                </div>
+                <div className="py-2 px-0 text-center">
+                  {/* Form here */}
+                  <div className="flex flex-col items-center gap-8 py-2 px-0 font-inter">
+                    {/* Top Buttons */}
+                    <div className="flex flex-col w-full justify-center items-center gap-4 flow-button-custom px-4">
+                      <span
+                        className={`flex items-center gap-3 px-3 justify-center sm:py-4 py-3 rounded-2xl text-[#322f2f] cursor-pointer 
                         ${
-                          selectedFlow ==
-                          sessionFlowName.GuestDiscussion
+                          selectedFlow == sessionFlowName.GuestDiscussion
                             ? "bg-[#efeafe]"
                             : "bg-[#e3ecf48f]"
-                        } sm:max-w-[500px] w-full`
-                      }
-                      onClick={() => {
-                        setSelectedFlow(sessionFlowName.GuestDiscussion);
-                      }}
-                    >
-                      <span className="text-base font-medium">
-                        <ShowPageButton
-                          text={t("commonPageButtonText2")}
-                          id="capture-discussion"
-                          userLanguage={userLanguage}
-                          showSpeaker={true}
-                          forcePlayAudio={
-                            selectedFlow === sessionFlowName.GuestDiscussion
-                          }
-                          selectedFlow={selectedFlow}
-                          audioRef={audioRef}
-                          stopAudioTriggered={stopAudioTriggered}
-                          setStopAudioTriggered={setStopAudioTriggered}
-                          controllerRef={controllerRef}
-                          logo="https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/discussion_capture_logo.png"
-                        />
+                        } sm:max-w-[500px] w-full`}
+                        onClick={() => {
+                          setSelectedFlow(sessionFlowName.GuestDiscussion);
+                        }}
+                      >
+                        <span className="text-base font-medium">
+                          <ShowPageButton
+                            text={t("commonPageButtonText2")}
+                            id="capture-discussion"
+                            userLanguage={userLanguage}
+                            showSpeaker={true}
+                            forcePlayAudio={
+                              selectedFlow === sessionFlowName.GuestDiscussion
+                            }
+                            selectedFlow={selectedFlow}
+                            audioRef={audioRef}
+                            stopAudioTriggered={stopAudioTriggered}
+                            setStopAudioTriggered={setStopAudioTriggered}
+                            controllerRef={controllerRef}
+                            logo="https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/discussion_capture_logo.png"
+                          />
+                        </span>
                       </span>
-                    </span>
-                    <span
-                      className={`flex items-center justify-center gap-3 px-3 sm:py-4 py-3 rounded-2xl text-[#322f2f] cursor-pointer 
+                      <span
+                        className={`flex items-center justify-center gap-3 px-3 sm:py-4 py-3 rounded-2xl text-[#322f2f] cursor-pointer 
                           ${
-                            selectedFlow ==
-                            sessionFlowName.GuestMiStory
+                            selectedFlow == sessionFlowName.GuestMiStory
                               ? "bg-[#efeafe]"
                               : "bg-[#e3ecf48f]"
-                        } sm:max-w-[500px] w-full`
-                      }
-                      onClick={() => {
-                        setSelectedFlow(sessionFlowName.GuestMiStory);
+                          } sm:max-w-[500px] w-full`}
+                        onClick={() => {
+                          setSelectedFlow(sessionFlowName.GuestMiStory);
+                        }}
+                      >
+                        <span className="text-base font-medium">
+                          <ShowPageButton
+                            text={t("commonPageButtonText1")}
+                            id="capture-mi-story"
+                            userLanguage={userLanguage}
+                            showSpeaker={true}
+                            forcePlayAudio={
+                              selectedFlow === sessionFlowName.GuestMiStory
+                            }
+                            selectedFlow={selectedFlow}
+                            audioRef={audioRef}
+                            stopAudioTriggered={stopAudioTriggered}
+                            setStopAudioTriggered={setStopAudioTriggered}
+                            controllerRef={controllerRef}
+                            logo="https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/mi_story_capture_logo.png"
+                          />
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Continue Button */}
+                    <button
+                      className={`mt-0 px-16 py-2 rounded-xl text-white text-lg font-medium flex items-center ${
+                        selectedFlow
+                          ? "bg-[#572E91] cursor-pointer"
+                          : "bg-[#8d888857] cursor-not-allowed"
+                      }`}
+                      disabled={!selectedFlow}
+                      onClick={async () => {
+                        await stopAllAudio();
+                        if (selectedFlow === sessionFlowName.GuestDiscussion) {
+                          setInStorage("previousUrl", window.location.href);
+                          setInStorage("tempCode", "xyz123");
+                          if (getFromStorage("previousUrl")) {
+                            if (getFromStorage("accessToken", true)) {
+                              setInStorage("flow", selectedFlow);
+                              return window.location.replace(
+                                "/mohini" + ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT
+                              );
+                            } else {
+                              navigate(ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
+                              window.location.reload();
+                            }
+                          }
+                      
+                        } else if (
+                          selectedFlow === sessionFlowName.GuestMiStory
+                        ) {
+                          setInStorage("previousUrl", window.location.href);
+                          setInStorage("tempCode", "xyz123");
+                          if (getFromStorage("previousUrl")) {
+                            if (getFromStorage("accessToken", true)) {
+                              setInStorage("flow", selectedFlow);
+                              return window.location.replace(
+                                "/mohini" + ROUTES.SHIKSHALOKAM_GUEST_MI_STORY
+                              );
+                            } else {
+                              navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
+                              window.location.reload();
+                            }
+                          }
+                        }
                       }}
                     >
-                      <span className="text-base font-medium">
-                        <ShowPageButton
-                          text={t("commonPageButtonText1")}
-                          id="capture-mi-story"
-                          userLanguage={userLanguage}
-                          showSpeaker={true}
-                          forcePlayAudio={
-                            selectedFlow === sessionFlowName.GuestMiStory
-                          }
-                          selectedFlow={selectedFlow}
-                          audioRef={audioRef}
-                          stopAudioTriggered={stopAudioTriggered}
-                          setStopAudioTriggered={setStopAudioTriggered}
-                          controllerRef={controllerRef}
-                          logo="https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/mi_story_capture_logo.png"
-                        />
-                      </span>
-                    </span>
+                      {t("continueBtnText")}{" "}
+                      <FaArrowRightLong className="ml-2 text-xl" />
+                    </button>
                   </div>
-
-                  {/* Continue Button */}
-                  <button
-                    className={`mt-0 px-16 py-2 rounded-xl text-white text-lg font-medium flex items-center ${
-                      selectedFlow
-                        ? "bg-[#572E91] cursor-pointer"
-                        : "bg-[#8d888857] cursor-not-allowed"
-                    }`}
-                    disabled={!selectedFlow}
-                    onClick={async () => {
-                      await stopAllAudio();
-                      if (selectedFlow === sessionFlowName.GuestDiscussion) {
-                        setInStorage("previousUrl", window.location.href);
-                        setInStorage("tempCode", "xyz123");
-                        if (getFromStorage("previousUrl")) {
-                          navigate(ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-                          window.location.reload();
-                        }
-                      } else if (
-                        selectedFlow === sessionFlowName.GuestMiStory
-                      ) {
-                        setInStorage("previousUrl", window.location.href);
-                        setInStorage("tempCode", "xyz123");
-                        if (getFromStorage("previousUrl")) {
-                          navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-                          window.location.reload();
-                        }
-                      }
-                    }}
-                  >
-                    {t("continueBtnText")}{" "}
-                    <FaArrowRightLong className="ml-2 text-xl" />
-                  </button>
                 </div>
-              </div>
-            </>
+              </>
+            )
           ) : (
             <>
               <div className="text-center text-lg md:text-2xl sm:text-md mt-0 sm:mt-[100px] text-slate-700">
@@ -397,14 +388,20 @@ function CommonHomePage({ usecaseType }) {
                           "local_route",
                           JSON.stringify(lang.value)
                         );
+                        // if acccess token exists --> send them to flow if flow exists if not let them select!
+                        setInStorage("route", JSON.stringify(lang.value));
+                        // case for ptm
                         if (ptm_case) {
                           return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
-                        } else if (getFromStorage("flow") === sessionFlowName.GuestMiStory && getFromStorage("projectId", true)) {
-                          setInStorage('route', JSON.stringify(lang.value));
-                          // return navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY, {replace:true});
-                          return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
                         }
-                        setLanguageButtonSelect(lang.value);
+                        if (getFromStorage("accessToken", true)) {
+                          if(getFromStorage("flow") === sessionFlowName.GuestMiStory){
+                            return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
+                          }
+                          if(getFromStorage("flow") === sessionFlowName.GuestDiscussion){
+                            return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
+                          }
+                        }
                       }}
                     >
                       <button className="w-full">{lang.label}</button>
@@ -432,7 +429,7 @@ export function ShowPageButton({
   selectedFlow,
   showSpeaker = false,
   forcePlayAudio = false,
-  logo=""
+  logo = "",
 }) {
   const [audioCache, setAudioCache] = useState({});
 
@@ -480,11 +477,11 @@ export function ShowPageButton({
 
   return (
     <div className="flex flex-col items-center vertical-center text-center">
-      {(logo && logo!=='')&&
+      {logo && logo !== "" && (
         <div className="w-[40px] mb-2">
           <img src={logo} alt="Logo" />
         </div>
-      }
+      )}
       <div className={`flex items-center gap-2 vertical-center`}>
         {showSpeaker && (
           <span className="speaker-div vertical-center">
@@ -493,7 +490,6 @@ export function ShowPageButton({
                 type="button"
                 className="speaker-off-button text-[1.3rem] md:text-lg sm:text-[1.3rem] text-[#322f2f] vertical-center"
                 onClick={(e) => {
-                  // e.stopPropagation();
                   if (!forcePlayAudio) {
                     handleOnStopSpeaking(audioRef, setIsPlaying);
                   }

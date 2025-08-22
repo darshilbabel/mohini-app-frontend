@@ -284,7 +284,7 @@ function Login({ type, variant }) {
           payload: response?.data,
         });
         localStorage.setItem('first_name', JSON.stringify(response?.data?.first_name));
-        localStorage.setItem('access_token', JSON.stringify(response?.data?.access_token));
+        localStorage.setItem('accessToken', JSON.stringify(response?.data?.access_token));
         localStorage.setItem('company', JSON.stringify(response?.data?.company));
         localStorage.setItem('state', JSON.stringify(response?.data?.state));
         localStorage.setItem('flow', sessionFlowName.LoginMiStory);
@@ -292,7 +292,7 @@ function Login({ type, variant }) {
         cookies.set("profileid", JSON.stringify(response?.data?.id), {
           path: "/",
         });
-        cookies.set("access_token", response?.data?.access_token, {
+        cookies.set("accessToken", response?.data?.access_token, {
           path: "/",
         });
         setLocalUserData(response?.data);

@@ -43,7 +43,7 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
 
     const cookie = new Cookies();
     const accessToken = useMemo(() => {
-      const token = cookie.get('access_token');
+      const token = cookie.get('accessToken');
       return token !== undefined && token !== null ? token : null;
     }, []);
 
@@ -287,7 +287,7 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
                           data: {
                               story: storyData?.id,
                           },
-                          token: localStorage.getItem('accToken'),
+                          token: localStorage.getItem('accessToken'),
                       });
                       resolve();
                   },
@@ -297,7 +297,7 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
                   },
                   loader: setIsLoading,
                   data: formData,
-                  token: localStorage.getItem('accToken'),
+                  token: localStorage.getItem('accessToken'),
               });
           } else {
               updateStoryMedia({
@@ -316,10 +316,10 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
                     file: fileData,
                     id: mediaId,
                     media_type: 'application/pdf',
-                    access_token: localStorage.getItem('accToken'),
+                    access_token: localStorage.getItem('accessToken'),
                     session: JSON.parse(localStorage.getItem('sessionid'))
                   },
-                  token: localStorage.getItem('accToken'),
+                  token: localStorage.getItem('accessToken'),
               });
           }
       });
@@ -440,7 +440,7 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
       formData.append("story", storyData?.id);
       formData.append("name", `${storyData?.title}.pdf`);
       formData.append("media_type", 'application/pdf');
-      formData.append('access_token', localStorage.getItem('accToken'));
+      formData.append('access_token', localStorage.getItem('accessToken'));
       formData.append('session', JSON.parse(localStorage.getItem('sessionid')));
 
       
