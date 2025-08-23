@@ -25,6 +25,8 @@ import "../../index.css";
 import "./commonPageStyle.css";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { useLocation } from "react-use";
+import { BiLoader } from "react-icons/bi";
+import { lang } from "moment";
 // get default language based on usecase type
 function getDefaultLanguage(usecaseType) {
   switch (usecaseType) {
@@ -38,16 +40,41 @@ function CommonHomePage({ usecaseType }) {
     getFromStorage("local_route", true, "localStorage") ||
     getDefaultLanguage(usecaseType);
   const [userLanguage, setUserLanguage] = useState(defaultLanguage);
-  const [selectedFlow, setSelectedFlow] = useState(null);
+  const [selectedFlow, setSelectedFlow] = useState(getFromStorage("flow", false) || null);
   const [stopAudioTriggered, setStopAudioTriggered] = useState(false);
+  const [isLanguageProcessing, setIsLanguageProcessing] = useState(false);
   const [languageButtonSelect, setLanguageButtonSelect] = useState(
     getFromStorage("hasSelectedLanguage") || null
   );
+  const [isLoading, setIsLoading] = useState(true);
 
   const { t } = useTranslation();
   const audioRef = useRef();
 
+  const handleLanguageChange = (e) => {
+    audioRef.current = null;
+    setUserLanguage(e?.target?.value);
+    setStopAudioTriggered(true);
+    stopAllAudio();
+    setLanguage(e?.target?.value);
+    localStorage.setItem("local_route", JSON.stringify(e?.target?.value));
+  };
+
+  const location = useLocation();
+
   useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    window.history.replaceState(null, "", window.location.href);
+    window.onpopstate = function () {
+      window.history.go(1);
+    };
+    return () => {
+      window.onpopstate = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    setIsLoading(true);
     if (!languageButtonSelect) {
       if (!userLanguage || userLanguage === null || userLanguage === "") {
         localStorage.setItem(
@@ -72,20 +99,8 @@ function CommonHomePage({ usecaseType }) {
     setLanguage(userLanguage);
   }, []);
 
-  const handleLanguageChange = (e) => {
-    audioRef.current = null;
-    setUserLanguage(e?.target?.value);
-    setStopAudioTriggered(true);
-    stopAllAudio();
-    setLanguage(e?.target?.value);
-    localStorage.setItem("local_route", JSON.stringify(e?.target?.value));
-  };
-
-  const location = useLocation();
-
   useEffect(() => {
     const accessToken = getFromStorage("accessToken");
-    console.log("accessToken:", accessToken);
     if (!accessToken) {
       // Trap the back button
       window.history.pushState(null, "", window.location.href);
@@ -97,6 +112,7 @@ function CommonHomePage({ usecaseType }) {
       window.addEventListener("popstate", handlePopState);
 
       return () => {
+      // setIsLoading(false);
         window.removeEventListener("popstate", handlePopState);
       };
     } else {
@@ -104,7 +120,6 @@ function CommonHomePage({ usecaseType }) {
         const rerouteURL = getFromStorage("ssoRerouteURL", false);
         if (rerouteURL) {
           clearFromStorage(true, ["ssoRerouteURL"]);
-          console.log("reroute: ", rerouteURL);
           window.location.href = rerouteURL;
         }
       };
@@ -112,6 +127,7 @@ function CommonHomePage({ usecaseType }) {
       window.addEventListener("popstate", handlePopState);
 
       return () => {
+        // setIsLoading(false);
         window.removeEventListener("popstate", handlePopState);
       };
     }
@@ -133,16 +149,47 @@ function CommonHomePage({ usecaseType }) {
 
   const ptm_case = [sessionUsecaseType.MEGA_PTM].some((x) => x === usecaseType);
 
+  function processLanguageButtonClick(langToUse, forceProcess = false) {
+    console.log("Process button clicked")
+    if(!forceProcess && (!languageButtonSelect || !selectedFlow || !userLanguage)) {
+      setIsLoading(false);
+      return;
+    }
+    console.log("Process button allowed")
+    setIsLoading(true);
+    setInStorage("hasSelectedLanguage", true);
+    setUserLanguage(langToUse);
+    setStopAudioTriggered(true);
+    stopAllAudio();
+    setLanguage(langToUse);
+    localStorage.setItem(
+      "local_route",
+      JSON.stringify(langToUse)
+    );
+    // if acccess token exists --> send them to flow if flow exists if not let them select!
+    setInStorage("route", JSON.stringify(langToUse));
+    setLanguageButtonSelect(true);
+    // case for ptm
+    if (ptm_case) {
+      return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
+    }
+    if (getFromStorage("accessToken", true)) {
+      if(getFromStorage("flow") === sessionFlowName.GuestMiStory){
+        return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
+      }
+      if(getFromStorage("flow") === sessionFlowName.GuestDiscussion){
+        return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
+      }
+    }
+    setIsLoading(false);
+  }
+
+
   useEffect(() => {
-    window.history.pushState(null, "", window.location.href);
-    window.history.replaceState(null, "", window.location.href);
-    window.onpopstate = function () {
-      window.history.go(1);
-    };
-    return () => {
-      window.onpopstate = null;
-    };
-  }, []);
+    if(isLanguageProcessing) return;
+    setIsLanguageProcessing(true);
+    processLanguageButtonClick(userLanguage);
+  }, [userLanguage, isLanguageProcessing]);
 
   return (
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 px-0">
@@ -319,6 +366,7 @@ function CommonHomePage({ usecaseType }) {
                       }`}
                       disabled={!selectedFlow}
                       onClick={async () => {
+                        setIsLoading(true);
                         await stopAllAudio();
                         if (selectedFlow === sessionFlowName.GuestDiscussion) {
                           setInStorage("previousUrl", window.location.href);
@@ -352,6 +400,7 @@ function CommonHomePage({ usecaseType }) {
                             }
                           }
                         }
+                        setIsLoading(false);
                       }}
                     >
                       {t("continueBtnText")}{" "}
@@ -379,29 +428,8 @@ function CommonHomePage({ usecaseType }) {
                       key={lang.value}
                       className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center"
                       onClick={() => {
-                        setInStorage("hasSelectedLanguage", true);
-                        setUserLanguage(lang.value);
-                        setStopAudioTriggered(true);
-                        stopAllAudio();
-                        setLanguage(lang.value);
-                        localStorage.setItem(
-                          "local_route",
-                          JSON.stringify(lang.value)
-                        );
-                        // if acccess token exists --> send them to flow if flow exists if not let them select!
-                        setInStorage("route", JSON.stringify(lang.value));
-                        // case for ptm
-                        if (ptm_case) {
-                          return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
-                        }
-                        if (getFromStorage("accessToken", true)) {
-                          if(getFromStorage("flow") === sessionFlowName.GuestMiStory){
-                            return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-                          }
-                          if(getFromStorage("flow") === sessionFlowName.GuestDiscussion){
-                            return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-                          }
-                        }
+                        setIsLanguageProcessing(true);
+                        processLanguageButtonClick(lang.value, true);
                       }}
                     >
                       <button className="w-full">{lang.label}</button>
@@ -412,6 +440,13 @@ function CommonHomePage({ usecaseType }) {
           )}
         </div>
       </div>
+      {isLoading && (
+        <div className="loader-load-spinner">
+          <div className="div67">
+            <BiLoader className="loader-rotate-loader loader-icon" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
