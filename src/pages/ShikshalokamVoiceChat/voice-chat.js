@@ -226,8 +226,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   // works based on change on project id
   useEffect(()=>{
     async function fetchChatSession() {
+      const currentFlow = getFromStorage('flow', false);
       let customUrl = '';
-      if(projectId) {
+      if(projectId && currentFlow && [sessionFlowName.Reflection].includes(currentFlow)) {
         customUrl =  `/api/chatsession?project_id=${projectId}`;
       } else if (getFromStorage('sessionid', true)) {
         customUrl = `/api/chatsession?session=${getFromStorage('sessionid', true)}`;
@@ -1533,7 +1534,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isMute])
 
   useEffect(() => {
-    if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError==='')) {
+    if (
+      isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && 
+      noStoryFound && (!llmError || llmError==='') && acceptedTnc && acceptedTnc!=="ONGOING"
+    ) {
       callEndStory();
     }
   }, [isStreamingComplete, strandStep, access_token, stateMachineLength, languageToUse, noStoryFound]);
