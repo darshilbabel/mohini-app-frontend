@@ -30,6 +30,7 @@ function SsoFlow() {
       const flow_type = urlParams.get("flow");
       const projectId = urlParams.get("projectId");
       const taskId = urlParams.get("taskId");
+      const sessionId = urlParams.get("sessionId");
       let rerouteRaw = urlParams.get("rerouteUrl") || "";
       if (rerouteRaw.startsWith('"') && rerouteRaw.endsWith('"')) {
         rerouteRaw = rerouteRaw.slice(1, -1);
@@ -45,7 +46,6 @@ function SsoFlow() {
         if (data && data?.status.toLowerCase() === 'ok') {
           const profile_details = data?.profile_details;
           if(profile_details) {
-            let session = await getSessionDetails();
             if (!!projectId) {
               const statusRes = await updateReflectionStatus(
                 projectId,
@@ -60,6 +60,12 @@ function SsoFlow() {
             }
 
             clearFromStorage(true);
+            if(sessionId && sessionId!=='' && sessionId!=='null'){
+              setInStorage('sessionid', JSON.stringify(sessionId), flow_type, localStorage);
+            } else {
+              let session = await getSessionDetails();
+              setInStorage('sessionid', JSON.stringify(session.sessionid), flow_type, localStorage);
+            }
             setInStorage('ssoRerouteURL', rerouteUrl, flow_type, localStorage);
             setInStorage('first_name', JSON.stringify(profile_details.first_name), flow_type, localStorage);
             setInStorage('company', JSON.stringify(profile_details.company), flow_type, localStorage);
@@ -70,7 +76,6 @@ function SsoFlow() {
             setInStorage('has_accepted_tnc', typeof hasAcc === 'string' ? hasAcc : JSON.stringify(hasAcc), flow_type, localStorage);
             setInStorage('accessToken', JSON.stringify(accessToken), flow_type, localStorage);
             setInStorage('profileid', JSON.stringify(profile_details.profileid), flow_type, localStorage);
-            setInStorage('sessionid', JSON.stringify(session.sessionid), flow_type, localStorage);
             setInStorage('isNewChatOpen', JSON.stringify(true), flow_type, localStorage);
             setInStorage('projectId', JSON.stringify(projectId), flow_type, localStorage);
             setInStorage('taskId', JSON.stringify(taskId), flow_type, localStorage);

@@ -25,6 +25,7 @@ import "../../index.css";
 import "./commonPageStyle.css";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { useLocation } from "react-use";
+import { BiLoader } from "react-icons/bi";
 // get default language based on usecase type
 function getDefaultLanguage(usecaseType) {
   switch (usecaseType) {
@@ -38,11 +39,12 @@ function CommonHomePage({ usecaseType }) {
     getFromStorage("local_route", true, "localStorage") ||
     getDefaultLanguage(usecaseType);
   const [userLanguage, setUserLanguage] = useState(defaultLanguage);
-  const [selectedFlow, setSelectedFlow] = useState(null);
+  const [selectedFlow, setSelectedFlow] = useState(getFromStorage("flow", false) || null);
   const [stopAudioTriggered, setStopAudioTriggered] = useState(false);
   const [languageButtonSelect, setLanguageButtonSelect] = useState(
     getFromStorage("hasSelectedLanguage") || null
   );
+  const [isLoading, setIsLoading] = useState(false);
 
   const { t } = useTranslation();
   const audioRef = useRef();
@@ -85,7 +87,6 @@ function CommonHomePage({ usecaseType }) {
 
   useEffect(() => {
     const accessToken = getFromStorage("accessToken");
-    console.log("accessToken:", accessToken);
     if (!accessToken) {
       // Trap the back button
       window.history.pushState(null, "", window.location.href);
@@ -104,7 +105,6 @@ function CommonHomePage({ usecaseType }) {
         const rerouteURL = getFromStorage("ssoRerouteURL", false);
         if (rerouteURL) {
           clearFromStorage(true, ["ssoRerouteURL"]);
-          console.log("reroute: ", rerouteURL);
           window.location.href = rerouteURL;
         }
       };
@@ -319,6 +319,7 @@ function CommonHomePage({ usecaseType }) {
                       }`}
                       disabled={!selectedFlow}
                       onClick={async () => {
+                        setIsLoading(true);
                         await stopAllAudio();
                         if (selectedFlow === sessionFlowName.GuestDiscussion) {
                           setInStorage("previousUrl", window.location.href);
@@ -352,6 +353,7 @@ function CommonHomePage({ usecaseType }) {
                             }
                           }
                         }
+                        setIsLoading(false);
                       }}
                     >
                       {t("continueBtnText")}{" "}
@@ -379,6 +381,7 @@ function CommonHomePage({ usecaseType }) {
                       key={lang.value}
                       className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center"
                       onClick={() => {
+                        setIsLoading(true);
                         setInStorage("hasSelectedLanguage", true);
                         setUserLanguage(lang.value);
                         setStopAudioTriggered(true);
@@ -390,18 +393,20 @@ function CommonHomePage({ usecaseType }) {
                         );
                         // if acccess token exists --> send them to flow if flow exists if not let them select!
                         setInStorage("route", JSON.stringify(lang.value));
+                        setLanguageButtonSelect(true);
                         // case for ptm
-                        if (ptm_case) {
-                          return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
-                        }
-                        if (getFromStorage("accessToken", true)) {
-                          if(getFromStorage("flow") === sessionFlowName.GuestMiStory){
-                            return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
+                          if (ptm_case) {
+                            return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
                           }
-                          if(getFromStorage("flow") === sessionFlowName.GuestDiscussion){
-                            return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
+                          if (getFromStorage("accessToken", true)) {
+                            if(getFromStorage("flow") === sessionFlowName.GuestMiStory){
+                              return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
+                            }
+                            if(getFromStorage("flow") === sessionFlowName.GuestDiscussion){
+                              return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
+                            }
                           }
-                        }
+                          setIsLoading(false);
                       }}
                     >
                       <button className="w-full">{lang.label}</button>
@@ -412,6 +417,13 @@ function CommonHomePage({ usecaseType }) {
           )}
         </div>
       </div>
+      {isLoading && (
+        <div className="loader-load-spinner">
+          <div className="div67">
+            <BiLoader className="loader-rotate-loader loader-icon" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
