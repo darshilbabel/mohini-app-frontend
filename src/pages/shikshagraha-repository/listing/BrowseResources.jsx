@@ -185,10 +185,10 @@ export default function BrowseResources({
     <section className=" px-6 py-6 max-w-[1670px]">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-md font-semibold text-gray-900 mb-1">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">
             Browse Resources
           </h2>
-          <p className="text-xs text-gray-600">
+          <p className="text-sm text-gray-600">
             Discover high quality resources for your project
           </p>
         </div>
