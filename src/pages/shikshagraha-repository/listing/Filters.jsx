@@ -1,0 +1,136 @@
+import React, { useEffect, useState } from "react";
+import { Search, ChevronDown } from "lucide-react";
+import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
+import Select from "react-select";
+import { useDebounce } from "react-use";
+
+export default function Filters() {
+  const [search, setSearch] = useState("");
+
+  const setGlobalSearch = useRepositoryStore((state) => state.setSearch);
+  const setFilters = useRepositoryStore((state) => state.setFilters);
+
+  const [debouncedSearch] = useDebounce(
+    () => {
+      if (search?.length > 3) {
+        setGlobalSearch(search);
+      }
+    },
+    500,
+    [search]
+  );
+
+  const filters = useRepositoryStore((state) => state.filters);
+  // fetch master list
+  const fetchMasterList = useRepositoryStore((state) => state.fetchMasterList);
+  // get master list
+  const dropdown_meta = useRepositoryStore((state) => state.masterList);
+
+  useEffect(() => {
+    fetchMasterList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleChange = (key, value) => {
+    setFilters({ [key]: value }, false);
+  };
+
+  return (
+    <div className="sticky top-0 z-50 flex flex-row items-center p-4 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
+      <div className="flex flex-wrap items-center p-0 gap-0">
+        {!!dropdown_meta?.length
+          ? dropdown_meta?.map(({ label, options, key }, index) => (
+              <React.Fragment key={`label-${label}-${index}`}>
+                <DropdownSelect
+                  key={label}
+                  label={label}
+                  options={options}
+                  selected={filters[key] || "Select a " + label}
+                  onChange={(value) => handleChange(key, value)}
+                />
+              </React.Fragment>
+            ))
+          : null}
+      </div>
+
+      <div className="flex items-end ml-auto relative z-10">
+        <div className="flex flex-col items-start w-[331px] h-[53px]">
+          <div className="relative flex flex-row items-center w-full h-full">
+            <div className="flex items-center justify-center absolute left-0 top-0 h-full pl-[12px] pointer-events-none">
+              <Search className="w-4 h-4 text-gray-300" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search by keyword"
+              className="pl-[41px] pr-[17px] py-[12px] w-[331px] h-[53px] bg-white border border-gray-300 rounded-[12px] text-[14px] leading-[19px] font-manrope text-gray-300 placeholder-[#9CA3AF] focus:outline-none"
+              value={search}
+              onChange={(e) => {
+                e.preventDefault();
+                setSearch(e.target.value);
+                if(!e.target.value){
+                  setGlobalSearch("");
+                }
+                console.log("debouce ready", debouncedSearch(e.target.value));
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const DropdownSelect = ({ label, options, selected, onChange }) => (
+  <div className={`relative h-[50px] mr-4 p-1`}>
+    <Select
+      options={options.map((x) => ({ value: x.value, label: x.display }))}
+      value={selected}
+      onChange={onChange}
+      isMulti
+      placeholder={label}
+      styles={{
+        control: (base) => ({
+          ...base,
+          border: "none",
+          background: "rgb(82 82 91 / 1%)",
+
+          boxShadow: "none",
+          "&:hover": {
+            border: "none",
+            boxShadow: "none",
+          },
+          "&:focus": {
+            border: "none",
+            boxShadow: "none",
+          },
+        }),
+        indicatorSeparator: (base) => ({
+          display: "none",
+          color: "rgb(82 82 91 / 1%)",
+        }),
+        indicatorsContainer: (base) => ({
+          display: "none",
+        }),
+        placeholder: (base) => ({
+          ...base,
+          color: "#9CA3AF",
+        }),
+        multiValueLabel: (base) => ({
+          ...base,
+          color: "black",
+          background: "white",
+        }),
+        multiValue: (base) => ({
+          ...base,
+          color: "black",
+          background: "white",
+        }),
+      }}
+      className=" bg-gray-100 rounded-[12px] px-4 pr-10 text-zinc-600 text-sm  border border-transparent focus:border-blue-500 focus:outline-none appearance-none"
+    />
+    {/* Chevron Icon - positioned absolutely on the right */}
+    <div className="pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-600">
+      <ChevronDown className="w-4 h-4" />
+    </div>
+  </div>
+);
