@@ -11,6 +11,8 @@ const ROUTES = {
   TERMS_AND_CONDITIONS: "/tnc",
   EXIT_ROUTE: "/exit",
   SSO_FLOW: "/sso",
+  SHIKSHAGRAHA_REPOSITORY: "/shikshagraha-repository",
+  SHIKSHAGRAHA_REPOSITORY_DETAIL: "/shikshagraha-repository/:id"
 };
 
 export default ROUTES;
