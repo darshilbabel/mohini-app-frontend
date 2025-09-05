@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function HeroSection() {
   return (
-    <div className="px-7  pb-6 w-full">
+    <div className=" w-full">
 
       <div className="w-full mx-auto flex items-start justify-between">
         <div>
