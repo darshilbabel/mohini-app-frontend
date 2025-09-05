@@ -8,12 +8,13 @@ export default function ResourceCard({ resource }) {
   return (
     <div
       className="bg-white rounded-[20px] border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow
-                 flex flex-col p-2.5 gap-2.5 min-w-[340px] w-full h-full box-border"
+                 flex flex-col justify-between gap-2.5 min-w-[340px] w-full h-full box-border "
       role="button"
       onClick={() => navigate(`/shikshagraha-repository/${resource?.id}`)}
     >
-      {/* Image container */}
-      <div className="relative flex flex-col gap-2.5 isolate w-full h-[180px] rounded-[10px]">
+    <div className="flex flex-col gap-3.5 p-3.5">
+        {/* Image container */}
+        <div className="relative flex flex-col gap-2.5 isolate w-full min-h-[180px] rounded-[10px]">
         <div
           className="bg-[#BAE6FD] w-full h-full rounded-[10px]"
           aria-label="Image placeholder"
@@ -66,10 +67,10 @@ export default function ResourceCard({ resource }) {
           className="flex flex-col justify-center gap-1.5 py-2 w-full overflow-hidden"
           aria-label="Resource description"
         >
-          <h4 className="font-manrope font-bold text-[16px] leading-[22px] text-black">
+          <h4 className="font-manrope font-bold text-[1rem] text-md leading-[22px] text-black">
             {resource?.title || "Not Available"}
           </h4>
-          <p className="font-urbanist font-normal text-[12px] leading-[20px] text-zinc-500 overflow-hidden line-clamp-2">
+          <p className="font-urbanist font-normal  leading-[20px] text-zinc-500 overflow-hidden line-clamp-2">
             {resource?.description || "Not Available"}
           </p>
         </div>
@@ -87,11 +88,15 @@ export default function ResourceCard({ resource }) {
             </span>
           ))}
         </div>
-        {/* Rating and download count */}
-        <div className="flex flex-row justify-between items-center w-full h-[36px]">
+    </div>
+    </div>
+
+       <div className="h-full flex justify-end items-start flex-col gap-2.5 p-3.5">
+         {/* Rating and download count */}
+         <div className="flex flex-row justify-between items-center w-full min-h-[36px]">
           {/* Rating */}
-          {resource?.rating && (
-            <div className="flex flex-row justify-between items-center gap-2 w-[216px] h-[36px]">
+          {!!resource?.rating ? (
+            <div className="flex flex-row justify-between items-center gap-2 w-[216px] min-h-[36px]">
               <div className="flex flex-row gap-2 w-[128px] text-xs items-center">
                 {[...Array(5)].map((_, i) => (
                   <Star
@@ -106,10 +111,10 @@ export default function ResourceCard({ resource }) {
                 <span>{resource?.rating}</span>
                 <span>({resource?.reviews})</span>
               </div>
-            </div>
-          )}
+            </div>) : <div className="min-h-[36px]" />}
+          
           {/* Downloads */}
-          {resource?.downloads && (
+          {!!resource?.downloads ? (
             <div className="flex flex-row items-center justify-end gap-1 w-full min-w-[104px] h-[20px] relative">
               <Download className="w-[1.125rem] h-[1.125rem]" />
               <div className="flex flex-row gap-1">
@@ -121,18 +126,18 @@ export default function ResourceCard({ resource }) {
                 </span>
               </div>
             </div>
-          )}
+          ): <div className="min-h-[20px]" />}
         </div>
         {/* Organization block */}
-        <div className="flex flex-row items-center gap-3 w-full h-[30.25px] max-w-[320px]">
+        {resource?.organization && <div className="flex flex-row items-center gap-1.5 w-full h-[30.25px] max-w-[320px]">
           <SmallLogo />
           <div className="flex flex-col gap-0 w-[273.5px] h-[22px]">
             <span className="font-manrope font-medium text-[16px] leading-[22px] text-[#757575]">
               {resource?.organization}
             </span>
           </div>
-        </div>
-      </div>
+        </div>}
+       </div>
     </div>
   );
 }
