@@ -1,21 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useRoutes, Navigate } from "react-router-dom";
 import ROUTES from "./url";
 import { UserProvider, useUserDispatcher, useUserStore } from "./context/user";
 import { useLocalStorage } from "react-use";
-import USER_ACTIONS from "./context/user/user-actions";
 import Shikshalokam from "./pages/shikshalokam";
 import ShikshalokamVoiceBasedChat from "./pages/ShikshalokamVoiceChat/voice-chat";
-import WelcomePage from "./components/Welcome";
-import GuestPage from "./components/GuestPage";
 import PrivacyPage from "./pages/privacyPage";
 import ShikshalokamChat from "./pages/shikshalokamChat";
 import SsoFlow from "./pages/ssoFlow";
 import { sessionFlowName, sessionUsecaseType } from "./pages/ShikshalokamVoiceChat/enum";
 import CommonHomePage from "./pages/Login/commonPage";
 import PTMChat from "./pages/ShikshalokamMegaPTM";
+import ShikshagrahaRepository from "./pages/shikshagraha-repository/listing";
+import ShikshagrahaRepositoryDetail from "./pages/shikshagraha-repository/details";
 
 
 function App() {
@@ -35,11 +34,6 @@ function App() {
 export default App;
 
 const ProtectedComponent = ({ component, isAccessible }) => {
-  const userStore = useUserStore();
-  const userDispatcher = useUserDispatcher();
-
-  const [localUserData] =
-    useLocalStorage("grit", {});
 
 
   if (!isAccessible) {
@@ -67,6 +61,8 @@ const unprotected_old_routes = [
   {path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage />},
   { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <CommonHomePage /> },
   {path: ROUTES.SSO_FLOW, element: <SsoFlow />},
+  {path: ROUTES.SHIKSHAGRAHA_REPOSITORY, element: <ShikshagrahaRepository />},
+  {path: ROUTES.SHIKSHAGRAHA_REPOSITORY_DETAIL, element: <ShikshagrahaRepositoryDetail />},
 ];
 
 const unprotected_routes_config = [
