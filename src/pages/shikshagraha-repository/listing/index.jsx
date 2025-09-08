@@ -58,7 +58,7 @@ export default function RepositoryPage() {
                   paginate={(page) => {
                     setPagination({
                       ...pagination,
-                      offset: page || 0,
+                      offset: (itemsPerPage + (page - 1) * itemsPerPage) || 0,
                       limit: itemsPerPage,
                     });
                   }}
