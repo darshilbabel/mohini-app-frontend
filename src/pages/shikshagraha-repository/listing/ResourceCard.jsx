@@ -10,7 +10,7 @@ export default function ResourceCard({ resource }) {
       className="bg-white rounded-[20px] border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow
                  flex flex-col justify-between gap-2.5 min-w-[340px] w-full h-full box-border "
       role="button"
-      onClick={() => navigate(`/shikshagraha-repository/${resource?.id}`)}
+      onClick={() => navigate(`/shikshagraha-commons/${resource?.id}`)}
     >
     <div className="flex flex-col gap-3.5 p-3.5">
         {/* Image container */}
