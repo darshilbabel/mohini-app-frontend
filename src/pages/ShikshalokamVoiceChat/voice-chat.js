@@ -86,7 +86,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const audioRef = useRef();
   const textAreaRef = useRef(null);
   const lastBotMessageIndex = useRef(-1);
-  let access_token =  getFromStorage('accessToken')
+  let access_token =  getFromStorage('accessToken', true)
   let globalSessionID =  getFromStorage('sessionid', true)
 
   const isInitialLoadRef = useRef(true);
