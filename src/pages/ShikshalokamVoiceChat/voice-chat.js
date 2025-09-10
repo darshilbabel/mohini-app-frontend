@@ -655,7 +655,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       const outputData = await editor.save();
                       let updatePayload = {
                         id: storyData?.id,
-                        token: getFromStorage('accessToken', false),
+                        token: getFromStorage('accessToken', true),
                         session: getFromStorage('sessionid', true),
                         flow: getFromStorage('flow', false),
                         formatted_content: outputData?.blocks,
@@ -668,7 +668,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       if([sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion].includes(getFromStorage('flow', false)) && getFromStorage('accessToken')){
                         setIsLoading(true);
                          await updateReflectionStatus(
-                          getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('accessToken', false)
+                          getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('accessToken', true)
                         );
                           clearFromStorage(false);
                           console.log("History length:", window.history.length);
@@ -690,7 +690,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       }
                     } catch (error) {
                       console.error("Saving failed: ", error);
-                      if (getFromStorage('accessToken', false)){
+                      if (getFromStorage('accessToken', true)){
                         clearFromStorage();
                         navigate(-1);
                       }
@@ -759,7 +759,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
                   let updatePayload = {
                     id: storyData?.id,
-                    access_token: getFromStorage('accessToken', false),
+                    access_token: getFromStorage('accessToken', true),
                     session: getFromStorage('sessionid', true),
                     flow,
                   };
@@ -2701,7 +2701,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       </div> }
      {storyData && isModalOpen && (() => {
         const flow = getFromStorage('flow', false);
-        const accessToken = getFromStorage('accessToken', false);
+        const accessToken = getFromStorage('accessToken', true);
         return [sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion].includes(flow) && accessToken
           ? defaultEditorClick(
               storyData?.title,

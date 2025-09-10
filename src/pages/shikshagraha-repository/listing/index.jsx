@@ -3,7 +3,7 @@ import Header from "./Header.jsx";
 import Filters from "./Filters.jsx";
 import BrowseResources from "./BrowseResources.jsx";
 import Pagination from "./Pagination.jsx";
-import Footer from "../common/Footer.jsx";
+import Footer from "../common/footer.jsx";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore.js";
 import { GrResources } from "react-icons/gr";
 
@@ -58,7 +58,7 @@ export default function RepositoryPage() {
                   paginate={(page) => {
                     setPagination({
                       ...pagination,
-                      offset: page || 0,
+                      offset: (itemsPerPage + (page - 1) * itemsPerPage) || 0,
                       limit: itemsPerPage,
                     });
                   }}
