@@ -3,7 +3,7 @@ import Header from "./Header.jsx";
 import Filters from "./Filters.jsx";
 import BrowseResources from "./BrowseResources.jsx";
 import Pagination from "./Pagination.jsx";
-import Footer from "../common/footer.jsx";
+import Footer from "../common/Footer.jsx";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore.js";
 import { GrResources } from "react-icons/gr";
 
