@@ -217,7 +217,7 @@ export async function updateReflectionStatus(projectId, status="completed",  flo
       flow = getFromStorage('flow', false);
     }
     if(!accessToken) {
-      accessToken=getFromStorage('accessToken', false)
+      accessToken=getFromStorage('accessToken', true)
     }
 
     const response = await axiosInstance.post('api/update-project-status/', {
