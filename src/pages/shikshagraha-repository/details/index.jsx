@@ -5,6 +5,7 @@ import ReviewForm from "./ReviewForm";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
 import { toast, ToastContainer } from "react-toastify";
+import Footer from "../common/Footer";
 
 export default function ResourceDetailPage() {
   const params = useParams();
@@ -34,7 +35,9 @@ export default function ResourceDetailPage() {
         <ResourceMeta resource={resourceData} />
       </div>
       <Tabs tab={tab} setTab={setTab} />
-      <TabContent tab={tab} resource={resourceData} />
+      <TabContent tab={tab} resource={resourceData} />      
+      <Footer />
+
     </div>
   );
 }
