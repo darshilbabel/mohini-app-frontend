@@ -1,41 +1,67 @@
 // ResourceDetailPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Download, Heart, Share2, Star } from "lucide-react";
 import ReviewForm from "./ReviewForm";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
 import { toast, ToastContainer } from "react-toastify";
+import Footer from "../common/Footer";
+import ROUTES from "../../../url";
 
 export default function ResourceDetailPage() {
   const params = useParams();
-
+  const navigate = useNavigate();
   const resourceData = useRepositoryStore((state) => state.selectedMedia);
   const fetchMediaDetail = useRepositoryStore(
     (state) => state.fetchMediaDetail
   );
+  const [hasPageLoaded, setHasPageLoaded] = useState(false);
+  const { loadingDetail } = useRepositoryStore();
   const isLoading = useRepositoryStore((state) => state.loadingDetail);
+  const containerRef = useRef(null);
   useEffect(() => {
+    setHasPageLoaded(false);
     fetchMediaDetail(params.id);
+    setHasPageLoaded(true);
   }, [fetchMediaDetail, params.id]);
-  console.log({ resourceData });
+
   const [tab, setTab] = useState("Overview");
 
+  // routes to not found if resource is not found
+  useEffect(() => {
+    if (!resourceData && !loadingDetail && hasPageLoaded) {
+      navigate(ROUTES.NOT_FOUND);
+    }
+
+    return () => {};
+  }, [resourceData, loadingDetail, hasPageLoaded]);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current?.scrollIntoView({ behavior: "smooth", y: -999 });
+    }
+  }, [resourceData]);
+
   return (
-    <div className="max-w-[1100px] mx-auto px-4 py-8 relative">
-      <ToastContainer/>
-      {isLoading && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-black bg-opacity-75 text-white h-screen">
-          Please wait we are loading your data
+    <>
+      {" "}
+      <div className="max-w-[1100px] mx-auto px-4 py-8 relative" ref={containerRef}>
+        <ToastContainer />
+        {isLoading && (
+          <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-black bg-opacity-75 text-white h-screen">
+            Please wait we are loading your data
+          </div>
+        )}
+        <BackButton />
+        <div className="flex gap-8 mt-2">
+          {/* <ResourceImages images={resourceData?.images} /> */}
+          <ResourceMeta resource={resourceData} />
         </div>
-      )}
-      <BackButton />
-      <div className="flex gap-8 mt-2">
-        {/* <ResourceImages images={resourceData?.images} /> */}
-        <ResourceMeta resource={resourceData} />
+        <Tabs tab={tab} setTab={setTab} />
+        <TabContent tab={tab} resource={resourceData} />
       </div>
-      <Tabs tab={tab} setTab={setTab} />
-      <TabContent tab={tab} resource={resourceData} />
-    </div>
+      <Footer />
+    </>
   );
 }
 
@@ -100,7 +126,9 @@ function ResourceMeta({ resource }) {
           {resource?.downloads} Downloads
         </div>
       </div> */}
-      <p className="text-gray-700 mt-2">{resource?.description}</p>
+      <div className="text-gray-500 mt-2 text-[1rem]">
+        {resource?.description}
+      </div>
       <div className="flex gap-8 mt-2 items-center text-gray-600 text-sm">
         <div>
           <span>File type</span>
@@ -129,23 +157,29 @@ function ResourceMeta({ resource }) {
 function Actions({ downloadUrl }) {
   return (
     <div className="flex gap-2 mt-4">
-      <button className="bg-blue-600 text-white px-6 py-2 rounded shadow font-medium" onClick={() => window.open(downloadUrl, "_blank")}>
-        Download Resource
+      <button
+        className="flex gap-1 items-center justify-center bg-blue-600 text-white px-6 py-2 rounded shadow font-medium"
+        onClick={() => window.open(downloadUrl, "_blank")}
+      >
+        <Download size={16} /> Download Resource
       </button>
       {/* <button className="border p-2 rounded">
         <Heart />
       </button> */}
-      <button className="border p-2 rounded" onClick={() => {
-        navigator.clipboard.writeText(window.location.href);
-        toast("Link copied to clipboard");
-      }}>
+      <button
+        className="border p-2 rounded"
+        onClick={() => {
+          navigator.clipboard.writeText(window.location.href);
+          toast("Link copied to clipboard");
+        }}
+      >
         <Share2 />
       </button>
     </div>
   );
 }
 
-const TABS_LIST = ["Overview"];//"Review", "Related"
+const TABS_LIST = ["Overview"]; //"Review", "Related"
 
 function Tabs({ tab, setTab }) {
   return (
@@ -177,16 +211,47 @@ function TabContent({ tab, resource }) {
   return null;
 }
 
-// --- Sample Overview/Review/Related components --- //
-
 function OverviewContent({ overview }) {
+  const processValue = (value) => {
+    if (Array.isArray(value)) {
+      return (
+        <ul className="list-disc ml-6 mb-2 text-gray-800 text-base leading-relaxed">
+          {value.map((item, index) => (
+            <li
+              className="text-gray-600  leading-relaxed mt-2 mb-2 font-sans"
+              key={index}
+              dangerouslySetInnerHTML={{ __html: item }}
+            />
+          ))}
+        </ul>
+      );
+    }
+
+    if (typeof value === "string") {
+      return (
+        <div className="text-gray-600 text-[1rem] leading-relaxed mt-2 mb-2 font-sans">
+          {value.split("\n").map((item, index) => (
+            <div
+              className="d-block"
+              key={index}
+              dangerouslySetInnerHTML={{ __html: item }}
+            />
+          ))}
+        </div>
+      );
+    }
+    return value;
+  };
+
   return (
-    <div className="py-4 prose prose-p:text-gray-600 prose-p:text-sm prose-p:font-normal prose-p:leading-relaxed prose-p:mt-2 prose-p:mb-2 prose-p:font-sans prose-h1:text-blue-600 prose-h2:text-blue-600 prose-h3:text-blue-600 prose-h4:text-blue-600 prose-h5:text-blue-600 prose-h6:text-blue-600 prose-ul:list-disc prose-ul:ml-6 prose-ul:mt-2 prose-ul:mb-2 prose-ul:font-normal prose-ul:font-sans prose-ul:text-gray-600 prose-ul:text-sm prose-ul:leading-relaxed prose-ul:pl-6">
+    <div className="py-4">
       {/* Paste overview markdown/html as needed */}
       {overview?.map(({ key, value }, index) => (
-        <div key={index}>
-          <h2 className="py-1 capitalize">{String(key).toLowerCase()}</h2>
-          <div dangerouslySetInnerHTML={{ __html: value }} />
+        <div key={index} className="mb-6">
+          <h2 className="capitalize text-2xl font-semibold text-blue-600 mb-4">
+            {index + 1}. {String(key).toLowerCase()}
+          </h2>
+          <div>{processValue(value)}</div>{" "}
         </div>
       ))}
     </div>

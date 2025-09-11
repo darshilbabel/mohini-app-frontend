@@ -39,7 +39,7 @@ export default function RepositoryPage() {
       <div className="container max-w-[1690px] h-full">
         <div className="min-h-screen  py-3 px-1 flex flex-col  align-items-center gap-4 relative">
           <Header />
-          {/* <Filters /> */}
+          <Filters />
           <main className=" w-full mx-auto">
             {!!mediaList?.length && (
               <BrowseResources

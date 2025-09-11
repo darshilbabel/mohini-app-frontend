@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import HeroSection from "./HeroSection";
 const BASE_URL = "https://shikshagraha.org";
 
-export default function Header() {
+export default function Header({isHeroSection = true}) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Dropdown open state
@@ -151,7 +151,7 @@ export default function Header() {
         </>
       </div>
 
-      <HeroSection />
-    </header>
+{      isHeroSection && <HeroSection />
+}    </header>
   );
 }
