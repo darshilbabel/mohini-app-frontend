@@ -6,20 +6,34 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
 import { toast, ToastContainer } from "react-toastify";
 import Footer from "../common/Footer";
+import ROUTES from "../../../url";
 
 export default function ResourceDetailPage() {
   const params = useParams();
-
+  const navigate = useNavigate();
   const resourceData = useRepositoryStore((state) => state.selectedMedia);
   const fetchMediaDetail = useRepositoryStore(
     (state) => state.fetchMediaDetail
   );
+  const [hasPageLoaded, setHasPageLoaded] = useState(false);
+  const { loadingDetail } = useRepositoryStore();
   const isLoading = useRepositoryStore((state) => state.loadingDetail);
   useEffect(() => {
+    setHasPageLoaded(false);
     fetchMediaDetail(params.id);
+    setHasPageLoaded(true);
   }, [fetchMediaDetail, params.id]);
-  console.log({ resourceData });
+
   const [tab, setTab] = useState("Overview");
+
+  // routes to not found if resource is not found
+  useEffect(() => {
+    if (!resourceData && !loadingDetail && hasPageLoaded) {
+      navigate(ROUTES.NOT_FOUND);
+    }
+
+    return () => {};
+  }, [resourceData, loadingDetail, hasPageLoaded]);
 
   return (
     <>
@@ -105,7 +119,9 @@ function ResourceMeta({ resource }) {
           {resource?.downloads} Downloads
         </div>
       </div> */}
-      <div className="text-gray-500 mt-2 text-[1rem]">{resource?.description}</div>
+      <div className="text-gray-500 mt-2 text-[1rem]">
+        {resource?.description}
+      </div>
       <div className="flex gap-8 mt-2 items-center text-gray-600 text-sm">
         <div>
           <span>File type</span>
