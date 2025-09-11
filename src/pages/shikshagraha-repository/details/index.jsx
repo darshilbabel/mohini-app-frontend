@@ -105,7 +105,7 @@ function ResourceMeta({ resource }) {
           {resource?.downloads} Downloads
         </div>
       </div> */}
-      <p className="text-gray-500 mt-2 text-[1rem]">{resource?.description}</p>
+      <div className="text-gray-500 mt-2 text-[1rem]">{resource?.description}</div>
       <div className="flex gap-8 mt-2 items-center text-gray-600 text-sm">
         <div>
           <span>File type</span>
@@ -206,15 +206,15 @@ function OverviewContent({ overview }) {
 
     if (typeof value === "string") {
       return (
-        <p className="text-gray-600 text-[1rem] leading-relaxed mt-2 mb-2 font-sans">
+        <div className="text-gray-600 text-[1rem] leading-relaxed mt-2 mb-2 font-sans">
           {value.split("\n").map((item, index) => (
-            <p
+            <div
               className="d-block"
               key={index}
               dangerouslySetInnerHTML={{ __html: item }}
             />
           ))}
-        </p>
+        </div>
       );
     }
     return value;
