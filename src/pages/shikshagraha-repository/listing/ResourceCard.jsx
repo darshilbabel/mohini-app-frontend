@@ -1,7 +1,8 @@
 import React from "react";
-import { Heart, Star, Download, Calendar } from "lucide-react";
+import { Heart, Star, Download } from "lucide-react";
 import SmallLogo from "./SmallLogo";
 import { useNavigate } from "react-router-dom";
+import { GrDocument } from "react-icons/gr";
 const MEDIA_FILE_TYPE = {
   PDF: "PDF",
   DOCX: "DOCX",
@@ -105,8 +106,8 @@ export default function ResourceCard({ resource, index }) {
               className="relative flex items-center justify-center p-1 bg-blue-100 rounded-[6px] "
               aria-label="Resource Type Icon"
             >
-              <div className=" text-blue-500 w-[24px] h-[24px]">
-                <Calendar />
+              <div className=" text-blue-500 w-[24px] h-[24px] flex items-center justify-center">
+                <GrDocument className="w-[20px] h-[20px]" />
               </div>
             </div>
             <span className="font-manrope font-semibold text-[14px] leading-[19px] text-gray-500">
