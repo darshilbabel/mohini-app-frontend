@@ -3,8 +3,7 @@
 import React from "react";
 import { useRoutes, Navigate } from "react-router-dom";
 import ROUTES from "./url";
-import { UserProvider, useUserDispatcher, useUserStore } from "./context/user";
-import { useLocalStorage } from "react-use";
+import { UserProvider } from "./context/user";
 import Shikshalokam from "./pages/shikshalokam";
 import ShikshalokamVoiceBasedChat from "./pages/ShikshalokamVoiceChat/voice-chat";
 import PrivacyPage from "./pages/privacyPage";
@@ -15,6 +14,7 @@ import CommonHomePage from "./pages/Login/commonPage";
 import PTMChat from "./pages/ShikshalokamMegaPTM";
 import ShikshagrahaRepository from "./pages/shikshagraha-repository/listing";
 import ShikshagrahaRepositoryDetail from "./pages/shikshagraha-repository/details";
+import NotFound from "./pages/shikshagraha-repository/not-found";
 
 
 function App() {
@@ -63,6 +63,7 @@ const unprotected_old_routes = [
   {path: ROUTES.SSO_FLOW, element: <SsoFlow />},
   {path: ROUTES.SHIKSHAGRAHA_REPOSITORY, element: <ShikshagrahaRepository />},
   {path: ROUTES.SHIKSHAGRAHA_REPOSITORY_DETAIL, element: <ShikshagrahaRepositoryDetail />},
+  {path: ROUTES.NOT_FOUND, element: <NotFound />},
 ];
 
 const unprotected_routes_config = [
