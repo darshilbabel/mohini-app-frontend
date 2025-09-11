@@ -62,7 +62,7 @@ export default function Filters() {
             <input
               type="text"
               placeholder="Search by keyword"
-              className="pl-[41px] pr-[17px] py-[12px] w-[331px] h-[53px] bg-white border border-gray-300 rounded-[12px] text-[14px] leading-[19px] font-manrope text-gray-300 placeholder-[#9CA3AF] focus:outline-none"
+              className="pl-[41px] pr-[17px] py-[12px] w-[331px] h-[53px] bg-white border border-gray-300 rounded-[12px] text-[14px] leading-[19px] font-manrope text-gray-700 placeholder-[#9CA3AF] focus:outline-none"
               value={search}
               onChange={(e) => {
                 e.preventDefault();
@@ -113,7 +113,7 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
         }),
         placeholder: (base) => ({
           ...base,
-          color: "#9CA3AF",
+          color: "#49454F",
         }),
         multiValueLabel: (base) => ({
           ...base,
@@ -126,7 +126,7 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
           background: "white",
         }),
       }}
-      className=" bg-gray-100 rounded-[12px] px-4 pr-10 text-zinc-600 text-sm  border border-transparent focus:border-blue-500 focus:outline-none appearance-none"
+      className=" bg-gray-100 rounded-[12px] pl-4 pr-10 text-zinc-600 text-sm  border border-transparent focus:border-blue-500 focus:outline-none appearance-none"
     />
     {/* Chevron Icon - positioned absolutely on the right */}
     <div className="pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-600">
