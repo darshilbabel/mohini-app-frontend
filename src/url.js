@@ -12,7 +12,8 @@ const ROUTES = {
   EXIT_ROUTE: "/exit",
   SSO_FLOW: "/sso",
   SHIKSHAGRAHA_REPOSITORY: "/shikshagraha-commons",
-  SHIKSHAGRAHA_REPOSITORY_DETAIL: "/shikshagraha-commons/:id"
+  SHIKSHAGRAHA_REPOSITORY_DETAIL: "/shikshagraha-commons/:id",
+  NOT_FOUND: "/shikshagraha-not-found",
 };
 
 export default ROUTES;
