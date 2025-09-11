@@ -22,23 +22,25 @@ export default function ResourceDetailPage() {
   const [tab, setTab] = useState("Overview");
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 py-8 relative">
-      <ToastContainer/>
-      {isLoading && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-black bg-opacity-75 text-white h-screen">
-          Please wait we are loading your data
+    <>
+      {" "}
+      <div className="max-w-[1100px] mx-auto px-4 py-8 relative">
+        <ToastContainer />
+        {isLoading && (
+          <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-black bg-opacity-75 text-white h-screen">
+            Please wait we are loading your data
+          </div>
+        )}
+        <BackButton />
+        <div className="flex gap-8 mt-2">
+          {/* <ResourceImages images={resourceData?.images} /> */}
+          <ResourceMeta resource={resourceData} />
         </div>
-      )}
-      <BackButton />
-      <div className="flex gap-8 mt-2">
-        {/* <ResourceImages images={resourceData?.images} /> */}
-        <ResourceMeta resource={resourceData} />
+        <Tabs tab={tab} setTab={setTab} />
+        <TabContent tab={tab} resource={resourceData} />
       </div>
-      <Tabs tab={tab} setTab={setTab} />
-      <TabContent tab={tab} resource={resourceData} />      
       <Footer />
-
-    </div>
+    </>
   );
 }
 
@@ -132,23 +134,29 @@ function ResourceMeta({ resource }) {
 function Actions({ downloadUrl }) {
   return (
     <div className="flex gap-2 mt-4">
-      <button className="bg-blue-600 text-white px-6 py-2 rounded shadow font-medium" onClick={() => window.open(downloadUrl, "_blank")}>
+      <button
+        className="bg-blue-600 text-white px-6 py-2 rounded shadow font-medium"
+        onClick={() => window.open(downloadUrl, "_blank")}
+      >
         Download Resource
       </button>
       {/* <button className="border p-2 rounded">
         <Heart />
       </button> */}
-      <button className="border p-2 rounded" onClick={() => {
-        navigator.clipboard.writeText(window.location.href);
-        toast("Link copied to clipboard");
-      }}>
+      <button
+        className="border p-2 rounded"
+        onClick={() => {
+          navigator.clipboard.writeText(window.location.href);
+          toast("Link copied to clipboard");
+        }}
+      >
         <Share2 />
       </button>
     </div>
   );
 }
 
-const TABS_LIST = ["Overview"];//"Review", "Related"
+const TABS_LIST = ["Overview"]; //"Review", "Related"
 
 function Tabs({ tab, setTab }) {
   return (
