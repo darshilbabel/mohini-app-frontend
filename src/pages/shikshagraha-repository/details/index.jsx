@@ -1,5 +1,5 @@
 // ResourceDetailPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Download, Heart, Share2, Star } from "lucide-react";
 import ReviewForm from "./ReviewForm";
 import { useNavigate, useParams } from "react-router-dom";
@@ -18,6 +18,7 @@ export default function ResourceDetailPage() {
   const [hasPageLoaded, setHasPageLoaded] = useState(false);
   const { loadingDetail } = useRepositoryStore();
   const isLoading = useRepositoryStore((state) => state.loadingDetail);
+  const containerRef = useRef(null);
   useEffect(() => {
     setHasPageLoaded(false);
     fetchMediaDetail(params.id);
@@ -35,10 +36,16 @@ export default function ResourceDetailPage() {
     return () => {};
   }, [resourceData, loadingDetail, hasPageLoaded]);
 
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current?.scrollIntoView({ behavior: "smooth", y: -999 });
+    }
+  }, [resourceData]);
+
   return (
     <>
       {" "}
-      <div className="max-w-[1100px] mx-auto px-4 py-8 relative">
+      <div className="max-w-[1100px] mx-auto px-4 py-8 relative" ref={containerRef}>
         <ToastContainer />
         {isLoading && (
           <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-black bg-opacity-75 text-white h-screen">
