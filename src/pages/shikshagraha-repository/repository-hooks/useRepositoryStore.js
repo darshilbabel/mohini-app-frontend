@@ -124,7 +124,7 @@ export const useRepositoryStore = create((set, get) => ({
           key: "tags",
           label: "Categories",
           options: master.tags.map((x) => ({
-            value: x.id,
+            value: x.name,
             display: x.name,
           })),
         },
@@ -206,7 +206,6 @@ export const useRepositoryStore = create((set, get) => ({
       acc[key] = value.map(x => x.value).join(",");
       return acc;
     }, {});
-    console.log({transformedFilters})
     return transformedFilters;
   },
 }));
