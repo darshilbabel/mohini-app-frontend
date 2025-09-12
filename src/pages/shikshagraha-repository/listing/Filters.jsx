@@ -36,7 +36,7 @@ export default function Filters() {
   const handleChange = (key, value) => {
     setFilters({ [key]: value }, false);
   };
-
+  console.log({ filters });
   return (
     <div className="sticky top-0 z-50 flex flex-row items-center p-4 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
       <div className="flex flex-wrap items-center p-0 gap-0">
