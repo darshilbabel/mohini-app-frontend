@@ -152,20 +152,20 @@ export default function BrowseResources({
   const sortBy = useRepositoryStore((state) => state.sortBy);
   const setSortBy = useRepositoryStore((state) => state.setSortBy);
   const sortOptions = [
-    { value: "name", label: "Title (A-Z)" },
-    { value: "-name", label: "Title (Z-A)" },
+    { value: "title", label: "Title (A-Z)" },
+    { value: "-title", label: "Title (Z-A)" },
     { value: "created_at", label: "Created (Oldest First)" },
     { value: "-created_at", label: "Created (Newest First)" },
-    { value: "updated_at", label: "Updated (Oldest First)" },
-    { value: "-updated_at", label: "Updated (Newest First)" },
+    // { value: "updated_at", label: "Updated (Oldest First)" },
+    // { value: "-updated_at", label: "Updated (Newest First)" },
     // { value: "priority", label: "Priority (A-Z)" },
     // { value: "-priority", label: "Priority (Z-A)" },
-    { value: "media_type", label: "File Type (A-Z)" },
-    { value: "-media_type", label: "File Type (Z-A)" },
+    // { value: "media_type", label: "File Type (A-Z)" },
+    // { value: "-media_type", label: "File Type (Z-A)" },
     // { value: "id", label: "ID (Smallest First)" },
     // { value: "-id", label: "ID (Largest First)" },
-    { value: "organization", label: "Organization (A-Z)" },
-    { value: "-organization", label: "Organization (Z-A)" },
+    // { value: "organization", label: "Organization (A-Z)" },
+    // { value: "-organization", label: "Organization (Z-A)" },
   ];
 
   const perPageOptions = [
