@@ -41,7 +41,7 @@ export const useRepositoryStore = create((set, get) => ({
       const { filters, pagination, sortBy, q } = get();
       const transformedFilters = get().getTransformedFilters(filters);
       const queryParams = {
-        q: q||null,
+        q: q || null,
         ...transformedFilters,
         ...pagination,
         ordering: sortBy,
@@ -131,7 +131,7 @@ export const useRepositoryStore = create((set, get) => ({
         {
           key: "resource_types",
           label: "Resource Type",
-          options:     master.resource_types.map((x) => ({
+          options: master.resource_types.map((x) => ({
             value: x.value,
             display: x.display,
           })),
@@ -169,6 +169,13 @@ export const useRepositoryStore = create((set, get) => ({
     get().fetchMediaList();
   },
   /**
+   * Reset filters to empty object
+   */
+  resetFilters: () => {
+    set({ filters: {} });
+    get().fetchMediaList();
+  },
+  /**
    * Update filters and optionally reset pagination
    * @param {Object} newFilters - Filter updates to merge
    * @param {boolean} resetPagination - Whether to reset offset to 0 (default true)
@@ -202,10 +209,13 @@ export const useRepositoryStore = create((set, get) => ({
     get().fetchMediaList();
   },
   getTransformedFilters: (filters) => {
-    const transformedFilters = Object.entries(filters).reduce((acc, [key, value]) => {
-      acc[key] = value.map(x => x.value).join(",");
-      return acc;
-    }, {});
+    const transformedFilters = Object.entries(filters).reduce(
+      (acc, [key, value]) => {
+        acc[key] = value.map((x) => x.value).join(",");
+        return acc;
+      },
+      {}
+    );
     return transformedFilters;
   },
 }));

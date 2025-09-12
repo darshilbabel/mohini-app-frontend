@@ -151,7 +151,7 @@ export default function Header({isHeroSection = true}) {
         </>
       </div>
 
-{      isHeroSection && <HeroSection />
+{      isHeroSection &&<div className="mt-[-1rem] flex justify-start w-full"><HeroSection /></div> 
 }    </header>
   );
 }
