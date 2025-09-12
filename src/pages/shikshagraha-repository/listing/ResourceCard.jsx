@@ -187,14 +187,22 @@ export default function ResourceCard({ resource, index }) {
         </div>
         {/* Organization block */}
         {resource?.organization && (
-          <div className="flex flex-row items-center gap-1.5 w-full h-[30.25px] max-w-[320px]">
+          <button
+            className="cursor-pointer flex flex-row items-center gap-1.5 w-full h-[30.25px] max-w-[320px] hover:text-blue-500 transition-colors"
+            title={resource?.organization}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              window.open(resource?.organization_url, "_blank");
+            }}
+          >
             <SmallLogo />
             <div className="flex flex-col gap-0 w-[273.5px] h-[22px]">
-              <span className="font-manrope font-medium text-[16px] leading-[22px] text-[#757575]">
+              <span className="font-manrope font-medium text-[16px] leading-[22px] text-[#757575] text-left hover:text-blue-500 transition-colors">
                 {resource?.organization}
               </span>
             </div>
-          </div>
+          </button>
         )}
       </div>
     </div>
