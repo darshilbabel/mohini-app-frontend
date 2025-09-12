@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, X } from "lucide-react";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
 import Select from "react-select";
 import { useDebounce } from "react-use";
@@ -26,6 +26,8 @@ export default function Filters() {
   // get master list
   const dropdown_meta = useRepositoryStore((state) => state.masterList);
 
+  const resetFilters = useRepositoryStore((state) => state.resetFilters);
+
   useEffect(() => {
     fetchMasterList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -51,6 +53,14 @@ export default function Filters() {
               </React.Fragment>
             ))
           : null}
+        {!!Object.keys(filters).some((key) => !!filters[key]?.length) && (
+          <button
+            className="p-2 rounded-[12px] flex items-center gap-2 text-red-600 bg-red-50"
+            onClick={() => resetFilters()}
+          >
+            <X className="w-4 h-4" /> Clear All
+          </button>
+        )}
       </div>
 
       <div className="flex items-end ml-auto relative z-10">
@@ -67,7 +77,7 @@ export default function Filters() {
               onChange={(e) => {
                 e.preventDefault();
                 setSearch(e.target.value);
-                if(!e.target.value){
+                if (!e.target.value) {
                   setGlobalSearch("");
                 }
                 console.log("debouce ready", debouncedSearch(e.target.value));
