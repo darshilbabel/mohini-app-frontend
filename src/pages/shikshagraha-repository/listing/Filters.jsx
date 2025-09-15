@@ -38,7 +38,7 @@ export default function Filters() {
   };
   console.log({ filters });
   return (
-    <div className="sticky top-0 z-50 flex flex-row items-center p-4 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
+    <div className="sticky top-0 z-50 flex flex-row items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
       <div className="flex flex-wrap items-center p-0 gap-0">
         {!!dropdown_meta?.length
           ? dropdown_meta?.map(({ label, options, key }, index) => (
