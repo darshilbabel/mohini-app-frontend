@@ -131,21 +131,28 @@ export default function ResourceCard({ resource, index }) {
             className="flex flex-row flex-wrap gap-2.5 w-full  overflow-hidden"
             aria-label="Resource tags"
           >
-            {resource?.tag_names?.map((tag, i) => (
-              <span
-                key={i}
-                className="bg-[#E5E7EB] rounded-full py-[2px] px-[10px] font-inter font-medium text-[12px] leading-[16px] text-[#374151]"
-              >
-                {tag}
+            {[resource?.tag_names[0], resource?.tag_names[1]]?.map((tag, i) =>
+              tag ? (
+                <span
+                  key={i}
+                  className="bg-[#E5E7EB] rounded-full py-[2px] px-[10px] font-inter font-medium text-[12px] leading-[16px] text-[#374151]"
+                >
+                  {tag}
+                </span>
+              ) : null
+            )}
+            {resource?.tag_names?.length > 2 && (
+              <span className="bg-[#E5E7EB] rounded-full py-[2px] px-[10px] font-inter font-medium text-[12px] leading-[16px] text-[#374151]">
+                +{resource?.tag_names?.length - 2} more
               </span>
-            ))}
+            )}
           </div>
         </div>
       </div>
 
       <div className="h-full flex justify-end items-start flex-col gap-2.5 p-3.5">
         {/* Rating and download count */}
-        <div className="flex flex-row justify-between items-center w-full min-h-[36px]">
+        <div className="flex flex-row justify-between items-center w-full min-h-[36px] d-none">
           {/* Rating */}
           {!!resource?.rating ? (
             <div className="flex flex-row justify-between items-center gap-2 w-[216px] min-h-[36px]">

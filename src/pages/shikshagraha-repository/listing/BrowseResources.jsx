@@ -182,7 +182,7 @@ export default function BrowseResources({
 
   // Removed unused variables
   return (
-    <section className=" px-6 pb-6 pt-1 max-w-[1670px]">
+    <section className="px-4 pb-4 pt-1 max-w-[1670px]">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-1">

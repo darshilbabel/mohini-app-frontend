@@ -66,13 +66,13 @@ export default function RepositoryPage() {
               </div>
             )}
             {!isLoading && !!!mediaList?.length && (
-              <div className="w-full mt-6 mx-auto flex flex-col items-center justify-center">
+              <div className="w-full pt-10 mx-auto flex flex-col items-center justify-center">
                 <div className="text-muted">
                   <GrResources size={100} />
                 </div>
                 <div className="flex flex-col items-center justify-center p-4">
-                  <h2 className="text-md">No resources found</h2>
-                  <p className="text-xs text-muted text-center">
+                  <h2 className="text-lg py-2">No resources found</h2>
+                  <p className="text-sm text-muted text-center max-w-[400px]">
                     If you can't find the resources you were looking for, please
                     ensure that your filters are set correctly or try clearing
                     them. If the issue persists, please feel free to reach out
