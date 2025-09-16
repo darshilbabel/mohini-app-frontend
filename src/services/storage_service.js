@@ -8,7 +8,7 @@ export const setInStorage = (key, value, currentFlow, storageName='') => {
     storage = isTemporary ? sessionStorage : localStorage;
   } else {
     const flow = currentFlow || sessionStorage.getItem('flow') || localStorage.getItem('flow');
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
+    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity];
     const isTemporary = flow && sessionFlows.includes(flow) && !(
       localStorage.getItem('projectId') ||
       sessionStorage.getItem('projectId')
@@ -24,7 +24,7 @@ export const getFromStorage = (key, parseValue = false, storageName='') => {
     storage = storageName === 'sessionStorage' ? sessionStorage : localStorage;
   } else{
     const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
+    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity];
     const isTemporary = flow && sessionFlows.includes(flow) && !(
       localStorage.getItem('projectId') ||
       sessionStorage.getItem('projectId')
@@ -56,7 +56,7 @@ export const removeFromStorage = (key, removeFromAll=false, storageName='') => {
     storage = storageName === 'sessionStorage' ? sessionStorage : localStorage;
   } else{
     const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
+    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity];
     const isTemporary = flow && sessionFlows.includes(flow);
     storage = isTemporary ? sessionStorage : localStorage;
   }

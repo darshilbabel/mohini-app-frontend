@@ -25,7 +25,8 @@ export const bot_routes = {
   reflection: "/reflection",
   oneshot: "/oneshot_bot",
   guest_oneshot: "/oneshot_guest",
-  shikshalokam_chaupal: "/shikshalokam_chaupal"
+  shikshalokam_chaupal: "/shikshalokam_chaupal",
+  listening_activity: "/listening_activity"
 };
 
 export const bot_websocket = {
@@ -34,7 +35,8 @@ export const bot_websocket = {
   reflection: "/ws/reflection/",
   oneshot: "/ws/shikshalokam_one_shot/",
   guest_oneshot: "/ws/oneshot_guest/",
-  shikshalokam_chaupal: "/ws/shikshalokam_chaupal/"
+  shikshalokam_chaupal: "/ws/shikshalokam_chaupal/",
+  listening_activity: "/ws/common/",
 };
 
 
