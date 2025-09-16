@@ -1,567 +1,200 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useNavigate } from "react-router-dom";
-import ROUTES from "../../url";
-import { useEffect, useRef, useState } from "react";
-import FormData from "../../components/Form/FormData";
-import { setLanguage } from "../../i18n";
-import { useTranslation } from "react-i18next";
-import {
-  clearFromStorage,
-  getFromStorage,
-  setInStorage,
-} from "../../services/storage_service";
-import {
-  languageList,
-  sessionFlowName,
-  sessionUsecaseType,
-} from "../ShikshalokamVoiceChat/enum";
-import {
-  handleOnSpeaking,
-  handleOnStopSpeaking,
-} from "../../services/audio_service";
-import { HiOutlineSpeakerWave, HiOutlineSpeakerXMark } from "react-icons/hi2";
+import { useEffect, useState } from "react";
+import { clearFromStorage, getFromStorage } from "../../services/storage_service";
+
+// Custom Hooks
+import { useLanguage } from "../../hooks/useLanguage";
+import { useAudio } from "../../hooks/useAudio";
+import { useFlow } from "../../hooks/useFlow";
+import { useNavigation } from "../../hooks/useNavigation";
+
+// Utils
+import { STORAGE_KEYS, PTM_USE_CASES } from "../../utils/constants";
+import { initializeLanguageStorage, hasAccessToken } from "../../utils/helpers";
+
+// Components
+import LanguageSelectionGrid from "../../components/LanguageSelectionGrid";
+import Header from "../../components/Header";
+import FlowSelection from "../../components/FlowSelection";
+import LoadingSpinner from "../../components/LoadingSpinner";
+
+// Styles
 import "../../components/custom-style.css";
 import "../../index.css";
 import "./commonPageStyle.css";
-import { FaArrowRightLong } from "react-icons/fa6";
-import { useLocation } from "react-use";
-import { BiLoader } from "react-icons/bi";
-import { lang } from "moment";
-// get default language based on usecase type
-function getDefaultLanguage(usecaseType) {
-  switch (usecaseType) {
-    default:
-      return languageList[0].value;
-  }
-}
+
 function CommonHomePage({ usecaseType }) {
-  const navigate = useNavigate();
-  const defaultLanguage =
-    getFromStorage("local_route", true, "localStorage") ||
-    getDefaultLanguage(usecaseType);
-  const [userLanguage, setUserLanguage] = useState(defaultLanguage);
-  const [selectedFlow, setSelectedFlow] = useState(getFromStorage("flow", false) || null);
-  const [stopAudioTriggered, setStopAudioTriggered] = useState(false);
+  // Custom hooks
+  const {
+    userLanguage,
+    setUserLanguage,
+    languageButtonSelect,
+    setLanguageButtonSelect,
+    handleLanguageChange,
+    setSelectedLanguage,
+    getDefaultLanguage,
+  } = useLanguage(usecaseType);
+
+  const {
+    audioRef,
+    controllerRef,
+    stopAudioTriggered,
+    setStopAudioTriggered,
+    stopAllAudio,
+  } = useAudio();
+
+  const {
+    selectedFlow,
+    setSelectedFlow,
+    isLoading,
+    setIsLoading,
+    processLanguageButtonClick,
+    handleFlowSelection,
+  } = useFlow(usecaseType);
+
+  // Local state
   const [isLanguageProcessing, setIsLanguageProcessing] = useState(false);
-  const [languageButtonSelect, setLanguageButtonSelect] = useState(
-    getFromStorage("hasSelectedLanguage") || null
-  );
-  const [isLoading, setIsLoading] = useState(true);
 
-  const { t } = useTranslation();
-  const audioRef = useRef();
+  // Navigation hook
+  useNavigation();
 
-  const handleLanguageChange = (e) => {
-    audioRef.current = null;
-    setUserLanguage(e?.target?.value);
-    setStopAudioTriggered(true);
-    stopAllAudio();
-    setLanguage(e?.target?.value);
-    localStorage.setItem("local_route", JSON.stringify(e?.target?.value));
-  };
+  // Check if it's PTM use case
+  const isPTMCase = PTM_USE_CASES.some((x) => x === usecaseType);
 
-  const location = useLocation();
+  // Parse URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlLanguage = urlParams.get('language');
+  const urlFlow = urlParams.get('flow');
 
-  useEffect(() => {
-    window.history.pushState(null, "", window.location.href);
-    window.history.replaceState(null, "", window.location.href);
-    window.onpopstate = function () {
-      window.history.go(1);
-    };
-    return () => {
-      window.onpopstate = null;
-    };
-  }, []);
-
+  // Initialize language and flow processing
   useEffect(() => {
     setIsLoading(true);
-    if (!languageButtonSelect) {
+    
+    if (!urlLanguage && !languageButtonSelect) {
       if (!userLanguage || userLanguage === null || userLanguage === "") {
-        localStorage.setItem(
-          "local_route",
-          JSON.stringify(languageList[0].value)
-        );
-        setUserLanguage(languageList[0].value);
+        const defaultLang = getFromStorage(STORAGE_KEYS.LOCAL_ROUTE, true, "localStorage") || 
+                           getDefaultLanguage(usecaseType);
+        localStorage.setItem(STORAGE_KEYS.LOCAL_ROUTE, JSON.stringify(defaultLang));
+        setUserLanguage(defaultLang);
       }
       setUserLanguage(userLanguage);
     }
 
-    if (!getFromStorage("accessToken", false, "localStorage")) {
-      clearFromStorage(true, ["hasSelectedLanguage", "local_route"]);
+    if (!hasAccessToken(getFromStorage)) {
+      clearFromStorage(true, [STORAGE_KEYS.HAS_SELECTED_LANGUAGE, STORAGE_KEYS.LOCAL_ROUTE]);
     }
 
-    if (!localStorage.getItem("local_route")) {
-      localStorage.setItem(
-        "local_route",
-        JSON.stringify(languageList[0].value)
-      );
-    }
-    setLanguage(userLanguage);
+    initializeLanguageStorage(usecaseType);
   }, []);
 
-  useEffect(() => {
-    const accessToken = getFromStorage("accessToken");
-    if (!accessToken) {
-      // Trap the back button
-      window.history.pushState(null, "", window.location.href);
-
-      const handlePopState = () => {
-        window.history.pushState(null, "", window.location.href);
-      };
-
-      window.addEventListener("popstate", handlePopState);
-
-      return () => {
-      // setIsLoading(false);
-        window.removeEventListener("popstate", handlePopState);
-      };
-    } else {
-      const handlePopState = () => {
-        const rerouteURL = getFromStorage("ssoRerouteURL", false);
-        if (rerouteURL) {
-          clearFromStorage(true, ["ssoRerouteURL"]);
-          window.location.href = rerouteURL;
-        }
-      };
-
-      window.addEventListener("popstate", handlePopState);
-
-      return () => {
-        // setIsLoading(false);
-        window.removeEventListener("popstate", handlePopState);
-      };
-    }
-  }, [location.pathname]);
-
-  const controllerRef = useRef(null);
-
-  async function stopAllAudio() {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-    if (controllerRef.current) {
-      controllerRef.current.abort(); // cancel ongoing API
-    }
-    controllerRef.current = new AbortController();
+  // Process language selection
+// Process language selection
+useEffect(() => {
+  if (isLanguageProcessing) return;
+  setIsLanguageProcessing(true);
+  
+  // If both URL params exist, auto-process immediately
+  if (urlLanguage && urlFlow) {
+    processLanguageButtonClick(userLanguage, true);
+    return;
   }
-
-  const ptm_case = [sessionUsecaseType.MEGA_PTM].some((x) => x === usecaseType);
-
-  function processLanguageButtonClick(langToUse, forceProcess = false) {
-    console.log("Process button clicked")
-    if(!forceProcess && (!languageButtonSelect || !selectedFlow || !userLanguage)) {
-      setIsLoading(false);
-      return;
-    }
-    console.log("Process button allowed")
-    setIsLoading(true);
-    setInStorage("hasSelectedLanguage", true);
-    setUserLanguage(langToUse);
-    setStopAudioTriggered(true);
-    stopAllAudio();
-    setLanguage(langToUse);
-    localStorage.setItem(
-      "local_route",
-      JSON.stringify(langToUse)
-    );
-    // if acccess token exists --> send them to flow if flow exists if not let them select!
-    setInStorage("route", JSON.stringify(langToUse));
-    setLanguageButtonSelect(true);
-    // case for ptm
-    if (ptm_case) {
-      return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
-    }
-    if (getFromStorage("accessToken", true)) {
-      if(getFromStorage("flow") === sessionFlowName.GuestMiStory){
-        return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-      }
-      if(getFromStorage("flow") === sessionFlowName.GuestDiscussion){
-        return window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-      }
-    }
+  
+  // If only language param exists, process it
+  if (urlLanguage && !urlFlow) {
+    processLanguageButtonClick(userLanguage, false);
+    return;
+  }
+  
+  // If only flow param exists, wait for language selection but don't auto-process
+  if (!urlLanguage && urlFlow) {
     setIsLoading(false);
+    return;
   }
+  
+  // Normal processing (no URL params)
+  processLanguageButtonClick(userLanguage);
+}, [userLanguage, isLanguageProcessing, urlLanguage, urlFlow]);
 
+  // Event handlers
+  const onLanguageChange = (e) => {
+    handleLanguageChange(
+      e?.target?.value,
+      audioRef,
+      stopAllAudio,
+      setStopAudioTriggered
+    );
+  };
 
-  useEffect(() => {
-    if(isLanguageProcessing) return;
-    setIsLanguageProcessing(true);
-    processLanguageButtonClick(userLanguage);
-  }, [userLanguage, isLanguageProcessing]);
+// Event handlers
+const onLanguageSelect = (language, forceProcess) => {
+  setSelectedLanguage(language);
+  // If URL flow exists, force process after language selection
+  const shouldForceProcess = forceProcess || !!urlFlow;
+  processLanguageButtonClick(language, shouldForceProcess);
+};
+  const onFlowContinue = (selectedFlow) => {
+    return handleFlowSelection(selectedFlow, stopAllAudio);
+  };
+
+  // Updated render conditions
+  const shouldShowLanguageGrid = !urlLanguage && !languageButtonSelect;
+  
+  const shouldShowFlowSelection = 
+    (urlLanguage || (languageButtonSelect && ![null, ""].includes(languageButtonSelect))) &&
+    !urlFlow &&
+    !isPTMCase &&
+    !getFromStorage(STORAGE_KEYS.FLOW, true);
 
   return (
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 px-0">
-      {languageButtonSelect && ![null, ""].includes(languageButtonSelect) && (
-        <div className="absolute top-6 right-6 min-w-[100px] max-w-fit hidden sm:block">
-          <FormData
-            layOut={2}
-            labelName=""
-            id="pagelanguageID"
-            selectID="pagelanguageID"
-            selectName="language"
-            selectOptions={languageList}
-            labelDivClass="text-left text-slate-700"
-            selectValue={userLanguage}
-            selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-max"
-            selectOnChange={handleLanguageChange}
-          />
-        </div>
-      )}
-      <div className="px-5 hidden sm:block">
-        <div className="flex">
-          <img
-            src={t("pageLogo")}
-            className="h-[100px] w-[200px] object-contain aspect-auto align-top object-[center_center] relative ml-0"
-            alt="shikshalokam_logo"
-          />
-        </div>
-        <div className="mt-[40px]">
-          <div className="text-center sm:text-md text-xl mb-2 text-slate-700">
-            <b>{t("welcome_heading1")}</b>
-          </div>
-        </div>
-        <img
-          src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
-          width="360"
-          height="300"
-          className="center-img custom-login-image"
-          alt=""
-        />
-      </div>
+      {/* Desktop Header */}
+      <Header
+        userLanguage={userLanguage}
+        languageButtonSelect={languageButtonSelect}
+        onLanguageChange={onLanguageChange}
+        isDesktop={true}
+      />
+
+      {/* Main Content */}
       <div className="w-full px-0">
-        <div className="justify-center w-full flex sm:hidden">
-          <div className="w-full">
-            <div
-              className={`
-                    ${
-                      languageButtonSelect &&
-                      ![null, ""].includes(languageButtonSelect)
-                        ? "justify-between"
-                        : "justify-center"
-                    }     
-                     w-full flex sm:hidden items-center p-2`}
-            >
-              <img
-                src={t("pageLogo")}
-                className={`h-[50px] object-contain ${
-                  userLanguage === "en" ? "w-[140px]" : "w-[100px] "
-                }`}
-                alt="shikshalokam_logo"
-              />
-              {languageButtonSelect &&
-                ![null, ""].includes(languageButtonSelect) && (
-                  <div className="w-[140px] flex justify-end p-2">
-                    <FormData
-                      layOut={2}
-                      labelName=""
-                      id="pagelanguageID"
-                      selectID="pagelanguageID"
-                      selectName="language"
-                      selectOptions={languageList}
-                      labelDivClass="text-left text-slate-700"
-                      selectValue={userLanguage}
-                      selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-0 w-full"
-                      selectOnChange={handleLanguageChange}
-                    />
-                  </div>
-                )}
-            </div>
-          </div>
-        </div>
-        <div className="sm:hidden text-center sm:text-sm mb-1 text-md text-slate-700">
-          <b>{t("welcome_heading1")}</b>
-        </div>
-        <img
-          src="https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/innovationpana-1@2x.png"
-          width="170"
-          height="100"
-          className="center-img custom-login-image sm:hidden"
-          alt=""
+        {/* Mobile Header */}
+        <Header
+          userLanguage={userLanguage}
+          languageButtonSelect={languageButtonSelect}
+          onLanguageChange={onLanguageChange}
+          isDesktop={false}
         />
+
         <div className="bg-slate-50 sm:pt-6 sm:h-[100%] flex flex-col justify-center mt-0 w-full">
           <div className="flex justify-end mr-6 relative block sm:hidden"></div>
 
-          {languageButtonSelect &&
-          ![null, ""].includes(languageButtonSelect) &&
-          !ptm_case &&
-          !getFromStorage("flow", true) ? (
-            !getFromStorage("flow", true) && (
-              <>
-                <div className="text-center text-lg md:text-xl sm:text-md mt-0 sm:mt-[100px] text-slate-700">
-                  <b>{t("commonPageSelectionText")}</b>
-                </div>
-                <div className="py-2 px-0 text-center">
-                  {/* Form here */}
-                  <div className="flex flex-col items-center gap-8 py-2 px-0 font-inter">
-                    {/* Top Buttons */}
-                    <div className="flex flex-col w-full justify-center items-center gap-4 flow-button-custom px-4">
-                      <span
-                        className={`flex items-center gap-3 px-3 justify-center sm:py-4 py-3 rounded-2xl text-[#322f2f] cursor-pointer 
-                        ${
-                          selectedFlow == sessionFlowName.GuestDiscussion
-                            ? "bg-[#efeafe]"
-                            : "bg-[#e3ecf48f]"
-                        } sm:max-w-[500px] w-full`}
-                        onClick={() => {
-                          setSelectedFlow(sessionFlowName.GuestDiscussion);
-                        }}
-                      >
-                        <span className="text-base font-medium">
-                          <ShowPageButton
-                            text={t("commonPageButtonText2")}
-                            id="capture-discussion"
-                            userLanguage={userLanguage}
-                            showSpeaker={true}
-                            forcePlayAudio={
-                              selectedFlow === sessionFlowName.GuestDiscussion
-                            }
-                            selectedFlow={selectedFlow}
-                            audioRef={audioRef}
-                            stopAudioTriggered={stopAudioTriggered}
-                            setStopAudioTriggered={setStopAudioTriggered}
-                            controllerRef={controllerRef}
-                            logo="https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/discussion_capture_logo.png"
-                          />
-                        </span>
-                      </span>
-                      <span
-                        className={`flex items-center justify-center gap-3 px-3 sm:py-4 py-3 rounded-2xl text-[#322f2f] cursor-pointer 
-                          ${
-                            selectedFlow == sessionFlowName.GuestMiStory
-                              ? "bg-[#efeafe]"
-                              : "bg-[#e3ecf48f]"
-                          } sm:max-w-[500px] w-full`}
-                        onClick={() => {
-                          setSelectedFlow(sessionFlowName.GuestMiStory);
-                        }}
-                      >
-                        <span className="text-base font-medium">
-                          <ShowPageButton
-                            text={t("commonPageButtonText1")}
-                            id="capture-mi-story"
-                            userLanguage={userLanguage}
-                            showSpeaker={true}
-                            forcePlayAudio={
-                              selectedFlow === sessionFlowName.GuestMiStory
-                            }
-                            selectedFlow={selectedFlow}
-                            audioRef={audioRef}
-                            stopAudioTriggered={stopAudioTriggered}
-                            setStopAudioTriggered={setStopAudioTriggered}
-                            controllerRef={controllerRef}
-                            logo="https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/mi_story_capture_logo.png"
-                          />
-                        </span>
-                      </span>
-                    </div>
-
-                    {/* Continue Button */}
-                    <button
-                      className={`mt-0 px-16 py-2 rounded-xl text-white text-lg font-medium flex items-center ${
-                        selectedFlow
-                          ? "bg-[#572E91] cursor-pointer"
-                          : "bg-[#8d888857] cursor-not-allowed"
-                      }`}
-                      disabled={!selectedFlow}
-                      onClick={async () => {
-                        setIsLoading(true);
-                        await stopAllAudio();
-                        if (selectedFlow === sessionFlowName.GuestDiscussion) {
-                          setInStorage("previousUrl", window.location.href);
-                          setInStorage("tempCode", "xyz123");
-                          if (getFromStorage("previousUrl")) {
-                            if (getFromStorage("accessToken", true)) {
-                              setInStorage("flow", selectedFlow);
-                              return window.location.replace(
-                                "/mohini" + ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT
-                              );
-                            } else {
-                              navigate(ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-                              window.location.reload();
-                            }
-                          }
-                      
-                        } else if (
-                          selectedFlow === sessionFlowName.GuestMiStory
-                        ) {
-                          setInStorage("previousUrl", window.location.href);
-                          setInStorage("tempCode", "xyz123");
-                          if (getFromStorage("previousUrl")) {
-                            if (getFromStorage("accessToken", true)) {
-                              setInStorage("flow", selectedFlow);
-                              return window.location.replace(
-                                "/mohini" + ROUTES.SHIKSHALOKAM_GUEST_MI_STORY
-                              );
-                            } else {
-                              navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-                              window.location.reload();
-                            }
-                          }
-                        }
-                        setIsLoading(false);
-                      }}
-                    >
-                      {t("continueBtnText")}{" "}
-                      <FaArrowRightLong className="ml-2 text-xl" />
-                    </button>
-                  </div>
-                </div>
-              </>
-            )
-          ) : (
-            <>
-              <div className="text-center text-lg md:text-2xl sm:text-md mt-0 sm:mt-[100px] text-slate-700">
-                <b>{t("welcome_text")}</b>
-              </div>
-              <p className="sm:text-xl text-md font-semibold text-center">
-                {t("languageQuestion")}
-              </p>
-              <div className="mt-4 mb-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 md:justify-items-center lg:px-[80px] md:px-[20px] sm:px-[20px] px-[10px]">
-                {languageList
-                  .filter(
-                    (lang) => !lang.excludeFor.some((x) => x === usecaseType)
-                  )
-                  .map((lang) => (
-                    <div
-                      key={lang.value}
-                      className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center"
-                      onClick={() => {
-                        setIsLanguageProcessing(true);
-                        processLanguageButtonClick(lang.value, true);
-                      }}
-                    >
-                      <button className="w-full">{lang.label}</button>
-                    </div>
-                  ))}
-              </div>
-            </>
-          )}
+          {shouldShowFlowSelection ? (
+            <FlowSelection
+              selectedFlow={selectedFlow}
+              setSelectedFlow={setSelectedFlow}
+              userLanguage={userLanguage}
+              audioRef={audioRef}
+              stopAudioTriggered={stopAudioTriggered}
+              setStopAudioTriggered={setStopAudioTriggered}
+              controllerRef={controllerRef}
+              onFlowContinue={onFlowContinue}
+              setIsLoading={setIsLoading}
+              stopAllAudio={stopAllAudio}
+            />
+          ) : shouldShowLanguageGrid ? (
+            <LanguageSelectionGrid
+              usecaseType={usecaseType}
+              onLanguageSelect={onLanguageSelect}
+              setIsLanguageProcessing={setIsLanguageProcessing}
+            />
+          ) : null}
         </div>
       </div>
-      {isLoading && (
-        <div className="loader-load-spinner">
-          <div className="div67">
-            <BiLoader className="loader-rotate-loader loader-icon" />
-          </div>
-        </div>
-      )}
+
+      {/* Loading Spinner */}
+      <LoadingSpinner isVisible={isLoading} />
     </div>
   );
 }
 
 export default CommonHomePage;
-
-export function ShowPageButton({
-  text,
-  id,
-  audioRef,
-  stopAudioTriggered,
-  setStopAudioTriggered,
-  controllerRef,
-  userLanguage = "en",
-  selectedFlow,
-  showSpeaker = false,
-  forcePlayAudio = false,
-  logo = "",
-}) {
-  const [audioCache, setAudioCache] = useState({});
-
-  const [isPlaying, setIsPlaying] = useState(false);
-  const hasForcedPlay = useRef(1);
-  const prevFlow = useRef(null);
-
-  useEffect(() => {
-    setAudioCache({});
-    audioRef.current = null;
-    hasForcedPlay.current = 2;
-    prevFlow.current = selectedFlow;
-  }, [userLanguage]);
-
-  useEffect(() => {
-    if (prevFlow.current !== selectedFlow) {
-      setIsPlaying(false);
-      hasForcedPlay.current = 1;
-      prevFlow.current = selectedFlow;
-    }
-  }, [selectedFlow]);
-
-  useEffect(() => {
-    if (forcePlayAudio && !isPlaying && text && hasForcedPlay.current === 1) {
-      hasForcedPlay.current = 2;
-      setStopAudioTriggered(false);
-      setIsPlaying(true);
-      handleOnSpeaking(
-        text,
-        id,
-        userLanguage,
-        audioRef,
-        audioCache,
-        setAudioCache,
-        setIsPlaying
-      );
-    }
-  }, [forcePlayAudio, text, id, isPlaying, audioCache]);
-
-  useEffect(() => {
-    if (stopAudioTriggered) {
-      setIsPlaying(false);
-    }
-  }, [stopAudioTriggered]);
-
-  return (
-    <div className="flex flex-col items-center vertical-center text-center">
-      {logo && logo !== "" && (
-        <div className="w-[40px] mb-2">
-          <img src={logo} alt="Logo" />
-        </div>
-      )}
-      <div className={`flex items-center gap-2 vertical-center`}>
-        {showSpeaker && (
-          <span className="speaker-div vertical-center">
-            {isPlaying ? (
-              <button
-                type="button"
-                className="speaker-off-button text-[1.3rem] md:text-lg sm:text-[1.3rem] text-[#322f2f] vertical-center"
-                onClick={(e) => {
-                  if (!forcePlayAudio) {
-                    handleOnStopSpeaking(audioRef, setIsPlaying);
-                  }
-                }}
-              >
-                <HiOutlineSpeakerWave />
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="speaker-off-button text-[1.3rem] md:text-lg sm:text-[1.3rem] vertical-center"
-                onClick={(e) => {
-                  forcePlayAudio = false;
-                  if (!forcePlayAudio && hasForcedPlay.current !== 1) {
-                    setStopAudioTriggered(false);
-                    setIsPlaying(true);
-                    handleOnSpeaking(
-                      text,
-                      id,
-                      userLanguage,
-                      audioRef,
-                      audioCache,
-                      setAudioCache,
-                      setIsPlaying
-                    );
-                  }
-                }}
-              >
-                <HiOutlineSpeakerXMark />
-              </button>
-            )}
-          </span>
-        )}
-        <label htmlFor={id} className="text-[1rem] md:text-md sm:text-[1rem]">
-          {text}
-        </label>
-      </div>
-    </div>
-  );
-}
