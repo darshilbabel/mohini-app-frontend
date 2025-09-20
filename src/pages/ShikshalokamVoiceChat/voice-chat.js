@@ -2849,114 +2849,116 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               [sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)) && getFromStorage('accessToken'))
             ) && (
             <>
-              <div className="div13" >
-                <ChatMessage 
-                  botNameToDisplay={botNameToDisplay}
-                  userType="bot"
-                   message={
-                    (() => {
+              {!([sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false)))&&
+                <div className="div13" >
+                  <ChatMessage 
+                    botNameToDisplay={botNameToDisplay}
+                    userType="bot"
+                    message={
+                      (() => {
+                        const flow = getFromStorage('flow', false);
+                        return flow && [sessionFlowName.GuestMiStory].includes(flow)
+                          ? t('evidenceStory')
+                          : t('evidence');
+                      })()
+                    }
+                    isTalking={false}
+                    handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                    handleOnSpeaking={() =>{
                       const flow = getFromStorage('flow', false);
-                      return flow && [sessionFlowName.GuestMiStory].includes(flow)
+                      const message_to_use = flow && [sessionFlowName.GuestMiStory].includes(flow)
                         ? t('evidenceStory')
                         : t('evidence');
-                    })()
-                  }
-                  isTalking={false}
-                  handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                  handleOnSpeaking={() =>{
-                    const flow = getFromStorage('flow', false);
-                    const message_to_use = flow && [sessionFlowName.GuestMiStory].includes(flow)
-                      ? t('evidenceStory')
-                      : t('evidence');
-                    handleOnSpeaking(message_to_use, "upload-img-id",
-                      {msg: message_to_use, updated_at: "upload-img-id", source:"bot"}
-                    )}
-                  }
-                  isAnyPlaying={!!hasOverRideId || isTalking}
-                  isPlaying={hasOverRideId === "upload-img-id"}
-                  isStreamingComplete={isStreamingComplete}
-                  setNotMute={setNotMute}
-                  chatId={"upload-img-id"}
-                  isStaticMessage={true}
-                />
-                <div className="div14">
-                  <label className="clickable-label" htmlFor="file-upload">
-                    <GrGallery className="icon-1" />
-                    <span className="div16">
-                      {t('upload')}
-                    </span>
-                    <input 
-                      id="file-upload"
-                      type="file" 
-                      accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic" 
-                      // multiple
-                      onChange={(e) => {
-                        setIsLoading(true);
-                        handleMultipleUploads(e, storyData)
-                      }}
-                      onClick={(e) => {
-                        if (files?.length >= 10) {
-                          setFileErrorText(fileExceedText);
-                        } else {
-                          setFileErrorText('');
-                        }
-                      }}
-                      disabled={isLoading || isImageUploading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
-                      className="div17"
-                    />
-                  </label>
-                </div>
-                
-                <div className="div18">
-                      <p className="li-message">
-                        {t('photosLimitMsg')}
-                      </p>
-                    </div>
-                <>
-                  {isImageUploading && (  
-                    <div className="div18">
-                      <p className="li-3">
-                        {t('uploadLoadMsg')}
-                      </p>
-                    </div>
-                  )}
-                </>
-                {files?.length > 0 ? (
-                  <div className="div18">
-                    <h4 className="h4-1">{t('uploadedFiles')}:</h4>
-                    <ul>
-                      {fileErrorText && (
-                        <li className="li-1">
-                          {fileErrorText}
-                        </li>
+                      handleOnSpeaking(message_to_use, "upload-img-id",
+                        {msg: message_to_use, updated_at: "upload-img-id", source:"bot"}
                       )}
-                      {files.map((file, index) => (
-                        <li key={index} className="li-2">
-                          {file.name.slice(0, 20)}
-                          {file.name.length > 20 && '...'} 
-                          <button 
-                            className="button-1" 
-                            onClick={() => partialUpdateMedia(file?.id, false, access_token, setIsLoading)}
-                          >
-                            <RxCross2 />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                    }
+                    isAnyPlaying={!!hasOverRideId || isTalking}
+                    isPlaying={hasOverRideId === "upload-img-id"}
+                    isStreamingComplete={isStreamingComplete}
+                    setNotMute={setNotMute}
+                    chatId={"upload-img-id"}
+                    isStaticMessage={true}
+                  />
+                  <div className="div14">
+                    <label className="clickable-label" htmlFor="file-upload">
+                      <GrGallery className="icon-1" />
+                      <span className="div16">
+                        {t('upload')}
+                      </span>
+                      <input 
+                        id="file-upload"
+                        type="file" 
+                        accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic" 
+                        // multiple
+                        onChange={(e) => {
+                          setIsLoading(true);
+                          handleMultipleUploads(e, storyData)
+                        }}
+                        onClick={(e) => {
+                          if (files?.length >= 10) {
+                            setFileErrorText(fileExceedText);
+                          } else {
+                            setFileErrorText('');
+                          }
+                        }}
+                        disabled={isLoading || isImageUploading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
+                        className="div17"
+                      />
+                    </label>
                   </div>
-                ):
-                 (<div className="div18">
-                    <ul>
-                      {fileErrorText && (
-                        <li className="li-1">
-                          {fileErrorText}
-                        </li>
-                      )}
-                    </ul>
-                  </div>)
-                }
+                  
+                  <div className="div18">
+                        <p className="li-message">
+                          {t('photosLimitMsg')}
+                        </p>
+                      </div>
+                  <>
+                    {isImageUploading && (  
+                      <div className="div18">
+                        <p className="li-3">
+                          {t('uploadLoadMsg')}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                  {files?.length > 0 ? (
+                    <div className="div18">
+                      <h4 className="h4-1">{t('uploadedFiles')}:</h4>
+                      <ul>
+                        {fileErrorText && (
+                          <li className="li-1">
+                            {fileErrorText}
+                          </li>
+                        )}
+                        {files.map((file, index) => (
+                          <li key={index} className="li-2">
+                            {file.name.slice(0, 20)}
+                            {file.name.length > 20 && '...'} 
+                            <button 
+                              className="button-1" 
+                              onClick={() => partialUpdateMedia(file?.id, false, access_token, setIsLoading)}
+                            >
+                              <RxCross2 />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ):
+                  (<div className="div18">
+                      <ul>
+                        {fileErrorText && (
+                          <li className="li-1">
+                            {fileErrorText}
+                          </li>
+                        )}
+                      </ul>
+                    </div>)
+                  }
 
-              </div>
+                </div>
+              }
 
               <div className="div19">
                 <ChatMessage 
@@ -2964,9 +2966,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   userType="bot"
                   message={
                     (getFromStorage('flow', false) && 
-                      [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
+                      [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                     )?
-                    t('reportText') : t('storyText')
+                    t('reportText') : (getFromStorage('flow', false) && 
+                      [sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false))
+                    ) ? t('reportFeedbackText'): t('storyText')
                   }
                   isTalking={false}
                   handleOnStopSpeaking={() => handleOnStopSpeaking()}
@@ -3011,24 +3015,26 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
                   {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
                 </div>}
-                <div className="div20">
-                  <button
-                    className="clickable-button"
-                    onClick={openModal}
-                    disabled={isLoading || isPdfDownloading}
-                  >
-                    <div className="download-story-div">
-                      <MdEdit className="icon-1" />
-                      <span className="div16" ref={endPageToScrollRef}>
-                        {(getFromStorage('flow', false) && 
-                          [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
-                        )?
-                          t('editReportText') : t('editStoryText')
-                        }
-                      </span>
-                    </div>
-                  </button>
-                </div>
+                {!([sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false)))&&
+                  <div className="div20">
+                    <button
+                      className="clickable-button"
+                      onClick={openModal}
+                      disabled={isLoading || isPdfDownloading}
+                    >
+                      <div className="download-story-div">
+                        <MdEdit className="icon-1" />
+                        <span className="div16" ref={endPageToScrollRef}>
+                          {(getFromStorage('flow', false) && 
+                            [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
+                          )?
+                            t('editReportText') : t('editStoryText')
+                          }
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+                }
                 {(projectId) && <div className="div20">
                   <button
                     className="clickable-button"
