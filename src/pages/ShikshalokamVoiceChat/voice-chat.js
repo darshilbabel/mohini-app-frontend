@@ -2976,9 +2976,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   handleOnStopSpeaking={() => handleOnStopSpeaking()}
                   handleOnSpeaking={(message, updatedAt, staticMessage) =>{
                     const message_to_use = (getFromStorage('flow', false) && 
-                    [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
+                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                   )?
-                  t('reportText') : t('storyText')
+                  t('reportText') : (getFromStorage('flow', false) && 
+                      [sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false))
+                    ) ? t('reportFeedbackText'): t('storyText')
                     handleOnSpeaking(message_to_use, "download-story-id",
                       {msg: message_to_use, updated_at: "download-story-id", source:"bot"}
                     )}
