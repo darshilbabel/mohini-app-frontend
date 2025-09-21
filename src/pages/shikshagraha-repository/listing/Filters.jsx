@@ -6,20 +6,7 @@ import { useDebounce } from "react-use";
 import { useRef } from "react";
 
 export default function Filters() {
-  const [search, setSearch] = useState("");
-  const ref = useRef(null);
-  const setGlobalSearch = useRepositoryStore((state) => state.setSearch);
-  const setFilters = useRepositoryStore((state) => state.setFilters);
   const globalSearchValue = useRepositoryStore((state) => state.q);
-  const [debouncedSearch] = useDebounce(
-    () => {
-      if (search?.length > 3) {
-        setGlobalSearch(search);
-      }
-    },
-    500,
-    [search]
-  );
 
   const filters = useRepositoryStore((state) => state.filters);
   // fetch master list
@@ -29,14 +16,53 @@ export default function Filters() {
 
   const resetFilters = useRepositoryStore((state) => state.resetFilters);
 
+  const setFilters = useRepositoryStore((state) => state.setFilters);
+  const setGlobalSearch = useRepositoryStore((state) => state.setSearch);
+
+  const [search, setSearch] = useState("");
+  const ref = useRef(null);
+
+  const [debouncedSearch] = useDebounce(
+    () => {
+      if (!!search && search?.length > 3) {
+        setGlobalSearch(search);
+      }
+    },
+    500,
+    [search]
+  );
+
   useEffect(() => {
-    fetchMasterList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const searched_param = new URLSearchParams(window.location.search)?.get(
+      "q"
+    );
+    if (searched_param) {
+      setSearch(searched_param);
+    } else {
+      setGlobalSearch("");
+    }
   }, []);
 
   const handleChange = (key, value) => {
     setFilters({ [key]: value }, false);
   };
+
+  useEffect(() => {
+    fetchMasterList();
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) {
+      params.set("q", search);
+    }
+    const searchParams = `?${params.toString()}`;
+    window.history.replaceState(
+      {},
+      "",
+      `${window.location.pathname}${searchParams}`
+    );
+  }, [search]);
 
   const searchInput = (
     <div className="relative flex flex-row items-center w-full h-full">
