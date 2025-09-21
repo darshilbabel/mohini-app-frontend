@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Search, ChevronDown, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
 import Select from "react-select";
 import { useDebounce } from "react-use";
+import { useRef } from "react";
 
 export default function Filters() {
   const [search, setSearch] = useState("");
-
+  const ref = useRef(null);
   const setGlobalSearch = useRepositoryStore((state) => state.setSearch);
   const setFilters = useRepositoryStore((state) => state.setFilters);
 
@@ -36,7 +37,7 @@ export default function Filters() {
   const handleChange = (key, value) => {
     setFilters({ [key]: value }, false);
   };
-  console.log({ filters });
+  console.log("ref", ref.current)
   return (
     <div className="sticky top-0 z-50 flex flex-row items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
       <div className="flex flex-wrap items-center p-0 gap-0">
@@ -49,6 +50,7 @@ export default function Filters() {
                   options={options}
                   selected={filters[key] || "Select a " + label}
                   onChange={(value) => handleChange(key, value)}
+                  ref={ref}
                 />
               </React.Fragment>
             ))
@@ -90,14 +92,16 @@ export default function Filters() {
   );
 }
 
-const DropdownSelect = ({ label, options, selected, onChange }) => (
-  <div className={`relative h-[50px] mr-4 p-1`}>
+const DropdownSelect = ({ label, options, selected, onChange, ref }) => (
+  <div className={`relative  mr-4 p-1`}>
     <Select
+      ref={ref}
       options={options.map((x) => ({ value: x.value, label: x.display }))}
       value={selected}
       onChange={onChange}
       isMulti
       placeholder={label}
+      closeMenuOnSelect={false}
       styles={{
         control: (base) => ({
           ...base,
@@ -115,11 +119,10 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
           },
         }),
         indicatorSeparator: (base) => ({
-          display: "none",
           color: "rgb(82 82 91 / 1%)",
         }),
         indicatorsContainer: (base) => ({
-          display: "none",
+          
         }),
         placeholder: (base) => ({
           ...base,
@@ -136,11 +139,8 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
           background: "white",
         }),
       }}
-      className=" bg-gray-100 rounded-[12px] pl-4 pr-10 text-zinc-600 text-sm  border border-transparent focus:border-blue-500 focus:outline-none appearance-none"
+      className="max-w-[200px] bg-gray-100 rounded-[12px] text-zinc-600 text-sm  border border-transparent focus:border-blue-500 focus:outline-none appearance-none"
     />
-    {/* Chevron Icon - positioned absolutely on the right */}
-    <div className="pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-600">
-      <ChevronDown className="w-4 h-4" />
-    </div>
+
   </div>
 );
