@@ -54,7 +54,7 @@ export default function ResourceCard({ resource, index }) {
   return (
     <div
       className="bg-white rounded-[20px] border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow
-                 flex flex-col justify-between gap-2.5 min-w-[340px] w-full h-full box-border "
+                 flex flex-col justify-between gap-2.5 w-full min-w-[340px] h-full box-border "
       role="button"
       onClick={() => navigate(`/shikshagraha-commons/${resource?.id}`)}
     >
@@ -90,7 +90,7 @@ export default function ResourceCard({ resource, index }) {
           {/* Title over image */}
           <h3
             className={
-              "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-manrope font-bold text-[16px] leading-[22px] w-[300px] h-[22px] flex items-center justify-center z-30 text-center " +
+              "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-manrope font-bold text-[16px] leading-[22px] max-w-[300px] h-[22px] flex items-center justify-center z-30 text-center " +
               card_background
             }
           >
