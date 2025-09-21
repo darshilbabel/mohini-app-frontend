@@ -32,9 +32,9 @@ export default function RepositoryPage() {
   }, [mediaList]);
 
   return (
-    <div className="bg-gray-50" ref={containerRef}>
+    <div className="bg-gray-50 relative" ref={containerRef}>
       <div className="container max-w-[1690px] h-full">
-        <div className="min-h-screen  py-3 px-1 flex flex-col  align-items-center gap-4 relative">
+        <div className="min-h-screen  py-3 px-1 flex flex-col  align-items-center gap-4 ">
           <Header />
           <Filters />
           <main className=" w-full mx-auto">
