@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, XIcon } from "lucide-react";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
 import Select from "react-select";
 import { useDebounce } from "react-use";
@@ -10,7 +10,7 @@ export default function Filters() {
   const ref = useRef(null);
   const setGlobalSearch = useRepositoryStore((state) => state.setSearch);
   const setFilters = useRepositoryStore((state) => state.setFilters);
-
+  const globalSearchValue = useRepositoryStore((state) => state.q);
   const [debouncedSearch] = useDebounce(
     () => {
       if (search?.length > 3) {
@@ -37,7 +37,41 @@ export default function Filters() {
   const handleChange = (key, value) => {
     setFilters({ [key]: value }, false);
   };
-  console.log("ref", ref.current)
+
+  const searchInput = (
+    <div className="relative flex flex-row items-center w-full h-full">
+      <div className="flex items-center justify-center absolute left-0 top-0 h-full pl-[12px] pointer-events-none">
+        <Search className="w-4 h-4 text-gray-300" />
+      </div>
+      <input
+        type="text"
+        placeholder="Search by keyword"
+        className="pl-[41px] pr-[17px] py-[12px] w-[331px] h-[53px] bg-white border border-gray-300 rounded-[12px] text-[14px] leading-[19px] font-manrope text-gray-700 placeholder-[#9CA3AF] focus:outline-none"
+        value={search}
+        onChange={(e) => {
+          e.preventDefault();
+          setSearch(e.target.value);
+          if (!e.target.value) {
+            setGlobalSearch("");
+          }
+          console.log("debouce ready", debouncedSearch(e.target.value));
+        }}
+      />
+      {(search?.length > 0 || globalSearchValue?.length > 0) && (
+        <button
+          onClick={() => {
+            setSearch("");
+            setGlobalSearch("");
+          }}
+          className="flex items-center justify-center absolute right-3 top-0 h-full pl-[12px]"
+        >
+          <XIcon className="w-4 h-4 text-red-500" />
+        </button>
+      )}
+    </div>
+  );
+
+  console.log("ref", ref.current);
   return (
     <div className="sticky top-0 z-50 flex flex-row items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
       <div className="flex flex-wrap items-center p-0 gap-0">
@@ -67,25 +101,7 @@ export default function Filters() {
 
       <div className="flex items-end ml-auto relative z-10">
         <div className="flex flex-col items-start w-[331px] h-[53px]">
-          <div className="relative flex flex-row items-center w-full h-full">
-            <div className="flex items-center justify-center absolute left-0 top-0 h-full pl-[12px] pointer-events-none">
-              <Search className="w-4 h-4 text-gray-300" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search by keyword"
-              className="pl-[41px] pr-[17px] py-[12px] w-[331px] h-[53px] bg-white border border-gray-300 rounded-[12px] text-[14px] leading-[19px] font-manrope text-gray-700 placeholder-[#9CA3AF] focus:outline-none"
-              value={search}
-              onChange={(e) => {
-                e.preventDefault();
-                setSearch(e.target.value);
-                if (!e.target.value) {
-                  setGlobalSearch("");
-                }
-                console.log("debouce ready", debouncedSearch(e.target.value));
-              }}
-            />
-          </div>
+          {searchInput}
         </div>
       </div>
     </div>
@@ -121,9 +137,7 @@ const DropdownSelect = ({ label, options, selected, onChange, ref }) => (
         indicatorSeparator: (base) => ({
           color: "rgb(82 82 91 / 1%)",
         }),
-        indicatorsContainer: (base) => ({
-          
-        }),
+        indicatorsContainer: (base) => ({}),
         placeholder: (base) => ({
           ...base,
           color: "#49454F",
@@ -141,6 +155,5 @@ const DropdownSelect = ({ label, options, selected, onChange, ref }) => (
       }}
       className="max-w-[200px] bg-gray-100 rounded-[12px] text-zinc-600 text-sm  border border-transparent focus:border-blue-500 focus:outline-none appearance-none"
     />
-
   </div>
 );
