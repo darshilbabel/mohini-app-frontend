@@ -149,7 +149,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [shouldSendMessage, ] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [stateMachineLength, setStateMachineLength] = useState(getFromStorage('statemachine_length', false) || 0);
-  const isGuestFlow = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false));
+  const isGuestFlow = [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false));
   const [acceptedTnc, setAcceptedTnC] = useState(getFromStorage('has_accepted_tnc', false) || 'ONGOING');
   const [seconds, setSeconds] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
@@ -462,7 +462,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       const flow = getFromStorage('flow', false)
       let parsed_content = [];
       try {
-        if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
+        if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(flow)) {
           const challenges = storyData?.other_params?.challenges_faced || [];
           const solutions = storyData?.other_params?.solutions_discussed || [];
     
@@ -665,7 +665,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                         loader: setIsLoading,
                         data:updatePayload
                       });
-                      if([sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion].includes(getFromStorage('flow', false)) && getFromStorage('accessToken')){
+                      if([sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false)) && getFromStorage('accessToken')){
                         setIsLoading(true);
                          await updateReflectionStatus(
                           getFromStorage('projectId', true), "completed", sessionFlowName.SsoFlow, getFromStorage('accessToken', true)
@@ -764,7 +764,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     flow,
                   };
 
-                  if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
+                  if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(flow)) {
                     const blocks = outputData?.blocks || [];
             
                     const challenges = getListAfterHeaderText(t('challengesHeader'), blocks);
@@ -877,6 +877,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             let currentFlow = getFromStorage('flow', false);
             if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
               url = `${base_url+bot_websocket.shikshalokam_chaupal}`;
+            }  else if(currentFlow && [sessionFlowName.ListeningActivity].includes(currentFlow)){
+                url = `${base_url+bot_websocket.listening_activity}`;
             } else if (selectedType === 'normal') {
               if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
                 url = `${base_url+bot_websocket.normal}`;
@@ -970,7 +972,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             let route = getFromStorage('route', true)
             let currentFlow = getFromStorage('flow', false);
 
-            if((profileid || currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)) && sessionid){
+            if((profileid || currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) && sessionid){
               socket.send(JSON.stringify({
                 type: 'authenticate',
                 sessionid: sessionid,
@@ -979,6 +981,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 taskid: searchParams.get("taskId") || getFromStorage('taskId', true),
                 access_token: access_token,
                 route: route,
+                bot_route: getSessionRoute(),
+                flow_name: currentFlow
               }));
             }
           }
@@ -1084,7 +1088,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           } else{
             if(
               getFromStorage('flow', false) && 
-              [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
+              [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
             ){
               removeFromStorage('botName');
             }
@@ -1133,7 +1137,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       
       if (
         currentFlow &&
-        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)
+        [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)
       ) {
         if(chatHistory.length > 0) {
           if(isStreamingComplete && chatHistory[chatHistory.length - 1]?.source === "bot") {
@@ -1311,8 +1315,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const getSessionRoute = () => {
     let storedRoute = bot_routes.reflection;
     let currentFlow = getFromStorage('flow', false);
+    console.log("Current Flow:", currentFlow);
+    console.log("Is the flow equal", currentFlow === sessionFlowName.ListeningActivity)
     if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
       storedRoute = bot_routes.shikshalokam_chaupal;
+    } else if(currentFlow && [sessionFlowName.ListeningActivity].includes(currentFlow)){
+      storedRoute = bot_routes.listening_activity;
     } else if (selectedType === 'normal') {
       if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
         storedRoute=bot_routes.normal
@@ -1340,14 +1348,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const fetchBotInfo = async () => {
       
     setIsIntroLoading(true);
-    if (getFromStorage('flow', false) && ![sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))) {
+    if (getFromStorage('flow', false) && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))) {
       setIsLoading(true);
     }
     let companyName = await getCompanyDetail();
     try {
       let storedRoute = getSessionRoute();
       let currentFlow = getFromStorage('flow', false);
-
+      console.log("Fetching bot for route:", storedRoute, "and flow:", currentFlow);
       const response = await axiosInstance({
         url: company_bot_list_url,
         params: {
@@ -1425,7 +1433,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           message && !!message?.trim() && (chatHistory[chatHistory?.length - 1]?.msg !== message) && 
           !sentences.some((msg) => msg.message === message)
         ) {
-          const isGuestFlow = currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow);
+          const isGuestFlow = currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow);
           setInStorage('intro_message', message);
           setSentences((prev) => [
             ...prev,
@@ -1462,7 +1470,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     const current_flow = getFromStorage('flow', false);
     if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && 
-        (profileToUse || [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(current_flow))
+        (profileToUse || [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(current_flow))
       ) {
       setIsIntroLoading(true);
       fetchBotInfo().then(() => {
@@ -1545,7 +1553,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(()=>{
     const currentFlow = getFromStorage('flow', false);
     if(profileToUse && !access_token && !isEndStoryLoading && 
-      !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow))
+      !([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow))
     ){
       setIsLoading(true);
       const titleTime = setTimeout(()=>{
@@ -1558,7 +1566,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         }
         clearTimeout(titleTime);
       }
-    } else if(!isEndStoryLoading && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow))) {
+    } else if(!isEndStoryLoading && !([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow))) {
       setIsLoading(false);
     }
   },[profileToUse, access_token, isEndStoryLoading, noStoryFound])
@@ -1571,7 +1579,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       console.log("Can go back 1?", window.history.length > 1);
       console.log("Can go back 3?", window.history.length > 3);
       if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
-      [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow].includes(currentFlow)){
+      [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow].includes(currentFlow)){
         if(ssoNavigationTriggered && _access_token){
           console.log("isnide navigate happens")
           navigate(-2)
@@ -2197,7 +2205,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   useEffect(() => {
     const currentFlow = getFromStorage('flow', false);
-    if (getFromStorage('chatLanguage', true) && !getFromStorage('route') && currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+    if (getFromStorage('chatLanguage', true) && !getFromStorage('route') && currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) {
       setIsLoading(true);
       console.log("Setting default language for guest flow");
       const storedLanguage = getFromStorage('chatLanguage', true);
@@ -2212,7 +2220,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (storedLanguage && storedLanguage !== null) {
     } else {
       const currentFlow = getFromStorage('flow', false);
-      if (currentFlow && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow))) {
+      if (currentFlow && !([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow))) {
         setInStorage("route", JSON.stringify("en"));
       }
     }
@@ -2240,7 +2248,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         setIsLoading(false);
         setAcceptedTnC(true);
         const flow = getFromStorage('flow', false);
-        if(flow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(flow)) {
+        if(flow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(flow)) {
           setShouldFetchIntro(true);
         }
       } else {
@@ -2580,7 +2588,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setInStorage('has_accepted_tnc', true);
     setAcceptedTnC(true);
     const flow = getFromStorage('flow', false);
-    if(flow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(flow)) {
+    if(flow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(flow)) {
       setShouldFetchIntro(true);
     }
   }
@@ -2595,7 +2603,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       }
 
       {(getFromStorage('route') && acceptedTnc==="ONGOING" && !isLoading && getFromStorage('flow', false) && 
-        [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
+        [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
       )&& 
         <PrivacyPolicyPopup 
           tncText={t('tncText')}  
@@ -2606,7 +2614,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       <div className={`div27 ${isOpen && ' div70'}`}>
         <div className={`div28 ${isOpen ? "div29" : ""}`}>
           {(isShikshalokamPublicType && getFromStorage('flow', false) && 
-            !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))))&& 
+            !([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))))&& 
             <Sidebar
               isOpen={isOpen}
               toggle={setIsOpen}
@@ -2619,7 +2627,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               showGuestPopup={
                 (
                   getFromStorage('flow', false) && 
-                  [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
+                  [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))
                 )&& showGuestPopup
               }
             />}
@@ -2647,7 +2655,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 }
                 <button
                   onClick={async (e) => {
-                    if ([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))) {
+                    if ([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false))) {
                       showGuestPopup();
                     } else {
                       setIsResetCalled(true);
@@ -2678,7 +2686,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           {isEndStoryLoading&& 
             <div className="div69 text-center">
               <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
-                {(getFromStorage('flow', false) && 
+                {
+                  (getFromStorage('flow', false) &&
+                    [sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false))
+                  )
+                    ? t('feedbackLoaderHeading')
+                  :
+                  (getFromStorage('flow', false) && 
                     [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                   )?
                     t('reportLoaderHeading') : 
@@ -2690,7 +2704,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               </h2>
               <label className="form-label label1 text-center">
                 {(getFromStorage('flow', false) && 
-                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
+                    [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                   )?
                     t('reportLoader') : t('storyLoader')
                 }
@@ -2702,7 +2716,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
      {storyData && isModalOpen && (() => {
         const flow = getFromStorage('flow', false);
         const accessToken = getFromStorage('accessToken', true);
-        return [sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion].includes(flow) && accessToken
+        return [sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(flow) && accessToken
           ? defaultEditorClick(
               storyData?.title,
               getFromStorage('first_name', true),
@@ -2782,20 +2796,27 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }
           {(showHomepage)&&
             <>
-              {(getFromStorage('flow', false))&&<>
-                <div className="div10" >
-                  <h3 className="h3-1">
-                    {t('homepageHeading')}
-                    <br/>
-                    {t('homepageHeading1')}
-                  </h3>
-                </div>
-                <ul className="div11" >
-                  <li>{t('homepageList')}</li>
-                  <li>{t('homepageList1')}</li>
-                  <li>{t('homepageList2')}</li>
-                </ul>
-              </>}
+              {(getFromStorage('flow', false)) && (() => {
+                const isListening = [sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false));
+                const prefix = isListening ? 'la_' : '';
+
+                return (
+                  <>
+                    <div className="div10">
+                      <h3 className="h3-1">
+                        {t(`${prefix}homepageHeading`)}
+                        <br />
+                        {t(`${prefix}homepageHeading1`)}
+                      </h3>
+                    </div>
+                    <ul className="div11">
+                      <li>{t(`${prefix}homepageList`)}</li>
+                      <li>{t(`${prefix}homepageList1`)}</li>
+                      <li>{t(`${prefix}homepageList2`)}</li>
+                    </ul>
+                  </>
+                );    })()}
+
               {chatHistory?.length > 0 && (
                 <div className="div26">
                   <div className="div36 div12" >
@@ -2828,114 +2849,116 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               [sessionFlowName.GuestMiStory].includes(getFromStorage('flow', false)) && getFromStorage('accessToken'))
             ) && (
             <>
-              <div className="div13" >
-                <ChatMessage 
-                  botNameToDisplay={botNameToDisplay}
-                  userType="bot"
-                   message={
-                    (() => {
+              {!([sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false)))&&
+                <div className="div13" >
+                  <ChatMessage 
+                    botNameToDisplay={botNameToDisplay}
+                    userType="bot"
+                    message={
+                      (() => {
+                        const flow = getFromStorage('flow', false);
+                        return flow && [sessionFlowName.GuestMiStory].includes(flow)
+                          ? t('evidenceStory')
+                          : t('evidence');
+                      })()
+                    }
+                    isTalking={false}
+                    handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                    handleOnSpeaking={() =>{
                       const flow = getFromStorage('flow', false);
-                      return flow && [sessionFlowName.GuestMiStory].includes(flow)
+                      const message_to_use = flow && [sessionFlowName.GuestMiStory].includes(flow)
                         ? t('evidenceStory')
                         : t('evidence');
-                    })()
-                  }
-                  isTalking={false}
-                  handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                  handleOnSpeaking={() =>{
-                    const flow = getFromStorage('flow', false);
-                    const message_to_use = flow && [sessionFlowName.GuestMiStory].includes(flow)
-                      ? t('evidenceStory')
-                      : t('evidence');
-                    handleOnSpeaking(message_to_use, "upload-img-id",
-                      {msg: message_to_use, updated_at: "upload-img-id", source:"bot"}
-                    )}
-                  }
-                  isAnyPlaying={!!hasOverRideId || isTalking}
-                  isPlaying={hasOverRideId === "upload-img-id"}
-                  isStreamingComplete={isStreamingComplete}
-                  setNotMute={setNotMute}
-                  chatId={"upload-img-id"}
-                  isStaticMessage={true}
-                />
-                <div className="div14">
-                  <label className="clickable-label" htmlFor="file-upload">
-                    <GrGallery className="icon-1" />
-                    <span className="div16">
-                      {t('upload')}
-                    </span>
-                    <input 
-                      id="file-upload"
-                      type="file" 
-                      accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic" 
-                      // multiple
-                      onChange={(e) => {
-                        setIsLoading(true);
-                        handleMultipleUploads(e, storyData)
-                      }}
-                      onClick={(e) => {
-                        if (files?.length >= 10) {
-                          setFileErrorText(fileExceedText);
-                        } else {
-                          setFileErrorText('');
-                        }
-                      }}
-                      disabled={isLoading || isImageUploading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
-                      className="div17"
-                    />
-                  </label>
-                </div>
-                
-                <div className="div18">
-                      <p className="li-message">
-                        {t('photosLimitMsg')}
-                      </p>
-                    </div>
-                <>
-                  {isImageUploading && (  
-                    <div className="div18">
-                      <p className="li-3">
-                        {t('uploadLoadMsg')}
-                      </p>
-                    </div>
-                  )}
-                </>
-                {files?.length > 0 ? (
-                  <div className="div18">
-                    <h4 className="h4-1">{t('uploadedFiles')}:</h4>
-                    <ul>
-                      {fileErrorText && (
-                        <li className="li-1">
-                          {fileErrorText}
-                        </li>
+                      handleOnSpeaking(message_to_use, "upload-img-id",
+                        {msg: message_to_use, updated_at: "upload-img-id", source:"bot"}
                       )}
-                      {files.map((file, index) => (
-                        <li key={index} className="li-2">
-                          {file.name.slice(0, 20)}
-                          {file.name.length > 20 && '...'} 
-                          <button 
-                            className="button-1" 
-                            onClick={() => partialUpdateMedia(file?.id, false, access_token, setIsLoading)}
-                          >
-                            <RxCross2 />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                    }
+                    isAnyPlaying={!!hasOverRideId || isTalking}
+                    isPlaying={hasOverRideId === "upload-img-id"}
+                    isStreamingComplete={isStreamingComplete}
+                    setNotMute={setNotMute}
+                    chatId={"upload-img-id"}
+                    isStaticMessage={true}
+                  />
+                  <div className="div14">
+                    <label className="clickable-label" htmlFor="file-upload">
+                      <GrGallery className="icon-1" />
+                      <span className="div16">
+                        {t('upload')}
+                      </span>
+                      <input 
+                        id="file-upload"
+                        type="file" 
+                        accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic" 
+                        // multiple
+                        onChange={(e) => {
+                          setIsLoading(true);
+                          handleMultipleUploads(e, storyData)
+                        }}
+                        onClick={(e) => {
+                          if (files?.length >= 10) {
+                            setFileErrorText(fileExceedText);
+                          } else {
+                            setFileErrorText('');
+                          }
+                        }}
+                        disabled={isLoading || isImageUploading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
+                        className="div17"
+                      />
+                    </label>
                   </div>
-                ):
-                 (<div className="div18">
-                    <ul>
-                      {fileErrorText && (
-                        <li className="li-1">
-                          {fileErrorText}
-                        </li>
-                      )}
-                    </ul>
-                  </div>)
-                }
+                  
+                  <div className="div18">
+                        <p className="li-message">
+                          {t('photosLimitMsg')}
+                        </p>
+                      </div>
+                  <>
+                    {isImageUploading && (  
+                      <div className="div18">
+                        <p className="li-3">
+                          {t('uploadLoadMsg')}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                  {files?.length > 0 ? (
+                    <div className="div18">
+                      <h4 className="h4-1">{t('uploadedFiles')}:</h4>
+                      <ul>
+                        {fileErrorText && (
+                          <li className="li-1">
+                            {fileErrorText}
+                          </li>
+                        )}
+                        {files.map((file, index) => (
+                          <li key={index} className="li-2">
+                            {file.name.slice(0, 20)}
+                            {file.name.length > 20 && '...'} 
+                            <button 
+                              className="button-1" 
+                              onClick={() => partialUpdateMedia(file?.id, false, access_token, setIsLoading)}
+                            >
+                              <RxCross2 />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ):
+                  (<div className="div18">
+                      <ul>
+                        {fileErrorText && (
+                          <li className="li-1">
+                            {fileErrorText}
+                          </li>
+                        )}
+                      </ul>
+                    </div>)
+                  }
 
-              </div>
+                </div>
+              }
 
               <div className="div19">
                 <ChatMessage 
@@ -2945,7 +2968,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     (getFromStorage('flow', false) && 
                       [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                     )?
-                    t('reportText') : t('storyText')
+                    t('reportText') : (getFromStorage('flow', false) && 
+                      [sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false))
+                    ) ? t('reportFeedbackText'): t('storyText')
                   }
                   isTalking={false}
                   handleOnStopSpeaking={() => handleOnStopSpeaking()}
@@ -2953,7 +2978,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     const message_to_use = (getFromStorage('flow', false) && 
                     [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                   )?
-                  t('reportText') : t('storyText')
+                  t('reportText') : (getFromStorage('flow', false) && 
+                      [sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false))
+                    ) ? t('reportFeedbackText'): t('storyText')
                     handleOnSpeaking(message_to_use, "download-story-id",
                       {msg: message_to_use, updated_at: "download-story-id", source:"bot"}
                     )}
@@ -2980,7 +3007,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       <FiDownload className="icon-1" />
                       <span className="div16" ref={endPageToScrollRef}>
                         {(getFromStorage('flow', false) && 
-                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
+                          [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                         )?
                           t('downloadReportText') : t('downloadStoryText')
                         }
@@ -2990,24 +3017,26 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
                   {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
                 </div>}
-                <div className="div20">
-                  <button
-                    className="clickable-button"
-                    onClick={openModal}
-                    disabled={isLoading || isPdfDownloading}
-                  >
-                    <div className="download-story-div">
-                      <MdEdit className="icon-1" />
-                      <span className="div16" ref={endPageToScrollRef}>
-                        {(getFromStorage('flow', false) && 
-                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
-                        )?
-                          t('editReportText') : t('editStoryText')
-                        }
-                      </span>
-                    </div>
-                  </button>
-                </div>
+                {!([sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false)))&&
+                  <div className="div20">
+                    <button
+                      className="clickable-button"
+                      onClick={openModal}
+                      disabled={isLoading || isPdfDownloading}
+                    >
+                      <div className="download-story-div">
+                        <MdEdit className="icon-1" />
+                        <span className="div16" ref={endPageToScrollRef}>
+                          {(getFromStorage('flow', false) && 
+                            [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
+                          )?
+                            t('editReportText') : t('editStoryText')
+                          }
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+                }
                 {(projectId) && <div className="div20">
                   <button
                     className="clickable-button"
@@ -3050,7 +3079,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       <TbReload className="icon-1" />
                       <span className="div16" ref={endPageToScrollRef}>
                       {(getFromStorage('flow', false) && 
-                          [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
+                          [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(getFromStorage('flow', false))
                         )?
                           t('reDownloadReportText') : t('reDownloadStoryText')
                       }
@@ -3324,7 +3353,7 @@ export const partialUpdateMedia = (partialUpdateId, include_in_story=false, acce
 
 export const useSmartChatStorage = () => {
   const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
-  const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
+  const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory];
   const isTemporary = flow && sessionFlows.includes(flow);
 
   const [sessionValue, setSessionValue] = useSessionStorage("chat-history", []);

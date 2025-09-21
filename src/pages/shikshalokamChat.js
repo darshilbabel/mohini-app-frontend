@@ -37,7 +37,7 @@ function ShikshalokamChat({type, variant}) {
 			console.log('currentUrl chk', window.location.href);
 			if(previousUrl && previousUrl !== '') {
 				console.log('type chk', type);
-				if(type === sessionFlowName.GuestDiscussion || type === sessionFlowName.GuestMiStory){
+				if(type && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(type)){
 					console.log("Setting previousUrl in sessionStorage");
 					setInStorage('previousUrl', previousUrl, type, 'sessionStorage');
 				}
@@ -135,10 +135,10 @@ function ShikshalokamChat({type, variant}) {
 		if(getFromStorage('accessToken', false, 'localStorage')) return;
 
 		const currentFlow = getFromStorage('flow');
-		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
+		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(currentFlow)){
 			await initialSetup();
 		}
-		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(currentFlow)){
+		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(currentFlow)){
 			const storedLanguage = getFromStorage("local_route", true, 'localStorage') || languageList[0].value;
 			setLanguage(storedLanguage);
 		}
@@ -163,7 +163,7 @@ function ShikshalokamChat({type, variant}) {
 				await setFinalLanguage();
 				getUserFingerPrint();
 			}
-			else if (getFromStorage('flow') && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory].includes(getFromStorage('flow')))){
+			else if (getFromStorage('flow') && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(getFromStorage('flow')))){
 				clearFromStorage(false, ['local_route']);
 				window.location.reload();
 			}
