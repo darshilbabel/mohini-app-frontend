@@ -15,7 +15,6 @@ export default function RepositoryPage() {
   const isLoading = loadingList || loadingDetail || loadingMaster;
 
   const mediaList = useRepositoryStore((state) => state.mediaList);
-  const fetchMediaList = useRepositoryStore((state) => state.fetchMediaList);
 
   const mediaCount = useRepositoryStore((state) => state.mediaCount);
   const pagination = useRepositoryStore((state) => state.pagination);
@@ -23,9 +22,7 @@ export default function RepositoryPage() {
   const itemsPerPage = pagination.limit;
   const containerRef = useRef(null);
 
-  useEffect(() => {
-    fetchMediaList();
-  }, [fetchMediaList]);
+
 
   //scrolling logic
   useEffect(() => {
