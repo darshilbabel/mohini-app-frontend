@@ -68,10 +68,9 @@ export default function ResourceDetailPage() {
 // --- Components below --- //
 
 function BackButton() {
-  const navigate = useNavigate();
   // Optionally handle navigation
   return (
-    <button className="mb-4" onClick={() => navigate(-1)}>
+    <button className="mb-4" onClick={() => window.close()}>
       <ArrowLeft size={28} />
     </button>
   );

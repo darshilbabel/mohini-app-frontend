@@ -47,21 +47,8 @@ export default function RepositoryPage() {
                 setSortBy={setSortBy}
               />
             )}
-            {!!mediaList?.length && (
-              <div className="w-full mt-6 mx-auto">
-                <Pagination
-                  resourcesPerPage={itemsPerPage}
-                  totalResources={mediaCount}
-                  paginate={(page) => {
-                    setPagination({
-                      ...pagination,
-                      offset: (itemsPerPage + (page - 1) * itemsPerPage) || 0,
-                      limit: itemsPerPage,
-                    });
-                  }}
-                />
-              </div>
-            )}
+         
+           
             {!isLoading && !!!mediaList?.length && (
               <div className="w-full pt-10 mx-auto flex flex-col items-center justify-center">
                 <div className="text-muted">
@@ -78,6 +65,21 @@ export default function RepositoryPage() {
                 </div>
               </div>
             )}
+               
+               <div className="w-full mt-6 mx-auto">
+                <Pagination
+                  resourcesPerPage={itemsPerPage}
+                  totalResources={mediaCount}
+                  selectedPage={Math.floor(pagination.offset / itemsPerPage)}
+                  paginate={(page) => {
+                    setPagination({
+                      ...pagination,
+                      offset: (itemsPerPage + (page - 1) * itemsPerPage) || 0,
+                      limit: itemsPerPage,
+                    });
+                  }}
+                />
+              </div>
           </main>
         </div>
       </div>

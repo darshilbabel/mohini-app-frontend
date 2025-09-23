@@ -252,7 +252,6 @@ export default function BrowseResources({
       >
         {resources.map((resource, index) => (
           <React.Fragment key={`resource-${resource.id}-${index}`}>
-            {" "}
             <ResourceCard key={resource.id} resource={resource} index={index} />
           </React.Fragment>
         ))}

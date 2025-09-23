@@ -44,7 +44,7 @@ export default function Filters() {
   }, []);
 
   const handleChange = (key, value) => {
-    setFilters({ [key]: value }, false);
+    setFilters({ [key]: value }, true);
   };
 
   useEffect(() => {

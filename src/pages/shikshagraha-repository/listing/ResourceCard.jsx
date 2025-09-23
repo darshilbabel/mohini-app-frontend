@@ -36,7 +36,6 @@ export const getMeidaFileLabelColors = (label_value) => {
 };
 
 export default function ResourceCard({ resource, index }) {
-  const navigate = useNavigate();
   const { background, color } = getMeidaFileLabelColors(
     resource?.media_type_display
   );
@@ -56,7 +55,7 @@ export default function ResourceCard({ resource, index }) {
       className="bg-white rounded-[20px] border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow
                  flex flex-col justify-between gap-2.5 w-full min-w-[340px] h-full box-border "
       role="button"
-      onClick={() => navigate(`/shikshagraha-commons/${resource?.id}`)}
+      onClick={() => window.open(`/mohini/shikshagraha-commons/${resource?.id}`, "_blank")}
     >
       <div className="flex flex-col gap-3.5 p-3.5">
         {/* Image container */}
