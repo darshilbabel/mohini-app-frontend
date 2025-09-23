@@ -47,11 +47,12 @@ export default function RepositoryPage() {
                 setSortBy={setSortBy}
               />
             )}
-            {!!mediaList?.length && (
+            
               <div className="w-full mt-6 mx-auto">
                 <Pagination
                   resourcesPerPage={itemsPerPage}
                   totalResources={mediaCount}
+                  selectedPage={Math.floor(pagination.offset / itemsPerPage)}
                   paginate={(page) => {
                     setPagination({
                       ...pagination,
@@ -61,7 +62,7 @@ export default function RepositoryPage() {
                   }}
                 />
               </div>
-            )}
+           
             {!isLoading && !!!mediaList?.length && (
               <div className="w-full pt-10 mx-auto flex flex-col items-center justify-center">
                 <div className="text-muted">

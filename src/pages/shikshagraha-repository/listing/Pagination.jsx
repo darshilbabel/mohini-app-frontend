@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ReactPaginate from "react-paginate";
 
-function Pagination({ resourcesPerPage, totalResources, paginate }) {
+function Pagination({ resourcesPerPage, totalResources, paginate, selectedPage }) {
   const pageCount = Math.ceil(totalResources / resourcesPerPage);
 
   const handlePageClick = (e) => {
@@ -12,6 +12,7 @@ function Pagination({ resourcesPerPage, totalResources, paginate }) {
   return (
     <div className="flex justify-center">
       <ReactPaginate
+        forcePage={selectedPage}
         previousLabel={
           <div className="flex flex-col items-center justify-center border p-1 rounded bg-white text-sm w-[54px] h-[54px] ">
             <ChevronLeft className="icon" />
