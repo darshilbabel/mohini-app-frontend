@@ -3063,7 +3063,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
                   {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
                 </div>}
-                {!([sessionFlowName.SsoFlow].includes(getFromStorage('flow', false)))&&
                   <div className="div20">
                     <button
                       className="clickable-button"
@@ -3082,7 +3081,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       </div>
                     </button>
                   </div>
-                }
                 {(projectId) && <div className="div20">
                   <button
                     className="clickable-button"
