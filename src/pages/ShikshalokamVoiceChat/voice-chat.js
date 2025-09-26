@@ -462,10 +462,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       const flow = getFromStorage('flow', false)
       let parsed_content = [];
       try {
-        if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(flow)) {
+        if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
           const challenges = storyData?.other_params?.challenges_faced || [];
           const solutions = storyData?.other_params?.solutions_discussed || [];
-    
+
           parsed_content = [
             {
               type: "header",
@@ -498,6 +498,27 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               },
             }
           ];
+        } else if (flow && [sessionFlowName.ListeningActivity].includes(flow)) {
+          const questionAnswers = storyData?.other_params?.question_answers || [];
+          
+          parsed_content = [];
+          questionAnswers.forEach((qa, index) => {
+            parsed_content.push({
+              type: "header",
+              data: {
+                text: `Q${index + 1}: ${qa.question}`,
+                level: 3,
+                customId: `question-${index}`
+              },
+            });
+            
+            parsed_content.push({
+              type: "paragraph",
+              data: {
+                text: qa.answer || ""
+              },
+            });
+          });
         } else {
           parsed_content = editorCopyChanges.map(item => ({
             type: item.type,
@@ -507,13 +528,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }));
         }
 
-    } catch (error) {
+      } catch (error) {
         parsed_content = [];
-        
       }
+      
       if (!document.getElementById('editorjs')) {
         return;
       }
+      
       const _editor = new EditorJS({
         holder: "editorjs",
         placeholder: t('editorPlaceholder'),
@@ -536,26 +558,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           setEditor(_editor);
           const style = document.createElement("style");
           style.innerHTML = `
-            /* Hide "+" button */
             .ce-toolbar__plus, .ce-toolbar__actions { display: none !important; }
-        
-            /* Hide block settings (Click to Tune) */
             .ce-popover, .ce-settings, .ce-settings__button { display: none !important; }
-        
-            /* Hide Drag handle */
             .ce-block--selected .ce-block__drag-handle { display: none !important; }
-        
-            /* Hide the inline toolbar */
             .ce-inline-toolbar { display: none !important; }
-        
-            /* Hide block selection outline */
             .ce-block--selected { outline: none !important; }
           `;
           document.head.appendChild(style);
           setTimeout(() => {
             document.querySelectorAll('.ce-header').forEach((el) => {
               const text = el.innerText.trim().toLowerCase();
-              if (text === t('challengesHeader') || text === t('solutionsHeader')) {
+              if (text === t('challengesHeader') || text === t('solutionsHeader') || 
+                  text.startsWith('q') && text.includes(':')) { // Question headers
                 el.setAttribute('contenteditable', 'false');
                 el.style.pointerEvents = 'none';
                 el.style.color = '#555'; 
@@ -569,25 +583,20 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           blocks: parsed_content.length > 0 ? parsed_content : [{ type: "paragraph", data: { text: "" } }],
         },
         onChange: async (api, event) => {
-          
           setIsSaving(false);
-        
           const savedData = await api.saver.save();
           const imageBlocks = savedData.blocks.filter(block => block.type === 'image');
           if(!isInitialLoadRef.current ){
             if (storyMediaIdArray?.length !== imageBlocks?.length) {
-          
               for (let i = 0; i < storyMediaIdArray?.length; i++) {
                 const storyFile = storyMediaIdArray[i];
                 let fileFound = false;
-          
                 for (let j = 0; j < imageBlocks?.length; j++) {
                   if (storyFile?.file === imageBlocks[j]?.data?.url) {
                     fileFound = true;
                     break;
                   }
                 }
-          
                 if (!fileFound) {
                   partialUpdateMedia(storyFile?.id)
                 }
@@ -597,12 +606,37 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         },
       });
     }
-    
-    
+  
     return () => {
       if (!!Object.keys(editor || {})?.length) editor.destroy();
     };
   }, [editorCopyChanges, isModalOpen, storyData]);
+
+  const getQuestionAnswersFromBlocks = (blocks) => {
+    const questionAnswers = [];
+    let currentQuestion = null;
+    
+    blocks.forEach((block, index) => {
+      if (block.type === 'header' && block.data.text.startsWith('Q')) {
+        if (currentQuestion) {
+          questionAnswers.push(currentQuestion);
+        }
+        
+        const questionText = block.data.text.replace(/^Q\d+:\s*/, '');
+        currentQuestion = { question: questionText, answer: "" };
+      } else if (block.type === 'paragraph' && currentQuestion) {
+        currentQuestion.answer = block.data.text || "";
+        questionAnswers.push(currentQuestion);
+        currentQuestion = null;
+      }
+    });
+    
+    if (currentQuestion) {
+      questionAnswers.push(currentQuestion);
+    }
+    
+    return questionAnswers;
+  };
 
   const defaultEditorClick = (title, name, location) => {
     stopAllAudio();
@@ -764,21 +798,33 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     flow,
                   };
 
-                  if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(flow)) {
+                  if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
                     const blocks = outputData?.blocks || [];
-            
                     const challenges = getListAfterHeaderText(t('challengesHeader'), blocks);
                     const solutions = getListAfterHeaderText(t('solutionsHeader'), blocks);
-            
+
                     updatePayload = {
                       ...updatePayload,
-                        ...storyData?.other_params,
-                        other_params: {
-                          ...(storyData?.other_params || {}),
-                          challenges_faced: challenges,
-                          solutions_discussed: solutions,
-                        },
-                        formatted_content: null
+                      ...storyData?.other_params,
+                      other_params: {
+                        ...(storyData?.other_params || {}),
+                        challenges_faced: challenges,
+                        solutions_discussed: solutions,
+                      },
+                      formatted_content: null
+                    };
+                  } else if (flow && [sessionFlowName.ListeningActivity].includes(flow)) {
+                    const blocks = outputData?.blocks || [];
+                    const questionAnswers = getQuestionAnswersFromBlocks(blocks);
+
+                    updatePayload = {
+                      ...updatePayload,
+                      ...storyData?.other_params,
+                      other_params: {
+                        ...(storyData?.other_params || {}),
+                        question_answers: questionAnswers,
+                      },
+                      formatted_content: null
                     };
                   } else {
                     updatePayload = {
@@ -3017,7 +3063,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
                   {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
                 </div>}
-                {!([sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false)))&&
                   <div className="div20">
                     <button
                       className="clickable-button"
@@ -3036,7 +3081,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       </div>
                     </button>
                   </div>
-                }
                 {(projectId) && <div className="div20">
                   <button
                     className="clickable-button"
