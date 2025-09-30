@@ -202,7 +202,7 @@ export default function ResourceCard({ resource, index }) {
               window.open(resource?.organization_url, "_blank");
             }}
           >
-            <SmallLogo />
+            <img src={resource?.org_logo} alt="Shikshagraha Logo" className="h-6" />
             <div className="flex flex-col gap-0 w-[273.5px] h-[22px]">
               <span className="font-manrope font-medium text-[16px] leading-[22px] text-[#757575] text-left hover:text-blue-500 transition-colors">
                 {resource?.organization}
