@@ -462,10 +462,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       const flow = getFromStorage('flow', false)
       let parsed_content = [];
       try {
-        if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(flow)) {
+        if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
           const challenges = storyData?.other_params?.challenges_faced || [];
           const solutions = storyData?.other_params?.solutions_discussed || [];
-    
+
           parsed_content = [
             {
               type: "header",
@@ -498,6 +498,38 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               },
             }
           ];
+        } else if (flow && [sessionFlowName.ListeningActivity].includes(flow)) {
+          const questionAnswers = storyData?.other_params?.question_answers || [];
+          
+          parsed_content = [];
+          questionAnswers.forEach((qa, index) => {
+            // Add question header
+            parsed_content.push({
+              type: "header",
+              data: {
+                text: `Q${index + 1}: ${qa.question}`,
+                level: 3,
+                customId: `question-${index}`
+              },
+            });
+            
+            parsed_content.push({
+              type: "paragraph",
+              data: {
+                text: qa.answer || ""
+              },
+            });
+
+            if (index < questionAnswers.length - 1) {
+              parsed_content.push({
+                type: "paragraph",
+                data: {
+                  text: "​"
+                },
+                readonly: true
+              });
+            }
+          });
         } else {
           parsed_content = editorCopyChanges.map(item => ({
             type: item.type,
@@ -507,13 +539,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           }));
         }
 
-    } catch (error) {
+      } catch (error) {
         parsed_content = [];
-        
       }
+      
       if (!document.getElementById('editorjs')) {
         return;
       }
+      
       const _editor = new EditorJS({
         holder: "editorjs",
         placeholder: t('editorPlaceholder'),
@@ -536,58 +569,208 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           setEditor(_editor);
           const style = document.createElement("style");
           style.innerHTML = `
-            /* Hide "+" button */
             .ce-toolbar__plus, .ce-toolbar__actions { display: none !important; }
-        
-            /* Hide block settings (Click to Tune) */
             .ce-popover, .ce-settings, .ce-settings__button { display: none !important; }
-        
-            /* Hide Drag handle */
             .ce-block--selected .ce-block__drag-handle { display: none !important; }
-        
-            /* Hide the inline toolbar */
             .ce-inline-toolbar { display: none !important; }
-        
-            /* Hide block selection outline */
             .ce-block--selected { outline: none !important; }
+            
+            /* Style for spacer blocks */
+            .spacer-block {
+              min-height: 0.75rem !important;
+              background: transparent !important;
+              border: none !important;
+              pointer-events: none !important;
+              user-select: none !important;
+              cursor: default !important;
+              margin: 0.5rem 0 !important;
+              position: relative;
+            }
+            
+            .spacer-block .ce-paragraph {
+              pointer-events: none !important;
+              user-select: none !important;
+              outline: none !important;
+              cursor: default !important;
+              opacity: 0 !important;
+              min-height: 0.75rem !important;
+            }
+            
+            .spacer-block::before {
+              content: '';
+              display: block;
+              width: 100%;
+              height: 1px;
+              background-color: #e5e7eb;
+              position: absolute;
+              top: 50%;
+              left: 0;
+              transform: translateY(-50%);
+            }
+            
+            /* Add visual separation after answer paragraphs */
+            .answer-paragraph {
+              margin-bottom: 0.5rem !important;
+              padding-bottom: 0.5rem !important;
+            }
+            
+            /* Question header styling */
+            .question-header {
+              color: #374151 !important;
+              font-weight: bold !important;
+              margin-top: 2rem !important;
+              margin-bottom: 1rem !important;
+            }
+            
+            .question-header:first-child {
+              margin-top: 0 !important;
+            }
+            
+            /* Non-deletable block styling */
+            .non-deletable {
+              position: relative;
+            }
+            
+            .non-deletable::after {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              pointer-events: none;
+              z-index: 1;
+            }
           `;
           document.head.appendChild(style);
           setTimeout(() => {
-            document.querySelectorAll('.ce-header').forEach((el) => {
-              const text = el.innerText.trim().toLowerCase();
-              if (text === t('challengesHeader') || text === t('solutionsHeader')) {
-                el.setAttribute('contenteditable', 'false');
-                el.style.pointerEvents = 'none';
-                el.style.color = '#555'; 
-                el.style.fontWeight = 'bold'; 
+            const blocks = document.querySelectorAll('.ce-block');
+            
+            blocks.forEach((block, blockIndex) => {
+              const headerEl = block.querySelector('.ce-header');
+              const paragraphEl = block.querySelector('.ce-paragraph');
+              
+              if (headerEl) {
+                const text = headerEl.innerText.trim().toLowerCase();
+                
+                if (text === t('challengesHeader').toLowerCase() || 
+                    text === t('solutionsHeader').toLowerCase() || 
+                    (text.startsWith('q') && text.includes(':'))) {
+                  
+                  headerEl.setAttribute('contenteditable', 'false');
+                  headerEl.style.pointerEvents = 'none';
+                  headerEl.style.color = '#374151';
+                  headerEl.style.fontWeight = 'bold';
+                  
+                  if (text.startsWith('q') && text.includes(':')) {
+                    headerEl.classList.add('question-header');
+                    
+                    block.classList.add('non-deletable');
+                    block.setAttribute('data-readonly', 'true');
+                    
+                    const preventDeletion = (e) => {
+                      if (e.key === 'Backspace' || e.key === 'Delete') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                      }
+                    };
+                    
+                    block.addEventListener('keydown', preventDeletion, true);
+                    headerEl.addEventListener('keydown', preventDeletion, true);
+                    
+                    block.addEventListener('contextmenu', (e) => {
+                      e.preventDefault();
+                      return false;
+                    }, true);
+                    
+                    block.style.userSelect = 'none';
+                    block.style.webkitUserSelect = 'none';
+                    block.style.mozUserSelect = 'none';
+                    block.style.msUserSelect = 'none';
+                  }
+                }
+              } else if (paragraphEl) {
+                const paragraphText = paragraphEl.textContent || paragraphEl.innerText || '';
+                const isEmpty = !paragraphText.trim() || 
+                              paragraphText === "​" || 
+                              paragraphText === " ";
+                
+                const prevBlock = block.previousElementSibling;
+                const prevPrevBlock = prevBlock?.previousElementSibling;
+                
+                const isPrevBlockAnswer = prevBlock?.querySelector('.ce-paragraph');
+                const isPrevPrevBlockQuestion = prevPrevBlock?.querySelector('.ce-header')?.innerText.toLowerCase().startsWith('q');
+                
+                if (isEmpty && isPrevBlockAnswer && isPrevPrevBlockQuestion) {
+                  block.classList.add('spacer-block');
+                  paragraphEl.setAttribute('contenteditable', 'false');
+                  paragraphEl.style.pointerEvents = 'none';
+                  paragraphEl.style.userSelect = 'none';
+                  paragraphEl.style.cursor = 'default';
+                  
+                  const preventInteraction = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                  };
+                  
+                  block.addEventListener('click', preventInteraction, true);
+                  block.addEventListener('mousedown', preventInteraction, true);
+                  block.addEventListener('focus', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (e.target.blur) e.target.blur();
+                    return false;
+                  }, true);
+                  block.addEventListener('keydown', preventInteraction, true);
+                  block.addEventListener('keyup', preventInteraction, true);
+                  block.addEventListener('input', preventInteraction, true);
+                  
+                  block.style.userSelect = 'none';
+                  block.style.webkitUserSelect = 'none';
+                  block.style.mozUserSelect = 'none';
+                  block.style.msUserSelect = 'none';
+                  
+                } else if (isPrevBlockAnswer === false && prevBlock?.querySelector('.ce-header')?.innerText.toLowerCase().startsWith('q')) {
+                  paragraphEl.classList.add('answer-paragraph');
+                }
               }
             });
-          }, 300);
+          }, 500);
         },
         defaultBlock: "paragraph",
         data: {
           blocks: parsed_content.length > 0 ? parsed_content : [{ type: "paragraph", data: { text: "" } }],
         },
         onChange: async (api, event) => {
-          
           setIsSaving(false);
-        
           const savedData = await api.saver.save();
-          const imageBlocks = savedData.blocks.filter(block => block.type === 'image');
-          if(!isInitialLoadRef.current ){
-            if (storyMediaIdArray?.length !== imageBlocks?.length) {
           
+          const filteredBlocks = savedData.blocks.filter((block, index) => {
+            if (block.type === 'paragraph') {
+              const isEmpty = !block.data.text.trim() || 
+                            block.data.text === "​" ||
+                            block.data.text === " ";
+              return !isEmpty;
+            }
+            return true;
+          });
+          
+          const imageBlocks = filteredBlocks.filter(block => block.type === 'image');
+          
+          if(!isInitialLoadRef.current) {
+            if (storyMediaIdArray?.length !== imageBlocks?.length) {
               for (let i = 0; i < storyMediaIdArray?.length; i++) {
                 const storyFile = storyMediaIdArray[i];
                 let fileFound = false;
-          
                 for (let j = 0; j < imageBlocks?.length; j++) {
                   if (storyFile?.file === imageBlocks[j]?.data?.url) {
                     fileFound = true;
                     break;
                   }
                 }
-          
                 if (!fileFound) {
                   partialUpdateMedia(storyFile?.id)
                 }
@@ -597,12 +780,46 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         },
       });
     }
-    
-    
+
     return () => {
       if (!!Object.keys(editor || {})?.length) editor.destroy();
     };
   }, [editorCopyChanges, isModalOpen, storyData]);
+
+  const getQuestionAnswersFromBlocks = (blocks) => {
+    const questionAnswers = [];
+    let currentQuestion = null;
+    
+    const filteredBlocks = blocks.filter(block => {
+      if (block.type === 'paragraph') {
+        const text = block.data.text || '';
+        const isEmpty = !text.trim() || text === "​" || text === " ";
+        return !isEmpty;
+      }
+      return true;
+    });
+    
+    filteredBlocks.forEach((block, index) => {
+      if (block.type === 'header' && block.data.text.startsWith('Q')) {
+        if (currentQuestion) {
+          questionAnswers.push(currentQuestion);
+        }
+        
+        const questionText = block.data.text.replace(/^Q\d+:\s*/, '');
+        currentQuestion = { question: questionText, answer: "" };
+      } else if (block.type === 'paragraph' && currentQuestion) {
+        currentQuestion.answer = block.data.text || "";
+        questionAnswers.push(currentQuestion);
+        currentQuestion = null;
+      }
+    });
+    
+    if (currentQuestion) {
+      questionAnswers.push(currentQuestion);
+    }
+    
+    return questionAnswers;
+  };
 
   const defaultEditorClick = (title, name, location) => {
     stopAllAudio();
@@ -764,21 +981,33 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     flow,
                   };
 
-                  if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(flow)) {
+                  if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
                     const blocks = outputData?.blocks || [];
-            
                     const challenges = getListAfterHeaderText(t('challengesHeader'), blocks);
                     const solutions = getListAfterHeaderText(t('solutionsHeader'), blocks);
-            
+
                     updatePayload = {
                       ...updatePayload,
-                        ...storyData?.other_params,
-                        other_params: {
-                          ...(storyData?.other_params || {}),
-                          challenges_faced: challenges,
-                          solutions_discussed: solutions,
-                        },
-                        formatted_content: null
+                      ...storyData?.other_params,
+                      other_params: {
+                        ...(storyData?.other_params || {}),
+                        challenges_faced: challenges,
+                        solutions_discussed: solutions,
+                      },
+                      formatted_content: null
+                    };
+                  } else if (flow && [sessionFlowName.ListeningActivity].includes(flow)) {
+                    const blocks = outputData?.blocks || [];
+                    const questionAnswers = getQuestionAnswersFromBlocks(blocks);
+
+                    updatePayload = {
+                      ...updatePayload,
+                      ...storyData?.other_params,
+                      other_params: {
+                        ...(storyData?.other_params || {}),
+                        question_answers: questionAnswers,
+                      },
+                      formatted_content: null
                     };
                   } else {
                     updatePayload = {
@@ -3017,7 +3246,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
                   {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
                 </div>}
-                {!([sessionFlowName.ListeningActivity].includes(getFromStorage('flow', false)))&&
                   <div className="div20">
                     <button
                       className="clickable-button"
@@ -3036,7 +3264,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       </div>
                     </button>
                   </div>
-                }
                 {(projectId) && <div className="div20">
                   <button
                     className="clickable-button"
