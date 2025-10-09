@@ -182,8 +182,8 @@ export default function BrowseResources({
 
   // Removed unused variables
   return (
-    <section className="px-4 pb-4 pt-1 max-w-[1670px]">
-      <div className="flex items-center justify-between mb-6">
+    <section className="px-1 md:px-4 pb-4 pt-1 max-w-[1670px]">
+      <div className="flex flex-col md:flex-row items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-1">
             Browse Resources
@@ -192,7 +192,7 @@ export default function BrowseResources({
             Discover high quality resources for your project
           </p>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col md:flex-row  items-center gap-6">
           <div className="text-sm text-gray-600 font-bold">
             {mediaCount} results
           </div>
