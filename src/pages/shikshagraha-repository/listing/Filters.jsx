@@ -72,7 +72,7 @@ export default function Filters() {
       <input
         type="text"
         placeholder="Search by keyword"
-        className="pl-[41px] pr-[17px] py-[12px] w-[331px] h-[53px] bg-white border border-gray-300 rounded-[12px] text-[14px] leading-[19px] font-manrope text-gray-700 placeholder-[#9CA3AF] focus:outline-none"
+        className="pl-[41px] pr-[17px] py-[12px] max-w-[331px] w-full h-[53px] bg-white border border-gray-300 rounded-[12px] text-[14px] leading-[19px] font-manrope text-gray-700 placeholder-[#9CA3AF] focus:outline-none"
         value={search}
         onChange={(e) => {
           e.preventDefault();
@@ -99,8 +99,8 @@ export default function Filters() {
 
   console.log("ref", ref.current);
   return (
-    <div className="sticky top-0 z-50 flex flex-row items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
-      <div className="flex flex-wrap items-center p-0 gap-0">
+    <div className="md:sticky top-0 z-50 flex flex-row items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
+      <div className="flex flex-wrap items-center p-0 gap-0 w-full">
         {!!dropdown_meta?.length
           ? dropdown_meta?.map(({ label, options, key }, index) => (
               <React.Fragment key={`label-${label}-${index}`}>
@@ -125,8 +125,8 @@ export default function Filters() {
         )}
       </div>
 
-      <div className="flex items-end ml-auto relative z-10">
-        <div className="flex flex-col items-start w-[331px] h-[53px]">
+      <div className="flex justify-end ml-auto relative z-10 w-full">
+        <div className="flex flex-col items-start max-w-[331px] w-full h-[53px]">
           {searchInput}
         </div>
       </div>
