@@ -2,6 +2,7 @@ import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
 import ROUTES from "../url";
 import ptmQuestions from "../services/const/questions/ptmQuestions";
 import ylcQuestions from "../services/const/questions/ylcQuestions";
+const base_path = process.env.REACT_APP_ADUIO_PATH ?? "";
 
 export const FLOW_CONFIG = {
   [sessionFlowName.megaPTM]: {
@@ -13,11 +14,22 @@ export const FLOW_CONFIG = {
     completionMessageKey: "ptmCompletionMessage",
     completionCTAKey: "ptmCompletionCTA",
     introHeadingKey: "ptmIntroductionHeading",
+    uploadPhotoKey: "evidence'",
     introLines: [
       "ptmIntroductionDescriptionLine1",
       "ptmIntroductionDescriptionLine2",
       "ptmIntroductionDescriptionLine3"
-    ]
+    ],
+    showCompletionPopup: true,
+    storyActions: {
+      showPhotoUpload: false,
+      showEdit: false,
+      showDownload: false
+    },
+    storyTextAudio: {
+        "uploadPhotoAudio": `${base_path}/audio/ylc/q6v1_te.b64`,
+        "storyTextAudio": `${base_path}/audio/ylc/q7v1_te.b64`,
+    }
   },
   [sessionFlowName.YLC]: {
     flowName: sessionFlowName.YLC,
@@ -27,12 +39,24 @@ export const FLOW_CONFIG = {
     apiRoute: "/ylc",
     completionMessageKey: "ptmCompletionMessage",
     completionCTAKey: "ptmCompletionCTA",
-    introHeadingKey: "ptmIntroductionHeading",
+    introHeadingKey: "homepageHeading",
+    introHeadingKey1: "homepageHeading1",
     introLines: [
-      "ptmIntroductionDescriptionLine1",
-      "ptmIntroductionDescriptionLine2",
-      "ptmIntroductionDescriptionLine3"
-    ]
+      "homepageList",
+      "homepageList1",
+      "homepageList2"
+    ],
+    uploadPhotoKey: "evidenceStory",
+    showCompletionPopup: false,
+    storyActions: {
+      showPhotoUpload: true,
+      showEdit: true,
+      showDownload: true
+    },
+    storyTextAudio: {
+        "uploadPhotoAudio": `${base_path}/audio/ylc/q6v1_te.b64`,
+        "storyTextAudio": `${base_path}/audio/ylc/q7v1_te.b64`,
+    }
   }
 };
 
