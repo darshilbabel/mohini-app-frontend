@@ -10,7 +10,6 @@ import List from "@editorjs/list";
 import { useTranslation } from "react-i18next";
 import { PrimaryButton } from "../../components/Buttons";
 import ChatMessage from "../ShikshalokamMegaPTM/ChatMessage";
-import UploadImages from "../ShikshalokamVoiceChat/upload-images";
 import PdfDownloader from "../story/upload-content/pdfDownloader";
 import { 
   getFromStorage, 
@@ -18,8 +17,7 @@ import {
 } from "../../services/storage_service";
 import { 
   createStoryMedia, 
-  partialUpdateStoryById,
-  getStoryAllMedia 
+  partialUpdateStoryById
 } from "../story/api.service";
 import axiosInstance from "../../utils/axios";
 import { sessionFlowName } from "../ShikshalokamVoiceChat/enum";
@@ -203,8 +201,9 @@ export const PhotoUploadSection = ({
         isTalking={false}
         handleOnStopSpeaking={() => handleOnStopSpeaking()}
         handleOnSpeaking={() => {
+          const lang = getFromStorage('local_route', true);
           const message_to_use = flowConfig?.uploadPhotoKey;
-          handleOnSpeaking(flowConfig?.storyTextAudio?.uploadPhotoAudio, "upload-img-id", {
+          handleOnSpeaking(flowConfig?.storyTextAudio?.[lang]?.uploadPhotoAudio, "upload-img-id", {
             msg: message_to_use,
             updated_at: "upload-img-id",
             source: "bot"
@@ -739,8 +738,10 @@ export const StoryActionsContainer = ({
         isTalking={false}
         handleOnStopSpeaking={() => handleOnStopSpeaking()}
         handleOnSpeaking={() => {
+          const lang = getFromStorage('local_route', true);
+          console.log("lang", lang);
           const message_to_use = t('storyText');
-          handleOnSpeaking(flowConfig?.storyTextAudio?.storyTextAudio, "download-story-id", {
+          handleOnSpeaking(flowConfig?.storyTextAudio[lang].storyReportAudio, "download-story-id", {
             msg: message_to_use,
             updated_at: "download-story-id",
             source: "bot"

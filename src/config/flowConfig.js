@@ -1,7 +1,8 @@
 import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
 import ROUTES from "../url";
 import ptmQuestions from "../services/const/questions/ptmQuestions";
-import ylcQuestions from "../services/const/questions/ylcQuestions";
+import ylcQuestions, { ylcStoryTextAudio } from "../services/const/questions/ylcQuestions";
+
 const base_path = process.env.REACT_APP_ADUIO_PATH ?? "";
 
 export const FLOW_CONFIG = {
@@ -25,10 +26,6 @@ export const FLOW_CONFIG = {
       showPhotoUpload: false,
       showEdit: false,
       showDownload: false
-    },
-    storyTextAudio: {
-        "uploadPhotoAudio": `${base_path}/audio/ylc/q6v1_te.b64`,
-        "storyTextAudio": `${base_path}/audio/ylc/q7v1_te.b64`,
     }
   },
   [sessionFlowName.YLC]: {
@@ -53,10 +50,7 @@ export const FLOW_CONFIG = {
       showEdit: true,
       showDownload: true
     },
-    storyTextAudio: {
-        "uploadPhotoAudio": `${base_path}/audio/ylc/q6v1_te.b64`,
-        "storyTextAudio": `${base_path}/audio/ylc/q7v1_te.b64`,
-    }
+    storyTextAudio: ylcStoryTextAudio
   }
 };
 
