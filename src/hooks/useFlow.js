@@ -31,6 +31,7 @@ export const useFlow = (usecaseType) => {
   }, [mappedUrlFlow]);
 
   const ptm_case = [sessionUsecaseType.MEGA_PTM].some((x) => x === usecaseType);
+  const ylc_case = [sessionUsecaseType.YLC].some((x) => x === usecaseType);
 
   const processLanguageButtonClick = (langToUse, forceProcess = false) => {
     console.log("Process button clicked");
@@ -63,7 +64,11 @@ export const useFlow = (usecaseType) => {
 
     // Case for PTM
     if (ptm_case) {
+      console.log("Navigating to PTM chat");
       return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
+    } else if (ylc_case) {
+      console.log("Navigating to YLC chat");
+      return navigate(ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE);
     }
     
     const currentFlow = selectedFlow || getFromStorage("flow");

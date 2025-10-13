@@ -18,7 +18,7 @@ export const FLOW_CONFIG = {
 };
 
 // PTM use cases
-export const PTM_USE_CASES = [sessionUsecaseType.MEGA_PTM];
+export const PTM_USE_CASES = [sessionUsecaseType.MEGA_PTM, sessionFlowName.YLC];
 
 // Storage keys
 export const STORAGE_KEYS = {

@@ -14,6 +14,8 @@ const ROUTES = {
   SSO_FLOW: "/sso",
   SHIKSHAGRAHA_REPOSITORY: "/shikshagraha-commons",
   SHIKSHAGRAHA_REPOSITORY_DETAIL: "/shikshagraha-commons/:id",
+  SHIKSHALOKAM_YLC_HOME_PAGE: "/ylc/start",
+  SHIKSHALOKAM_YLC_CHAT_PAGE: "/ylc/chat",
   NOT_FOUND: "/shikshagraha-not-found",
 };
 
