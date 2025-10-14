@@ -67,7 +67,7 @@ function UnifiedChat({ type }) {
   async function initialSetup() {
     try {
       setIsLoading(true);
-      const profile_id = process.env.REACT_APP_PROFILE_ID;
+      const profile_id = flowConfig.profileId;
       setInStorage("profileid", JSON.stringify(profile_id), type);
 
       const { sessionid } = await getSessionDetails();

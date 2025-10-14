@@ -1,8 +1,11 @@
+import { TextConversionType } from "../../../pages/ShikshalokamVoiceChat/enum";
+
 const base_path = process.env.REACT_APP_ADUIO_PATH ?? "";
 const questions = {
   1: {
     question_id: "q1",
     sequence: 1,
+    service: TextConversionType.TRANSLITERATE,
     questions: [
       {
         variant_id: "q1v1",
@@ -22,6 +25,7 @@ const questions = {
   2: {
     question_id: "q2",
     sequence: 2,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q2v1",
@@ -41,6 +45,7 @@ const questions = {
   3: {
     question_id: "q3",
     sequence: 3,
+    service: TextConversionType.TRANSLITERATE,
     questions: [
       {
         variant_id: "q3v1",
@@ -60,6 +65,7 @@ const questions = {
   4: {
     question_id: "q4",
     sequence: 4,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q4v1",
@@ -79,6 +85,7 @@ const questions = {
   5: {
     question_id: "q5",
     sequence: 5,
+    service: TextConversionType.TRANSLITERATE,
     questions: [
       {
         variant_id: "q5v1",
@@ -98,6 +105,7 @@ const questions = {
   6: {
     question_id: "q6",
     sequence: 6,
+    service: TextConversionType.TRANSLITERATE,
     questions: [
       {
         variant_id: "q6v1",
@@ -117,6 +125,7 @@ const questions = {
   7: {
     question_id: "q7",
     sequence: 7,
+    service: TextConversionType.TRANSLITERATE,
     questions: [
       {
         variant_id: "q7v1",
@@ -136,6 +145,7 @@ const questions = {
   8: {
     question_id: "q8",
     sequence: 8,
+    service: TextConversionType.TRANSLITERATE,
     questions: [
       {
         variant_id: "q8v1",
@@ -155,6 +165,7 @@ const questions = {
   9: {
     question_id: "q9",
     sequence: 9,
+    service: TextConversionType.TRANSLITERATE,
     questions: [
       {
         variant_id: "q9v1",
@@ -174,6 +185,7 @@ const questions = {
   10: {
     question_id: "q10",
     sequence: 10,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q10v1",
@@ -193,6 +205,7 @@ const questions = {
   11: {
     question_id: "q11",
     sequence: 11,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q11v1",
@@ -212,6 +225,7 @@ const questions = {
   12: {
     question_id: "q12",
     sequence: 12,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q12v1",
@@ -231,6 +245,7 @@ const questions = {
   13: {
     question_id: "q13",
     sequence: 13,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q13v1",
@@ -250,6 +265,7 @@ const questions = {
   14: {
     question_id: "q14",
     sequence: 14,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q14v1",
@@ -269,6 +285,7 @@ const questions = {
   15: {
     question_id: "q15",
     sequence: 15,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q15v1",
@@ -288,6 +305,7 @@ const questions = {
   16: {
     question_id: "q16",
     sequence: 16,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q16v1",
@@ -307,6 +325,7 @@ const questions = {
   17: {
     question_id: "q17",
     sequence: 17,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q17v1",
@@ -326,6 +345,7 @@ const questions = {
   18: {
     question_id: "q18",
     sequence: 18,
+    service: TextConversionType.TRANSLITERATE,
     questions: [
       {
         variant_id: "q18v1",
