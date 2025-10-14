@@ -38,3 +38,8 @@ export const PTM_CONVERSATION_STATUS_TYPE = {
   PAUSE: "PAUSE",
   RESUME: "RESUME",
 };
+
+export const TextConversionType = {
+  TRANSLATE: "TRANSLATE",
+  TRANSLITERATE: "TRANSLITERATE"
+}

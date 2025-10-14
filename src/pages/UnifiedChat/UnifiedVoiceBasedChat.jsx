@@ -284,6 +284,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
             source: "bot",
             updated_at: Date.now(),
             question_id: question_to_use.variant_id,
+            service: selected_question.service || null,
         };
 
         setChatHistory((prev) => [...prev, bot_messsage]);
@@ -1141,20 +1142,21 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                     status = PTM_CONVERSATION_STATUS_TYPE.COMPLETED;
                     }
                     const data = {
-                    session: getFromStorage("sessionid", true),
-                    status: status,
-                    flow: getFromStorage("flow", false),
-                    profile_id: getFromStorage("profileid", true),
-                    id: last_question.question_id,
-                    answer_id: `answer_${last_question.sequence}_${last_question.question_id}`,
-                    sequence: last_question.sequence,
-                    question: question,
-                    translated_question:
-                        last_question?.translated_question || null,
-                    answer: textMessage,
-                    language: languageToUse,
-                    sent_at: new Date().toISOString(),
-                    audio_url: asrAudio,
+                        session: getFromStorage("sessionid", true),
+                        status: status,
+                        flow: getFromStorage("flow", false),
+                        profile_id: getFromStorage("profileid", true),
+                        id: last_question.question_id,
+                        answer_id: `answer_${last_question.sequence}_${last_question.question_id}`,
+                        sequence: last_question.sequence,
+                        question: question,
+                        translated_question:
+                            last_question?.translated_question?.text || null,
+                        answer: textMessage,
+                        language: languageToUse,
+                        sent_at: new Date().toISOString(),
+                        audio_url: asrAudio,
+                        service: last_question.service || null,
                     };
                     savePTMQuestion(data);
                     setChatHistory((prev) => [
