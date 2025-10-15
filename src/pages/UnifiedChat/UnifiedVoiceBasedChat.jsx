@@ -208,6 +208,9 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                     } else if (storySpeakerButtons.length > 0) {
                         storySpeakerButtons[storySpeakerButtons.length - 1].click();
                     }
+                    setTimeout(() => {
+                        handleScrollToView();
+                    }, 100);
                 } catch (error) {
                     console.error("Error auto-playing story audio:", error);
                 }
