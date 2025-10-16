@@ -344,7 +344,7 @@ const questions = {
   },
   18: {
     question_id: "q18",
-    sequence: 17,
+    sequence: 18,
     service: TextConversionType.TRANSLATE,
     questions: [
       {
@@ -364,7 +364,7 @@ const questions = {
   },
   19: {
     question_id: "q19",
-    sequence: 18,
+    sequence: 19,
     service: TextConversionType.TRANSLITERATE,
     questions: [
       {
