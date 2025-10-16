@@ -71,11 +71,11 @@ const questions = {
         variant_id: "q4v1",
         title: {
           en: {
-            text: "What is your contact number?",
+            text: "What is your contact number? (Optional)",
             audio: `${base_path}/audio/ylc/en/q4v1_en.b64`,
           },
           kn: {
-            text: "ನಿಮ್ಮ ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ಏನು?",
+            text: "ನಿಮ್ಮ ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ಏನು? (ಐಚ್ಛಿಕ)",
             audio: `${base_path}/audio/ylc/kn/q4v1_kn.b64`,
           },
         },
@@ -111,11 +111,11 @@ const questions = {
         variant_id: "q6v1",
         title: {
           en: {
-            text: "Mention the name of your college or the Youth Club you are representing.",
+            text: "Mention the name of your college or the Community Youth Club you are representing.",
             audio: `${base_path}/audio/ylc/en/q6v1_en.b64`,
           },
           kn: {
-            text: "ನಿಮ್ಮ ಕಾಲೇಜು ಅಥವಾ ನೀವು ಪ್ರತಿನಿಧಿಸುತ್ತಿರುವ ಯೂತ್ ಕ್ಲಬ್‌ನ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+            text: "ನಿಮ್ಮ ಕಾಲೇಜು ಅಥವಾ ನೀವು ಪ್ರತಿನಿಧಿಸುತ್ತಿರುವ ಸಮುದಾಯ ಯುವ ಸಂಘದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
             audio: `${base_path}/audio/ylc/kn/q6v1_kn.b64`,
           },
         },
@@ -151,11 +151,11 @@ const questions = {
         variant_id: "q8v1",
         title: {
           en: {
-            text: "Mention the name of the panchayat where you carried out the activity.",
+            text: "Mention the name of the panchayat/ ward where you carried out the activity.",
             audio: `${base_path}/audio/ylc/en/q8v1_en.b64`,
           },
           kn: {
-            text: "ನೀವು ಚಟುವಟಿಕೆ ನಡೆಸಿದ ಪಂಚಾಯತ್ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
+            text: "ನೀವು ಚಟುವಟಿಕೆ ನಡೆಸಿದ ಪಂಚಾಯತ್/ವಾರ್ಡ್ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
             audio: `${base_path}/audio/ylc/kn/q8v1_kn.b64`,
           },
         },
@@ -171,11 +171,11 @@ const questions = {
         variant_id: "q9v1",
         title: {
           en: {
-            text: "Mention the name of the village where you carried out the activity.",
+            text: "Mention the name of the village/ area where you carried out the activity.",
             audio: `${base_path}/audio/ylc/en/q9v1_en.b64`,
           },
           kn: {
-            text: "ನೀವು ಚಟುವಟಿಕೆ ನಡೆಸಿದ ಗ್ರಾಮದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
+            text: "ನೀವು ಚಟುವಟಿಕೆ ನಡೆಸಿದ ಗ್ರಾಮ/ ಪ್ರದೇಶದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
             audio: `${base_path}/audio/ylc/kn/q9v1_kn.b64`,
           },
         },
@@ -191,11 +191,11 @@ const questions = {
         variant_id: "q10v1",
         title: {
           en: {
-            text: "How many youth members were actively involved with you while solving the challenge?",
+            text: "How many youth members were actively involved with you while solving the challenge/ problem ?",
             audio: `${base_path}/audio/ylc/en/q10v1_en.b64`,
           },
           kn: {
-            text: "ಸವಾಲನ್ನು ಪರಿಹರಿಸುವಾಗ ಎಷ್ಟು ಯುವ ಸದಸ್ಯರು ನಿಮ್ಮೊಂದಿಗೆ ಸಕ್ರಿಯವಾಗಿ ತೊಡಗಿಸಿಕೊಂಡಿದ್ದಾರೆ?",
+            text: "ಸವಾಲು/ ಸಮಸ್ಯೆಯನ್ನು ಪರಿಹರಿಸುವಾಗ ಎಷ್ಟು ಯುವ ಸದಸ್ಯರು ನಿಮ್ಮೊಂದಿಗೆ ಸಕ್ರಿಯವಾಗಿ ತೊಡಗಿಸಿಕೊಂಡರು?",
             audio: `${base_path}/audio/ylc/kn/q10v1_kn.b64`,
           },
         },
@@ -231,11 +231,11 @@ const questions = {
         variant_id: "q12v1",
         title: {
           en: {
-            text: "What challenge did you identify?",
+            text: "What challenge/ problem did you identify?",
             audio: `${base_path}/audio/ylc/en/q12v1_en.b64`,
           },
           kn: {
-            text: "ನೀವು ಯಾವ ಸವಾಲನ್ನು ಗುರುತಿಸಿದ್ದೀರಿ?",
+            text: "ನೀವು ಯಾವ ಸವಾಲು/ ಸಮಸ್ಯೆಯನ್ನು ಗುರುತಿಸಿದ್ದೀರಿ?",
             audio: `${base_path}/audio/ylc/kn/q12v1_kn.b64`,
           },
         },
@@ -271,11 +271,11 @@ const questions = {
         variant_id: "q14v1",
         title: {
           en: {
-            text: "What are the changes observed after solving the challenge?",
+            text: "What are the changes observed after solving the challenge/ problem?",
             audio: `${base_path}/audio/ylc/en/q14v1_en.b64`,
           },
           kn: {
-            text: "ಸವಾಲನ್ನು ಪರಿಹರಿಸಿದ ನಂತರ ಯಾವ ಬದಲಾವಣೆಗಳನ್ನು ಗಮನಿಸಲಾಗಿದೆ?",
+            text: "ಸವಾಲು/ ಸಮಸ್ಯೆಯನ್ನು ಪರಿಹರಿಸಿದ ನಂತರ ಗಮನಿಸಿದ ಬದಲಾವಣೆಗಳು ಯಾವುವು?",
             audio: `${base_path}/audio/ylc/kn/q14v1_kn.b64`,
           },
         },
@@ -311,11 +311,11 @@ const questions = {
         variant_id: "q16v1",
         title: {
           en: {
-            text: "How many students were impacted by this solution?",
+            text: "Did you solve this problem in the school or community?",
             audio: `${base_path}/audio/ylc/en/q16v1_en.b64`,
           },
           kn: {
-            text: "ಈ ಪರಿಹಾರದಿಂದ ಎಷ್ಟು ವಿದ್ಯಾರ್ಥಿಗಳು ಪ್ರಭಾವಿತರಾಗಿದ್ದಾರೆ?",
+            text: "ನೀವು ಶಾಲೆಯಲ್ಲಿ ಅಥವಾ ಸಮುದಾಯದಲ್ಲಿ ಈ ಸಮಸ್ಯೆಯನ್ನು ಪರಿಹರಿಸಿದ್ದೀರಾ?",
             audio: `${base_path}/audio/ylc/kn/q16v1_kn.b64`,
           },
         },
@@ -331,11 +331,11 @@ const questions = {
         variant_id: "q17v1",
         title: {
           en: {
-            text: "What is your next plan to solve this challenge?",
+            text: "How many students were impacted by this solution?",
             audio: `${base_path}/audio/ylc/en/q17v1_en.b64`,
           },
           kn: {
-            text: "ಈ ಸವಾಲನ್ನು ಪರಿಹರಿಸಲು ನಿಮ್ಮ ಮುಂದಿನ ಯೋಜನೆ ಏನು?",
+            text: "ಈ ಪರಿಹಾರದಿಂದ ಎಷ್ಟು ವಿದ್ಯಾರ್ಥಿಗಳು ಪ್ರಭಾವಿತರಾಗಿದ್ದಾರೆ?",
             audio: `${base_path}/audio/ylc/kn/q17v1_kn.b64`,
           },
         },
@@ -344,19 +344,39 @@ const questions = {
   },
   18: {
     question_id: "q18",
-    sequence: 18,
-    service: TextConversionType.TRANSLITERATE,
+    sequence: 17,
+    service: TextConversionType.TRANSLATE,
     questions: [
       {
         variant_id: "q18v1",
         title: {
           en: {
-            text: "Kindly add your social media links: LinkedIn, Instagram, ....",
+            text: "What is your next plan to solve this challenge?",
             audio: `${base_path}/audio/ylc/en/q18v1_en.b64`,
           },
           kn: {
-            text: "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ ಲಿಂಕ್‌ಗಳನ್ನು ಸೇರಿಸಿ: LinkedIn, Instagram, ....",
+            text: "ಈ ಸವಾಲನ್ನು ಪರಿಹರಿಸಲು ನಿಮ್ಮ ಮುಂದಿನ ಯೋಜನೆ ಏನು?",
             audio: `${base_path}/audio/ylc/kn/q18v1_kn.b64`,
+          },
+        },
+      },
+    ],
+  },
+  19: {
+    question_id: "q19",
+    sequence: 18,
+    service: TextConversionType.TRANSLITERATE,
+    questions: [
+      {
+        variant_id: "q19v1",
+        title: {
+          en: {
+            text: "Kindly add your social media links: LinkedIn, Instagram, ....",
+            audio: `${base_path}/audio/ylc/en/q19v1_en.b64`,
+          },
+          kn: {
+            text: "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ ಲಿಂಕ್‌ಗಳನ್ನು ಸೇರಿಸಿ: LinkedIn, Instagram, ....",
+            audio: `${base_path}/audio/ylc/kn/q19v1_kn.b64`,
           },
         },
       },
@@ -368,11 +388,11 @@ export default questions;
 
 export const ylcStoryTextAudio = {
   en: {
-    "uploadPhotoAudio": `${base_path}/audio/ylc/en/q19v1_en.b64`,
-    "storyReportAudio": `${base_path}/audio/ylc/en/q20v1_en.b64`,
+    "uploadPhotoAudio": `${base_path}/audio/ylc/en/q20v1_en.b64`,
+    "storyReportAudio": `${base_path}/audio/ylc/en/q21v1_en.b64`,
   },
   kn: {
-    "uploadPhotoAudio": `${base_path}/audio/ylc/kn/q19v1_kn.b64`,
-    "storyReportAudio": `${base_path}/audio/ylc/kn/q20v1_kn.b64`,
+    "uploadPhotoAudio": `${base_path}/audio/ylc/kn/q20v1_kn.b64`,
+    "storyReportAudio": `${base_path}/audio/ylc/kn/q21v1_kn.b64`,
   }
 }
