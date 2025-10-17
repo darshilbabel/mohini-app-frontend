@@ -71,11 +71,11 @@ const questions = {
         variant_id: "q4v1",
         title: {
           en: {
-            text: "What is your contact number? (Optional)",
+            text: "What is your contact number? This is optional.",
             audio: `${base_path}/audio/ylc/en/q4v1_en.b64`,
           },
           kn: {
-            text: "ನಿಮ್ಮ ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ಏನು? (ಐಚ್ಛಿಕ)",
+            text: "ನಿಮ್ಮ ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ಏನು? ಇದು ಐಚ್ಛಿಕ.",
             audio: `${base_path}/audio/ylc/kn/q4v1_kn.b64`,
           },
         },
@@ -91,11 +91,11 @@ const questions = {
         variant_id: "q5v1",
         title: {
           en: {
-            text: "Name the Person/Leader who referred you to attend this movement.",
+            text: "Name the Person or Leader who referred you to attend this movement.",
             audio: `${base_path}/audio/ylc/en/q5v1_en.b64`,
           },
           kn: {
-            text: "ಈ ಆಂದೋಲನದಲ್ಲಿ ಭಾಗವಹಿಸಲು ನಿಮ್ಮನ್ನು ಉಲ್ಲೇಖಿಸಿದ ವ್ಯಕ್ತಿ/ನಾಯಕನನ್ನು ಹೆಸರಿಸಿ.",
+            text: "ಈ ಆಂದೋಲನಕ್ಕೆ ಹಾಜರಾಗಲು ನಿಮ್ಮನ್ನು ಶಿಫಾರಸು ಮಾಡಿದ ವ್ಯಕ್ತಿ ಅಥವಾ ನಾಯಕನನ್ನು ಹೆಸರಿಸಿ.",
             audio: `${base_path}/audio/ylc/kn/q5v1_kn.b64`,
           },
         },
@@ -151,11 +151,11 @@ const questions = {
         variant_id: "q8v1",
         title: {
           en: {
-            text: "Mention the name of the panchayat/ ward where you carried out the activity.",
+            text: "Mention the name of the panchayat or ward where you carried out the activity.",
             audio: `${base_path}/audio/ylc/en/q8v1_en.b64`,
           },
           kn: {
-            text: "ನೀವು ಚಟುವಟಿಕೆ ನಡೆಸಿದ ಪಂಚಾಯತ್/ವಾರ್ಡ್ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
+            text: "ನೀವು ಚಟುವಟಿಕೆ ನಡೆಸಿದ ಪಂಚಾಯತ್ ಅಥವಾ ವಾರ್ಡ್‌ನ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
             audio: `${base_path}/audio/ylc/kn/q8v1_kn.b64`,
           },
         },
@@ -171,11 +171,11 @@ const questions = {
         variant_id: "q9v1",
         title: {
           en: {
-            text: "Mention the name of the village/ area where you carried out the activity.",
+            text: "Mention the name of the village or area where you carried out the activity.",
             audio: `${base_path}/audio/ylc/en/q9v1_en.b64`,
           },
           kn: {
-            text: "ನೀವು ಚಟುವಟಿಕೆ ನಡೆಸಿದ ಗ್ರಾಮ/ ಪ್ರದೇಶದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
+            text: "ನೀವು ಚಟುವಟಿಕೆ ನಡೆಸಿದ ಗ್ರಾಮ ಅಥವಾ ಪ್ರದೇಶದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ.",
             audio: `${base_path}/audio/ylc/kn/q9v1_kn.b64`,
           },
         },
@@ -191,11 +191,11 @@ const questions = {
         variant_id: "q10v1",
         title: {
           en: {
-            text: "How many youth members were actively involved with you while solving the challenge/ problem ?",
+            text: "How many youth members were actively involved with you while solving the challenge or problem?",
             audio: `${base_path}/audio/ylc/en/q10v1_en.b64`,
           },
           kn: {
-            text: "ಸವಾಲು/ ಸಮಸ್ಯೆಯನ್ನು ಪರಿಹರಿಸುವಾಗ ಎಷ್ಟು ಯುವ ಸದಸ್ಯರು ನಿಮ್ಮೊಂದಿಗೆ ಸಕ್ರಿಯವಾಗಿ ತೊಡಗಿಸಿಕೊಂಡರು?",
+            text: "ಸವಾಲು ಅಥವಾ ಸಮಸ್ಯೆಯನ್ನು ಪರಿಹರಿಸುವಾಗ ಎಷ್ಟು ಯುವ ಸದಸ್ಯರು ನಿಮ್ಮೊಂದಿಗೆ ಸಕ್ರಿಯವಾಗಿ ತೊಡಗಿಸಿಕೊಂಡರು?",
             audio: `${base_path}/audio/ylc/kn/q10v1_kn.b64`,
           },
         },
@@ -231,11 +231,11 @@ const questions = {
         variant_id: "q12v1",
         title: {
           en: {
-            text: "What challenge/ problem did you identify?",
+            text: "What challenge or problem did you identify?",
             audio: `${base_path}/audio/ylc/en/q12v1_en.b64`,
           },
           kn: {
-            text: "ನೀವು ಯಾವ ಸವಾಲು/ ಸಮಸ್ಯೆಯನ್ನು ಗುರುತಿಸಿದ್ದೀರಿ?",
+            text: "ನೀವು ಯಾವ ಸವಾಲು ಅಥವಾ ಸಮಸ್ಯೆಯನ್ನು ಗುರುತಿಸಿದ್ದೀರಿ?",
             audio: `${base_path}/audio/ylc/kn/q12v1_kn.b64`,
           },
         },
@@ -251,11 +251,11 @@ const questions = {
         variant_id: "q13v1",
         title: {
           en: {
-            text: "How did you solve this challenge? Explain it step by step what you did, where you did it, and how you did it.",
+            text: "How did you solve this challenge or problem? Explain it step by step what you did, where you did it, and how you did it.",
             audio: `${base_path}/audio/ylc/en/q13v1_en.b64`,
           },
           kn: {
-            text: "ಈ ಸವಾಲನ್ನು ನೀವು ಹೇಗೆ ಪರಿಹರಿಸಿದ್ದೀರಿ? ನೀವು ಏನು ಮಾಡಿದ್ದೀರಿ, ಎಲ್ಲಿ ಮಾಡಿದ್ದೀರಿ ಮತ್ತು ಹೇಗೆ ಮಾಡಿದ್ದೀರಿ ಎಂಬುದನ್ನು ಹಂತ ಹಂತವಾಗಿ ವಿವರಿಸಿ.",
+            text: "ಈ ಸವಾಲು ಅಥವಾ ಸಮಸ್ಯೆಯನ್ನು ನೀವು ಹೇಗೆ ಪರಿಹರಿಸಿದ್ದೀರಿ? ನೀವು ಏನು ಮಾಡಿದ್ದೀರಿ, ಎಲ್ಲಿ ಮಾಡಿದ್ದೀರಿ ಮತ್ತು ಹೇಗೆ ಮಾಡಿದ್ದೀರಿ ಎಂಬುದನ್ನು ಹಂತ ಹಂತವಾಗಿ ವಿವರಿಸಿ.",
             audio: `${base_path}/audio/ylc/kn/q13v1_kn.b64`,
           },
         },
@@ -271,11 +271,11 @@ const questions = {
         variant_id: "q14v1",
         title: {
           en: {
-            text: "What are the changes observed after solving the challenge/ problem?",
+            text: "What are the changes observed after solving the challenge or problem?",
             audio: `${base_path}/audio/ylc/en/q14v1_en.b64`,
           },
           kn: {
-            text: "ಸವಾಲು/ ಸಮಸ್ಯೆಯನ್ನು ಪರಿಹರಿಸಿದ ನಂತರ ಗಮನಿಸಿದ ಬದಲಾವಣೆಗಳು ಯಾವುವು?",
+            text: "ಸವಾಲು ಅಥವಾ ಸಮಸ್ಯೆಯನ್ನು ಪರಿಹರಿಸಿದ ನಂತರ ಗಮನಿಸಿದ ಬದಲಾವಣೆಗಳು ಯಾವುವು?",
             audio: `${base_path}/audio/ylc/kn/q14v1_kn.b64`,
           },
         },
@@ -351,11 +351,11 @@ const questions = {
         variant_id: "q18v1",
         title: {
           en: {
-            text: "What is your next plan to solve this challenge?",
+            text: "What is your next plan to solve this challenge or problem?",
             audio: `${base_path}/audio/ylc/en/q18v1_en.b64`,
           },
           kn: {
-            text: "ಈ ಸವಾಲನ್ನು ಪರಿಹರಿಸಲು ನಿಮ್ಮ ಮುಂದಿನ ಯೋಜನೆ ಏನು?",
+            text: "ಈ ಸವಾಲು ಅಥವಾ ಸಮಸ್ಯೆಯನ್ನು ಪರಿಹರಿಸಲು ನಿಮ್ಮ ಮುಂದಿನ ಯೋಜನೆ ಏನು?",
             audio: `${base_path}/audio/ylc/kn/q18v1_kn.b64`,
           },
         },
