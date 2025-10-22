@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axios";
 import { setLanguage } from "../i18n";
 import { BiLoader } from "react-icons/bi";
-import { clearFromStorage, getFromStorage, removeFromStorage, setInStorage } from "../services/storage_service";
+import { clearFromStorage, getFromStorageSlice, removeFromStorage, setInStorageSlice } from "../services/storage_service";
 import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat";
 
 
@@ -16,41 +16,41 @@ function ShikshalokamChat({type, variant}) {
 
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
-	const [userId, setUserId] = useState(getFromStorage('device_id') || null);
-	const [companyName, setCompanyName] = useState(getFromStorage('company') || null);
+	const [userId, setUserId] = useState(getFromStorageSlice("userPreference", "device_id") || null);
+	const [companyName, setCompanyName] = useState(getFromStorageSlice("userPreference", "company") || null);
 		  
 	useEffect(() => {
-		if(getFromStorage('accessToken', false, 'localStorage')) return;
-		const tnc=getFromStorage("has_accepted_tnc");
+		if(getFromStorageSlice('userPreference', 'accessToken', false, 'localStorage')) return;
+		const tnc=getFromStorageSlice("userPreference", "has_accepted_tnc");
 		if (!tnc || tnc === "ONGOING") {
 			clearFromStorage(true, ['local_route']);
 		}
-		if (!getFromStorage("local_route")) {
-			setInStorage("local_route", JSON.stringify(languageList[0].value), type);
+		if (!getFromStorageSlice("userPreference", "local_route")) {
+			setInStorageSlice("userPreference", languageList[0].value, "setLocalRoute", type);
 		}
 		// if(!getFromStorage('tempCode')){
 		// 	removeFromStorage('previousUrl');
 		// }
-		if(getFromStorage('tempCode', false, 'localStorage')){
-			const previousUrl = getFromStorage('previousUrl', false, 'localStorage');
+		if(getFromStorageSlice("userPreference", "tempCode", false, 'localStorage')){
+			const previousUrl = getFromStorageSlice("userPreference", "previousUrl", false, 'localStorage');
 			console.log('previousUrl chk', previousUrl);
 			console.log('currentUrl chk', window.location.href);
 			if(previousUrl && previousUrl !== '') {
 				console.log('type chk', type);
 				if(type && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(type)){
 					console.log("Setting previousUrl in sessionStorage");
-					setInStorage('previousUrl', previousUrl, type, 'sessionStorage');
+					setInStorageSlice("userPreference", previousUrl, "setPreviousUrl", type, 'sessionStorage');
 				}
 			}
 		}
 		removeFromStorage('tempCode', false, 'localStorage');
 		removeFromStorage('previousUrl', false, 'localStorage');
-		setInStorage("chatLanguage", JSON.stringify(getFromStorage("local_route", true, 'localStorage') || languageList[0].value), type);
+		setInStorageSlice("userPreference", getFromStorageSlice("userPreference", "local_route", false, 'localStorage') || languageList[0].value, "setChatLanguage", type);
 
 	}, []);
 	
 	function getUserFingerPrint() {
-		if(getFromStorage('accessToken', false, 'localStorage')) return;
+		if(getFromStorageSlice("userPreference", "accessToken", false, 'localStorage')) return;
 
 		try {
 			const fingerprint =
@@ -61,10 +61,10 @@ function ShikshalokamChat({type, variant}) {
 			window.screen.width +
 			window.screen.height;
 
-			const storedUserId = getFromStorage('device_id');
+			const storedUserId = getFromStorageSlice("userPreference", "device_id");
 			const newUserId = storedUserId || btoa(fingerprint);
 
-			setInStorage('device_id', newUserId, type);
+			setInStorageSlice("userPreference", newUserId, "setDeviceId", type);
 			setUserId(newUserId);
 		} catch (error) {
 			console.error('Error handling user ID:', error);
@@ -73,12 +73,12 @@ function ShikshalokamChat({type, variant}) {
 	}
 
 	async function initialSetup() {
-		if(getFromStorage('accessToken', false, 'localStorage')) return;
+		if(getFromStorageSlice("userPreference", "accessToken", false, 'localStorage')) return;
 
 		try{
-		  const deviceId = getFromStorage('device_id')
+		  const deviceId = getFromStorageSlice("userPreference", "device_id");
 		  const customEmail = deviceId + "@shikshalokam.org"
-		  const currentFlow = getFromStorage('flow');
+		  const currentFlow = getFromStorageSlice("userPreference", "flow");
 		  const body = {
 			email: customEmail,
 			company: "shikshalokamstaging",
@@ -86,9 +86,9 @@ function ShikshalokamChat({type, variant}) {
 			latest_flow_used: currentFlow,
 			other_params: {
 			  device_id: deviceId,
-			  city: getFromStorage('ip_city') || "",
-			  state: getFromStorage('ip_state') || "",
-			  country: getFromStorage('ip_country') || "",
+			  city: getFromStorageSlice("userPreference", "ip_city") || "",
+			  state: getFromStorageSlice("userPreference", "ip_state") || "",
+			  country: getFromStorageSlice("userPreference", "ip_country") || "",
 			}
 		  }
 		  
@@ -100,10 +100,10 @@ function ShikshalokamChat({type, variant}) {
 			return;
 		  }
 	  
-		  setInStorage('profileid', JSON.stringify(res.id), type);
+		  setInStorageSlice("userPreference", res.id, "setProfileid", type);
 	  
 		  let session = await getSessionDetails();
-		  setInStorage('sessionid', JSON.stringify(session.sessionid), type);
+		  setInStorageSlice("userPreference", session.sessionid, "setSessionid", type);
 	  
 		  const response = await axiosInstance({
 			url: login_api_url,
@@ -115,8 +115,8 @@ function ShikshalokamChat({type, variant}) {
 		  });
 	  
 		  if (!!response?.data?.access_token) {
-			setInStorage('company', JSON.stringify(response?.data?.company), type);
-			setInStorage('first_name', JSON.stringify(response?.data?.first_name), type);
+			setInStorageSlice("userPreference", response?.data?.company, "setCompany", type);
+			setInStorageSlice("userPreference", response?.data?.first_name, "setFirstName", type);
 			setCompanyName(response?.data?.company);
 		  } else {
 			window.location.reload();
@@ -132,38 +132,38 @@ function ShikshalokamChat({type, variant}) {
 	}
 
 	const setFinalLanguage = async () => {
-		if(getFromStorage('accessToken', false, 'localStorage')) return;
+		if(getFromStorageSlice("userPreference", "accessToken", false, 'localStorage')) return;
 
-		const currentFlow = getFromStorage('flow');
+		const currentFlow = getFromStorageSlice("userPreference", "flow");
 		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(currentFlow)){
 			await initialSetup();
 		}
 		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(currentFlow)){
-			const storedLanguage = getFromStorage("local_route", true, 'localStorage') || languageList[0].value;
+			const storedLanguage = getFromStorageSlice("userPreference", "local_route", false, 'localStorage') || languageList[0].value;
 			setLanguage(storedLanguage);
 		}
 	}
 
 	useEffect(()=>{
 		const runSetup = async () => {
-			if(getFromStorage('accessToken', false, 'localStorage')) return;
+			if(getFromStorageSlice("userPreference", "accessToken", false, 'localStorage')) return;
 
-			if(!getFromStorage('sessionid')){
+			if(!getFromStorageSlice("userPreference", "sessionid")){
 				clearFromStorage(false, ['local_route']);
 				setIsLoading(true);
-				setInStorage('has_accepted_tnc', 'ONGOING', type);
-				setInStorage('isNewChatOpen', JSON.stringify(true), type);
+				setInStorageSlice("userPreference", 'ONGOING', "setHasAcceptedTnc", type);
+				setInStorageSlice("userPreference", true, "setIsNewChatOpen", type);
 				const locationData = await getIpLocation();
 				if (locationData && locationData?.location) {
-				setInStorage('ip_state', locationData?.location?.regionName, type);
-				setInStorage('ip_city', locationData?.location?.city, type);
-				setInStorage('ip_country', locationData?.location?.country, type);
+				setInStorageSlice("userPreference", locationData?.location?.regionName, "setIpState", type);
+				setInStorageSlice("userPreference", locationData?.location?.city, "setIpCity", type);
+				setInStorageSlice("userPreference", locationData?.location?.country, "setIpCountry", type);
 				}
-				setInStorage('flow', type, type);
+				setInStorageSlice("userPreference", type, "setFlow", type);
 				await setFinalLanguage();
 				getUserFingerPrint();
 			}
-			else if (getFromStorage('flow') && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(getFromStorage('flow')))){
+			else if (getFromStorageSlice("userPreference", "flow") && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(getFromStorageSlice("userPreference", "flow")))){
 				clearFromStorage(false, ['local_route']);
 				window.location.reload();
 			}

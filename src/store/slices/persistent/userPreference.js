@@ -11,6 +11,17 @@ const initialState = {
     hasSelectedLanguage: false,
     previousUrl: null,
     tempCode: null,
+    device_id: null,
+    company: null,
+    accessToken: null,
+    has_accepted_tnc: null,
+    ip_city: null,
+    ip_state: null,
+    ip_country: null,
+    sessionid: null,
+    profileid: null,
+    chatLanguage: null,
+    isNewChatOpen: false,
 }
 
 const useUserPreferenceStore = create(
@@ -34,6 +45,28 @@ const useUserPreferenceStore = create(
             setPreviousUrl: (previousUrl) => set({ previousUrl }),
 
             setTempCode: (tempCode) => set({ tempCode }),
+
+            setDeviceId: (device_id) => set({ device_id }),
+
+            setCompany: (company) => set({ company }),
+
+            setAccessToken: (accessToken) => set({ accessToken }),
+
+            setHasAcceptedTnc: (has_accepted_tnc) => set({ has_accepted_tnc }),
+
+            setIpCity: (ip_city) => set({ ip_city }),
+
+            setIpState: (ip_state) => set({ ip_state }),
+
+            setIpCountry: (ip_country) => set({ ip_country }),
+
+            setSessionid: (sessionid) => set({ sessionid }),
+
+            setProfileid: (profileid) => set({ profileid }),
+
+            setChatLanguage: (chatLanguage) => set({ chatLanguage }),
+
+            setIsNewChatOpen: (isNewChatOpen) => set({ isNewChatOpen }),
         })
     )
 )
