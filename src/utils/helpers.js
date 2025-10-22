@@ -1,6 +1,7 @@
 // utils/helpers.js
 import { languageList } from "../pages/ShikshalokamVoiceChat/enum";
 import { STORAGE_KEYS } from "./constants";
+import { getFromStorageSlice } from "../services/storage_service";
 
 /**
  * Get default language based on use case type
@@ -40,11 +41,10 @@ export const initializeLanguageStorage = (usecaseType) => {
 
 /**
  * Check if user has access token
- * @param {Function} getFromStorage - Storage utility function
  * @returns {boolean} Whether user has access token
  */
-export const hasAccessToken = (getFromStorage) => {
-  return !!getFromStorage(STORAGE_KEYS.ACCESS_TOKEN, true);
+export const hasAccessToken = () => {
+  return !!getFromStorageSlice("userPreference", "accessToken");
 };
 
 /**

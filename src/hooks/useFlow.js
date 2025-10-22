@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { getFromStorage, setInStorage } from "../services/storage_service";
+import { getFromStorageSlice, setInStorageSlice } from "../services/storage_service";
 import ROUTES from "../url";
 import { sessionFlowName, sessionUsecaseType } from "../pages/ShikshalokamVoiceChat/enum";
 
@@ -18,14 +18,14 @@ export const useFlow = (usecaseType) => {
   const mappedUrlFlow = validFlows.includes(urlFlow) ? urlFlow : null;
   
   const [selectedFlow, setSelectedFlow] = useState(
-    mappedUrlFlow || getFromStorage("flow", false) || null
+    mappedUrlFlow || getFromStorageSlice("userPreference", "flow") || null
   );
   const [isLoading, setIsLoading] = useState(true);
 
   // Auto-apply URL flow on mount
   useEffect(() => {
     if (mappedUrlFlow) {
-      setInStorage('flow', mappedUrlFlow);
+      setInStorageSlice("userPreference", mappedUrlFlow, "setFlow");
       setSelectedFlow(mappedUrlFlow);
     }
   }, [mappedUrlFlow]);
@@ -52,15 +52,15 @@ export const useFlow = (usecaseType) => {
       forceProcess = true;
     }
     
-    if (!forceProcess && !hasUrlParams && (!getFromStorage("hasSelectedLanguage") || !selectedFlow || !langToUse)) {
+    if (!forceProcess && !hasUrlParams && (!getFromStorageSlice("userPreference", "hasSelectedLanguage") || !selectedFlow || !langToUse)) {
       setIsLoading(false);
       return;
     }
     
     console.log("Process button allowed");
     setIsLoading(true);
-    setInStorage("hasSelectedLanguage", true);
-    setInStorage("route", JSON.stringify(langToUse));
+    setInStorageSlice("userPreference", true, "setHasSelectedLanguage");
+    setInStorageSlice("userPreference", langToUse, "setRoute");
 
     // Case for PTM
     if (ptm_case) {
@@ -71,13 +71,13 @@ export const useFlow = (usecaseType) => {
       return navigate(ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE);
     }
     
-    const currentFlow = selectedFlow || getFromStorage("flow");
-    const accessToken = getFromStorage("accessToken", true);
+    const currentFlow = selectedFlow || getFromStorageSlice("userPreference", "flow");
+    const accessToken = getFromStorageSlice("userPreference", "accessToken");
     console.log("Current flow:", currentFlow, "Access token:", accessToken);
     // Set common storage items
-    setInStorage("previousUrl", window.location.href);
-    setInStorage("tempCode", "xyz123");
-    setInStorage("flow", currentFlow);
+    setInStorageSlice("userPreference", window.location.href, "setPreviousUrl");
+    setInStorageSlice("userPreference", "xyz123", "setTempCode");
+    setInStorageSlice("userPreference", currentFlow, "setFlow");
     // Navigate based on flow - handle both authenticated and guest users
     if (currentFlow === sessionFlowName.GuestMiStory) {
       if (accessToken) {
@@ -114,11 +114,11 @@ export const useFlow = (usecaseType) => {
     await stopAllAudio();
     
     if (flow === sessionFlowName.GuestDiscussion) {
-      setInStorage("previousUrl", window.location.href);
-      setInStorage("tempCode", "xyz123");
-      if (getFromStorage("previousUrl")) {
-        if (getFromStorage("accessToken", true)) {
-          setInStorage("flow", flow);
+      setInStorageSlice("userPreference", window.location.href, "setPreviousUrl");
+      setInStorageSlice("userPreference", "xyz123", "setTempCode");
+      if (getFromStorageSlice("userPreference", "previousUrl")) {
+        if (getFromStorageSlice("userPreference", "accessToken")) {
+          setInStorageSlice("userPreference", flow, "setFlow");
           return window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
         } else {
           navigate(ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
@@ -126,11 +126,11 @@ export const useFlow = (usecaseType) => {
         }
       }
     } else if (flow === sessionFlowName.GuestMiStory) {
-      setInStorage("previousUrl", window.location.href);
-      setInStorage("tempCode", "xyz123");
-      if (getFromStorage("previousUrl")) {
-        if (getFromStorage("accessToken", true)) {
-          setInStorage("flow", flow);
+      setInStorageSlice("userPreference", window.location.href, "setPreviousUrl");
+      setInStorageSlice("userPreference", "xyz123", "setTempCode");
+      if (getFromStorageSlice("userPreference", "previousUrl")) {
+        if (getFromStorageSlice("userPreference", "accessToken")) {
+          setInStorageSlice("userPreference", flow, "setFlow");
           return window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
         } else {
           navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);

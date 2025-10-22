@@ -12,6 +12,14 @@ export const sessionUsecaseType = {
   ListeningActivity: "listening-activity",
   YLC: "YLC"
 };
+
+export const LANGUAGE_ENUMS = {
+  ENGLISH: "en",
+  HINDI: "hi",
+  KANNADA: "kn",
+  TELUGU: "te",
+}
+
 export const languageList = [
   { label: "English", value: "en", excludeFor: [] },
   { label: "हिंदी", value: "hi", excludeFor: [sessionUsecaseType.MEGA_PTM, sessionUsecaseType.YLC] },

@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
-import { clearFromStorage, getFromStorage } from "../../services/storage_service";
+import { clearFromStorage, getFromStorageSlice } from "../../services/storage_service";
 
 // Custom Hooks
 import { useLanguage } from "../../hooks/useLanguage";
@@ -72,7 +72,7 @@ function CommonHomePage({ usecaseType }) {
     
     if (!urlLanguage && !languageButtonSelect) {
       if (!userLanguage || userLanguage === null || userLanguage === "") {
-        const defaultLang = getFromStorage(STORAGE_KEYS.LOCAL_ROUTE, true, "localStorage") || 
+        const defaultLang = getFromStorageSlice("userPreference", 'local_route', false, "localStorage") || 
                            getDefaultLanguage(usecaseType);
         localStorage.setItem(STORAGE_KEYS.LOCAL_ROUTE, JSON.stringify(defaultLang));
         setUserLanguage(defaultLang);
@@ -80,7 +80,7 @@ function CommonHomePage({ usecaseType }) {
       setUserLanguage(userLanguage);
     }
 
-    if (!hasAccessToken(getFromStorage)) {
+    if (!hasAccessToken()) {
       clearFromStorage(true, [STORAGE_KEYS.HAS_SELECTED_LANGUAGE, STORAGE_KEYS.LOCAL_ROUTE]);
     }
 
@@ -143,7 +143,7 @@ const onLanguageSelect = (language, forceProcess) => {
     (urlLanguage || (languageButtonSelect && ![null, ""].includes(languageButtonSelect))) &&
     !urlFlow &&
     !isPTMCase &&
-    !getFromStorage(STORAGE_KEYS.FLOW, true);
+    !getFromStorageSlice("userPreference", "flow");
 
   return (
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 px-0">

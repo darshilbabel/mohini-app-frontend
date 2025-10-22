@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { languageList } from "../pages/ShikshalokamVoiceChat/enum";
+import { LANGUAGE_ENUMS } from "pages/ShikshalokamVoiceChat/enum";
 import { setLanguage } from "../i18n";
 import { getFromStorage, setInStorage } from "../services/storage_service";
+import { useUserPreferenceLocalStore } from 'store';
 
 // Get default language based on usecase type
 function getDefaultLanguage(usecaseType) {
   switch (usecaseType) {
     default:
-      return languageList[0].value;
+      return LANGUAGE_ENUMS.ENGLISH;
   }
 }
 
@@ -19,11 +20,12 @@ export const useLanguage = (usecaseType) => {
   const urlParams = new URLSearchParams(location.search);
   const urlLanguage = urlParams.get('language');
   
-  const defaultLanguage = urlLanguage ||
-    getFromStorage("local_route", true, "localStorage") ||
-    getDefaultLanguage(usecaseType);
-  
-  const [userLanguage, setUserLanguage] = useState(defaultLanguage);
+  // const defaultLanguage = urlLanguage ||
+  //   useUserStore.getState().local_route ||
+  //   getDefaultLanguage(usecaseType);
+
+  const { local_route: userLanguage, setLocalRoute: setUserLanguage } = useUserPreferenceLocalStore.getState();
+
   const [languageButtonSelect, setLanguageButtonSelect] = useState(
     urlLanguage ? true : (getFromStorage("hasSelectedLanguage") || null)
   );
@@ -33,7 +35,7 @@ export const useLanguage = (usecaseType) => {
     if (urlLanguage) {
       setInStorage("hasSelectedLanguage", true);
       setLanguage(urlLanguage);
-      localStorage.setItem("local_route", JSON.stringify(urlLanguage));
+      setUserLanguage(urlLanguage);
       setInStorage("route", JSON.stringify(urlLanguage));
       setLanguageButtonSelect(true);
     }
@@ -45,14 +47,12 @@ export const useLanguage = (usecaseType) => {
     setStopAudioTriggered(true);
     stopAllAudio();
     setLanguage(newLanguage);
-    localStorage.setItem("local_route", JSON.stringify(newLanguage));
   };
 
   const setSelectedLanguage = (language) => {
     setInStorage("hasSelectedLanguage", true);
     setUserLanguage(language);
     setLanguage(language);
-    localStorage.setItem("local_route", JSON.stringify(language));
     setInStorage("route", JSON.stringify(language));
     setLanguageButtonSelect(true);
   };
