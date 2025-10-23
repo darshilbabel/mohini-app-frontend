@@ -22,6 +22,23 @@ const initialState = {
     profileid: null,
     chatLanguage: null,
     isNewChatOpen: false,
+    isChatVisible: false,
+    lang_progress: null,
+    statemachine_length: 0,
+    selected_type: null,
+    llmError: "",
+    preferred_language: null,
+    intro_message: null,
+    isOldChatOpen: false,
+    first_name: null,
+    state: null,
+    showHomepage: null,
+    botName: null,
+    defaultBotName: null,
+    taskId: null,
+    ssoRerouteURL: null,
+    "chat-history": [],
+    "chatbot_clickedOn?": null,
 }
 
 const useUserPreferenceStore = create(
@@ -67,6 +84,42 @@ const useUserPreferenceStore = create(
             setChatLanguage: (chatLanguage) => set({ chatLanguage }),
 
             setIsNewChatOpen: (isNewChatOpen) => set({ isNewChatOpen }),
+
+            setIsChatVisible: (isChatVisible) => set({ isChatVisible }),
+
+            setLangProgress: (lang_progress) => set({ lang_progress }),
+
+            setStateMachineLength: (statemachine_length) => set({ statemachine_length }),
+
+            setSelectedType: (selected_type) => set({ selected_type }),
+
+            setLlmError: (llmError) => set({ llmError }),
+
+            setPreferredLanguage: (preferred_language) => set({ preferred_language }),
+
+            setIntroMessage: (intro_message) => set({ intro_message }),
+
+            setIsOldChatOpen: (isOldChatOpen) => set({ isOldChatOpen }),
+
+            setFirstName: (first_name) => set({ first_name }),
+
+            setState: (state) => set({ state }),
+
+            setShowHomepage: (showHomepage) => set({ showHomepage }),
+
+            setShowFileInput: (showFileInput) => set({ showFileInput }),
+
+            setBotName: (botName) => set({ botName }),
+
+            setDefaultBotName: (defaultBotName) => set({ defaultBotName }),
+
+            setTaskId: (taskId) => set({ taskId }),
+
+            setSsoRerouteURL: (ssoRerouteURL) => set({ ssoRerouteURL }),
+
+            setChatHistory: (chatHistory) => set({ "chat-history": chatHistory }),
+
+            setChatbotClickedOn: (chatbot_clickedOn) => set({ "chatbot_clickedOn?": chatbot_clickedOn }),
         })
     )
 )

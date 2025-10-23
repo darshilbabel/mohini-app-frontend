@@ -1,28 +1,29 @@
-import { useLocalStorage, useSessionStorage } from "react-use";
 import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
+import { useUserPreferenceLocalStore, useUserPreferenceSessionStore, useChatDataSessionStore, useChatDataLocalStore } from 'store';
 
 const useSmartChatStorage = () => {
-  const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
+  const { flow: flow_local } = useUserPreferenceLocalStore.getState();
+  const { flow: flow_session } = useUserPreferenceSessionStore.getState();
+
+  const flow = flow_session || flow_local;
   const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
   const isTemporary = flow && sessionFlows.includes(flow);
 
-  const [sessionValue, setSessionValue] = useSessionStorage("chat-history", []);
-  const [localValue, setLocalValue, removeLocalValue] = useLocalStorage("chat-history", []);
+  const { chatHistory: chatHistory_session, setChatHistory: setChatHistory_session } = useChatDataSessionStore.getState();
+  const { chatHistory: chatHistory_local, setChatHistory: setChatHistory_local } = useChatDataLocalStore.getState();
 
   const removeVal = () => {
     if (isTemporary) {
-      sessionStorage.removeItem("chat-history");
-      setSessionValue([]); // Update state after removing
+      setChatHistory_session([]); // Update state after removing
     } else {
-      localStorage.removeItem("chat-history");
-      setLocalValue([]); // Update state after removing
+      setChatHistory_local([]); // Update state after removing
     }
   };
 
   if (isTemporary) {
-    return [sessionValue, setSessionValue, removeVal];
+    return [chatHistory_session, setChatHistory_session, removeVal];
   } else {
-    return [localValue, setLocalValue, removeVal];
+    return [chatHistory_local, setChatHistory_local, removeVal];
   }
 };
 
