@@ -53,9 +53,7 @@ const cookies = new Cookies();
 const company_bot_list_url = `/api/companybot/`;
 
 
-// NOTE: revert this code after testing
-// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-const wss_protocol = "wss://";
+const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 
 function useCustomMediaQuery(query) {
   const [matches, setMatches] = useState(false);
@@ -1109,7 +1107,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         if (!!code) {
           // NOTE: revert this code after testing
           // url = `${wss_protocol}${window.location.host}/ws/chat/company/`;
-          const url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}`
+          url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}/ws/chat/company/`
         } else {
             const base_url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}`
             let currentFlow = getFromStorageSlice("userPreference", "flow");
@@ -2302,12 +2300,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     [chatHistory]
   );
 
-  const handleMessagesForUser = useCallback((sentence) => {
-      setChatHistory([...chatHistory, createMessage({
+  const handleMessagesForUser = (sentence) => {
+    setChatHistory((prev) => [
+      ...prev,
+      createMessage({
         msg: sentence,
         source: "user",
-      })]);
-  }, []);
+      })
+    ]);
+  }
 
   const handleAI4BharatTTSRequest = async (text, id, sourceLanguage) => {
     try {
