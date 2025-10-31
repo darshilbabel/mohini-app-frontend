@@ -8,12 +8,14 @@ const initialState = INITIAL_STATE;
 const useUserDataSessionStore = create(
     createSessionStore(
         STORE_NAME_CONSTANTS.USER_DATA,
-        (set) => ({
+        (set, get) => ({
             ...initialState,
 
             setHasAcceptedTnc: (has_accepted_tnc) => set({ has_accepted_tnc }),
 
             setProfileid: (profileid) => set({ profileid }),
+
+            getAccessToken: () => get().access_token,
         })
     )
 )

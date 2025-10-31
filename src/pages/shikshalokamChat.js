@@ -3,16 +3,14 @@ import { getIpLocation, getProfileDetails, getSessionDetails } from "../services
 import { languageList, sessionFlowName } from "./ShikshalokamVoiceChat/enum";
 import ROUTES from "../url";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../utils/axios";
 import { setLanguage } from "../i18n";
 import { BiLoader } from "react-icons/bi";
 import { clearFromStorage, getFromStorageSlice, removeFromStorage, setInStorageSlice } from "../services/storage_service";
 import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat";
-
+import { loginApi } from "api/endpoints/auth";
 
 
 function ShikshalokamChat({type, variant}) {
-	const login_api_url = `/api/login/`;
 
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
@@ -105,19 +103,15 @@ function ShikshalokamChat({type, variant}) {
 		  let session = await getSessionDetails();
 		  setInStorageSlice("userPreference", session.sessionid, "setSessionid", type);
 	  
-		  const response = await axiosInstance({
-			url: login_api_url,
-			method: "POST",
-			data: {
-			  email: customEmail,
-			  password: "grit@123",
-			},
+		  const response = await loginApi({
+			email: customEmail,
+			password: "grit@123",
 		  });
 	  
-		  if (!!response?.data?.access_token) {
-			setInStorageSlice("userPreference", response?.data?.company, "setCompany", type);
-			setInStorageSlice("userPreference", response?.data?.first_name, "setFirstName", type);
-			setCompanyName(response?.data?.company);
+		  if (!!response?.access_token) {
+			setInStorageSlice("userPreference", response?.company, "setCompany", type);
+			setInStorageSlice("userPreference", response?.first_name, "setFirstName", type);
+			setCompanyName(response?.company);
 		  } else {
 			window.location.reload();
 		  }
@@ -160,8 +154,8 @@ function ShikshalokamChat({type, variant}) {
 				setInStorageSlice("userPreference", locationData?.location?.country, "setIpCountry", type);
 				}
 				setInStorageSlice("userPreference", type, "setFlow", type);
-				await setFinalLanguage();
 				getUserFingerPrint();
+				await setFinalLanguage();
 			}
 			else if (getFromStorageSlice("userPreference", "flow") && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(getFromStorageSlice("userPreference", "flow")))){
 				clearFromStorage(false, ['local_route']);

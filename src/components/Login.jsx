@@ -1,9 +1,7 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import { getProfileDetails, getSessionDetails } from "../services/api.service";
 import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../utils/axios";
 import { useUserDispatcher } from "../context/user";
 import { useLocalStorage } from "react-use";
 import USER_ACTIONS from "../context/user/user-actions";
@@ -13,12 +11,13 @@ import { BiLoader } from "react-icons/bi";
 import "./custom-style.css"
 import "../index.css"
 import { languageList, sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
-import i18n, { setLanguage } from '../i18n';
+import { setLanguage } from '../i18n';
 import { useTranslation } from "react-i18next";
 import { clearFromStorage } from "../services/storage_service";
+import { loginApi } from "api/endpoints/auth";
+import { getLocationApi } from "api/endpoints/location";
 
 const cookies = new Cookies();
-const login_api_url = `/api/login/`;
 
 function Login({ type, variant }) {
   const navigate = useNavigate();
@@ -138,12 +137,9 @@ function Login({ type, variant }) {
 
   const getStateLabelValue = async () => {
     try {
-      const response = await axiosInstance({
-        url: 'api/get-location/',
-        method: "GET",
-      });
+      const response = await getLocationApi();
   
-      const list = response?.data?.list;
+      const list = response?.list;
   
       if (Array.isArray(list) && list.length > 0) {
         setStateLabelArray(
@@ -165,12 +161,9 @@ function Login({ type, variant }) {
         setDistrictLabelArray([])
         return;
       }
-      const response = await axiosInstance({
-        url: `api/get-location/?parentId=${id}`,
-        method: "GET",
-      });
+      const response = await getLocationApi(id);
   
-      const list = response?.data?.list;
+      const list = response?.list;
   
       if (Array.isArray(list) && list.length > 0) {
         setDistrictLabelArray(
@@ -194,12 +187,9 @@ function Login({ type, variant }) {
         setBlockLabelArray([])
         return;
       }
-      const response = await axiosInstance({
-        url: `api/get-location/?parentId=${id}`,
-        method: "GET",
-      });
+      const response = await getLocationApi(id);
   
-      const list = response?.data?.list;
+      const list = response?.list;
   
       if (Array.isArray(list) && list.length > 0) {
         setBlockLabelArray(
@@ -268,34 +258,30 @@ function Login({ type, variant }) {
       localStorage.setItem('sessionid', JSON.stringify(session.sessionid));
       localStorage.setItem('isNewChatOpen', JSON.stringify(true));
   
-      const response = await axiosInstance({
-        url: login_api_url,
-        method: "POST",
-        data: {
-          email: phoneNumberField? customEmail : emailId,
-          password: "grit@123",
-        },
+      const response = await loginApi({
+        email: phoneNumberField? customEmail : emailId,
+        password: "grit@123",
       });
   
   
-      if (!!response?.data?.access_token) {
+      if (!!response?.access_token) {
         userDispatcher({
           type: USER_ACTIONS.LOGIN,
           payload: response?.data,
         });
-        localStorage.setItem('first_name', JSON.stringify(response?.data?.first_name));
-        localStorage.setItem('accessToken', JSON.stringify(response?.data?.access_token));
-        localStorage.setItem('company', JSON.stringify(response?.data?.company));
-        localStorage.setItem('state', JSON.stringify(response?.data?.state));
+        localStorage.setItem('first_name', JSON.stringify(response?.first_name));
+        localStorage.setItem('accessToken', JSON.stringify(response?.access_token));
+        localStorage.setItem('company', JSON.stringify(response?.company));
+        localStorage.setItem('state', JSON.stringify(response?.state));
         localStorage.setItem('flow', sessionFlowName.LoginMiStory);
 				localStorage.setItem('has_accepted_tnc', true);
-        cookies.set("profileid", JSON.stringify(response?.data?.id), {
+        cookies.set("profileid", JSON.stringify(response?.id), {
           path: "/",
         });
-        cookies.set("accessToken", response?.data?.access_token, {
+        cookies.set("accessToken", response?.access_token, {
           path: "/",
         });
-        setLocalUserData(response?.data);
+        setLocalUserData(response);
         // temp code (need to remove below later)
         const lang = localStorage.getItem('preferred_route');
 

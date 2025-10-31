@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom";
 import "./custom-style.css"
 import "../index.css"
@@ -10,9 +9,6 @@ import { setLanguage } from "../i18n";
 import { languageList } from "../pages/ShikshalokamVoiceChat/enum";
 import { useTranslation } from "react-i18next";
 import { clearFromStorage } from "../services/storage_service";
-
-const cookies = new Cookies();
-const login_api_url = `/api/login/`;
 
 function WelcomePage() {
   const navigate = useNavigate();

@@ -11,9 +11,7 @@ import { setLanguage } from "../i18n";
 import { languageList, sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
 import FormData from "./Form/FormData";
 import { useTranslation } from "react-i18next";
-import axiosInstance from "../utils/axios";
-
-const login_api_url = `/api/login/`;
+import { loginApi } from "api/endpoints/auth";
 
 function GuestPage() {
   const navigate = useNavigate();
@@ -21,7 +19,6 @@ function GuestPage() {
   const [userLanguage, setUserLanguage] = useState(
     JSON.parse(localStorage.getItem("local_route")) || languageList[0].value
   );
-  const [userId, setUserId] = useState(null);
 
   const { t } = useTranslation();
   
@@ -50,10 +47,8 @@ function GuestPage() {
       const newUserId = storedUserId || btoa(fingerprint);
 
       localStorage.setItem('device_id', newUserId);
-      setUserId(newUserId);
     } catch (error) {
       console.error('Error handling user ID:', error);
-      setUserId('guest_' + Date.now());
     }
   }
 
@@ -111,18 +106,14 @@ function GuestPage() {
       let session = await getSessionDetails();
       localStorage.setItem('sessionid', JSON.stringify(session.sessionid));
   
-      const response = await axiosInstance({
-        url: login_api_url,
-        method: "POST",
-        data: {
-          email: customEmail,
-          password: "grit@123",
-        },
+      const response = await loginApi({
+        email: customEmail,
+        password: "grit@123",
       });
   
-      if (!!response?.data?.access_token) {
-        localStorage.setItem('company', JSON.stringify(response?.data?.company));
-        localStorage.setItem('first_name', JSON.stringify(response?.data?.first_name));
+      if (!!response?.access_token) {
+        localStorage.setItem('company', JSON.stringify(response?.company));
+        localStorage.setItem('first_name', JSON.stringify(response?.first_name));
       } else {
         window.location.reload();
       }

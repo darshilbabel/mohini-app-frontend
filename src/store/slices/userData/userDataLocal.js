@@ -8,12 +8,14 @@ const initialState = INITIAL_STATE;
 const useUserDataLocalStore = create(
     createPersistentStore(
         STORE_NAME_CONSTANTS.USER_DATA,
-        (set) => ({
+        (set, get) => ({
             ...initialState,
 
             setProfileid: (profileid) => set({ profileid }),
 
             setAccessToken: (access_token) => set({ access_token }),
+
+            getAccessToken: () => get().access_token,
         })
     )
 )

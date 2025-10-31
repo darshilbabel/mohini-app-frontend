@@ -47,13 +47,17 @@ import Swal from 'sweetalert2';
 import UploadImages from "./upload-images";
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord";
 import WaveSurferPlayer from "../interview-text-voice/voice-player";
+import { getChatSessionApi } from "api/endpoints/chat";
+import { createUserProfileApi } from "api/endpoints/user";
 
 
 const cookies = new Cookies();
 const company_bot_list_url = `/api/companybot/`;
 
 
-const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+// NOTE: After testing, revert this to the original code
+// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+const wss_protocol = "wss://"
 
 function useCustomMediaQuery(query) {
   const [matches, setMatches] = useState(false);
@@ -235,16 +239,15 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(()=>{
     async function fetchChatSession() {
       const currentFlow = getFromStorageSlice("userPreference", "flow");
-      let customUrl = '';
+      let response = null
+
+      const sessionId = getFromStorageSlice("userPreference", "sessionid");
       if(projectId && currentFlow && [sessionFlowName.Reflection].includes(currentFlow)) {
-        customUrl =  `/api/chatsession?project_id=${projectId}`;
-      } else if (getFromStorageSlice("userPreference", "sessionid")) {
-        customUrl = `/api/chatsession?session=${getFromStorageSlice("userPreference", "sessionid")}`;
+        response = await getChatSessionApi({ projectId });
+      } else if (sessionId) {
+        response = await getChatSessionApi({ sessionId: sessionId });
       }
-      if(!customUrl) return;
-      const response = await axiosInstance({
-        url: customUrl,
-      })
+      if(!response) return;
       
       if (response?.status === 200 && response?.data?.results[0]?.session) {
         setInStorageSlice("userPreference", response?.data?.results[0]?.session, "setSessionid", type);
@@ -276,17 +279,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     async function createUserProfile() {
       try {
         setIsLoading(true);
-        const headers = {
-          "Content-Type": "application/json",
-        };
-        let body = {
-          access_token: access_token,
-        };
 
-        const response = await axiosInstance.post(`/api/create-profile/`, body, { headers });
+        const response = await createUserProfileApi({
+          access_token: access_token,
+        });
         
-        if (response && response?.status === 200) {
-          const data  = response?.data.profile_details;
+        if (response) {
+          const data  = response.profile_details;
           const preferredLanguage = getFromStorageSlice("userPreference", "preferred_language") || {};
           const language = preferredLanguage.value || "en";
           setInStorageSlice("userPreference", language, "setRoute", type);
@@ -310,11 +309,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           navigate(-1)
         }
       } catch (error) {
-        console.error(error?.response?.data || error);
-          clearFromStorage()
-          navigate(-1)
+        console.error(error);
+        clearFromStorage()
+        navigate(-1)
 
-      } finally {
+      }finally{
+        setIsLoading(false);
       }
     }
     
@@ -1531,9 +1531,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   async function getSessionInfo(){
     let currentSession = getFromStorageSlice("userPreference", "sessionid");
-    let session_url = `api/chatsession/?session=${currentSession}`;
     try {
-      const response = await axiosInstance.get(session_url);
+      const response = await getChatSessionApi({ sessionId: currentSession });
       return response?.data?.results;
     } catch (error) {
       console.error('Error fetching AI4Bharat audio:', error);
@@ -2123,9 +2122,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       const currentFlow = getFromStorageSlice("userPreference", "flow");
       let sessionComplete;
       const TitleAndSession = [];
-      const response = await axiosInstance({
-        url: `/api/chatsession?profile=${profileToUse}&flow=${currentFlow}`,
-      })
+      const response = await getChatSessionApi({ profile: profileToUse, flow: currentFlow });
       
       if (response) {
         let sortedResult = quickSort(response?.data?.results, compareByIdDesc);

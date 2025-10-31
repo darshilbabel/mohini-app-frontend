@@ -3,7 +3,6 @@ import { getIpLocation, getProfileDetails, getSessionDetails } from "../../servi
 import { languageList, sessionFlowName } from "../ShikshalokamVoiceChat/enum";
 import ROUTES from "../../url";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../../utils/axios";
 import { setLanguage } from "../../i18n";
 import { BiLoader } from "react-icons/bi";
 import { clearFromStorage, getFromStorage, removeFromStorage, setInStorage } from "../../services/storage_service";
@@ -12,11 +11,8 @@ import PTMVoiceBasedChat from "./PTMVoiceBasedChat";
 
 
 function PTMChat({type}) {
-    const login_api_url = `/api/login/`;
-
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
-    const [companyName, setCompanyName] = useState(getFromStorage('company') || null);
           
     useEffect(() => {
         const tnc=getFromStorage("has_accepted_tnc");
