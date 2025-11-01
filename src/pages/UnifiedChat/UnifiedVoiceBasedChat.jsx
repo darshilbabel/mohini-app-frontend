@@ -3,7 +3,7 @@ import { MdSend } from "react-icons/md";
 import useVoiceRecord from "../interview-text-voice/useVoiceRecord";
 import { createMessage } from "../interview-voice";
 import { BiLoader } from "react-icons/bi";
-import { ai4BharatASR } from "../../services/api.service";
+import { ai4BharatASRApi } from "../../api/endpoints/ai";
 import { savePTMQuestionApi } from "../../api/endpoints/ptm";
 import { getSessionDetailsApi } from "../../api/endpoints/chat";
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
@@ -845,7 +845,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                 transcriptResult = t("asrError");
               }
               setAsrAudio(s3Url);
-              transcriptResult = await ai4BharatASR(
+              transcriptResult = await ai4BharatASRApi(
                 s3Url,
                 languageToUse,
                 FLOW_ROUTE

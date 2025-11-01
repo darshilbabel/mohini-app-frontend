@@ -1,7 +1,7 @@
 import "../../style.css";
 import "./shikshaChatStyle.css";
 import { STORE_NAME_CONSTANTS } from "store/constants";
-import { ai4BharatASR, getAI4BharatAudio } from "../../services/api.service";
+import { ai4BharatASRApi, getAI4BharatAudioApi } from "../../api/endpoints/ai";
 import { getSessionDetailsApi } from "../../api/endpoints/chat";
 import { updateReflectionStatusApi } from "../../api/endpoints/project";
 import { AiOutlineEye } from "react-icons/ai";
@@ -2782,7 +2782,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       }
 
       if (!cachedAudioUrl) {
-        audio_result = await getAI4BharatAudio(
+        audio_result = await getAI4BharatAudioApi(
           text,
           sourceLanguage,
           storedRoute
@@ -3113,7 +3113,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
               }
               setAsrAudio(s3Url);
               let storedRoute = getSessionRoute();
-              transcriptResult = await ai4BharatASR(
+              transcriptResult = await ai4BharatASRApi(
                 s3Url,
                 languageToUse,
                 storedRoute

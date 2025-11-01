@@ -12,6 +12,9 @@ const API_ENDPOINTS = {
   GET_PROFILE_DETAILS: "/api/profile/",
   READ_ELEVATE_PROFILE: "/api/read-elevate-profile/",
   UPDATE_PROJECT_STATUS: "/api/update-project-status/",
+  TEXT_TO_SPEECH: "/api/text_to_speech/",
+  ASR: "/api/asr/",
+  TEXT_TRANSLITERATE: "/api/text_transliterate/",
 };
 
 export default API_ENDPOINTS;
