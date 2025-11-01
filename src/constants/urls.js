@@ -6,6 +6,9 @@ const API_ENDPOINTS = {
   CREATE_USER_PROFILE: "/api/create-profile/",
   SUBMIT_FEEDBACK: "/api/feedback/",
   SAVE_PTM_QUESTION: "/api/questions/save/",
+  GENERATE_SESSION: "/api/generate-session/",
+  GET_IP_LOCATION: "/api/get-ip-location/",
+  GET_USER_PROFILE: "/api/user_profile",
 };
 
 export default API_ENDPOINTS;

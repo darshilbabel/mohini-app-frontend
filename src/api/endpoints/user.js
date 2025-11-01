@@ -8,6 +8,28 @@ import { apiClient } from "../client";
  * @returns {Promise<Object>} The created user profile data
  */
 export const createUserProfileApi = async (data) => {
-    const response = await apiClient.post(API_ENDPOINTS.CREATE_USER_PROFILE, data);
+  const response = await apiClient.post(
+    API_ENDPOINTS.CREATE_USER_PROFILE,
+    data
+  );
+  return response.data;
+};
+
+/**
+ * Get user profile with optional filter
+ * @param {string} filter - Optional filter string (e.g., "?id=123" or "?email=test@example.com")
+ * @returns {Promise<Object>} The user profile data
+ */
+export const getUserProfileApi = async (filter) => {
+  try {
+    const endpoint = `${API_ENDPOINTS.GET_USER_PROFILE}${filter}`;
+    const response = await apiClient.get(endpoint, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return response.data;
-}
+  } catch (error) {
+    return error?.response?.data;
+  }
+};

@@ -3,37 +3,37 @@ import { bot_routes } from "../configure";
 import axiosInstance from "../utils/axios";
 import { getFromStorage } from "./storage_service";
 
-const postWithoutAuth = async (body, endpoint) => {
-  const headers = {
-    "Content-Type": "application/json",
-  };
-  return await axiosInstance
-    .post(`/api/${endpoint}`, body, { headers })
-    .then((response) => {
-      if (response && response.data) {
-        return response.data;
-      }
-    })
-    .catch((error) => {
-      return error?.response?.data;
-    });
-};
+// const postWithoutAuth = async (body, endpoint) => {
+//   const headers = {
+//     "Content-Type": "application/json",
+//   };
+//   return await axiosInstance
+//     .post(`/api/${endpoint}`, body, { headers })
+//     .then((response) => {
+//       if (response && response.data) {
+//         return response.data;
+//       }
+//     })
+//     .catch((error) => {
+//       return error?.response?.data;
+//     });
+// };
 
-const getWithoutAuth = async (endpoint) => {
-  const headers = {
-    "Content-Type": "application/json",
-  };
-  return await axiosInstance
-    .get(`/api/${endpoint}`, { headers })
-    .then((response) => {
-      if (response && response.data) {
-        return response.data;
-      }
-    })
-    .catch((error) => {
-      return error?.response?.data;
-    });
-};
+// const getWithoutAuth = async (endpoint) => {
+//   const headers = {
+//     "Content-Type": "application/json",
+//   };
+//   return await axiosInstance
+//     .get(`/api/${endpoint}`, { headers })
+//     .then((response) => {
+//       if (response && response.data) {
+//         return response.data;
+//       }
+//     })
+//     .catch((error) => {
+//       return error?.response?.data;
+//     });
+// };
 
 export const getProfileDetails = async (body) => {
   const headers = {
@@ -51,20 +51,20 @@ export const getProfileDetails = async (body) => {
     });
 };
 
-export const getSessionDetails = async () => {
-  const endpoint = `generate-session/`;
-  return await getWithoutAuth(endpoint);
-};
+// export const getSessionDetails = async () => {
+//   const endpoint = `generate-session/`;
+//   return await getWithoutAuth(endpoint);
+// };
 
 // export const submitFeedBack = async (body) => {
 //   const endpoint = `feedback/`;
 //   return await postWithoutAuth(body, endpoint);
 // };
 
-export const getIpLocation = async () => {
-  const endpoint = `get-ip-location/`;
-  return await getWithoutAuth(endpoint);
-};
+// export const getIpLocation = async () => {
+//   const endpoint = `get-ip-location/`;
+//   return await getWithoutAuth(endpoint);
+// };
 
 export const readElevateProfile = async (accessToken) => {
   const headers = {
@@ -121,10 +121,10 @@ export async function ai4BharatASR(
   }
 }
 
-export const getUserProfile = async (filter) => {
-  const endpoint = `user_profile${filter}`;
-  return await getWithoutAuth(endpoint);
-};
+// export const getUserProfile = async (filter) => {
+//   const endpoint = `user_profile${filter}`;
+//   return await getWithoutAuth(endpoint);
+// };
 
 export async function transliterateApi(
   message,

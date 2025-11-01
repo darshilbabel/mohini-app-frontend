@@ -3,8 +3,9 @@ import { MdSend } from "react-icons/md";
 import useVoiceRecord from "../interview-text-voice/useVoiceRecord";
 import { createMessage } from "../interview-voice";
 import { BiLoader } from "react-icons/bi";
-import { ai4BharatASR, getSessionDetails } from "../../services/api.service";
+import { ai4BharatASR } from "../../services/api.service";
 import { savePTMQuestionApi } from "../../api/endpoints/ptm";
+import { getSessionDetailsApi } from "../../api/endpoints/chat";
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
 import "../../style.css";
 import "../ShikshalokamVoiceChat/shikshaChatStyle.css";
@@ -327,7 +328,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
     removeLocalChatHistory();
     setInStorage("isOldChatOpen", JSON.stringify(false), currentFlow);
 
-    const session = await getSessionDetails();
+    const session = await getSessionDetailsApi();
     setInStorage("sessionid", JSON.stringify(session.sessionid), currentFlow);
     setInStorage("chatbot_clickedOn?", "", currentFlow);
     setIsLoading(false);
