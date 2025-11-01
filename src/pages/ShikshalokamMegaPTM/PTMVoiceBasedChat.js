@@ -8,8 +8,8 @@ import {
   ai4BharatASR,
   getAI4BharatAudio,
   getSessionDetails,
-  savePTMQuestion,
 } from "../../services/api.service";
+import { savePTMQuestionApi } from "../../api/endpoints/ptm";
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
 import "../../style.css";
 import "../ShikshalokamVoiceChat/shikshaChatStyle.css";
@@ -454,24 +454,25 @@ const PTMVoiceBasedChat = () => {
         setHasOverRideId(null);
         return;
       }
-      if(_audio?.length){
-      if (!cachedAudioUrl) {
-        fetch(_audio)
-          .then((res) => res.text())
-          .then((base64) => {
-            cachedAudioUrl = `data:audio/mpeg;base64,${base64}`;
-            setAudioCache((prevCache) => ({
-              ...prevCache,
-              [id]: cachedAudioUrl,
-            }));
-            handleSpeaking(cachedAudioUrl);
-          })
-          .catch((err) => {
-            console.error("Error fetching audio:", err);
-          });
-      } else {
-        handleSpeaking(cachedAudioUrl);
-      }}
+      if (_audio?.length) {
+        if (!cachedAudioUrl) {
+          fetch(_audio)
+            .then((res) => res.text())
+            .then((base64) => {
+              cachedAudioUrl = `data:audio/mpeg;base64,${base64}`;
+              setAudioCache((prevCache) => ({
+                ...prevCache,
+                [id]: cachedAudioUrl,
+              }));
+              handleSpeaking(cachedAudioUrl);
+            })
+            .catch((err) => {
+              console.error("Error fetching audio:", err);
+            });
+        } else {
+          handleSpeaking(cachedAudioUrl);
+        }
+      }
     } catch (error) {
       console.error("Error in handleAI4BharatTTSRequest:", error);
       handleOnStopSpeaking();
@@ -724,23 +725,21 @@ const PTMVoiceBasedChat = () => {
         </div>
       )}
 
-
       <div>
-        
         <HiddenRecorder />
         <div className={`div33 div9`}>
-          {(getFromStorage('flow', false))&&<>
-                <div className="div10" >
-                  <h3 className="h3-1">
-                    {t('ptmIntroductionHeading')}
-                  </h3>
-                </div>
-                <ul className="div11 pb-6" >
-                  <li>{t('ptmIntroductionDescriptionLine1')}</li>
-                  <li>{t('ptmIntroductionDescriptionLine2')}</li>
-                  <li>{t('ptmIntroductionDescriptionLine3')}</li>
-                </ul>
-              </>}
+          {getFromStorage("flow", false) && (
+            <>
+              <div className="div10">
+                <h3 className="h3-1">{t("ptmIntroductionHeading")}</h3>
+              </div>
+              <ul className="div11 pb-6">
+                <li>{t("ptmIntroductionDescriptionLine1")}</li>
+                <li>{t("ptmIntroductionDescriptionLine2")}</li>
+                <li>{t("ptmIntroductionDescriptionLine3")}</li>
+              </ul>
+            </>
+          )}
           {
             <ul className="div34">
               {chatHistory?.map((chat, i) => (
@@ -827,7 +826,7 @@ const PTMVoiceBasedChat = () => {
                   audio_url: asrAudio,
                   audio: last_question.audio,
                 };
-                savePTMQuestion(data);
+                savePTMQuestionApi(data);
                 setChatHistory((prev) => [
                   ...prev,
                   {

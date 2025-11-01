@@ -3,37 +3,37 @@ import { bot_routes } from "../configure";
 import axiosInstance from "../utils/axios";
 import { getFromStorage } from "./storage_service";
 
-// const postWithoutAuth = async (body, endpoint) => {
-//   const headers = {
-//     "Content-Type": "application/json",
-//   };
-//   return await axiosInstance
-//     .post(`/api/${endpoint}`, body, { headers })
-//     .then((response) => {
-//       if (response && response.data) {
-//         return response.data;
-//       }
-//     })
-//     .catch((error) => {
-//       return error?.response?.data;
-//     });
-// };
+const postWithoutAuth = async (body, endpoint) => {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  return await axiosInstance
+    .post(`/api/${endpoint}`, body, { headers })
+    .then((response) => {
+      if (response && response.data) {
+        return response.data;
+      }
+    })
+    .catch((error) => {
+      return error?.response?.data;
+    });
+};
 
-// const getWithoutAuth = async (endpoint) => {
-//   const headers = {
-//     "Content-Type": "application/json",
-//   };
-//   return await axiosInstance
-//     .get(`/api/${endpoint}`, { headers })
-//     .then((response) => {
-//       if (response && response.data) {
-//         return response.data;
-//       }
-//     })
-//     .catch((error) => {
-//       return error?.response?.data;
-//     });
-// };
+const getWithoutAuth = async (endpoint) => {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  return await axiosInstance
+    .get(`/api/${endpoint}`, { headers })
+    .then((response) => {
+      if (response && response.data) {
+        return response.data;
+      }
+    })
+    .catch((error) => {
+      return error?.response?.data;
+    });
+};
 
 export const getProfileDetails = async (body) => {
   const headers = {
@@ -56,10 +56,10 @@ export const getSessionDetails = async () => {
   return await getWithoutAuth(endpoint);
 };
 
-export const submitFeedBack = async (body) => {
-  const endpoint = `feedback/`;
-  return await postWithoutAuth(body, endpoint);
-};
+// export const submitFeedBack = async (body) => {
+//   const endpoint = `feedback/`;
+//   return await postWithoutAuth(body, endpoint);
+// };
 
 export const getIpLocation = async () => {
   const endpoint = `get-ip-location/`;
@@ -174,43 +174,43 @@ export async function transliterateApi(
 // 	audio_url: null
 // };
 
-export const savePTMQuestion = async ({
-  session,
-  status,
-  flow = "megaPTM",
-  profile_id,
-  id,
-  answer_id,
-  sequence,
-  question,
-  translated_question,
-  answer,
-  language,
-  sent_at,
-  audio_url,
-  service
-}) => {
-  const endpoint = `questions/save/`;
-  return await postWithoutAuth(
-    {
-      session,
-      status,
-      flow,
-      profile_id,
-      id,
-      answer_id,
-      sequence,
-      question,
-      translated_question,
-      answer,
-      language,
-      sent_at,
-      audio_url,
-      service
-    },
-    endpoint
-  );
-};
+// export const savePTMQuestion = async ({
+//   session,
+//   status,
+//   flow = "megaPTM",
+//   profile_id,
+//   id,
+//   answer_id,
+//   sequence,
+//   question,
+//   translated_question,
+//   answer,
+//   language,
+//   sent_at,
+//   audio_url,
+//   service
+// }) => {
+//   const endpoint = `questions/save/`;
+//   return await postWithoutAuth(
+//     {
+//       session,
+//       status,
+//       flow,
+//       profile_id,
+//       id,
+//       answer_id,
+//       sequence,
+//       question,
+//       translated_question,
+//       answer,
+//       language,
+//       sent_at,
+//       audio_url,
+//       service
+//     },
+//     endpoint
+//   );
+// };
 
 export async function updateReflectionStatus(projectId, status="completed",  flow = null, accessToken=null){
   try{
