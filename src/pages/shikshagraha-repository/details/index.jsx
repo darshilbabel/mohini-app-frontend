@@ -138,6 +138,16 @@ function ResourceMeta({ resource }) {
           <div className="font-bold mt-1">{resource?.size || "N/A"}</div>
         </div>
         <div>
+          <span>Date Added</span>
+          <div className="font-bold mt-1">
+            {new Date(resource?.created_at).toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </div>
+        </div>
+        <div>
           <span>Last Updated</span>
           <div className="font-bold mt-1">
             {new Date(resource?.updated_at).toLocaleDateString("en-US", {
