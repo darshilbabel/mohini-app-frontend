@@ -40,7 +40,7 @@ import {
   PhotoUploadSection,
   StoryActionsContainer,
 } from "./StoryActionsModule";
-import { getStoryAllMedia } from "../story/api.service";
+import { getStoryAllMedia } from "../../api/endpoints";
 
 const UnifiedVoiceBasedChat = ({ flowType }) => {
   const audioRef = useRef();

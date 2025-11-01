@@ -20,7 +20,7 @@ import {
   createStoryMedia,
   getStoryAllMedia,
   partialUpdateStoryById,
-} from "../story/api.service";
+} from "../../api/endpoints";
 import { createMessage } from "../interview-voice";
 import { FaCircle } from "react-icons/fa6";
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";

@@ -15,6 +15,9 @@ const API_ENDPOINTS = {
   TEXT_TO_SPEECH: "/api/text_to_speech/",
   ASR: "/api/asr/",
   TEXT_TRANSLITERATE: "/api/text_transliterate/",
+  // Story endpoints
+  STORY: "/api/story/",
+  STORY_MEDIA: "/api/storymedia/",
 };
 
 export default API_ENDPOINTS;
