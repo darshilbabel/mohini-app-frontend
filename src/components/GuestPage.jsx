@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 import "./custom-style.css";
 import "../index.css";
 import ROUTES from "../url";
-import { getProfileDetails } from "../services/api.service";
 import { getSessionDetailsApi } from "../api/endpoints/chat";
 import { getIpLocationApi } from "../api/endpoints/location";
+import { getProfileDetailsApi } from "../api/endpoints/user";
 import { BiLoader } from "react-icons/bi";
 import { useEffect, useState } from "react";
 import { setLanguage } from "../i18n";
@@ -110,7 +110,7 @@ function GuestPage() {
       };
 
       setIsLoading(true);
-      const res = await getProfileDetails(body);
+      const res = await getProfileDetailsApi(body);
 
       if (res?.status === "error") {
         setIsLoading(false);

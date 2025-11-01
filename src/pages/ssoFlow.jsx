@@ -1,10 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect } from "react";
-import {
-  readElevateProfile,
-  updateReflectionStatus,
-} from "../services/api.service";
 import { getSessionDetailsApi } from "../api/endpoints/chat";
+import { readElevateProfileApi } from "../api/endpoints/user";
+import { updateReflectionStatusApi } from "../api/endpoints/project";
 import { useLocation, useNavigate } from "react-router-dom";
 import ROUTES from "../url";
 import { BiLoader } from "react-icons/bi";
@@ -44,12 +42,12 @@ function SsoFlow() {
         window.location.reload();
       }
       try {
-        const data = await readElevateProfile(accessToken);
+        const data = await readElevateProfileApi(accessToken);
         if (data && data?.status.toLowerCase() === "ok") {
           const profile_details = data?.profile_details;
           if (profile_details) {
             if (!!projectId) {
-              const statusRes = await updateReflectionStatus(
+              const statusRes = await updateReflectionStatusApi(
                 projectId,
                 "started",
                 sessionFlowName.SsoFlow,

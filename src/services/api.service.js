@@ -35,21 +35,21 @@ import { getFromStorage } from "./storage_service";
 //     });
 // };
 
-export const getProfileDetails = async (body) => {
-  const headers = {
-    "Content-Type": "application/json",
-  };
-  return await axiosInstance
-    .post(`/api/profile/`, body, { headers })
-    .then((response) => {
-      if (response && response.data) {
-        return response.data;
-      }
-    })
-    .catch((error) => {
-      return error?.response?.data;
-    });
-};
+// export const getProfileDetails = async (body) => {
+//   const headers = {
+//     "Content-Type": "application/json",
+//   };
+//   return await axiosInstance
+//     .post(`/api/profile/`, body, { headers })
+//     .then((response) => {
+//       if (response && response.data) {
+//         return response.data;
+//       }
+//     })
+//     .catch((error) => {
+//       return error?.response?.data;
+//     });
+// };
 
 // export const getSessionDetails = async () => {
 //   const endpoint = `generate-session/`;
@@ -66,22 +66,22 @@ export const getProfileDetails = async (body) => {
 //   return await getWithoutAuth(endpoint);
 // };
 
-export const readElevateProfile = async (accessToken) => {
-  const headers = {
-    "Content-Type": "application/json",
-    "X-auth-token": accessToken,
-  };
-  return await axiosInstance
-    .get(`api/read-elevate-profile/`, { headers })
-    .then((response) => {
-      if (response && response.data) {
-        return response.data;
-      }
-    })
-    .catch((error) => {
-      return error?.response?.data;
-    });
-};
+// export const readElevateProfile = async (accessToken) => {
+//   const headers = {
+//     "Content-Type": "application/json",
+//     "X-auth-token": accessToken,
+//   };
+//   return await axiosInstance
+//     .get(`api/read-elevate-profile/`, { headers })
+//     .then((response) => {
+//       if (response && response.data) {
+//         return response.data;
+//       }
+//     })
+//     .catch((error) => {
+//       return error?.response?.data;
+//     });
+// };
 
 export async function getAI4BharatAudio(
   text,
@@ -212,26 +212,26 @@ export async function transliterateApi(
 //   );
 // };
 
-export async function updateReflectionStatus(projectId, status="completed",  flow = null, accessToken=null){
-  try{
+// export async function updateReflectionStatus(projectId, status="completed",  flow = null, accessToken=null){
+//   try{
 
-    if (!flow) {
-      flow = getFromStorage('flow', false);
-    }
-    if(!accessToken) {
-      accessToken=getFromStorage('accessToken', true)
-    }
+//     if (!flow) {
+//       flow = getFromStorage('flow', false);
+//     }
+//     if(!accessToken) {
+//       accessToken=getFromStorage('accessToken', true)
+//     }
 
-    const response = await axiosInstance.post('api/update-project-status/', {
-      access_token: accessToken,
-      project_id: projectId,
-      flow: flow,
-      status: status
-    });
+//     const response = await axiosInstance.post('api/update-project-status/', {
+//       access_token: accessToken,
+//       project_id: projectId,
+//       flow: flow,
+//       status: status
+//     });
     
-    return response;
-  } catch (error) {
-    return {'error': 'Error updating reflection status.'}
-  }
+//     return response;
+//   } catch (error) {
+//     return {'error': 'Error updating reflection status.'}
+//   }
 
-}
+// }

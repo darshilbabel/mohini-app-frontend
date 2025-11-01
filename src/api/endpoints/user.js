@@ -33,3 +33,44 @@ export const getUserProfileApi = async (filter) => {
     return error?.response?.data;
   }
 };
+
+/**
+ * Get or create profile details
+ * @param {Object} body - The profile data to send
+ * @returns {Promise<Object>} The profile details
+ */
+export const getProfileDetailsApi = async (body) => {
+  try {
+    const response = await apiClient.post(
+      API_ENDPOINTS.GET_PROFILE_DETAILS,
+      body,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return error?.response?.data;
+  }
+};
+
+/**
+ * Read Elevate profile using access token
+ * @param {string} accessToken - The access token for authentication
+ * @returns {Promise<Object>} The Elevate profile data
+ */
+export const readElevateProfileApi = async (accessToken) => {
+  try {
+    const response = await apiClient.get(API_ENDPOINTS.READ_ELEVATE_PROFILE, {
+      headers: {
+        "Content-Type": "application/json",
+        "X-auth-token": accessToken,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return error?.response?.data;
+  }
+};

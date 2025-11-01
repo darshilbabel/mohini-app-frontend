@@ -9,6 +9,9 @@ const API_ENDPOINTS = {
   GENERATE_SESSION: "/api/generate-session/",
   GET_IP_LOCATION: "/api/get-ip-location/",
   GET_USER_PROFILE: "/api/user_profile",
+  GET_PROFILE_DETAILS: "/api/profile/",
+  READ_ELEVATE_PROFILE: "/api/read-elevate-profile/",
+  UPDATE_PROJECT_STATUS: "/api/update-project-status/",
 };
 
 export default API_ENDPOINTS;

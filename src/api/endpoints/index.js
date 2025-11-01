@@ -5,3 +5,4 @@ export * from "./chat";
 export * from "./location";
 export * from "./feedback";
 export * from "./ptm";
+export * from "./project";

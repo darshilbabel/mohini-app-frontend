@@ -1,12 +1,9 @@
 import "../../style.css";
 import "./shikshaChatStyle.css";
 import { STORE_NAME_CONSTANTS } from "store/constants";
-import {
-  ai4BharatASR,
-  getAI4BharatAudio,
-  updateReflectionStatus,
-} from "../../services/api.service";
+import { ai4BharatASR, getAI4BharatAudio } from "../../services/api.service";
 import { getSessionDetailsApi } from "../../api/endpoints/chat";
+import { updateReflectionStatusApi } from "../../api/endpoints/project";
 import { AiOutlineEye } from "react-icons/ai";
 import { BiLoader } from "react-icons/bi";
 import { bot_routes, bot_websocket } from "../../configure";
@@ -1033,7 +1030,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                         )
                       ) {
                         setIsLoading(true);
-                        await updateReflectionStatus(
+                        await updateReflectionStatusApi(
                           getFromStorageSlice("userPreference", "projectId"),
                           "completed",
                           sessionFlowName.SsoFlow,
@@ -3978,7 +3975,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                         onClick={async () => {
                           if (projectId) {
                             setIsLoading(true);
-                            await updateReflectionStatus(projectId);
+                            await updateReflectionStatusApi(projectId);
                           } else {
                             window.location.reload();
                           }

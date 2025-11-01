@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { getProfileDetails } from "../services/api.service";
 import { getSessionDetailsApi } from "../api/endpoints/chat";
+import { getProfileDetailsApi } from "../api/endpoints/user";
 import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom";
 import { useUserDispatcher } from "../context/user";
@@ -245,7 +245,7 @@ function Login({ type, variant }) {
       };
 
       setIsLoading(true);
-      const res = await getProfileDetails(body);
+      const res = await getProfileDetailsApi(body);
 
       if (res?.status === "error") {
         setLoginErrorMessage(res?.message.slice(2, -2));
