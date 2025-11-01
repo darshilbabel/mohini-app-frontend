@@ -1,22 +1,25 @@
 // components/Header.js
 import { useTranslation } from "react-i18next";
 import LanguageSelector from "./LanguageSelector";
+import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
 
 const Header = ({
-  userLanguage,
+  // userLanguage,
   languageButtonSelect,
-  onLanguageChange,
+  // onLanguageChange,
   isDesktop = false,
 }) => {
   const { t } = useTranslation();
+
+  const chatLanguage = useSiteDataLocalStore((state) => state.chatLanguage)
 
   if (isDesktop) {
     return (
       <>
         {/* Desktop Language Selector */}
         <LanguageSelector
-          userLanguage={userLanguage}
-          onLanguageChange={onLanguageChange}
+          // userLanguage={userLanguage}
+          // onLanguageChange={onLanguageChange}
           className="absolute top-6 right-6 hidden sm:block"
           isVisible={languageButtonSelect && ![null, ""].includes(languageButtonSelect)}
         />
@@ -62,13 +65,13 @@ const Header = ({
             <img
               src={t("pageLogo")}
               className={`h-[50px] object-contain ${
-                userLanguage === "en" ? "w-[140px]" : "w-[100px]"
+                chatLanguage === "en" ? "w-[140px]" : "w-[100px]"
               }`}
               alt="shikshalokam_logo"
             />
             <LanguageSelector
-              userLanguage={userLanguage}
-              onLanguageChange={onLanguageChange}
+              // userLanguage={userLanguage}
+              // onLanguageChange={onLanguageChange}
               className="w-[140px] flex justify-end p-2"
               isVisible={languageButtonSelect && ![null, ""].includes(languageButtonSelect)}
             />

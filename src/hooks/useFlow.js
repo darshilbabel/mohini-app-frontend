@@ -1,31 +1,34 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 import { getFromStorageSlice, setInStorageSlice } from "../services/storage_service";
-import ROUTES from "../url";
 import { sessionFlowName, sessionUsecaseType } from "../pages/ShikshalokamVoiceChat/enum";
+import { STORE_NAME_CONSTANTS } from "store/constants";
+import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useStorage } from "hooks/useStorage";
+import ROUTES from "../url";
+import useChatDataLocalStore from "store/slices/chatData/chatDataLocal";
+import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
 
 export const useFlow = (usecaseType) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  
+  const { flow, language } = useParams();
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const setHasSelectedLanguage = useSiteDataLocalStore((state) => state.setHasSelectedLanguage)
+
+  const selectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow)
+  const setSelectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState().setFlow
+
   // Parse URL params
-  const urlParams = new URLSearchParams(location.search);
-  const urlFlow = urlParams.get('flow');
   
   // Check if URL flow exists in our enum values
   const validFlows = Object.values(sessionFlowName);
-  const mappedUrlFlow = validFlows.includes(urlFlow) ? urlFlow : null;
-  
-  const [selectedFlow, setSelectedFlow] = useState(
-    mappedUrlFlow || getFromStorageSlice("userPreference", "flow") || null
-  );
-  const [isLoading, setIsLoading] = useState(true);
+  const mappedUrlFlow = validFlows.includes(flow) ? flow : null;
 
   // Auto-apply URL flow on mount
   useEffect(() => {
     if (mappedUrlFlow) {
-      setInStorageSlice("userPreference", mappedUrlFlow, "setFlow");
       setSelectedFlow(mappedUrlFlow);
     }
   }, [mappedUrlFlow]);
@@ -33,13 +36,13 @@ export const useFlow = (usecaseType) => {
   const ptm_case = [sessionUsecaseType.MEGA_PTM].some((x) => x === usecaseType);
   const ylc_case = [sessionUsecaseType.YLC].some((x) => x === usecaseType);
 
-  const processLanguageButtonClick = (langToUse, forceProcess = false) => {
+  const processLanguageButtonClick = (forceProcess = false) => {
     console.log("Process button clicked");
-    
+    const chatLanguage = useSiteDataLocalStore.getState().getChatLanguage();
+    const hasSelectedLanguage = useSiteDataLocalStore.getState().getHasSelectedLanguage();
     // Check URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlLanguage = urlParams.get('language');
-    const urlFlow = urlParams.get('flow');
+    const urlLanguage = language;
+    const urlFlow = flow;
     const hasUrlParams = urlLanguage || urlFlow;
     
     // If both URL params exist, always process immediately
@@ -52,15 +55,17 @@ export const useFlow = (usecaseType) => {
       forceProcess = true;
     }
     
-    if (!forceProcess && !hasUrlParams && (!getFromStorageSlice("userPreference", "hasSelectedLanguage") || !selectedFlow || !langToUse)) {
+    if (!forceProcess && !hasUrlParams && (!hasSelectedLanguage || !selectedFlow || !chatLanguage)) {
       setIsLoading(false);
       return;
     }
     
     console.log("Process button allowed");
     setIsLoading(true);
-    setInStorageSlice("userPreference", true, "setHasSelectedLanguage");
-    setInStorageSlice("userPreference", langToUse, "setRoute");
+    setHasSelectedLanguage(true);
+
+    // setInStorageSlice("userPreference", true, "setHasSelectedLanguage");
+    // setInStorageSlice("userPreference", chatLanguage, "setRoute");
 
     // Case for PTM
     if (ptm_case) {
@@ -72,8 +77,7 @@ export const useFlow = (usecaseType) => {
     }
     
     const currentFlow = selectedFlow || getFromStorageSlice("userPreference", "flow");
-    const accessToken = getFromStorageSlice("userPreference", "accessToken");
-    console.log("Current flow:", currentFlow, "Access token:", accessToken);
+    const accessToken = useSiteDataLocalStore.getState().getAccessToken();
     // Set common storage items
     setInStorageSlice("userPreference", window.location.href, "setPreviousUrl");
     setInStorageSlice("userPreference", "xyz123", "setTempCode");
@@ -109,41 +113,56 @@ export const useFlow = (usecaseType) => {
     setIsLoading(false);
   };
 
-  const handleFlowSelection = async (flow, stopAllAudio) => {
+  const handleFlowSelection = async (stopAllAudio) => {
     setIsLoading(true);
     await stopAllAudio();
+
+    // const flow = useChatDataSessionStore.getState().getFlow();
+
+    let navigateUrl = undefined
+    let replaceUrl = undefined
+
+    setInStorageSlice("userPreference", window.location.href, "setPreviousUrl");
+    setInStorageSlice("userPreference", "xyz123", "setTempCode");
     
-    if (flow === sessionFlowName.GuestDiscussion) {
-      setInStorageSlice("userPreference", window.location.href, "setPreviousUrl");
-      setInStorageSlice("userPreference", "xyz123", "setTempCode");
-      if (getFromStorageSlice("userPreference", "previousUrl")) {
-        if (getFromStorageSlice("userPreference", "accessToken")) {
-          setInStorageSlice("userPreference", flow, "setFlow");
-          return window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-        } else {
-          navigate(ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-          window.location.reload();
-        }
-      }
-    } else if (flow === sessionFlowName.GuestMiStory) {
-      setInStorageSlice("userPreference", window.location.href, "setPreviousUrl");
-      setInStorageSlice("userPreference", "xyz123", "setTempCode");
-      if (getFromStorageSlice("userPreference", "previousUrl")) {
-        if (getFromStorageSlice("userPreference", "accessToken")) {
-          setInStorageSlice("userPreference", flow, "setFlow");
-          return window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-        } else {
-          navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-          window.location.reload();
-        }
-      }
+    const previousUrl = getFromStorageSlice("userPreference", "previousUrl");
+    if (!previousUrl) {
+      return;
+    }
+
+    const accessToken = useSiteDataLocalStore.getState().getAccessToken();
+    const flowRoutes = {
+      [sessionFlowName.GuestDiscussion]: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT,
+      [sessionFlowName.GuestMiStory]: ROUTES.SHIKSHALOKAM_GUEST_MI_STORY,
+    };
+
+    const route = flowRoutes[selectedFlow];
+    if (!route) {
+      return;
+    }
+
+    if (accessToken) {
+      useChatDataLocalStore.getState().setFlow(flow);
+      replaceUrl = "/mohini" + route;
+    } else {
+      navigateUrl = route;
+    }
+
+    if (!replaceUrl && !navigateUrl) {
+      return;
+    }
+
+    if (replaceUrl) {
+      return window.location.replace(replaceUrl);
+    }
+    if (navigateUrl) {
+      navigate(navigateUrl);
+      window.location.reload();
     }
     setIsLoading(false);
   };
 
   return {
-    selectedFlow,
-    setSelectedFlow,
     isLoading,
     setIsLoading,
     ptm_case,

@@ -1,7 +1,7 @@
 import { showNotification } from "../components/ToastMessage/TotastMessage";
-// import { spokenWordsToDigits } from "../utils/base_utils";
 import { ai4BharatASR, getAI4BharatAudio } from "./api.service";
 import { getFromStorage, handleS3Upload } from "./storage_service";
+import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
 
 let currentAudio = null;
 
@@ -17,7 +17,7 @@ export const isSilentAudio = async (blob, silenceThreshold = 0.01) => {
     return rms < silenceThreshold;
 };
 
-export const handleOnSpeaking = async (text, id, sourceLanguage, audioRef, audioCache, setAudioCache, setIsPlaying, storedRoute) => {
+export const handleOnSpeaking = async (text, id, audioRef, audioCache, setAudioCache, setIsPlaying, storedRoute) => {
     try {
       try {
         if (!!audioRef.current) await audioRef.current.pause();
@@ -26,13 +26,11 @@ export const handleOnSpeaking = async (text, id, sourceLanguage, audioRef, audio
       }
       console.log("text", text);
       console.log("id", id);
-      console.log("sourceLanguage", sourceLanguage);
       console.log("audioRef", audioRef);
     
       handleAI4BharatTTSRequest(
         text,
         id,
-        sourceLanguage,
         audioCache,
         audioRef,
         setAudioCache,
@@ -187,15 +185,21 @@ export const stopRecording = (setHasStartedRecording, mediaRecorder) => {
     }
 };
 
-export const handleAI4BharatTTSRequest = async (text, id, sourceLanguage='en', audioCache, audioRef, setAudioCache, setIsPlaying, storedRoute) => {
+export const handleAI4BharatTTSRequest = async (text, id, audioCache, audioRef, setAudioCache, setIsPlaying, storedRoute) => {
     try {
+        let chatLanguage = useSiteDataLocalStore.getState().getChatLanguage()
+
+        if (!chatLanguage) {
+            chatLanguage = "en";
+        }
+
         let cachedAudioUrl = (audioCache && id in audioCache) ? audioCache[id] : null;
 
         let audio_result = "";
         let audio;
 
         if (!cachedAudioUrl) {
-            audio_result = await getAI4BharatAudio(text, sourceLanguage, storedRoute);
+            audio_result = await getAI4BharatAudio(text, chatLanguage, storedRoute);
             if (audio_result?.length) {
                 cachedAudioUrl = `data:audio/wav;base64,${audio_result}`;
                 setAudioCache((prevCache) => ({

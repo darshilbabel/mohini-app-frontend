@@ -1,20 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { generatePath, useNavigate, useParams } from "react-router-dom";
-import { createStoryMedia, getStoryAllMedia, getStoryById, partialUpdateStoryById, updateStoryMedia } from "../api.service";
+import { createStoryMedia, getStoryAllMedia, updateStoryMedia } from "../api.service";
 import html2pdf from "html2pdf.js";
 import axiosInstance from "../../../utils/axios";
-import { useUserStore } from "../../../context/user";
-import ROUTES from "../../../url";
 import StorySecondPage from "./StorySecondPage";
 import StoryThirdPage from "./StoryThirdPage";
 import StoryFirstPage from "./StoryFirstPage";
 import StoryFifthPage from "./StoryFifthPage";
 import Cookies from "universal-cookie";
-import getConfiguration, { company_list } from "../../../configure";
+import getConfiguration from "../../../configure";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDownloadStop, storyMediaArr, currentState, current_company}) => {
+const PdfDownloader = ({ storyData, downloadTriggered, handleDownloadStop, storyMediaArr, currentState, current_company}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [contentPDF, setContentPDF] = useState({
         content1: "",
@@ -38,7 +35,6 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
     const downloadTriggeredRef = React.useRef(false);
 
     const pdfRef = React.useRef();
-    const count = React.useRef(0);
     const imagesPerPage = 2;
 
     const cookie = new Cookies();

@@ -1,6 +1,7 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
-import { clearFromStorage, getFromStorageSlice } from "../../services/storage_service";
+import { clearFromStorage } from "../../services/storage_service";
+import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
+import { LANGUAGE_ENUMS } from "pages/ShikshalokamVoiceChat/enum";
 
 // Custom Hooks
 import { useLanguage } from "../../hooks/useLanguage";
@@ -10,7 +11,7 @@ import { useNavigation } from "../../hooks/useNavigation";
 
 // Utils
 import { STORAGE_KEYS, PTM_USE_CASES } from "../../utils/constants";
-import { initializeLanguageStorage, hasAccessToken } from "../../utils/helpers";
+import { hasAccessToken } from "../../utils/helpers";
 
 // Components
 import LanguageSelectionGrid from "../../components/LanguageSelectionGrid";
@@ -24,15 +25,19 @@ import "../../index.css";
 import "./commonPageStyle.css";
 
 function CommonHomePage({ usecaseType }) {
+
+  const chatLanguage = useSiteDataLocalStore((state) => state.chatLanguage)
+  const flow = useSiteDataLocalStore((state) => state.flow)
+  const hasSelectedLanguage = useSiteDataLocalStore((state) => state.hasSelectedLanguage)
+  const setChatLanguage = useSiteDataLocalStore((state) => state.setChatLanguage)
   // Custom hooks
   const {
-    userLanguage,
-    setUserLanguage,
-    languageButtonSelect,
-    setLanguageButtonSelect,
+    // userLanguage,
+    // setUserLanguage,
+    languageButtonSelect, // can be migrated
     handleLanguageChange,
     setSelectedLanguage,
-    getDefaultLanguage,
+    // getDefaultLanguage,
   } = useLanguage(usecaseType);
 
   const {
@@ -44,8 +49,6 @@ function CommonHomePage({ usecaseType }) {
   } = useAudio();
 
   const {
-    selectedFlow,
-    setSelectedFlow,
     isLoading,
     setIsLoading,
     processLanguageButtonClick,
@@ -68,90 +71,92 @@ function CommonHomePage({ usecaseType }) {
 
   // Initialize language and flow processing
   useEffect(() => {
-    setIsLoading(true);
+    if (chatLanguage) return;
+    // setIsLoading(true);
+
     
     if (!urlLanguage && !languageButtonSelect) {
-      if (!userLanguage || userLanguage === null || userLanguage === "") {
-        const defaultLang = getFromStorageSlice("userPreference", 'local_route', false, "localStorage") || 
-                           getDefaultLanguage(usecaseType);
-        localStorage.setItem(STORAGE_KEYS.LOCAL_ROUTE, JSON.stringify(defaultLang));
-        setUserLanguage(defaultLang);
-      }
-      setUserLanguage(userLanguage);
+      // if (!userLanguage || userLanguage === null || userLanguage === "") {
+      //   const defaultLang = chatLanguage || LANGUAGE_ENUMS.ENGLISH;
+      setChatLanguage(LANGUAGE_ENUMS.ENGLISH);
+      //   setUserLanguage(defaultLang);
+      // }
+      // setUserLanguage(userLanguage);
+
     }
 
     if (!hasAccessToken()) {
       clearFromStorage(true, [STORAGE_KEYS.HAS_SELECTED_LANGUAGE, STORAGE_KEYS.LOCAL_ROUTE]);
     }
 
-    initializeLanguageStorage(usecaseType);
-  }, []);
+    // initializeLanguageStorage(usecaseType);
+  }, [chatLanguage]);
 
   // Process language selection
 // Process language selection
-useEffect(() => {
-  if (isLanguageProcessing) return;
-  setIsLanguageProcessing(true);
-  
-  // If both URL params exist, auto-process immediately
-  if (urlLanguage && urlFlow) {
-    processLanguageButtonClick(userLanguage, true);
-    return;
-  }
-  
-  // If only language param exists, process it
-  if (urlLanguage && !urlFlow) {
-    processLanguageButtonClick(userLanguage, false);
-    return;
-  }
-  
-  // If only flow param exists, wait for language selection but don't auto-process
-  if (!urlLanguage && urlFlow) {
-    setIsLoading(false);
-    return;
-  }
-  
-  // Normal processing (no URL params)
-  processLanguageButtonClick(userLanguage);
-}, [userLanguage, isLanguageProcessing, urlLanguage, urlFlow]);
+  useEffect(() => {
+    if (isLanguageProcessing) return;
+    setIsLanguageProcessing(true);
+    
+    // If both URL params exist, auto-process immediately
+    if (urlLanguage && urlFlow) {
+      processLanguageButtonClick();
+      return;
+    }
+    
+    // If only language param exists, process it
+    if (urlLanguage && !urlFlow) {
+      processLanguageButtonClick();
+      return;
+    }
+    
+    // If only flow param exists, wait for language selection but don't auto-process
+    if (!urlLanguage && urlFlow) {
+      setIsLoading(false);
+      return;
+    }
+    
+    // Normal processing (no URL params)
+    processLanguageButtonClick();
+  }, [chatLanguage, isLanguageProcessing, urlLanguage, urlFlow]);
 
   // Event handlers
-  const onLanguageChange = (e) => {
-    handleLanguageChange(
-      e?.target?.value,
-      audioRef,
-      stopAllAudio,
-      setStopAudioTriggered
-    );
-  };
+  // const onLanguageChange = (e) => {
+  //   handleLanguageChange(
+  //     e?.target?.value,
+  //     audioRef,
+  //     stopAllAudio,
+  //     setStopAudioTriggered
+  //   );
+  // };
+
+  useEffect(() => {
+    handleLanguageChange(chatLanguage, audioRef, stopAllAudio, setStopAudioTriggered);
+  }, [chatLanguage])
 
 // Event handlers
-const onLanguageSelect = (language, forceProcess) => {
-  setSelectedLanguage(language);
-  // If URL flow exists, force process after language selection
-  const shouldForceProcess = forceProcess || !!urlFlow;
-  processLanguageButtonClick(language, shouldForceProcess);
-};
-  const onFlowContinue = (selectedFlow) => {
-    return handleFlowSelection(selectedFlow, stopAllAudio);
+  const onLanguageSelect = (language, forceProcess) => {
+    setSelectedLanguage(language);
+    // If URL flow exists, force process after language selection
+    const shouldForceProcess = forceProcess || !!urlFlow;
+    processLanguageButtonClick(shouldForceProcess);
+  };
+
+  const onFlowContinue = () => {
+    return handleFlowSelection(stopAllAudio);
   };
 
   // Updated render conditions
-  const shouldShowLanguageGrid = !urlLanguage && !languageButtonSelect;
-  
-  const shouldShowFlowSelection = 
-    (urlLanguage || (languageButtonSelect && ![null, ""].includes(languageButtonSelect))) &&
-    !urlFlow &&
-    !isPTMCase &&
-    !getFromStorageSlice("userPreference", "flow");
+  const shouldShowLanguageGrid = !urlLanguage && !hasSelectedLanguage;
+  const shouldShowFlowSelection = !urlFlow && !isPTMCase && !flow;
 
   return (
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 px-0">
       {/* Desktop Header */}
       <Header
-        userLanguage={userLanguage}
+        // userLanguage={chatLanguage}
         languageButtonSelect={languageButtonSelect}
-        onLanguageChange={onLanguageChange}
+        // onLanguageChange={onLanguageChange}
         isDesktop={true}
       />
 
@@ -159,33 +164,29 @@ const onLanguageSelect = (language, forceProcess) => {
       <div className="w-full px-0">
         {/* Mobile Header */}
         <Header
-          userLanguage={userLanguage}
+          // userLanguage={userLanguage}
           languageButtonSelect={languageButtonSelect}
-          onLanguageChange={onLanguageChange}
+          // onLanguageChange={onLanguageChange}
           isDesktop={false}
         />
 
         <div className="bg-slate-50 sm:pt-6 sm:h-[100%] flex flex-col justify-center mt-0 w-full">
           <div className="flex justify-end mr-6 relative block sm:hidden"></div>
 
-          {shouldShowFlowSelection ? (
+          {shouldShowLanguageGrid ? (
+            <LanguageSelectionGrid
+              usecaseType={usecaseType}
+              onLanguageSelect={onLanguageSelect}
+              setIsLanguageProcessing={setIsLanguageProcessing}
+            />
+          ) : shouldShowFlowSelection ? (
             <FlowSelection
-              selectedFlow={selectedFlow}
-              setSelectedFlow={setSelectedFlow}
-              userLanguage={userLanguage}
               audioRef={audioRef}
               stopAudioTriggered={stopAudioTriggered}
               setStopAudioTriggered={setStopAudioTriggered}
               controllerRef={controllerRef}
               onFlowContinue={onFlowContinue}
               setIsLoading={setIsLoading}
-              stopAllAudio={stopAllAudio}
-            />
-          ) : shouldShowLanguageGrid ? (
-            <LanguageSelectionGrid
-              usecaseType={usecaseType}
-              onLanguageSelect={onLanguageSelect}
-              setIsLanguageProcessing={setIsLanguageProcessing}
             />
           ) : null}
         </div>

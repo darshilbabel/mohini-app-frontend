@@ -1,26 +1,27 @@
 // components/FlowSelection.js
-import { useTranslation } from "react-i18next";
 import { FaArrowRightLong } from "react-icons/fa6";
-import ShowPageButton from "./ShowPageButton";
 import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
+import { STORE_NAME_CONSTANTS } from "store/constants";
+import { useStorage } from "hooks/useStorage";
+import { useTranslation } from "react-i18next";
+import ShowPageButton from "./ShowPageButton";
 
 const FlowSelection = ({
-  selectedFlow,
-  setSelectedFlow,
-  userLanguage,
   audioRef,
   stopAudioTriggered,
   setStopAudioTriggered,
   controllerRef,
   onFlowContinue,
   setIsLoading,
-  stopAllAudio
 }) => {
   const { t } = useTranslation();
 
+  const selectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow)
+  const setSelectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState().setFlow
+
   const handleContinueClick = async () => {
     setIsLoading(true);
-    await onFlowContinue(selectedFlow, stopAllAudio);
+    await onFlowContinue();
   };
 
   return (
@@ -34,11 +35,11 @@ const FlowSelection = ({
           <div className="flex flex-col w-full justify-center items-center gap-4 flow-button-custom px-4">
             <FlowOption
               flowName={sessionFlowName.GuestDiscussion}
-              selectedFlow={selectedFlow}
+              // selectedFlow={selectedFlow}
               onSelect={setSelectedFlow}
               buttonText={t("commonPageButtonText2")}
               buttonId="capture-discussion"
-              userLanguage={userLanguage}
+              // userLanguage={userLanguage}
               audioRef={audioRef}
               stopAudioTriggered={stopAudioTriggered}
               setStopAudioTriggered={setStopAudioTriggered}
@@ -47,11 +48,11 @@ const FlowSelection = ({
             />
             <FlowOption
               flowName={sessionFlowName.GuestMiStory}
-              selectedFlow={selectedFlow}
+              // selectedFlow={selectedFlow}
               onSelect={setSelectedFlow}
               buttonText={t("commonPageButtonText1")}
               buttonId="capture-mi-story"
-              userLanguage={userLanguage}
+              // userLanguage={userLanguage}
               audioRef={audioRef}
               stopAudioTriggered={stopAudioTriggered}
               setStopAudioTriggered={setStopAudioTriggered}
@@ -81,17 +82,18 @@ const FlowSelection = ({
 // Individual Flow Option Component
 const FlowOption = ({
   flowName,
-  selectedFlow,
+  // selectedFlow,
   onSelect,
   buttonText,
   buttonId,
-  userLanguage,
+  // userLanguage,
   audioRef,
   stopAudioTriggered,
   setStopAudioTriggered,
   controllerRef,
   logo,
 }) => {
+  const selectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow)
   const isSelected = selectedFlow === flowName;
 
   return (
@@ -104,10 +106,10 @@ const FlowOption = ({
         <ShowPageButton
           text={buttonText}
           id={buttonId}
-          userLanguage={userLanguage}
+          // userLanguage={userLanguage}
           showSpeaker={true}
           forcePlayAudio={isSelected}
-          selectedFlow={selectedFlow}
+          // selectedFlow={selectedFlow}
           audioRef={audioRef}
           stopAudioTriggered={stopAudioTriggered}
           setStopAudioTriggered={setStopAudioTriggered}

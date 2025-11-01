@@ -1,13 +1,20 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
 
-function FormData({selectOptions, selectClassName, selectName, selectOnChange, selectID, selectValue, inputDivClass, isRequired, inputType, inputName, id,
-    inputClass, inputOnChange, inputValue, labelDivClass, labelClass, labelName, layOut, isimportant, isMultiple, showWithinInput=false,
-    withinInputType, withinInputName, withinInputOnChange, withinInputValue, withinInputClass, withinInputDisabled, fieldError, showDefaultDropdownText=true, placeholder=''
-}){
+function FormData(
+    {
+        selectOptions, selectClassName, selectName, selectID, inputDivClass, isRequired, inputType, inputName, id,
+        inputClass, inputOnChange, inputValue, labelDivClass, labelClass, labelName, layOut, isimportant, isMultiple, showWithinInput=false,
+        withinInputType, withinInputName, withinInputOnChange, withinInputValue, withinInputClass, withinInputDisabled, fieldError, showDefaultDropdownText=true, placeholder=''
+    }
+){
     let optionArr = selectOptions;
     let multipleValue = false;
     if(isMultiple === 'true') multipleValue = true;
+
+    const chatLanguage = useSiteDataLocalStore((state) => state.chatLanguage)
+    const setChatLanguage = useSiteDataLocalStore((state) => state.setChatLanguage)
 
     const { t } = useTranslation();
     let defaultText = 'Choose an option'
@@ -16,16 +23,16 @@ function FormData({selectOptions, selectClassName, selectName, selectOnChange, s
         defaultText = t('chooseAnOption')
     }
     
-    function showDropDown(){
+    function ShowDropDown(){
         if(optionArr === undefined || optionArr === null) optionArr = []; 
         return(
             <>
                 <select
                   className={selectClassName}
                   name={selectName}
-                  onChange={selectOnChange}
+                  onChange={(e) => setChatLanguage(e.target.value)}
                   id={selectID}
-                  value={selectValue}
+                  value={chatLanguage}
                   multiple={multipleValue}
                   {...(isRequired && { required: true })}
                 >
@@ -89,7 +96,7 @@ function FormData({selectOptions, selectClassName, selectName, selectOnChange, s
         return(
             <>
                 {showLabel()}
-                {showDropDown()}
+                <ShowDropDown />
                 {(fieldError && fieldError!== '')&& <p className="error-phn-field">{fieldError}</p>}
             </>
         );

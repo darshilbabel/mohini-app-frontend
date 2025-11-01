@@ -2,6 +2,7 @@ import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
 import axiosInstance from "../utils/axios";
 import { useUserPreferenceLocalStore, useUserPreferenceSessionStore } from 'store';
 import { STORAGE_TYPES } from "store/middleware/storage/storageFactory";
+import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
 
 export const setInStorage = (key, value, currentFlow, storageName='') => {
 
@@ -66,15 +67,24 @@ export function setInStorageSlice(sliceName, value, funcName, currentFlow, stora
   }
 }
 
+/**
+ * Gets a storage slice (Zustand store) based on the slice name and storage type
+ * @param {string} sliceName - The name of the storage slice to retrieve (e.g., 'siteData', 'userPreference')
+ * @param {string|null} storageType - The type of storage ('sessionStorage' or 'localStorage'), or null for auto-detection based on accessToken
+ * @returns {Object} The Zustand store instance for the specified slice
+ * @description
+ * This function dynamically loads and returns a Zustand store slice. It determines whether to use
+ * the Local or Session variant of the store based on:
+ * - If storageType is provided: uses the specified storage type
+ * - If storageType is null: checks for accessToken - uses Local storage if token exists, Session storage otherwise
+ * The function constructs the module path as: store/slices/{sliceName}/{sliceName}{Local|Session}.js
+ */
 export const getStorageSlice = (sliceName, storageType = null) => {
   const SLICE_PATH = "store/slices";
   const LOCAL_STORAGE_SLICES = "Local";
   const SESSION_STORAGE_SLICES = "Session";
 
-  const { flow: flow_local } = useUserPreferenceLocalStore.getState();
-  const { flow: flow_session } = useUserPreferenceSessionStore.getState();
-  const { projectId: projectId_local } = useUserPreferenceLocalStore.getState();
-  const { projectId: projectId_session } = useUserPreferenceSessionStore.getState();
+  const accessToken = useSiteDataLocalStore.getState().getAccessToken();
 
   let storage = null;
 
@@ -82,17 +92,13 @@ export const getStorageSlice = (sliceName, storageType = null) => {
     storage = storageType === 'sessionStorage' ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES;
   }
   else {
-    const flow = flow_local || flow_session;
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity];
-    const isTemporary = flow && sessionFlows.includes(flow) && !projectId_local && !projectId_session;
-    storage = isTemporary ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES;
+    storage = accessToken ? LOCAL_STORAGE_SLICES : SESSION_STORAGE_SLICES;
   }
 
   const module = require(`../${SLICE_PATH}/${sliceName}/${sliceName}${storage}.js`);
   const slice = module.default;
 
   return slice
-
 }
 
 

@@ -20,6 +20,10 @@ const useChatDataSessionStore = create(
             setIntroMessage: (intro_message) => set({ intro_message }),
 
             getIntroMessage: () => get().intro_message,
+
+            setFlow: (flow) => set({ flow }),
+
+            getFlow: () => get().flow,
         })
     )
 )
