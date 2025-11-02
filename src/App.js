@@ -1,19 +1,18 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
-import React from "react";
+import { SESSION_USECASE_TYPE } from "constants/session";
+import { sessionFlowName } from "./pages/ShikshalokamVoiceChat/enum";
 import { useRoutes, Navigate } from "react-router-dom";
-import ROUTES from "./url";
 import { UserProvider } from "./context/user";
-import Shikshalokam from "./pages/shikshalokam";
-import ShikshalokamVoiceBasedChat from "./pages/ShikshalokamVoiceChat/voice-chat";
-import PrivacyPage from "./pages/privacyPage";
-import ShikshalokamChat from "./pages/shikshalokamChat";
-import SsoFlow from "./pages/ssoFlow";
-import { sessionFlowName, sessionUsecaseType } from "./pages/ShikshalokamVoiceChat/enum";
 import CommonHomePage from "./pages/Login/commonPage";
+import NotFound from "./pages/shikshagraha-repository/not-found";
+import PrivacyPage from "./pages/privacyPage";
+import React from "react";
+import ROUTES from "./url";
 import ShikshagrahaRepository from "./pages/shikshagraha-repository/listing";
 import ShikshagrahaRepositoryDetail from "./pages/shikshagraha-repository/details";
-import NotFound from "./pages/shikshagraha-repository/not-found";
+import Shikshalokam from "./pages/shikshalokam";
+import ShikshalokamChat from "./pages/shikshalokamChat";
+import ShikshalokamVoiceBasedChat from "./pages/ShikshalokamVoiceChat/voice-chat";
+import SsoFlow from "./pages/ssoFlow";
 import UnifiedChat from "./pages/UnifiedChat/UnifiedChat";
 
 
@@ -57,11 +56,11 @@ const unprotected_old_routes = [
   
   // Unified PTM route
   { path: ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE, element: <UnifiedChat type={sessionFlowName.megaPTM} />},
-  { path: ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE, element: <CommonHomePage usecaseType={sessionUsecaseType.MEGA_PTM} /> },
+  { path: ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE, element: <CommonHomePage usecaseType={SESSION_USECASE_TYPE.MEGA_PTM} /> },
   
   // Unified YLC route
   { path: ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE, element: <UnifiedChat type={sessionFlowName.YLC} />},
-  { path: ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE, element: <CommonHomePage usecaseType={sessionUsecaseType.YLC} /> },
+  { path: ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE, element: <CommonHomePage usecaseType={SESSION_USECASE_TYPE.YLC} /> },
   
   {path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage />},
   { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <CommonHomePage /> },

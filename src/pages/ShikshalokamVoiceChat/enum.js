@@ -1,3 +1,5 @@
+import { SESSION_USECASE_TYPE } from "constants/session";
+
 export const modelLabel = {
   models: [
     { label: "Llama Normal", value: "llama-normal" },
@@ -7,12 +9,6 @@ export const modelLabel = {
 };
 
 // used for purpose of future flow type, not releated with session flow name
-export const sessionUsecaseType = {
-  MEGA_PTM: "MEGA_PTM",
-  ListeningActivity: "listening-activity",
-  YLC: "YLC"
-};
-
 export const LANGUAGE_ENUMS = {
   ENGLISH: "en",
   HINDI: "hi",
@@ -22,9 +18,9 @@ export const LANGUAGE_ENUMS = {
 
 export const languageList = [
   { label: "English", value: "en", excludeFor: [] },
-  { label: "हिंदी", value: "hi", excludeFor: [sessionUsecaseType.MEGA_PTM, sessionUsecaseType.YLC] },
-  { label: "ಕನ್ನಡ", value: "kn", excludeFor: [sessionUsecaseType.MEGA_PTM,  sessionUsecaseType.ListeningActivity] },
-  { label: "తెలుగు", value: "te", excludeFor: [sessionUsecaseType.ListeningActivity, sessionUsecaseType.YLC] },
+  { label: "हिंदी", value: "hi", excludeFor: [SESSION_USECASE_TYPE.MEGA_PTM, SESSION_USECASE_TYPE.YLC] },
+  { label: "ಕನ್ನಡ", value: "kn", excludeFor: [SESSION_USECASE_TYPE.MEGA_PTM,  SESSION_USECASE_TYPE.ListeningActivity] },
+  { label: "తెలుగు", value: "te", excludeFor: [SESSION_USECASE_TYPE.ListeningActivity, SESSION_USECASE_TYPE.YLC] },
 ];
 
 export const sessionFlowName = {

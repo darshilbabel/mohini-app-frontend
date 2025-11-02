@@ -22,6 +22,8 @@ const useSiteDataLocalStore = create(
             setHasSelectedLanguage: (hasSelectedLanguage) => set({ hasSelectedLanguage }),
 
             getHasSelectedLanguage: () => get().hasSelectedLanguage,
+
+            setPreviousUrl: (previousUrl) => set({ previousUrl }),
         })
     )
 )
