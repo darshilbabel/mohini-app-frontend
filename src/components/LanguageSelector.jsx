@@ -3,8 +3,8 @@ import { languageList } from "../pages/ShikshalokamVoiceChat/enum";
 import FormData from "./Form/FormData";
 
 const LanguageSelector = ({ 
-  userLanguage, 
-  onLanguageChange, 
+  // userLanguage, 
+  // onLanguageChange, 
   className = "",
   isVisible = true,
 }) => {
@@ -20,9 +20,9 @@ const LanguageSelector = ({
         selectName="language"
         selectOptions={languageList}
         labelDivClass="text-left text-slate-700"
-        selectValue={userLanguage}
+        // selectValue={userLanguage}
         selectClassName="bg-white text-slate-600 rounded-3xl p-3 mt-0 outline outline-slate-300 outline-1 outline-offset min-w-max"
-        selectOnChange={onLanguageChange}
+        // selectOnChange={onLanguageChange}
       />
     </div>
   );

@@ -8,14 +8,22 @@ const initialState = INITIAL_STATE;
 const useSiteDataLocalStore = create(
     createPersistentStore(
         STORE_NAME_CONSTANTS.SITE_DATA,
-        (set) => ({
+        (set, get) => ({
             ...initialState,
 
             setAccessToken: (accessToken) => set({ accessToken }),
 
+            getAccessToken: () => get().accessToken,
+
             setChatLanguage: (chatLanguage) => set({ chatLanguage }),
 
+            getChatLanguage: () => get().chatLanguage,
+
             setHasSelectedLanguage: (hasSelectedLanguage) => set({ hasSelectedLanguage }),
+
+            getHasSelectedLanguage: () => get().hasSelectedLanguage,
+
+            setPreviousUrl: (previousUrl) => set({ previousUrl }),
         })
     )
 )

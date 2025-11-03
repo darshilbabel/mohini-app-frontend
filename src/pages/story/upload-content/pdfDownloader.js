@@ -16,7 +16,7 @@ import StoryThirdPage from "./StoryThirdPage";
 import StoryFirstPage from "./StoryFirstPage";
 import StoryFifthPage from "./StoryFifthPage";
 import Cookies from "universal-cookie";
-import getConfiguration, { company_list } from "../../../configure";
+import getConfiguration from "../../../configure";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -51,9 +51,8 @@ const PdfDownloader = ({
   const [storyMediaIdArray, setStoryMediaIdArray] = useState(null);
   const downloadTriggeredRef = React.useRef(false);
 
-  const pdfRef = React.useRef();
-  const count = React.useRef(0);
-  const imagesPerPage = 2;
+    const pdfRef = React.useRef();
+    const imagesPerPage = 2;
 
   const cookie = new Cookies();
   const accessToken = useMemo(() => {

@@ -6,7 +6,7 @@ import { useSiteDataLocalStore, useSiteDataSessionStore } from 'store';
 
 // const preferredLanguage = JSON.parse(localStorage.getItem('preferred_language'))?.value;
 
-const { chatLanguage: chatLanguageLocal } = useSiteDataLocalStore.getState();
+const chatLanguageLocal = useSiteDataLocalStore.getState().getChatLanguage();
 // const { chatLanguage: chatLanguageSession } = useSiteDataSessionStore.getState();
 
 const languageToUse = chatLanguageLocal || LANGUAGE_ENUMS.ENGLISH;

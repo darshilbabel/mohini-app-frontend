@@ -1,69 +1,51 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { LANGUAGE_ENUMS } from "pages/ShikshalokamVoiceChat/enum";
-import { setLanguage } from "../i18n";
-import { getFromStorage, setInStorage } from "../services/storage_service";
-import { useUserPreferenceLocalStore } from 'store';
+import { useParams } from "react-router-dom";
+import { setLanguage } from "i18n";
+import { setInStorage } from "services/storage_service";
+import { useStorage } from "hooks/useStorage";
+import { STORE_NAME_CONSTANTS } from "store/constants";
 
 // Get default language based on usecase type
-function getDefaultLanguage(usecaseType) {
-  switch (usecaseType) {
-    default:
-      return LANGUAGE_ENUMS.ENGLISH;
-  }
-}
-
-export const useLanguage = (usecaseType) => {
-  const location = useLocation();
-  
+export const useLanguage = () => {
   // Parse URL params
-  const urlParams = new URLSearchParams(location.search);
-  const urlLanguage = urlParams.get('language');
+  const { language: urlLanguage } = useParams();
   
-  // const defaultLanguage = urlLanguage ||
-  //   useUserStore.getState().local_route ||
-  //   getDefaultLanguage(usecaseType);
+  const setChatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.setChatLanguage)
+  const hasSelectedLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.hasSelectedLanguage)
 
-  const { local_route: userLanguage, setLocalRoute: setUserLanguage } = useUserPreferenceLocalStore.getState();
+  /**
+   * @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]}
+   */
+  const [languageButtonSelect, setLanguageButtonSelect] = useState(false);
 
-  const [languageButtonSelect, setLanguageButtonSelect] = useState(
-    urlLanguage ? true : (getFromStorage("hasSelectedLanguage") || null)
-  );
+  useEffect(() => {
+    if (urlLanguage) {
+      setLanguageButtonSelect(false);
+    }
+    else if(hasSelectedLanguage) {
+      setLanguageButtonSelect(true);
+    }
+  }, [urlLanguage, hasSelectedLanguage]);
 
   // Auto-apply URL language on mount
   useEffect(() => {
     if (urlLanguage) {
       setInStorage("hasSelectedLanguage", true);
       setLanguage(urlLanguage);
-      setUserLanguage(urlLanguage);
-      setInStorage("route", JSON.stringify(urlLanguage));
+      setChatLanguage(urlLanguage);
       setLanguageButtonSelect(true);
     }
   }, [urlLanguage]);
 
   const handleLanguageChange = (newLanguage, audioRef, stopAllAudio, setStopAudioTriggered) => {
     audioRef.current = null;
-    setUserLanguage(newLanguage);
     setStopAudioTriggered(true);
     stopAllAudio();
     setLanguage(newLanguage);
   };
 
-  const setSelectedLanguage = (language) => {
-    setInStorage("hasSelectedLanguage", true);
-    setUserLanguage(language);
-    setLanguage(language);
-    setInStorage("route", JSON.stringify(language));
-    setLanguageButtonSelect(true);
-  };
-
   return {
-    userLanguage,
-    setUserLanguage,
     languageButtonSelect,
-    setLanguageButtonSelect,
     handleLanguageChange,
-    setSelectedLanguage,
-    getDefaultLanguage,
   };
 };
