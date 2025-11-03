@@ -1,7 +1,5 @@
 import "../../style.css"
 import "./shikshaChatStyle.css"
-import { getSessionDetails, updateReflectionStatus } from "../../services/api.service";
-import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi } from "api/endpoints";
 import { AiOutlineEye } from "react-icons/ai";
 import { BiLoader } from "react-icons/bi";
 import { bot_routes, bot_websocket } from "../../configure";
@@ -13,6 +11,7 @@ import { FaCircle } from "react-icons/fa6";
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
 import { FiDownload } from "react-icons/fi";
 import { getChatSessionApi } from "api/endpoints/chat";
+import { getSessionDetails, updateReflectionStatus } from "../../services/api.service";
 import { GrGallery } from "react-icons/gr";
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2";
 import { IoClose } from "react-icons/io5";
@@ -24,8 +23,11 @@ import { setLanguage } from "../../i18n";
 import { STORE_NAME_CONSTANTS } from "store/constants";
 import { TbReload } from "react-icons/tb";
 import { toast } from "react-toastify";
+import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi } from "api/endpoints";
+import { useAudio } from "hooks/useAudio";
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { useChatDataSessionStore } from 'store';
+import { useConfirmationPopup } from "hooks/useConfirmationPopup";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useStorage } from "hooks/useStorage";
 import { useTranslation } from "react-i18next";
@@ -46,19 +48,19 @@ import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import ROUTES from "../../url";
 import Sidebar from "./shikshaChatSidebar";
-import Swal from "sweetalert2";
 import UploadImages from "./upload-images";
 import useCustomMediaQuery from "hooks/useCustomMediaQuery";
 import useSmartChatStorage from "hooks/useSmartChatStorage";
 import useUserDataLocalStore from "store/slices/userData/userDataLocal";
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord";
 import WaveSurferPlayer from "../interview-text-voice/voice-player";
+import { getCompanyBotApi } from "api/endpoints/chat";
 
 
 const cookies = new Cookies();
 const company_bot_list_url = `/api/companybot/`;
 
-// NOTE: After testing, revert this to the original code
+// TODO: After testing, revert this to the original code
 // const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 const wss_protocol = "wss://"
 
@@ -111,11 +113,12 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [files, setFiles] = useState([]);
   const [fileErrorText, setFileErrorText] = useState('');
   // const [selectedType, setSelectedType] = useState(getFromStorageSlice("userPreference", "selected_type") || 'normal');
+  const [companySlug, setCompanySlug] = useState("");
   const [error, setError] = useState({ response: "", status: 200, });
   const [visibleItemCount, setVisibleItemCount] = useState(10);
+  const [showHomepage, setShowHomepage] = useState(false);
 
   // ========== useRef Hooks ==========
-  const audioRef = useRef();
   const textAreaRef = useRef(null);
   const lastBotMessageIndex = useRef(-1);
   const isInitialLoadRef = useRef(true);
@@ -136,10 +139,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const botName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.botName);
   const chatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.chatLanguage);
   const companyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.companyName);
-  const defaultBotName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.defaultBotName);
+  // const defaultBotName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.defaultBotName);
   const firstName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.firstName);
   const introMessage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.introMessage);
-  const isChatVisible = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isChatVisible);
+  // const isChatVisible = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isChatVisible);
   const isNewChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isNewChatOpen);
   const langProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.langProgress);
   const languageToUse = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.chatLanguage);
@@ -154,14 +157,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const setLangProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setLangProgress);
   const setSessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setSessionId);
   const setStorageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setFlow);
-  const showHomepage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.showHomepage);
+  // const showHomepage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.showHomepage);
   const userState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.state);
   const ssoRerouteURL = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.ssoRerouteURL);
   const stateMachineLength = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.stateMachineLength);
   const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow);
   const taskId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.taskId);
-
-  const projectId = useMemo(() => projectIdStore || searchParams.get("projectId"), [projectIdStore, searchParams]);
+  const profileToUse = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.profileId);
 
   // chat data actions
   const {
@@ -170,7 +172,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setIsNewChatOpen,
     setIsOldChatOpen,
     setSelectedType,
-    setShowHomepage,
+    // setShowHomepage,
     setBotName,
     setDefaultBotName,
     setStateMachineLength,
@@ -183,13 +185,41 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setFirstName,
     setState,
   } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState();
-
   const { llmError, setLlmError } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState();
-  const { profileid: profileToUse, setProfileid: setProfileToUse } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState();
+  const { setProfileId: setProfileToUse } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState();
 
   const { recordings, HiddenRecorder, } = useVoiceRecord();
 
   const navigate = useNavigate();
+
+  const projectId = useMemo(() => projectIdStore || searchParams.get("projectId"), [projectIdStore, searchParams]);
+
+  const { showGuestPopup, showConfirmationPopup } = useConfirmationPopup();
+  const { stopAllAudio, audioRef } = useAudio();
+
+  // ========== useCallback Hooks ==========
+  const handleChatSessionButtonClick = useCallback(async ({ key }) => {
+    lastBotMessageIndex.current = -1;
+    let key_num;
+    let currentSession;
+    if (key) {
+      /** String representation of array index that can be converted to number */
+      key_num = parseInt(key?.split("-").pop());
+      if(isNaN(key_num)) return
+      currentSession = chatTitle[key_num]?.session;
+      // removeFromStorage("llmError");
+      setIsOldChatOpen(true);
+      setIsNewChatOpen(false);
+      setSessionId(currentSession);
+      setChatHistory([]);
+      window.location.reload();
+    } else {
+      currentSession = sessionId;
+      await fetchBotInfo()
+      setIsIntroLoading(false);
+      await handleCompanyChatCall(currentSession);
+    }
+  }, [chatTitle, sessionId]);
 
   // ========== Variable Definitions ==========
   // const { access_token } =  getStorageSlice(STORE_NAME_CONSTANTS.USER_DATA, 'localStorage').getState();
@@ -207,46 +237,197 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const isShikshalokamPublicType = true;
   const shouldShowChatHistoryFeature = true;
+  const isSpecialFlow = useMemo(() => {
+    if (!storageFlow) return false;
+    return [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow);
+  }, [storageFlow])
+  const shouldFetchChatSession = useMemo(() => {
+    return storageFlow && [sessionFlowName.Reflection].includes(storageFlow);
+  }, [storageFlow]);
 
-  // works based on change on project id
+  // SECTION 1: Lifecycle & Browser Events
+  /**
+   * * Network monitoring - sets up listeners for online/offline events and network speed
+   * * Runs once on component mount
+   */
   useEffect(() => {
-    async function fetchChatSession() {
-      let response = null
+    const connection =
+      navigator.connection ||
+      navigator.mozConnection ||
+      navigator.webkitConnection;
+    let toastId = null;
 
-      if (!storageFlow || ![sessionFlowName.Reflection].includes(storageFlow)) return;
+    const checkNetworkSpeed = () => {
+      if (connection) {
+        const { effectiveType, downlink } = connection;
+        if (
+          effectiveType &&
+          (effectiveType === "2g" || effectiveType === "3g") &&
+          navigator.onLine
+        ) {
+          if (toastId) {
+            toast.dismiss(toastId);
+          }
+          const message = t("networkWarning");
+          toastId = showNotification({
+            message: message,
+            type: "warning",
+            options: {
+              position: "top-center",
+              style: { fontWeight: "bold", color: "#1D1616" },
+            },
+          });
+        }
+      }
+    };
 
-      response = await getChatSessionApi({ projectId, sessionId }).then(res => res.data);
+    const handleOffline = () => {
+      if (toastId) {
+        toast.dismiss(toastId);
+      }
+      toastId = toast.error(t("offlineNetwork"), {
+        position: "top-center",
+        style: { fontWeight: "bold", color: "#fff" },
+      });
+    };
 
-      if(!response) return;
+    const handleOnline = () => {
+      if (toastId) {
+        toast.dismiss(toastId);
+      }
+      toastId = toast.success(t("onlineNetwork"), {
+        position: "top-center",
+        style: { fontWeight: "bold", color: "#1D1616" },
+      });
+      checkNetworkSpeed();
+    };
 
-      if (response.results.length === 0) return;
-      
-      setSessionId(response.results[0].session);
-
-      setIsOldChatOpen(true);
-      setIsNewChatOpen(false);
-    }
-
-    fetchChatSession();
-  }, [projectId]);
-
-  useEffect(() => {
-    if (
-      isLoading ||
-      isEndStoryLoading ||
-      isModalOpen ||
-      acceptedTnc === "ONGOING"
-    ) {
-      document.body.style.overflowY = "hidden";
-    } else {
-      document.body.style.overflowY = "auto";
-    }
+    checkNetworkSpeed();
+    connection?.addEventListener("change", checkNetworkSpeed);
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
 
     return () => {
-      document.body.style.overflowY = "auto";
+      connection?.removeEventListener("change", checkNetworkSpeed);
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
     };
-  }, [isLoading, isEndStoryLoading, isModalOpen]);
+  }, []);
 
+  /**
+   * * Browser back button handling - manages navigation on browser back
+   * * Depends on navigate and acceptedTnc
+   */
+  useEffect(() => {
+    const currentFlow = storageFlow;
+    const handleBack = () => {
+      console.log("History length:", window.history.length);
+      console.log("Can go back 1?", window.history.length > 1);
+      console.log("Can go back 3?", window.history.length > 3);
+      if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
+      [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow].includes(currentFlow)){
+        if(ssoNavigationTriggered && accessToken){
+          console.log("isnide navigate happens")
+          navigate(-2)
+        } else{
+          showGuestPopup(navigateBack, stayOnPage)
+        }
+    } else {
+        setLanguage(languageList[0].value);
+        setChatLanguage(languageList[0].value);
+        stopAllAudio();
+      if(accessToken) {
+          clearFromStorage(true);
+          navigateSsoFlow(ssoRerouteURL);
+        } else {
+          navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+        }
+      }
+    };
+    // Check if we already pushed a custom state
+    if (!window.history.state?.isCustom) {
+      console.log("shouldPushState is true so pushing state now.");
+      window.history.pushState({ isCustom: true }, "", window.location.href);
+    }
+
+    window.addEventListener("popstate", handleBack);
+
+    return () => {
+      window.removeEventListener("popstate", handleBack);
+    };
+  }, [navigate, acceptedTnc]);
+
+  // SECTION 2: Initial Configuration
+  /**
+   * * Initialize visible item count for chat history pagination
+   * * Runs when chatToAddLength changes
+   */
+  useEffect(()=>{
+    setVisibleItemCount(chatToAddLength)
+  }, [chatToAddLength])
+
+  /**
+   * * Initialize bot name display
+   * * Runs once on component mount
+   */
+  useEffect(()=>{
+    if (botName && botName?.trim()) {
+      setBotNameToDisplay(botName);
+    }
+  }, [botName])
+
+  /**
+   * * Initialize chat history state - set isNewChatOpen if chat history exists
+   * * Runs once on component mount
+   */
+  useEffect(()=>{
+    if(chatHistory?.length!== 0){
+      setIsNewChatOpen(true);
+    }
+  }, []);
+
+  /**
+   * * Initialize language selection for guest flows
+   * * Runs once on component mount
+   */
+  useEffect(() => {
+    const handleLanguageSelect = (language) => {
+      if (chatHistory && chatHistory.length <= 1) {
+        stopAllAudio();
+        isIntroPlayed.current = false;
+        setIsLoading(true);
+        removeFromStorage("chat-history");
+        setChatHistory([]);
+        removeFromStorage("intro_message");
+        setChatHistory([]);
+        setSentences([]);
+        setLangProgress("IN_PROGRESS");
+        setAudioCache({});
+        setLanguage(language);
+
+        const isTncAccepted = acceptedTnc;
+        if(isTncAccepted && isTncAccepted !== 'ONGOING') {
+          setIsLoading(false);
+          setAcceptedTnC(true);
+          setShouldFetchIntro(true);
+        } else {
+          setIsLoading(false);
+        }
+      }
+    };
+    if (chatLanguage && storageFlow && !accessToken) {
+      setIsLoading(true);
+      handleLanguageSelect(chatLanguage);
+      removeFromStorage('chatLanguage');
+    }
+  }, []);
+
+  // SECTION 3: User Profile & Authentication
+  /**
+   * * Create user profile when accessToken is available and profileToUse is not set
+   * * Sets up user data, session, and initial configuration
+   * * Depends on accessToken and profileToUse
+   */
   useEffect(() => {
     async function createUserProfile() {
       try {
@@ -295,24 +476,235 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }, [accessToken, profileToUse]);
 
+  /**
+   * *Fetch chat session based on projectId for Reflection flow
+   * *Works based on change on project id
+   */
+  useEffect(() => {
+    async function fetchChatSession() {
+      let response = null
+      response = await getChatSessionApi({ projectId, sessionId }).then(res => res.data);
+      if(!response) return;
+      if (response.results.length === 0) return;
+      setSessionId(response.results[0].session);
+      setIsOldChatOpen(true);
+      setIsNewChatOpen(false);
+    }
 
+    if (!shouldFetchChatSession) return;
+    fetchChatSession();
+  }, [projectId, shouldFetchChatSession]);
+
+  // SECTION 4: Session & Chat Configuration
+  /**
+   * *Set up public type configuration
+   * *Triggers intro fetching for public type flows
+   */
+  useEffect(() => {
+    if (isShikshalokamPublicType) {
+      setShouldFetchIntro(true);
+      setIsStreamingComplete(true);
+    }
+  }, [isShikshalokamPublicType]);
+
+  /**
+   * *Handle chat history feature visibility and homepage state
+   * *Manages new/old chat open states
+   */
+  useEffect(() => {
+    if(shouldShowChatHistoryFeature) {
+      if(isOldChatOpen === true){
+        setShouldFetchIntro(true);
+        setShowHomepage(false);
+      } else if(isNewChatOpen === true){
+        // setShowHomepage(showHomepage !== null ? showHomepage : true);
+        setShowHomepage(true);
+      }
+    } else {
+      removeChatHistory();
+    }
+  }, [isOldChatOpen, isNewChatOpen]);
+
+  /**
+   * *Handle old chat open scenario - fetch chat session when conditions are met
+   */
   useEffect(()=>{
-    setVisibleItemCount(chatToAddLength)
-  }, [chatToAddLength])
+    if(isOldChatOpen === true && (hasFetchIntro || !accessToken) && chatHistory?.length === 0 && sentences?.length === 0) {
+      handleChatSessionButtonClick({key: null})
+    }
+  }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences]);
 
-  useEffect(() => {}, [visibleItemCount]);
+  // SECTION 5: Language & Bot Setup
+  /**
+   * *Fetch bot info and intro message when conditions are met
+   * *Sets up bot configuration, intro message, and triggers company chat call
+   */
+  useEffect(() => {
+    if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && 
+        (profileToUse || [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow))
+      ) {
+      setIsIntroLoading(true);
+      fetchBotInfo().then(() => {
+        if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
+          handleCompanyChatCall(sessionId);
+        }
+      }).finally(() => {
+        setIsIntroLoading(false);
+      });      
+    }
 
-  // useEffect(() =>{
-  //   if(isFetchingOldIntro){
-  //     let temp_intro_message = getFromStorageSlice("userPreference", "intro_message");
-  //     introMessageRef.current = temp_intro_message;
-  //   }
-  // },[isFetchingOldIntro])
+    return () => {};
+  }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage]);
 
-  // useEffect(()=>{
+  /**
+   * *Set language progress when intro message is loaded
+   */
+  useEffect(() => {
+    if(introMessage && !isLoading) {
+      setLangProgress(true);
+    }
+  }, [isLoading, introMessage])
 
-  // }, [error])
+  // SECTION 6: Story & Media Management
+  /**
+   * *Fetch story by sessionId
+   * *Loads story data and sets up editor content
+   */
+  useEffect(()=>{
+    if (!sessionId) return;
 
+    async function fetchStory() {
+      const story_data = await getStoryBySession(sessionId, accessToken);
+      if (story_data && story_data?.length > 0 && story_data[0]) {
+        setStoryData(story_data[0]);
+        const formatted_content = story_data[0].formatted_content;
+        const textBlocks = extractTextBlocks(formatted_content);
+        setEditorCopyChanges(textBlocks);
+        setNoStoryFound(false);
+        setShowFileInput(true);
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+        if(!llmError) {
+          setNoStoryFound(true);
+        }
+      }
+    }
+
+    fetchStory();
+  }, [sessionId])
+
+  /**
+   * *Fetch media for story when storyData is available
+   */
+  useEffect(() => {
+    const fetchMedia = async () => {
+      if (storyData && storyData?.id !== '') {
+        if(accessToken || accessToken) {
+          openModal()
+        }
+        const story_id = storyData?.id;
+        const tempMediaArr = [];
+        setIsImageUploading(true);
+
+        // TODO: This part needs to be optimized
+        await getStoryAllMedia({
+          setter: (data) => {
+            for (let item of Object.values(data?.results || [])) {
+              if (item.include_in_story) {
+                tempMediaArr.push(item);
+              }
+            }
+            setFiles(tempMediaArr);
+          },
+          data: {
+            story: story_id,
+          },
+        });
+
+        setIsImageUploading(false);
+      }
+    };
+
+    fetchMedia();
+
+    return () => {};
+  }, [accessToken, storyData]);
+
+  /**
+   * *Call end story when all conditions are met
+   * *Triggers story completion process
+   */
+  useEffect(() => {
+    if (
+      isStreamingComplete &&
+      stateMachineLength &&
+      strandStep >= stateMachineLength &&
+      noStoryFound &&
+      (!llmError || llmError === "") &&
+      acceptedTnc &&
+      acceptedTnc !== "ONGOING"
+    ) {
+      callEndStory();
+    }
+  }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound]);
+
+  /**
+   * *Show chat title for guest users after delay
+   * *Manages loading state for title display
+   */
+  useEffect(()=>{
+    const currentFlow = storageFlow;
+    if(profileToUse && !accessToken && !isEndStoryLoading && 
+      !([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow))
+    ){
+      setIsLoading(true);
+      const titleTime = setTimeout(() => {
+        if (shouldShowChatHistoryFeature) showChatTitle();
+      }, 4000);
+
+      return () => {
+        if (!noStoryFound) {
+          setIsLoading(false);
+        }
+        clearTimeout(titleTime);
+      };
+    } else if (
+      !isEndStoryLoading &&
+      ![
+        sessionFlowName.GuestDiscussion,
+        sessionFlowName.ListeningActivity,
+        sessionFlowName.GuestMiStory,
+      ].includes(currentFlow)
+    ) {
+      setIsLoading(false);
+    }
+  },[profileToUse, accessToken, isEndStoryLoading, noStoryFound])
+
+  // SECTION 7: UI State Management
+  /**
+   * *Control body overflow based on loading and modal states
+   */
+  useEffect(() => {
+    if (
+      isLoading ||
+      isEndStoryLoading ||
+      isModalOpen ||
+      acceptedTnc === "ONGOING"
+    ) {
+      document.body.style.overflowY = "hidden";
+    } else {
+      document.body.style.overflowY = "auto";
+    }
+
+    return () => {
+      document.body.style.overflowY = "auto";
+    };
+  }, [isLoading, isEndStoryLoading, isModalOpen]);
+
+  /**
+   * *Auto-dismiss file error text after 5 seconds
+   */
   useEffect(() => {
     const textErrorTime = setTimeout(() => {
       setFileErrorText("");
@@ -323,13 +715,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     };
   }, [fileErrorText]);
 
-  useEffect(() => {
-    if (textAreaRef.current) {
-      textAreaRef.current.style.height = "auto";
-      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
-    }
-  }, [textMessage]);
-
+  /**
+   * *Recording timer - tracks recording duration
+   */
   useEffect(() => {
     if (hasStartedRecording) {
       const id = setInterval(() => {
@@ -343,6 +731,574 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
     return () => clearInterval(intervalId);
   }, [hasStartedRecording]);
+
+  /**
+   * *Adjust textarea height based on content
+   */
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = "auto";
+      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
+    }
+  }, [textMessage]);
+
+  // SECTION 8: Chat History & Messages
+  /**
+   * *Update chat history and scroll to view
+   * *Manages chat history state and scrolling behavior
+   */
+  useEffect(() => {
+    setChatHistory(chatHistory);
+    lastBotMessageIndex.current = chatHistory?.length - 1;
+    if (!showFileInput) handleScrollToView();
+  }, [chatHistory]);
+
+  /**
+   * *Scroll to end page when file input is shown
+   */
+  useEffect(() => {
+    if (!isLoading && showFileInput && acceptedTnc !== "ONGOING") {
+      endPageToScrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [isLoading, showFileInput, acceptedTnc]);
+
+  /**
+   * *Update chat history with recordings when available
+   */
+  useEffect(() => {
+    if (
+      !!recordings?.length &&
+      chatHistory[chatHistory?.length - 1]?.source !== "bot"
+    ) {
+      const updatedChatHistory = [...chatHistory];
+      updatedChatHistory[chatHistory?.length - 1] = {
+        ...updatedChatHistory[chatHistory?.length - 1],
+        recording: recordings[recordings?.length - 1],
+      };
+      setChatHistory(updatedChatHistory);
+    }
+    return () => {};
+  }, [recordings, chatHistory]);
+
+  /**
+   * *Handle appendix URL attachment to chat messages
+   */
+  useEffect(() => {
+    if (
+      !!appendix?.length &&
+      chatHistory[chatHistory?.length - 1].source === "bot"
+    ) {
+      const lastMessage = chatHistory[chatHistory?.length - 1];
+      lastMessage.appendixURL = appendix;
+      lastMessage.hasAppendix = true;
+      setChatHistory([...chatHistory]);
+      setAppendix([]);
+    }
+    return () => {};
+  }, [appendix, chatHistory]);
+
+  /**
+   * *Handle reconText and trigger reset
+   */
+  useEffect(() => {
+    try {
+      if (!!trigger && !!reconText) {
+        setReconText("");
+        setTrigger(false);
+      }
+    } catch (error) {
+      console.error({ error });
+    }
+  }, [chatSocket, reconText, trigger, recordings]);
+
+  // SECTION 9: Audio & TTS Management
+  /**
+   * *Control audio mute state
+   */
+  useEffect(() => {
+    if (audioRef?.current) {
+      if (isMute) {
+        audioRef.current.muted = true;
+      } else {
+        audioRef.current.muted = false;
+      }
+    }
+  }, [isMute]);
+
+  /**
+   * *Auto-play audio for bot messages
+   * *Handles automatic audio playback when conditions are met
+   */
+  useEffect(() => {
+    let shouldPlay = false;
+    if (showFileInput) {
+      shouldPlay = true;
+    } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !isEndStoryLoading) {
+      const currentFlow = storageFlow;
+      
+      if (
+        currentFlow &&
+        [
+          sessionFlowName.GuestDiscussion,
+          sessionFlowName.ListeningActivity,
+          sessionFlowName.GuestMiStory,
+        ].includes(currentFlow)
+      ) {
+        if (chatHistory.length > 0) {
+          if (
+            isStreamingComplete &&
+            chatHistory[chatHistory.length - 1]?.source === "bot"
+          ) {
+            shouldPlay = true;
+          }
+        } else if (langProgress === "IN_PROGRESS") {
+          shouldPlay = false;
+        } else {
+          shouldPlay = true;
+        }
+      } else if (
+        chatHistory &&
+        chatHistory.length > 0 &&
+        chatHistory[chatHistory.length - 1]?.source === "bot" &&
+        !isIntroLoading &&
+        !isLoading &&
+        !isEndStoryLoading
+      ) {
+        shouldPlay = true;
+      }
+    }
+    if (
+      isStreamingComplete &&
+      shouldPlay &&
+      !isEndStoryLoading &&
+      !isLoading &&
+      !isPdfDownloading &&
+      isMute &&
+      acceptedTnc &&
+      acceptedTnc !== "ONGOING" &&
+      !isIntroLoading &&
+      !isFetchingOldIntro
+    ) {
+      const speakerButtons = document.querySelectorAll(".button-11.button-3");
+      const lastSpeakerButton = speakerButtons[speakerButtons.length - 1];
+
+      if (lastSpeakerButton) {
+        lastSpeakerButton.click();
+      }
+    }
+  }, [
+    isStreamingComplete,
+    showFileInput,
+    showHomepage,
+    isEndStoryLoading,
+    isLoading,
+    isPdfDownloading,
+    storyData,
+    chatHistory,
+    isMute,
+    acceptedTnc,
+    isIntroLoading,
+    noStoryFound,
+  ]);
+
+  /**
+   * *Handle TTS requests for unnarrated messages
+   * *Processes and plays audio for messages that haven't been narrated
+   */
+  useEffect(() => {
+    let unnarratedMessages = sentences.filter((x) => !x?.isNarrated);
+    let hasUnnarratedMessages = !!unnarratedMessages?.length;
+    let sourceLanguage = languageToUse;
+    if (acceptedTnc === 'ONGOING') {
+      return () => {};
+    }
+    if (
+      isNextAllowed &&
+      hasUnnarratedMessages &&
+      !isLoading &&
+      !isEndStoryLoading
+    ) {
+      handleAI4BharatTTSRequest(
+        unnarratedMessages[0].message,
+        unnarratedMessages[0].id,
+        sourceLanguage
+      );
+    }
+
+    return () => {};
+  }, [
+    isNextAllowed,
+    sentences,
+    languageToUse,
+    isLoading,
+    isEndStoryLoading,
+    acceptedTnc,
+  ]);
+
+  /**
+   * *Debug logging for hasOverRideId changes
+   */
+  useEffect(() => {
+    console.log("hasOverideId: ", hasOverRideId);
+  }, [hasOverRideId]);
+
+  // SECTION 10: Editor Management
+  /**
+   * *Initialize EditorJS when modal opens with story data
+   * *Sets up the editor with appropriate content based on flow type
+   */
+  useEffect(() => {
+    if (!!editorCopyChanges && isModalOpen && storyData) {
+      const flow = storageFlow
+      let parsed_content = [];
+      try {
+        if (storageFlow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(storageFlow)) {
+          const challenges = storyData?.other_params?.challenges_faced || [];
+          const solutions = storyData?.other_params?.solutions_discussed || [];
+
+          parsed_content = [
+            {
+              type: "header",
+              data: {
+                text: t("challengesHeader"),
+                level: 2,
+                customId: "challenges",
+              },
+            },
+            {
+              type: "list",
+              data: {
+                style: "unordered",
+                items: challenges.length > 0 ? challenges : [""],
+              },
+            },
+            {
+              type: "header",
+              data: {
+                text: t("solutionsHeader"),
+                level: 2,
+                customId: "solutions",
+              },
+            },
+            {
+              type: "list",
+              data: {
+                style: "unordered",
+                items: solutions.length > 0 ? solutions : [""],
+              },
+            },
+          ];
+        } else if (storageFlow && [sessionFlowName.ListeningActivity].includes(flow)) {
+          const questionAnswers = storyData?.other_params?.question_answers || [];
+          
+          parsed_content = [];
+          questionAnswers.forEach((qa, index) => {
+            // Add question header
+            parsed_content.push({
+              type: "header",
+              data: {
+                text: `Q${index + 1}: ${qa.question}`,
+                level: 3,
+                customId: `question-${index}`,
+              },
+            });
+
+            parsed_content.push({
+              type: "paragraph",
+              data: {
+                text: qa.answer || "",
+              },
+            });
+
+            if (index < questionAnswers.length - 1) {
+              parsed_content.push({
+                type: "paragraph",
+                data: {
+                  text: "​",
+                },
+                readonly: true,
+              });
+            }
+          });
+        } else {
+          parsed_content = editorCopyChanges.map((item) => ({
+            type: item.type,
+            data: {
+              text: item.data.text,
+            },
+          }));
+        }
+      } catch (error) {
+        parsed_content = [];
+      }
+
+      if (!document.getElementById("editorjs")) {
+        return;
+      }
+
+      const _editor = new EditorJS({
+        holder: "editorjs",
+        placeholder: t("editorPlaceholder"),
+        autofocus: true,
+        hideToolbar: true,
+        tools: {
+          header: {
+            class: Header,
+            inlineToolbar: false,
+          },
+          list: {
+            class: List,
+            inlineToolbar: false,
+            config: {
+              defaultStyle: "unordered",
+            },
+          },
+        },
+        onReady: () => {
+          setEditor(_editor);
+          const style = document.createElement("style");
+          style.innerHTML = `
+            .ce-toolbar__plus, .ce-toolbar__actions { display: none !important; }
+            .ce-popover, .ce-settings, .ce-settings__button { display: none !important; }
+            .ce-block--selected .ce-block__drag-handle { display: none !important; }
+            .ce-inline-toolbar { display: none !important; }
+            .ce-block--selected { outline: none !important; }
+            
+            /* Style for spacer blocks */
+            .spacer-block {
+              min-height: 0.75rem !important;
+              background: transparent !important;
+              border: none !important;
+              pointer-events: none !important;
+              user-select: none !important;
+              cursor: default !important;
+              margin: 0.5rem 0 !important;
+              position: relative;
+            }
+            
+            .spacer-block .ce-paragraph {
+              pointer-events: none !important;
+              user-select: none !important;
+              outline: none !important;
+              cursor: default !important;
+              opacity: 0 !important;
+              min-height: 0.75rem !important;
+            }
+            
+            .spacer-block::before {
+              content: '';
+              display: block;
+              width: 100%;
+              height: 1px;
+              background-color: #e5e7eb;
+              position: absolute;
+              top: 50%;
+              left: 0;
+              transform: translateY(-50%);
+            }
+            
+            /* Add visual separation after answer paragraphs */
+            .answer-paragraph {
+              margin-bottom: 0.5rem !important;
+              padding-bottom: 0.5rem !important;
+            }
+            
+            /* Question header styling */
+            .question-header {
+              color: #374151 !important;
+              font-weight: bold !important;
+              margin-top: 2rem !important;
+              margin-bottom: 1rem !important;
+            }
+            
+            .question-header:first-child {
+              margin-top: 0 !important;
+            }
+            
+            /* Non-deletable block styling */
+            .non-deletable {
+              position: relative;
+            }
+            
+            .non-deletable::after {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              pointer-events: none;
+              z-index: 1;
+            }
+          `;
+          document.head.appendChild(style);
+          setTimeout(() => {
+            const blocks = document.querySelectorAll(".ce-block");
+
+            blocks.forEach((block, blockIndex) => {
+              const headerEl = block.querySelector(".ce-header");
+              const paragraphEl = block.querySelector(".ce-paragraph");
+
+              if (headerEl) {
+                const text = headerEl.innerText.trim().toLowerCase();
+
+                if (
+                  text === t("challengesHeader").toLowerCase() ||
+                  text === t("solutionsHeader").toLowerCase() ||
+                  (text.startsWith("q") && text.includes(":"))
+                ) {
+                  headerEl.setAttribute("contenteditable", "false");
+                  headerEl.style.pointerEvents = "none";
+                  headerEl.style.color = "#374151";
+                  headerEl.style.fontWeight = "bold";
+
+                  if (text.startsWith("q") && text.includes(":")) {
+                    headerEl.classList.add("question-header");
+
+                    block.classList.add("non-deletable");
+                    block.setAttribute("data-readonly", "true");
+
+                    const preventDeletion = (e) => {
+                      if (e.key === "Backspace" || e.key === "Delete") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                      }
+                    };
+
+                    block.addEventListener("keydown", preventDeletion, true);
+                    headerEl.addEventListener("keydown", preventDeletion, true);
+
+                    block.addEventListener(
+                      "contextmenu",
+                      (e) => {
+                        e.preventDefault();
+                        return false;
+                      },
+                      true
+                    );
+
+                    block.style.userSelect = "none";
+                    block.style.webkitUserSelect = "none";
+                    block.style.mozUserSelect = "none";
+                    block.style.msUserSelect = "none";
+                  }
+                }
+              } else if (paragraphEl) {
+                const paragraphText =
+                  paragraphEl.textContent || paragraphEl.innerText || "";
+                const isEmpty =
+                  !paragraphText.trim() ||
+                  paragraphText === "​" ||
+                  paragraphText === " ";
+
+                const prevBlock = block.previousElementSibling;
+                const prevPrevBlock = prevBlock?.previousElementSibling;
+
+                const isPrevBlockAnswer =
+                  prevBlock?.querySelector(".ce-paragraph");
+                const isPrevPrevBlockQuestion = prevPrevBlock
+                  ?.querySelector(".ce-header")
+                  ?.innerText.toLowerCase()
+                  .startsWith("q");
+
+                if (isEmpty && isPrevBlockAnswer && isPrevPrevBlockQuestion) {
+                  block.classList.add("spacer-block");
+                  paragraphEl.setAttribute("contenteditable", "false");
+                  paragraphEl.style.pointerEvents = "none";
+                  paragraphEl.style.userSelect = "none";
+                  paragraphEl.style.cursor = "default";
+
+                  const preventInteraction = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                  };
+
+                  block.addEventListener("click", preventInteraction, true);
+                  block.addEventListener("mousedown", preventInteraction, true);
+                  block.addEventListener(
+                    "focus",
+                    (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (e.target.blur) e.target.blur();
+                      return false;
+                    },
+                    true
+                  );
+                  block.addEventListener("keydown", preventInteraction, true);
+                  block.addEventListener("keyup", preventInteraction, true);
+                  block.addEventListener("input", preventInteraction, true);
+
+                  block.style.userSelect = "none";
+                  block.style.webkitUserSelect = "none";
+                  block.style.mozUserSelect = "none";
+                  block.style.msUserSelect = "none";
+                } else if (
+                  isPrevBlockAnswer === false &&
+                  prevBlock
+                    ?.querySelector(".ce-header")
+                    ?.innerText.toLowerCase()
+                    .startsWith("q")
+                ) {
+                  paragraphEl.classList.add("answer-paragraph");
+                }
+              }
+            });
+          }, 500);
+        },
+        defaultBlock: "paragraph",
+        data: {
+          blocks:
+            parsed_content.length > 0
+              ? parsed_content
+              : [{ type: "paragraph", data: { text: "" } }],
+        },
+        onChange: async (api, event) => {
+          setIsSaving(false);
+          const savedData = await api.saver.save();
+
+          const filteredBlocks = savedData.blocks.filter((block, index) => {
+            if (block.type === "paragraph") {
+              const isEmpty =
+                !block.data.text.trim() ||
+                block.data.text === "​" ||
+                block.data.text === " ";
+              return !isEmpty;
+            }
+            return true;
+          });
+
+          const imageBlocks = filteredBlocks.filter(
+            (block) => block.type === "image"
+          );
+          if (!isInitialLoadRef.current) {
+            if (storyMediaIdArray?.length !== imageBlocks?.length) {
+              for (let i = 0; i < storyMediaIdArray?.length; i++) {
+                const storyFile = storyMediaIdArray[i];
+                let fileFound = false;
+                for (let j = 0; j < imageBlocks?.length; j++) {
+                  if (storyFile?.file === imageBlocks[j]?.data?.url) {
+                    fileFound = true;
+                    break;
+                  }
+                }
+                if (!fileFound) {
+                  partialUpdateMedia(storyFile?.id);
+                }
+              }
+            }
+          }
+        },
+      });
+    }
+
+    return () => {
+      if (!!Object.keys(editor || {})?.length) editor.destroy();
+    };
+  }, [editorCopyChanges, isModalOpen, storyData]);
 
   const formatTime = (secs) => {
     const minutes = Math.floor(secs / 60);
@@ -407,25 +1363,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       setIsStreamingComplete(true);
     }
   }, [isShikshalokamPublicType]);
-
-  useEffect(() => {
-    if(shouldShowChatHistoryFeature) {
-      if(isOldChatOpen === true){
-        setShouldFetchIntro(true);
-        setShowHomepage(false);
-      } else if(isNewChatOpen === true){
-        setShowHomepage(showHomepage !== null ? showHomepage : true);
-      }
-    } else {
-      removeChatHistory();
-    }
-  }, [isNewChatOpen, isOldChatOpen]);
-
-  useEffect(()=>{
-    if(isOldChatOpen === true && (hasFetchIntro || !accessToken) && chatHistory?.length === 0 && sentences?.length === 0) {
-      handleChatSessionButtonClick({key: null})
-    }
-  }, [isNewChatOpen, hasFetchIntro, chatHistory, sentences]);
 
   useEffect(() => {
     if (!!editorCopyChanges && isModalOpen && storyData) {
@@ -781,6 +1718,41 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     };
   }, [editorCopyChanges, isModalOpen, storyData]);
 
+  const navigateBack = () => {
+    let rerouteUrl = previousUrl;
+    stopAllAudio();
+    if(accessToken) {
+      clearFromStorage(true);
+      navigateSsoFlow(ssoRerouteURL);
+      return;
+    }
+    clearFromStorage();
+    setLanguage(languageList[0].value);
+    setChatLanguage(languageList[0].value);
+    // navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
+    // navigate("/", { replace: true });
+    if(rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== ""){
+      window.location.href = rerouteUrl;
+    } else {
+      window.location.href = 'https://www.google.com';
+    }
+
+  }
+
+  function navigateSsoFlow (rerouteURL){
+    navigate(-2);
+    if(rerouteURL){
+
+    } else {
+      navigate(-2);
+    }
+  }
+
+
+  function stayOnPage (){
+    window.history.pushState(null, "", window.location.href);
+  }
+
   const getQuestionAnswersFromBlocks = (blocks) => {
     const questionAnswers = [];
     let currentQuestion = null;
@@ -1087,8 +2059,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
     const currentFlow = storageFlow;
   
-    setAcceptedTnC(true);
-  
     removeChatHistory();
     setIsOldChatOpen(false);
     setIsNewChatOpen(true);
@@ -1122,32 +2092,31 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           // url = `${wss_protocol}${window.location.host}/ws/chat/company/`;
           url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}/ws/chat/company/`
         } else {
-            const base_url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}`
-            let currentFlow = storageFlow;
-            if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(currentFlow)) {
-              url = `${base_url+bot_websocket.shikshalokam_chaupal}`;
-            }  else if(currentFlow && [sessionFlowName.ListeningActivity].includes(currentFlow)){
-                url = `${base_url+bot_websocket.listening_activity}`;
-            } else if (selectedType === 'normal') {
-              if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
-                url = `${base_url+bot_websocket.normal}`;
-              } else if (currentFlow && [sessionFlowName.GuestMiStory].includes(currentFlow)) {
-                url = `${base_url+bot_websocket.guest_normal}`;
-              } else {
-                url = `${base_url + bot_websocket.reflection}`;
+            const base_url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}`;
+            const currentFlow = storageFlow;
+            
+            const websocketConfig = {
+              [sessionFlowName.GuestDiscussion]: bot_websocket.shikshalokam_chaupal,
+              [sessionFlowName.LoginDiscussion]: bot_websocket.shikshalokam_chaupal,
+              [sessionFlowName.ListeningActivity]: bot_websocket.listening_activity,
+            };
+            
+            const normalTypeConfig = {
+              normal: {
+                [sessionFlowName.LoginMiStory]: bot_websocket.normal,
+                [sessionFlowName.GuestMiStory]: bot_websocket.guest_normal,
+              },
+              oneshot: {
+                [sessionFlowName.LoginMiStory]: bot_websocket.oneshot,
+                [sessionFlowName.GuestMiStory]: bot_websocket.guest_oneshot,
               }
-            } else {
-              if (
-                currentFlow &&
-                [sessionFlowName.LoginMiStory].includes(currentFlow)
-              ) {
-                url = `${base_url + bot_websocket.oneshot}`;
-              } else if (
-                currentFlow &&
-                [sessionFlowName.GuestMiStory].includes(currentFlow)
-              ) {
-                url = `${base_url + bot_websocket.guest_oneshot}`;
-              }
+            };
+            
+            const selectedTypeConfig = normalTypeConfig[selectedType];
+            if (websocketConfig[currentFlow]) {
+              url = `${base_url}${websocketConfig[currentFlow]}`;
+            } else if (selectedTypeConfig && selectedTypeConfig[currentFlow]) {
+              url = `${base_url}${selectedTypeConfig[currentFlow]}`;
             }
           }
           socket = new WebSocket(url);
@@ -1293,7 +2262,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       } catch (error) {
         console.error("⚠️ Error modifying storage:", error);
       }
-      showConfirmationPopup();
+      showConfirmationPopup(() => {
+        if (accessToken){
+          clearFromStorage()
+          navigate(-1)
+        } else {
+          ResetChat();
+        }
+      });
       return;
     }
     reconnectAttempts++;
@@ -1313,175 +2289,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }, 1000);
   }
 
-  function showGuestPopup(wantToNavigateBack, executeCustomFunction) {
-    <div className="div-popup">
-    {Swal.fire({
-      title: t('guestPopUpChanges'),
-      showCancelButton: true,
-      confirmButtonText: t('confirmChanges'),
-      cancelButtonText: t('denyButton'),
-    }).then((result) => {
-      if (result.isConfirmed) {
-        if (executeCustomFunction) {
-          executeCustomFunction();
-        } else {
-          if(wantToNavigateBack){
-            let rerouteUrl = previousUrl;
-            stopAllAudio();
-            if(accessToken) {
-              clearFromStorage(true);
-              navigateSsoFlow(ssoRerouteURL);
-              return;
-            }
-            clearFromStorage();
-            setLanguage(languageList[0].value);
-            setChatLanguage(languageList[0].value);
-            // navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
-            // navigate("/", { replace: true });
-            if(rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== ""){
-              window.location.href = rerouteUrl;
-            } else {
-              window.location.href = 'https://www.google.com';
-            }
-
-          } else{
-            if(
-              storageFlow && 
-              [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow)
-            ){
-              removeFromStorage('botName');
-            }
-            ResetChat();
-          }
-        }
-      } else {
-        if(wantToNavigateBack){
-          window.history.pushState(null, "", window.location.href);
-        } else{
-          // window.location.reload();
-        }
-      }
-    })}
-    </div>
+  async function getStoryBySession(sessionID){
+    const res = await axiosInstance({
+      url: `api/get-story/?session=${sessionID}`,
+    })
+    
+    return res?.data?.results;
   }
-
-  function showConfirmationPopup() {
-    <div className="div-popup">
-    {Swal.fire({
-      title: t('popUpChanges'),
-      showCancelButton: true,
-      confirmButtonText: t('confirmChanges'),
-      cancelButtonText: t('denyButton'),
-    }).then((result) => {
-      if (result.isConfirmed) {
-        window.location.reload();
-      } else {
-        if (accessToken){
-          clearFromStorage()
-          navigate(-1)
-        } else {
-          ResetChat();
-        }
-      }
-    })}
-    </div>
-  }
-
-  useEffect(() => {
-    let shouldPlay = false;
-    if (showFileInput) {
-      shouldPlay = true;
-    } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !isEndStoryLoading) {
-      const currentFlow = storageFlow;
-      
-      if (
-        currentFlow &&
-        [
-          sessionFlowName.GuestDiscussion,
-          sessionFlowName.ListeningActivity,
-          sessionFlowName.GuestMiStory,
-        ].includes(currentFlow)
-      ) {
-        if (chatHistory.length > 0) {
-          if (
-            isStreamingComplete &&
-            chatHistory[chatHistory.length - 1]?.source === "bot"
-          ) {
-            shouldPlay = true;
-          }
-        } else if (langProgress === "IN_PROGRESS") {
-          shouldPlay = false;
-        } else {
-          shouldPlay = true;
-        }
-      } else if (
-        chatHistory &&
-        chatHistory.length > 0 &&
-        chatHistory[chatHistory.length - 1]?.source === "bot" &&
-        !isIntroLoading &&
-        !isLoading &&
-        !isEndStoryLoading
-      ) {
-        shouldPlay = true;
-      }
-    }
-    if (
-      isStreamingComplete &&
-      shouldPlay &&
-      !isEndStoryLoading &&
-      !isLoading &&
-      !isPdfDownloading &&
-      isMute &&
-      acceptedTnc &&
-      acceptedTnc !== "ONGOING" &&
-      !isIntroLoading &&
-      !isFetchingOldIntro
-    ) {
-      const speakerButtons = document.querySelectorAll(".button-11.button-3");
-      const lastSpeakerButton = speakerButtons[speakerButtons.length - 1];
-
-      if (lastSpeakerButton) {
-        lastSpeakerButton.click();
-      }
-    }
-  }, [
-    isStreamingComplete,
-    showFileInput,
-    showHomepage,
-    isEndStoryLoading,
-    isLoading,
-    isPdfDownloading,
-    storyData,
-    chatHistory,
-    isMute,
-    acceptedTnc,
-    isIntroLoading,
-    noStoryFound,
-  ]);
-  
-
-  useEffect(()=>{
-    if(chatHistory?.length!== 0){
-      setIsNewChatOpen(true);
-    }
-  }, []);
-
-  // useEffect(()=>{
-  //   setInStorageSlice("userPreference", showFileInput, "setShowFileInput", type);
-
-  // }, [showFileInput])
-
-  useEffect(()=>{
-    setBotNameToDisplay(botName?.trim() ? botName : defaultBotName);
-  }, [])
-
-    async function getStoryBySession(sessionID){
-      const res = await axiosInstance({
-        url: `api/get-story/?session=${sessionID}`,
-      })
-      
-      return res?.data?.results;
-    }
 
   function extractTextBlocks(formattedContent) {
     if (!formattedContent) return [];
@@ -1490,71 +2304,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return blocks.filter((block) => block.type === "paragraph");
   }
 
-  useEffect(()=>{
-    if (!sessionId) return;
-
-    async function fetchStory() {
-      const story_data = await getStoryBySession(sessionId, accessToken);
-      if (story_data && story_data?.length > 0 && story_data[0]) {
-        setStoryData(story_data[0]);
-        const formatted_content = story_data[0].formatted_content;
-        const textBlocks = extractTextBlocks(formatted_content);
-        setEditorCopyChanges(textBlocks);
-        setNoStoryFound(false);
-        setShowFileInput(true);
-        setIsLoading(false);
-      } else {
-        setIsLoading(false);
-        if(!llmError) {
-          setNoStoryFound(true);
-        }
-      }
-    }
-
-    fetchStory();
-  }, [sessionId])
-
-  useEffect(() => {
-    const fetchMedia = async () => {
-      if (storyData && storyData?.id !== '') {
-        if(accessToken || accessToken) {
-          openModal()
-        }
-        const story_id = storyData?.id;
-        const tempMediaArr = [];
-        setIsImageUploading(true);
-
-        await getStoryAllMedia({
-          setter: (data) => {
-            for (let item of Object.values(data?.results || [])) {
-              if (item.include_in_story) {
-                tempMediaArr.push(item);
-              }
-            }
-            setFiles(tempMediaArr);
-          },
-          data: {
-            story: story_id,
-          },
-        });
-
-        setIsImageUploading(false);
-      }
-    };
-
-    fetchMedia();
-
-    return () => {};
-  }, [accessToken, storyData]);
-
-  async function getCompanyDetail() {
-    if (!profileToUse) return "shikshalokamstaging";
-    const res = await axiosInstance({
-      url: `/api/profileuser/${profileToUse}/`,
-    });
-
-    return res?.data?.company?.slug;
-  }
 
   async function getTranslatedIntroMessage(storedRoute) {
     let translate_api_url = `api/bot_vernacular/?language=${languageToUse}&company_bot__route=${storedRoute}`;
@@ -1579,167 +2328,142 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }
 
   const getSessionRoute = () => {
-    let storedRoute = bot_routes.reflection;
-    let currentFlow = storageFlow;
+    const currentFlow = storageFlow;
     console.log("Current Flow:", currentFlow);
     console.log(
       "Is the flow equal",
       currentFlow === sessionFlowName.ListeningActivity
     );
-    if (
-      currentFlow &&
-      [
-        sessionFlowName.GuestDiscussion,
-        sessionFlowName.LoginDiscussion,
-      ].includes(currentFlow)
-    ) {
-      storedRoute = bot_routes.shikshalokam_chaupal;
-    } else if (
-      currentFlow &&
-      [sessionFlowName.ListeningActivity].includes(currentFlow)
-    ) {
-      storedRoute = bot_routes.listening_activity;
-    } else if (selectedType === "normal") {
-      if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
-        storedRoute = bot_routes.normal;
-      } else if (
-        currentFlow &&
-        [sessionFlowName.GuestMiStory].includes(currentFlow)
-      ) {
-        storedRoute = bot_routes.guest_normal;
-      }
-    } else {
-      if (currentFlow && [sessionFlowName.LoginMiStory].includes(currentFlow)) {
-        storedRoute = bot_routes.oneshot;
-      } else if (
-        currentFlow &&
-        [sessionFlowName.GuestMiStory].includes(currentFlow)
-      ) {
-        storedRoute = bot_routes.guest_oneshot;
-      }
+
+    // Configuration mapping flow names to bot routes
+    const flowToRouteMap = {
+      [sessionFlowName.GuestDiscussion]: bot_routes.shikshalokam_chaupal,
+      [sessionFlowName.LoginDiscussion]: bot_routes.shikshalokam_chaupal,
+      [sessionFlowName.ListeningActivity]: bot_routes.listening_activity,
+    };
+
+    const typeBasedRouteMap = {
+      normal: {
+        [sessionFlowName.LoginMiStory]: bot_routes.normal,
+        [sessionFlowName.GuestMiStory]: bot_routes.guest_normal,
+      },
+      oneshot: {
+        [sessionFlowName.LoginMiStory]: bot_routes.oneshot,
+        [sessionFlowName.GuestMiStory]: bot_routes.guest_oneshot,
+      },
+    };
+
+    // Check direct flow mapping first
+    if (currentFlow && flowToRouteMap[currentFlow]) {
+      return flowToRouteMap[currentFlow];
     }
 
-    return storedRoute;
+    // Check type-based mapping
+    const routeMap = selectedType === "normal" 
+      ? typeBasedRouteMap.normal 
+      : typeBasedRouteMap.oneshot;
+
+    if (currentFlow && routeMap[currentFlow]) {
+      return routeMap[currentFlow];
+    }
+
+    // Default route
+    return bot_routes.reflection;
   };
 
-  useEffect(() => {
-    if(introMessage && !isLoading) {
-      setLangProgress(true);
+  const handleIntroMessage = async () => {
+    let data = await getTranslatedIntroMessage(storageFlow)
+    let message = data[0]?.introductory_message;
+    if (data && data[0]) {
+      if (
+        profileToUse &&
+        firstName &&
+        firstName !== "null" &&
+        firstName !== ""
+      ) {
+        message = data[0]?.introductory_message;
+      } else {
+        message = data[0]?.alt_introductory_message;
+      }
     }
-  }, [isLoading, introMessage])
+    const botName = data[0]?.name || "Bot";
+
+    setBotName(botName);
+    setDefaultBotName(data[0]?.default_name);
+    setBotNameToDisplay(botName);
+
+    if(isOldChatOpen) {
+      let sessionInfo = await getSessionInfo();
+      if(sessionInfo && sessionInfo.length>0) {
+        setStrandStep(sessionInfo[0]?.current_step)
+        if(sessionInfo[0]?.session_type) {
+          setSelectedType(sessionInfo[0]?.session_type)
+        }
+      }
+    }
+    if (message && firstName) {
+      const words = message.split(" ");
+      words.splice(1, 0, firstName);
+      message = words.join(" ");
+    }
+    if (message && !!message?.trim() &&
+      chatHistory[chatHistory?.length - 1]?.msg !== message &&
+      !sentences.some((msg) => msg.message === message)
+    ) {
+        const isGuestFlow = !accessToken
+        setIntroMessage(message)
+        setSentences((prev) => [
+          ...prev,
+          {
+            message: message,
+            isNarrated: isGuestFlow ? false : false,
+            id: "intro_msg_id",
+          },
+        ]);
+        if (isGuestFlow) {
+          setHasOverRideId("intro_msg_id");
+          setNotMute(false);
+          setIsNextAllowed(true);
+        }
+      }
+  }
 
   const fetchBotInfo = async () => {
+    if(!languageToUse) return;
+
     setIsIntroLoading(true);
-    if (storageFlow && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow)) {
+    if (!isSpecialFlow) {
       setIsLoading(true);
     }
-    let companyName = await getCompanyDetail();
+
     try {
       let storedRoute = getSessionRoute();
-      const response = await axiosInstance({
-        url: company_bot_list_url,
-        params: {
-          company__slug: companyName,
-          target_language: languageToUse,
-          route: storedRoute,
-        },
+      const response = await getCompanyBotApi({
+        company__slug: companySlug,
+        target_language: languageToUse,
+        route: storedRoute,
       });
-      const bots = response?.data?.results;
+      const bots = response?.results;
 
-      if (bots) {
-        let selectedBot = bots.find((bot) => bot.route === storedRoute);
-        if (!selectedBot) {
-          selectedBot = bots[0] || { route: "/" };
-        }
-        setStateMachineLength(selectedBot?.statemachine_length)
+      if (!bots || bots.length === 0) {
+        handleScrollToView();
+        return;
       }
 
-      // if (!shouldFetchIntro || chatHistory?.length) return;
-      if (languageToUse && bots && bots.length > 0) {
-        let latestBot;
-        for (const bot of bots) {
-          if (isShikshalokamPublicType) {
-            if (bot.route === storedRoute) {
-              latestBot = bot;
-            }
-          } else if (
-            !latestBot ||
-            new Date(bot.created_at) > new Date(latestBot.created_at)
-          ) {
-            latestBot = bot;
-          }
-        }
-        if (!latestBot) {
-          handleFirstMessage("");
-          return;
-        }
+      // Set state machine length from selected bot
+      const selectedBot = bots.find((bot) => bot.route === storedRoute) || bots[0] || { route: "/" };
+      if (selectedBot?.statemachine_length) {
+        setStateMachineLength(selectedBot.statemachine_length);
+      }
+
+      // Find the latest bot based on flow type
+      const latestBot = bots.find((bot) => bot.route === storedRoute);
+      if (!latestBot) {
+        handleScrollToView();
+        return;
+      }
         
-        // if (firstName && firstName !== 'null' && firstName !== '') {
-        //   firstName = firstName;
-        // } else {
-        //   firstName = '';
-        // }
-        let data = await getTranslatedIntroMessage(storageFlow)
-        let message = data[0]?.introductory_message;
-        if (data && data[0]) {
-          if (
-            profileToUse &&
-            firstName &&
-            firstName !== "null" &&
-            firstName !== ""
-          ) {
-            message = data[0]?.introductory_message;
-          } else {
-            message = data[0]?.alt_introductory_message;
-          }
-        }
-        const botName = data[0]?.name || "Bot";
-
-        // NOTE: Move this to chatData slice
-        // setInStorageSlice("userPreference", botName, "setBotName", type);
-        // setInStorageSlice("userPreference", data[0]?.default_name, "setDefaultBotName", type);
-        setBotName(botName);
-        setDefaultBotName(data[0]?.default_name);
-        setBotNameToDisplay(botName);
-
-        if(isOldChatOpen) {
-          let sessionInfo = await getSessionInfo();
-          if(sessionInfo && sessionInfo.length>0) {
-            setStrandStep(sessionInfo[0]?.current_step)
-            if(sessionInfo[0]?.session_type) {
-              setSelectedType(sessionInfo[0]?.session_type)
-            }
-          }
-        }
-        if (message && firstName) {
-          const words = message.split(" ");
-          words.splice(1, 0, firstName);
-          message = words.join(" ");
-        }
-        if (
-          message &&
-          !!message?.trim() &&
-          chatHistory[chatHistory?.length - 1]?.msg !== message &&
-          !sentences.some((msg) => msg.message === message)
-        ) {
-          const isGuestFlow = !accessToken
-          setIntroMessage(message)
-          setSentences((prev) => [
-            ...prev,
-            {
-              message: message,
-              isNarrated: isGuestFlow ? false : false,
-              id: "intro_msg_id",
-              // id: new Date().valueOf(),
-            },
-          ]);
-          if (isGuestFlow) {
-            setHasOverRideId("intro_msg_id");
-            setNotMute(false);
-            setIsNextAllowed(true);
-          }
-        }
-      }
+      await handleIntroMessage();
     } catch (error) {
       console.error({ error });
       setIsLoading(false);
@@ -1754,229 +2478,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     console.log("hasOverideId: ", hasOverRideId);
   }, [hasOverRideId]);
 
-  useEffect(() => {
-    if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && 
-        (profileToUse || [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow))
-      ) {
-      setIsIntroLoading(true);
-      fetchBotInfo().then(() => {
-        if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
-          handleCompanyChatCall(sessionId);
-        }
-      }).finally(() => {
-        setIsIntroLoading(false);
-      });      
-    }
 
-    return () => {};
-  }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage]);
-
-  useEffect(() => {
-    setChatHistory(chatHistory);
-    lastBotMessageIndex.current = chatHistory?.length - 1;
-    if (!showFileInput) handleScrollToView();
-  }, [chatHistory]);
-
-  useEffect(() => {
-    if (!isLoading && showFileInput && acceptedTnc !== "ONGOING") {
-      endPageToScrollRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [isLoading, showFileInput, acceptedTnc]);
-
-  useEffect(() => {
-    if (
-      !!recordings?.length &&
-      chatHistory[chatHistory?.length - 1]?.source !== "bot"
-    ) {
-      const updatedChatHistory = [...chatHistory];
-      updatedChatHistory[chatHistory?.length - 1] = {
-        ...updatedChatHistory[chatHistory?.length - 1],
-        recording: recordings[recordings?.length - 1],
-      };
-      setChatHistory(updatedChatHistory);
-    }
-    return () => {};
-  }, [recordings, chatHistory]);
-
-  useEffect(() => {
-    try {
-      if (!!trigger && !!reconText) {
-        setReconText("");
-        setTrigger(false);
-      }
-    } catch (error) {
-      console.error({ error });
-    }
-  }, [chatSocket, reconText, trigger, recordings]);
-
-  // useEffect(() => {
-  //   setInStorageSlice("userPreference", showHomepage, "setShowHomepage", type);
-  // }, [showHomepage]);
-
-  useEffect(() => {
-    if (audioRef?.current) {
-      if (isMute) {
-        audioRef.current.muted = true;
-      } else {
-        audioRef.current.muted = false;
-      }
-    }
-  }, [isMute]);
-
-  useEffect(() => {
-    if (
-      isStreamingComplete &&
-      stateMachineLength &&
-      strandStep >= stateMachineLength &&
-      noStoryFound &&
-      (!llmError || llmError === "") &&
-      acceptedTnc &&
-      acceptedTnc !== "ONGOING"
-    ) {
-      callEndStory();
-    }
-  }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound]);
-
-  useEffect(()=>{
-    const currentFlow = storageFlow;
-    if(profileToUse && !accessToken && !isEndStoryLoading && 
-      !([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow))
-    ){
-      setIsLoading(true);
-      const titleTime = setTimeout(() => {
-        if (shouldShowChatHistoryFeature) showChatTitle();
-      }, 4000);
-
-      return () => {
-        if (!noStoryFound) {
-          setIsLoading(false);
-        }
-        clearTimeout(titleTime);
-      };
-    } else if (
-      !isEndStoryLoading &&
-      ![
-        sessionFlowName.GuestDiscussion,
-        sessionFlowName.ListeningActivity,
-        sessionFlowName.GuestMiStory,
-      ].includes(currentFlow)
-    ) {
-      setIsLoading(false);
-    }
-  },[profileToUse, accessToken, isEndStoryLoading, noStoryFound])
-
-  useEffect(() => {
-    const currentFlow = storageFlow;
-    const handleBack = () => {
-      console.log("History length:", window.history.length);
-      console.log("Can go back 1?", window.history.length > 1);
-      console.log("Can go back 3?", window.history.length > 3);
-      if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
-      [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow].includes(currentFlow)){
-        if(ssoNavigationTriggered && accessToken){
-          console.log("isnide navigate happens")
-          navigate(-2)
-        } else{
-          showGuestPopup(true)
-        }
-      } else {
-        setLanguage(languageList[0].value);
-        // setInStorageSlice("userPreference", languageList[0].value, "setLocalRoute", type);
-        setChatLanguage(languageList[0].value);
-        stopAllAudio();
-      if(accessToken) {
-          clearFromStorage(true);
-          navigateSsoFlow(ssoRerouteURL);
-        } else {
-          navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
-        }
-      }
-    };
-    // Check if we already pushed a custom state
-    if (!window.history.state?.isCustom) {
-      console.log("shouldPushState is true so pushing state now.");
-      window.history.pushState({ isCustom: true }, "", window.location.href);
-    }
-
-    window.addEventListener("popstate", handleBack);
-
-    return () => {
-      window.removeEventListener("popstate", handleBack);
-    };
-  }, [navigate, acceptedTnc]);
-
-  // useEffect(() => {
-  //   setInStorageSlice(
-  //     "userPreference",
-  //     isChatVisible,
-  //     "setIsChatVisible",
-  //     type
-  //   );
-  // }, [isChatVisible]);
-
-  useEffect(() => {
-    const connection =
-      navigator.connection ||
-      navigator.mozConnection ||
-      navigator.webkitConnection;
-    let toastId = null;
-
-    const checkNetworkSpeed = () => {
-      if (connection) {
-        const { effectiveType, downlink } = connection;
-        if (
-          effectiveType &&
-          (effectiveType === "2g" || effectiveType === "3g") &&
-          navigator.onLine
-        ) {
-          if (toastId) {
-            toast.dismiss(toastId);
-          }
-          const message = t("networkWarning");
-          toastId = showNotification({
-            message: message,
-            type: "warning",
-            options: {
-              position: "top-center",
-              style: { fontWeight: "bold", color: "#1D1616" },
-            },
-          });
-        }
-      }
-    };
-
-    const handleOffline = () => {
-      if (toastId) {
-        toast.dismiss(toastId);
-      }
-      toastId = toast.error(t("offlineNetwork"), {
-        position: "top-center",
-        style: { fontWeight: "bold", color: "#fff" },
-      });
-    };
-
-    const handleOnline = () => {
-      if (toastId) {
-        toast.dismiss(toastId);
-      }
-      toastId = toast.success(t("onlineNetwork"), {
-        position: "top-center",
-        style: { fontWeight: "bold", color: "#1D1616" },
-      });
-      checkNetworkSpeed();
-    };
-
-    checkNetworkSpeed();
-    connection?.addEventListener("change", checkNetworkSpeed);
-    window.addEventListener("offline", handleOffline);
-    window.addEventListener("online", handleOnline);
-
-    return () => {
-      connection?.removeEventListener("change", checkNetworkSpeed);
-      window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("online", handleOnline);
-    };
-  }, []);
 
   // ========== Function Definitions ==========
   const closeModal = () => {
@@ -1988,15 +2490,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setIsModalOpen(true);
   };
 
-  const navigateSsoFlow = (rerouteURL)=>{
-    navigate(-2);
-    if(rerouteURL){
-
-    } else {
-      navigate(-2);
-    }
-  }
-
   const handleScrollToView = () => {
     if (acceptedTnc === "ONGOING") return;
     try {
@@ -2007,28 +2500,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       console.error({ error });
     }
   };
-
-  async function handleChatSessionButtonClick({ key }) {
-    lastBotMessageIndex.current = -1;
-    let key_num;
-    let currentSession;
-    if (key) {
-      key_num = key?.split("-").pop();
-      currentSession = chatTitle[key_num]?.session;
-      removeFromStorage("llmError");
-      setIsOldChatOpen(true);
-      setIsNewChatOpen(false);
-      setSessionId(currentSession);
-      setChatHistory([]);
-
-      window.location.reload();
-    } else {
-      currentSession = sessionId;
-      await fetchBotInfo()
-      setIsIntroLoading(false);
-      await handleCompanyChatCall(currentSession);
-    }
-  }
 
   const pdfDownloadSidebar = async (sessionid) => {
     try {
@@ -2497,57 +2968,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   const isTyping = !!textMessage.trim();
 
-  useEffect(() => {
-    let unnarratedMessages = sentences.filter((x) => !x?.isNarrated);
-    let hasUnnarratedMessages = !!unnarratedMessages?.length;
-    let sourceLanguage = languageToUse;
-    if (acceptedTnc === 'ONGOING') {
-      return () => {};
-    }
-    if (
-      isNextAllowed &&
-      hasUnnarratedMessages &&
-      !isLoading &&
-      !isEndStoryLoading
-    ) {
-      handleAI4BharatTTSRequest(
-        unnarratedMessages[0].message,
-        unnarratedMessages[0].id,
-        sourceLanguage
-      );
-    }
-
-    return () => {};
-  }, [
-    isNextAllowed,
-    sentences,
-    languageToUse,
-    isLoading,
-    isEndStoryLoading,
-    acceptedTnc,
-  ]);
-
-  useEffect(() => {
-    if (
-      !!appendix?.length &&
-      chatHistory[chatHistory?.length - 1].source === "bot"
-    ) {
-      const lastMessage = chatHistory[chatHistory?.length - 1];
-      lastMessage.appendixURL = appendix;
-      lastMessage.hasAppendix = true;
-      setChatHistory([...chatHistory]);
-      setAppendix([]);
-    }
-    return () => {};
-  }, [appendix, chatHistory]);
-
-  useEffect(() => {
-    if (chatLanguage && storageFlow && !accessToken) {
-      setIsLoading(true);
-      handleLanguageSelect(chatLanguage);
-      removeFromStorage('chatLanguage');
-    }
-  }, []);
 
   // useEffect(() => {
   //   const storedLanguage = getFromStorageSlice("userPreference", "route") || null;
@@ -2560,33 +2980,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   //   }
   // }, []);
 
-  const handleLanguageSelect = (language) => {
-    if (chatHistory && chatHistory.length <= 1) {
-      stopAllAudio();
-      isIntroPlayed.current = false;
-      setIsLoading(true);
-      removeFromStorage("chat-history");
-      setChatHistory([]);
-      removeFromStorage("intro_message");
-      setChatHistory([]);
-      setSentences([]);
-      setLangProgress("IN_PROGRESS");
-      setAudioCache({});
-      // setChatLanguage(language);
-      setLanguage(language);
-
-      const isTncAccepted = acceptedTnc;
-      if(isTncAccepted && isTncAccepted !== 'ONGOING') {
-        setIsLoading(false);
-        setAcceptedTnC(true);
-        if(storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow)) {
-          setShouldFetchIntro(true);
-        }
-      } else {
-        setIsLoading(false);
-      }
-    }
-  };
+  
 
   const handleFirstMessage = ({ message, category }) => {
     try {
@@ -2748,24 +3142,24 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   };
 
-  const containsSignificantAudio = (audioBuffer, threshold = 0.3) => {
-    const numOfChannels = audioBuffer.numberOfChannels;
-    const channelData = [];
+  // const containsSignificantAudio = (audioBuffer, threshold = 0.3) => {
+  //   const numOfChannels = audioBuffer.numberOfChannels;
+  //   const channelData = [];
 
-    for (let i = 0; i < numOfChannels; i++) {
-      channelData.push(audioBuffer.getChannelData(i));
-    }
+  //   for (let i = 0; i < numOfChannels; i++) {
+  //     channelData.push(audioBuffer.getChannelData(i));
+  //   }
 
-    for (let i = 0; i < channelData[0].length; i++) {
-      for (let channel = 0; channel < numOfChannels; channel++) {
-        if (Math.abs(channelData[channel][i]) > threshold) {
-          return true;
-        }
-      }
-    }
+  //   for (let i = 0; i < channelData[0].length; i++) {
+  //     for (let channel = 0; channel < numOfChannels; channel++) {
+  //       if (Math.abs(channelData[channel][i]) > threshold) {
+  //         return true;
+  //       }
+  //     }
+  //   }
 
-    return false;
-  };
+  //   return false;
+  // };
 
   const stopRecording = () => {
     if (mediaRecorder) {
@@ -2808,19 +3202,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       ResetChat(e);
     }
     if ([sessionFlowName.GuestMiStory].includes(storageFlow)) {
-      showGuestPopup(false, () => changeSelectedValue(value, e));
+      showGuestPopup(() => changeSelectedValue(value, e), stayOnPage);
     } else {
       changeSelectedValue(value, e);
     }
   };
-
-  function stopAllAudio() {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-  }
 
   const convertHeifToJpg = async (file) => {
     const formData = new FormData();
@@ -2977,7 +3363,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               setIsResetCalled={setIsResetCalled}
               languageToUse={languageToUse}
               stopAllAudio={stopAllAudio}
-              showGuestPopup={(storageFlow && !accessToken) && showGuestPopup}
+              showGuestPopup={(isSpecialFlow && !accessToken) ? () => showGuestPopup(() => {
+                if (isSpecialFlow) removeFromStorage('botName');
+                ResetChat();
+              }, stayOnPage): undefined}
             />}
         </div>
         {isOpen && (
@@ -3000,8 +3389,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 }
                 <button
                   onClick={async (e) => {
-                    if ([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow)) {
-                      showGuestPopup();
+                    if (isSpecialFlow) {
+                      showGuestPopup(() => {
+                        if (isSpecialFlow) removeFromStorage('botName');
+                        ResetChat();
+                      }, stayOnPage);
                     } else {
                       setIsResetCalled(true);
                       await ResetChat(e);

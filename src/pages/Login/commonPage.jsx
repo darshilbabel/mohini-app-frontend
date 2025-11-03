@@ -36,7 +36,6 @@ function CommonHomePage({ usecaseType }) {
   const { languageButtonSelect, handleLanguageChange } = useLanguage();
   const {
     audioRef,
-    controllerRef,
     stopAudioTriggered,
     setStopAudioTriggered,
     stopAllAudio,
@@ -138,7 +137,6 @@ function CommonHomePage({ usecaseType }) {
               audioRef={audioRef}
               stopAudioTriggered={stopAudioTriggered}
               setStopAudioTriggered={setStopAudioTriggered}
-              controllerRef={controllerRef}
               onFlowContinue={onFlowContinue}
               setIsLoading={setIsLoading}
             />

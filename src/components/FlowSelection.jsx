@@ -10,7 +10,6 @@ const FlowSelection = ({
   audioRef,
   stopAudioTriggered,
   setStopAudioTriggered,
-  controllerRef,
   onFlowContinue,
   setIsLoading,
 }) => {
@@ -43,7 +42,6 @@ const FlowSelection = ({
               audioRef={audioRef}
               stopAudioTriggered={stopAudioTriggered}
               setStopAudioTriggered={setStopAudioTriggered}
-              controllerRef={controllerRef}
               logo="https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/discussion_capture_logo.png"
             />
             <FlowOption
@@ -56,7 +54,6 @@ const FlowSelection = ({
               audioRef={audioRef}
               stopAudioTriggered={stopAudioTriggered}
               setStopAudioTriggered={setStopAudioTriggered}
-              controllerRef={controllerRef}
               logo="https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/mi_story_capture_logo.png"
             />
           </div>
@@ -90,7 +87,6 @@ const FlowOption = ({
   audioRef,
   stopAudioTriggered,
   setStopAudioTriggered,
-  controllerRef,
   logo,
 }) => {
   const selectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow)
@@ -113,7 +109,6 @@ const FlowOption = ({
           audioRef={audioRef}
           stopAudioTriggered={stopAudioTriggered}
           setStopAudioTriggered={setStopAudioTriggered}
-          controllerRef={controllerRef}
           logo={logo}
         />
       </span>

@@ -21,6 +21,7 @@ const API_ENDPOINTS = {
   // Story endpoints
   STORY: "/api/story/",
   STORY_MEDIA: "/api/storymedia/",
+  GET_COMPANY_BOT: "/api/companybot/",
 };
 
 export default API_ENDPOINTS;

@@ -18,27 +18,27 @@ function ShikshalokamChat({type, variant}) {
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
 
-	const userId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.userId);
-	const setUserId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setUserId);
-	const setProfileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setProfileId);
-	const companyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.companyName);
-	const setCompanyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setCompanyName);
-	const setDeviceId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setDeviceId);
-	const deviceId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.device_id);
-	const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.sessionId);
-	const setSessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setSessionId);
-	const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow);
 	const { setFirstName } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState();
 	const chatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.chatLanguage);
-	const setHasAcceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setHasAcceptedTnc);
+	const companyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.companyName);
+	const deviceId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.device_id);
 	const ipCity = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.ipCity);
-	const ipState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.ipState);
 	const ipCountry = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.ipCountry);
-	const setIpCity = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setIpCity);
-	const setIpState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setIpState);
-	const setIpCountry = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setIpCountry);
+	const ipState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.ipState);
+	const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.sessionId);
+	const setCompanyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setCompanyName);
+	const setDeviceId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setDeviceId);
 	const setFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setFlow);
+	const setHasAcceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setHasAcceptedTnc);
+	const setIpCity = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setIpCity);
+	const setIpCountry = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setIpCountry);
+	const setIpState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setIpState);
 	const setIsNewChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setIsNewChatOpen);
+	const setProfileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setProfileId);
+	const setSessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setSessionId);
+	const setUserId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.setUserId);
+	const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow);
+	const userId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.userId);
 
 	const accessToken = useUserDataLocalStore((state) => state.access_token);
 

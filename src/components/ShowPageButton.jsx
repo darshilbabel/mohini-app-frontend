@@ -10,7 +10,6 @@ const ShowPageButton = ({
   audioRef,
   stopAudioTriggered,
   setStopAudioTriggered,
-  controllerRef,
   // userLanguage = "en",
   selectedFlow,
   showSpeaker = false,

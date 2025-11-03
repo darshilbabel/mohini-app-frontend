@@ -79,12 +79,10 @@ export function setInStorageSlice(sliceName, value, funcName, currentFlow, stora
  * - If storageType is null: checks for accessToken - uses Local storage if token exists, Session storage otherwise
  * The function constructs the module path as: store/slices/{sliceName}/{sliceName}{Local|Session}.js
  */
-export const getStorageSlice = (sliceName, storageType = null) => {
+export const getStorageSlice = (sliceName, storageType = null, accessToken = undefined) => {
   const SLICE_PATH = "store/slices";
   const LOCAL_STORAGE_SLICES = "Local";
   const SESSION_STORAGE_SLICES = "Session";
-
-  const accessToken = useSiteDataLocalStore.getState().getAccessToken();
 
   let storage = null;
 
