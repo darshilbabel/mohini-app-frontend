@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getSessionDetails } from "../../services/api.service";
+import { getSessionDetailsApi } from "../../api/endpoints/chat";
 import { languageList, sessionFlowName } from "../ShikshalokamVoiceChat/enum";
 import { useNavigate } from "react-router-dom";
 import { setLanguage } from "../../i18n";
@@ -70,7 +70,7 @@ function UnifiedChat({ type }) {
       const profile_id = flowConfig.profileId;
       setInStorage("profileid", JSON.stringify(profile_id), type);
 
-      const { sessionid } = await getSessionDetails();
+      const { sessionid } = await getSessionDetailsApi();
       setInStorage("sessionid", JSON.stringify(sessionid), type);
 
       setIsLoading(false);

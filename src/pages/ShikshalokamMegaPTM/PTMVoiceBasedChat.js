@@ -4,12 +4,9 @@ import { MdSend } from "react-icons/md";
 import useVoiceRecord from "../interview-text-voice/useVoiceRecord";
 import { createMessage } from "../interview-voice";
 import { BiLoader } from "react-icons/bi";
-import {
-  ai4BharatASR,
-  getAI4BharatAudio,
-  getSessionDetails,
-  savePTMQuestion,
-} from "../../services/api.service";
+import { ai4BharatASRApi, getAI4BharatAudioApi } from "../../api/endpoints/ai";
+import { savePTMQuestionApi } from "../../api/endpoints/ptm";
+import { getSessionDetailsApi } from "../../api/endpoints/chat";
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
 import "../../style.css";
 import "../ShikshalokamVoiceChat/shikshaChatStyle.css";
@@ -251,7 +248,7 @@ const PTMVoiceBasedChat = () => {
     removeLocalChatHistory();
     setInStorage("isOldChatOpen", JSON.stringify(false), currentFlow);
 
-    const session = await getSessionDetails();
+    const session = await getSessionDetailsApi();
     setInStorage("sessionid", JSON.stringify(session.sessionid), currentFlow);
     setInStorage("chatbot_clickedOn?", "", currentFlow);
     setIsLoading(false);
@@ -454,24 +451,25 @@ const PTMVoiceBasedChat = () => {
         setHasOverRideId(null);
         return;
       }
-      if(_audio?.length){
-      if (!cachedAudioUrl) {
-        fetch(_audio)
-          .then((res) => res.text())
-          .then((base64) => {
-            cachedAudioUrl = `data:audio/mpeg;base64,${base64}`;
-            setAudioCache((prevCache) => ({
-              ...prevCache,
-              [id]: cachedAudioUrl,
-            }));
-            handleSpeaking(cachedAudioUrl);
-          })
-          .catch((err) => {
-            console.error("Error fetching audio:", err);
-          });
-      } else {
-        handleSpeaking(cachedAudioUrl);
-      }}
+      if (_audio?.length) {
+        if (!cachedAudioUrl) {
+          fetch(_audio)
+            .then((res) => res.text())
+            .then((base64) => {
+              cachedAudioUrl = `data:audio/mpeg;base64,${base64}`;
+              setAudioCache((prevCache) => ({
+                ...prevCache,
+                [id]: cachedAudioUrl,
+              }));
+              handleSpeaking(cachedAudioUrl);
+            })
+            .catch((err) => {
+              console.error("Error fetching audio:", err);
+            });
+        } else {
+          handleSpeaking(cachedAudioUrl);
+        }
+      }
     } catch (error) {
       console.error("Error in handleAI4BharatTTSRequest:", error);
       handleOnStopSpeaking();
@@ -615,7 +613,7 @@ const PTMVoiceBasedChat = () => {
                 transcriptResult = t("asrError");
               }
               setAsrAudio(s3Url);
-              transcriptResult = await ai4BharatASR(
+              transcriptResult = await ai4BharatASRApi(
                 s3Url,
                 languageToUse,
                 FLOW_ROUTE
@@ -724,23 +722,21 @@ const PTMVoiceBasedChat = () => {
         </div>
       )}
 
-
       <div>
-        
         <HiddenRecorder />
         <div className={`div33 div9`}>
-          {(getFromStorage('flow', false))&&<>
-                <div className="div10" >
-                  <h3 className="h3-1">
-                    {t('ptmIntroductionHeading')}
-                  </h3>
-                </div>
-                <ul className="div11 pb-6" >
-                  <li>{t('ptmIntroductionDescriptionLine1')}</li>
-                  <li>{t('ptmIntroductionDescriptionLine2')}</li>
-                  <li>{t('ptmIntroductionDescriptionLine3')}</li>
-                </ul>
-              </>}
+          {getFromStorage("flow", false) && (
+            <>
+              <div className="div10">
+                <h3 className="h3-1">{t("ptmIntroductionHeading")}</h3>
+              </div>
+              <ul className="div11 pb-6">
+                <li>{t("ptmIntroductionDescriptionLine1")}</li>
+                <li>{t("ptmIntroductionDescriptionLine2")}</li>
+                <li>{t("ptmIntroductionDescriptionLine3")}</li>
+              </ul>
+            </>
+          )}
           {
             <ul className="div34">
               {chatHistory?.map((chat, i) => (
@@ -827,7 +823,7 @@ const PTMVoiceBasedChat = () => {
                   audio_url: asrAudio,
                   audio: last_question.audio,
                 };
-                savePTMQuestion(data);
+                savePTMQuestionApi(data);
                 setChatHistory((prev) => [
                   ...prev,
                   {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import { MdEdit } from "react-icons/md";
 import { GrGallery } from "react-icons/gr";
 import { FiDownload } from "react-icons/fi";
@@ -11,27 +11,27 @@ import { useTranslation } from "react-i18next";
 import { PrimaryButton } from "../../components/Buttons";
 import ChatMessage from "../ShikshalokamMegaPTM/ChatMessage";
 import PdfDownloader from "../story/upload-content/pdfDownloader";
-import { 
-  getFromStorage, 
-  handleS3Upload 
-} from "../../services/storage_service";
-import { 
-  createStoryMedia, 
-  partialUpdateStoryById
-} from "../story/api.service";
+import { getFromStorage, handleS3Upload } from "../../services/storage_service";
+import { createStoryMedia, partialUpdateStoryById } from "../../api/endpoints";
 import axiosInstance from "../../utils/axios";
 import { sessionFlowName } from "../ShikshalokamVoiceChat/enum";
 
 // Reusable partialUpdateMedia function
-export const partialUpdateMedia = (partialUpdateId, include_in_story = false, access_token, setIsLoading) => {
+export const partialUpdateMedia = (
+  partialUpdateId,
+  include_in_story = false,
+  access_token,
+  setIsLoading
+) => {
   try {
     const formData = new FormData();
-    formData.append('include_in_story', include_in_story);
-    formData.append('flow', getFromStorage('flow', false));
-    formData.append('access_token', access_token);
-    formData.append('session', getFromStorage('sessionid', true));
+    formData.append("include_in_story", include_in_story);
+    formData.append("flow", getFromStorage("flow", false));
+    formData.append("access_token", access_token);
+    formData.append("session", getFromStorage("sessionid", true));
 
-    axiosInstance.patch(`/api/storymedia/${partialUpdateId}/`, formData)
+    axiosInstance
+      .patch(`/api/storymedia/${partialUpdateId}/`, formData)
       .then(() => {
         window.location.reload();
       })
@@ -45,7 +45,14 @@ export const partialUpdateMedia = (partialUpdateId, include_in_story = false, ac
 };
 
 // Reusable uploadImage function
-const uploadImage = (formData, setError, navigate, setIsLoading, access_token, setFiles) => {
+const uploadImage = (
+  formData,
+  setError,
+  navigate,
+  setIsLoading,
+  access_token,
+  setFiles
+) => {
   return new Promise((resolve, reject) => {
     try {
       createStoryMedia({
@@ -86,14 +93,14 @@ export const PhotoUploadSection = ({
   isStreamingComplete,
   setNotMute,
   navigate,
-  flowConfig
+  flowConfig,
 }) => {
   const { t } = useTranslation();
-  const [fileErrorText, setFileErrorText] = useState('');
+  const [fileErrorText, setFileErrorText] = useState("");
   const [isImageUploading, setIsImageUploading] = useState(false);
 
-  const fileExceedText = t('fileExceedText');
-  const fileSizeText = t('fileSizeText');
+  const fileExceedText = t("fileExceedText");
+  const fileSizeText = t("fileSizeText");
 
   useEffect(() => {
     const textErrorTime = setTimeout(() => {
@@ -109,13 +116,19 @@ export const PhotoUploadSection = ({
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await axiosInstance.post("api/image-converter/", formData, {
-      responseType: "blob",
-    });
+    const response = await axiosInstance.post(
+      "api/image-converter/",
+      formData,
+      {
+        responseType: "blob",
+      }
+    );
 
     const convertedBlob = response.data;
-    const originalName = file.name.split('.').slice(0, -1).join('.');
-    const jpgFile = new File([convertedBlob], `${originalName}.jpg`, { type: "image/jpeg" });
+    const originalName = file.name.split(".").slice(0, -1).join(".");
+    const jpgFile = new File([convertedBlob], `${originalName}.jpg`, {
+      type: "image/jpeg",
+    });
 
     return jpgFile;
   };
@@ -135,7 +148,15 @@ export const PhotoUploadSection = ({
     }
 
     const maxFileSize = 50 * 1024 * 1024;
-    const allowedExtensions = ["jpeg", "jpg", "png", "svg", "webp", "heif", "heic"];
+    const allowedExtensions = [
+      "jpeg",
+      "jpg",
+      "png",
+      "svg",
+      "webp",
+      "heif",
+      "heic",
+    ];
 
     const uploadPromises = filesArray.map(async (file) => {
       if (file.size > maxFileSize) {
@@ -145,7 +166,7 @@ export const PhotoUploadSection = ({
       }
 
       const fileName = file.name;
-      const fileExtension = fileName.split('.').pop().toLowerCase();
+      const fileExtension = fileName.split(".").pop().toLowerCase();
 
       if (!allowedExtensions.includes(fileExtension)) {
         setFileErrorText(t("fileTypeErrorText"));
@@ -158,7 +179,12 @@ export const PhotoUploadSection = ({
           file = await convertHeifToJpg(file);
         }
 
-        const s3Url = await handleS3Upload(file, fileName, 'chatbot/storymedia/', storyData);
+        const s3Url = await handleS3Upload(
+          file,
+          fileName,
+          "chatbot/storymedia/",
+          storyData
+        );
 
         const formData = {
           file_url: s3Url,
@@ -167,11 +193,18 @@ export const PhotoUploadSection = ({
           media_type: file.type,
           include_in_story: true,
           access_token,
-          flow: getFromStorage('flow', false),
-          session: getFromStorage('sessionid', true),
+          flow: getFromStorage("flow", false),
+          session: getFromStorage("sessionid", true),
         };
 
-        const uploadedFile = await uploadImage(formData, () => {}, navigate, setIsLoading, access_token, setFiles);
+        const uploadedFile = await uploadImage(
+          formData,
+          () => {},
+          navigate,
+          setIsLoading,
+          access_token,
+          setFiles
+        );
         return uploadedFile;
       } catch (error) {
         console.error({ error });
@@ -183,8 +216,8 @@ export const PhotoUploadSection = ({
     try {
       const uploadedFiles = await Promise.allSettled(uploadPromises);
       const validFiles = uploadedFiles
-        .filter(result => result.status === 'fulfilled' && result.value)
-        .map(result => result.value);
+        .filter((result) => result.status === "fulfilled" && result.value)
+        .map((result) => result.value);
 
       setFiles([...currentFiles, ...validFiles]);
     } catch (e) {
@@ -201,13 +234,17 @@ export const PhotoUploadSection = ({
         isTalking={false}
         handleOnStopSpeaking={() => handleOnStopSpeaking()}
         handleOnSpeaking={() => {
-          const lang = getFromStorage('local_route', true);
+          const lang = getFromStorage("local_route", true);
           const message_to_use = flowConfig?.uploadPhotoKey;
-          handleOnSpeaking(flowConfig?.storyTextAudio?.[lang]?.uploadPhotoAudio, "upload-img-id", {
-            msg: message_to_use,
-            updated_at: "upload-img-id",
-            source: "bot"
-          });
+          handleOnSpeaking(
+            flowConfig?.storyTextAudio?.[lang]?.uploadPhotoAudio,
+            "upload-img-id",
+            {
+              msg: message_to_use,
+              updated_at: "upload-img-id",
+              source: "bot",
+            }
+          );
         }}
         isAnyPlaying={!!hasOverRideId || isTalking}
         isPlaying={hasOverRideId === "upload-img-id"}
@@ -219,7 +256,7 @@ export const PhotoUploadSection = ({
       <div className="div14">
         <label className="clickable-label" htmlFor="file-upload">
           <GrGallery className="icon-1" />
-          <span className="div16">{t('upload')}</span>
+          <span className="div16">{t("upload")}</span>
           <input
             id="file-upload"
             type="file"
@@ -232,39 +269,50 @@ export const PhotoUploadSection = ({
               if (files?.length >= 10) {
                 setFileErrorText(fileExceedText);
               } else {
-                setFileErrorText('');
+                setFileErrorText("");
               }
             }}
-            disabled={isLoading || isImageUploading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
+            disabled={
+              isLoading ||
+              isImageUploading ||
+              (fileErrorText !== "" &&
+                fileErrorText !== fileSizeText &&
+                fileErrorText === fileExceedText)
+            }
             className="div17"
           />
         </label>
       </div>
 
       <div className="div18">
-        <p className="li-message">{t('photosLimitMsg')}</p>
+        <p className="li-message">{t("photosLimitMsg")}</p>
       </div>
 
       {isImageUploading && (
         <div className="div18">
-          <p className="li-3">{t('uploadLoadMsg')}</p>
+          <p className="li-3">{t("uploadLoadMsg")}</p>
         </div>
       )}
 
       {files?.length > 0 ? (
         <div className="div18">
-          <h4 className="h4-1">{t('uploadedFiles')}:</h4>
+          <h4 className="h4-1">{t("uploadedFiles")}:</h4>
           <ul>
-            {fileErrorText && (
-              <li className="li-1">{fileErrorText}</li>
-            )}
+            {fileErrorText && <li className="li-1">{fileErrorText}</li>}
             {files.map((file, index) => (
               <li key={index} className="li-2">
                 {file.name.slice(0, 20)}
-                {file.name.length > 20 && '...'}
+                {file.name.length > 20 && "..."}
                 <button
                   className="button-1"
-                  onClick={() => partialUpdateMedia(file?.id, false, access_token, setIsLoading)}
+                  onClick={() =>
+                    partialUpdateMedia(
+                      file?.id,
+                      false,
+                      access_token,
+                      setIsLoading
+                    )
+                  }
                 >
                   <RxCross2 />
                 </button>
@@ -274,11 +322,7 @@ export const PhotoUploadSection = ({
         </div>
       ) : (
         <div className="div18">
-          <ul>
-            {fileErrorText && (
-              <li className="li-1">{fileErrorText}</li>
-            )}
-          </ul>
+          <ul>{fileErrorText && <li className="li-1">{fileErrorText}</li>}</ul>
         </div>
       )}
     </div>
@@ -295,7 +339,7 @@ export const EditStoryModal = ({
   isSaving,
   setIsSaving,
   access_token,
-  navigate
+  navigate,
 }) => {
   const { t } = useTranslation();
   const editorContainerRef = useRef(null);
@@ -311,11 +355,17 @@ export const EditStoryModal = ({
 
   useEffect(() => {
     if (!!editorCopyChanges && isModalOpen && storyData) {
-      const flow = getFromStorage('flow', false);
+      const flow = getFromStorage("flow", false);
       let parsed_content = [];
 
       try {
-        if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
+        if (
+          flow &&
+          [
+            sessionFlowName.LoginDiscussion,
+            sessionFlowName.GuestDiscussion,
+          ].includes(flow)
+        ) {
           const challenges = storyData?.other_params?.challenges_faced || [];
           const solutions = storyData?.other_params?.solutions_discussed || [];
 
@@ -323,9 +373,9 @@ export const EditStoryModal = ({
             {
               type: "header",
               data: {
-                text: t('challengesHeader'),
+                text: t("challengesHeader"),
                 level: 2,
-                customId: "challenges"
+                customId: "challenges",
               },
             },
             {
@@ -338,9 +388,9 @@ export const EditStoryModal = ({
             {
               type: "header",
               data: {
-                text: t('solutionsHeader'),
+                text: t("solutionsHeader"),
                 level: 2,
-                customId: "solutions"
+                customId: "solutions",
               },
             },
             {
@@ -349,10 +399,11 @@ export const EditStoryModal = ({
                 style: "unordered",
                 items: solutions.length > 0 ? solutions : [""],
               },
-            }
+            },
           ];
         } else if (flow && [sessionFlowName.ListeningActivity].includes(flow)) {
-          const questionAnswers = storyData?.other_params?.question_answers || [];
+          const questionAnswers =
+            storyData?.other_params?.question_answers || [];
 
           parsed_content = [];
           questionAnswers.forEach((qa, index) => {
@@ -361,14 +412,14 @@ export const EditStoryModal = ({
               data: {
                 text: `Q${index + 1}: ${qa.question}`,
                 level: 3,
-                customId: `question-${index}`
+                customId: `question-${index}`,
               },
             });
 
             parsed_content.push({
               type: "paragraph",
               data: {
-                text: qa.answer || ""
+                text: qa.answer || "",
               },
             });
 
@@ -376,45 +427,45 @@ export const EditStoryModal = ({
               parsed_content.push({
                 type: "paragraph",
                 data: {
-                  text: "​"
+                  text: "​",
                 },
-                readonly: true
+                readonly: true,
               });
             }
           });
         } else {
-          parsed_content = editorCopyChanges.map(item => ({
+          parsed_content = editorCopyChanges.map((item) => ({
             type: item.type,
             data: {
-              text: item.data.text
-            }
+              text: item.data.text,
+            },
           }));
         }
       } catch (error) {
         parsed_content = [];
       }
 
-      if (!document.getElementById('editorjs')) {
+      if (!document.getElementById("editorjs")) {
         return;
       }
 
       const _editor = new EditorJS({
         holder: "editorjs",
-        placeholder: t('editorPlaceholder'),
+        placeholder: t("editorPlaceholder"),
         autofocus: true,
         hideToolbar: true,
         tools: {
           header: {
             class: Header,
-            inlineToolbar: false
+            inlineToolbar: false,
           },
           list: {
             class: List,
             inlineToolbar: false,
             config: {
-              defaultStyle: 'unordered'
+              defaultStyle: "unordered",
             },
-          }
+          },
         },
         onReady: () => {
           setEditor(_editor);
@@ -430,7 +481,10 @@ export const EditStoryModal = ({
         },
         defaultBlock: "paragraph",
         data: {
-          blocks: parsed_content.length > 0 ? parsed_content : [{ type: "paragraph", data: { text: "" } }],
+          blocks:
+            parsed_content.length > 0
+              ? parsed_content
+              : [{ type: "paragraph", data: { text: "" } }],
         },
         onChange: async (api, event) => {
           setIsSaving(false);
@@ -445,11 +499,15 @@ export const EditStoryModal = ({
 
   const getListAfterHeaderText = (headerText, blocks) => {
     const idx = blocks.findIndex(
-      (b) => b.type === 'header' && b.data.text.trim().toLowerCase() === headerText.toLowerCase()
+      (b) =>
+        b.type === "header" &&
+        b.data.text.trim().toLowerCase() === headerText.toLowerCase()
     );
-    if (idx !== -1 && blocks[idx + 1]?.type === 'list') {
+    if (idx !== -1 && blocks[idx + 1]?.type === "list") {
       const items = blocks[idx + 1].data.items || [];
-      return items.map(item => (typeof item === 'string' ? item : item?.content || ""));
+      return items.map((item) =>
+        typeof item === "string" ? item : item?.content || ""
+      );
     }
     return [];
   };
@@ -458,9 +516,9 @@ export const EditStoryModal = ({
     const questionAnswers = [];
     let currentQuestion = null;
 
-    const filteredBlocks = blocks.filter(block => {
-      if (block.type === 'paragraph') {
-        const text = block.data.text || '';
+    const filteredBlocks = blocks.filter((block) => {
+      if (block.type === "paragraph") {
+        const text = block.data.text || "";
         const isEmpty = !text.trim() || text === "​" || text === " ";
         return !isEmpty;
       }
@@ -468,14 +526,14 @@ export const EditStoryModal = ({
     });
 
     filteredBlocks.forEach((block, index) => {
-      if (block.type === 'header' && block.data.text.startsWith('Q')) {
+      if (block.type === "header" && block.data.text.startsWith("Q")) {
         if (currentQuestion) {
           questionAnswers.push(currentQuestion);
         }
 
-        const questionText = block.data.text.replace(/^Q\d+:\s*/, '');
+        const questionText = block.data.text.replace(/^Q\d+:\s*/, "");
         currentQuestion = { question: questionText, answer: "" };
-      } else if (block.type === 'paragraph' && currentQuestion) {
+      } else if (block.type === "paragraph" && currentQuestion) {
         currentQuestion.answer = block.data.text || "";
         questionAnswers.push(currentQuestion);
         currentQuestion = null;
@@ -493,13 +551,20 @@ export const EditStoryModal = ({
 
   return (
     <div className="voice-chat-editor-overlay" onClick={closeModal}>
-      <div className="voice-chat-editor-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="voice-chat-editor-content"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button onClick={closeModal} className="editor-content-button">
           <IoClose className="icon-7" />
         </button>
         <div id="container-editor">
           <div className="container-editor-div">
-            <div id="editorjs" ref={editorContainerRef} className="editor-main-div"></div>
+            <div
+              id="editorjs"
+              ref={editorContainerRef}
+              className="editor-main-div"
+            ></div>
           </div>
         </div>
         <div className="editor-button-div">
@@ -508,19 +573,31 @@ export const EditStoryModal = ({
               try {
                 handleSetIsLoading(true);
                 const outputData = await editor.save();
-                const flow = getFromStorage('flow', false);
+                const flow = getFromStorage("flow", false);
 
                 let updatePayload = {
                   id: storyData?.id,
-                  access_token: getFromStorage('accessToken', true),
-                  session: getFromStorage('sessionid', true),
+                  access_token: getFromStorage("accessToken", true),
+                  session: getFromStorage("sessionid", true),
                   flow,
                 };
 
-                if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
+                if (
+                  flow &&
+                  [
+                    sessionFlowName.LoginDiscussion,
+                    sessionFlowName.GuestDiscussion,
+                  ].includes(flow)
+                ) {
                   const blocks = outputData?.blocks || [];
-                  const challenges = getListAfterHeaderText(t('challengesHeader'), blocks);
-                  const solutions = getListAfterHeaderText(t('solutionsHeader'), blocks);
+                  const challenges = getListAfterHeaderText(
+                    t("challengesHeader"),
+                    blocks
+                  );
+                  const solutions = getListAfterHeaderText(
+                    t("solutionsHeader"),
+                    blocks
+                  );
 
                   updatePayload = {
                     ...updatePayload,
@@ -530,9 +607,12 @@ export const EditStoryModal = ({
                       challenges_faced: challenges,
                       solutions_discussed: solutions,
                     },
-                    formatted_content: null
+                    formatted_content: null,
                   };
-                } else if (flow && [sessionFlowName.ListeningActivity].includes(flow)) {
+                } else if (
+                  flow &&
+                  [sessionFlowName.ListeningActivity].includes(flow)
+                ) {
                   const blocks = outputData?.blocks || [];
                   const questionAnswers = getQuestionAnswersFromBlocks(blocks);
 
@@ -543,7 +623,7 @@ export const EditStoryModal = ({
                       ...(storyData?.other_params || {}),
                       question_answers: questionAnswers,
                     },
-                    formatted_content: null
+                    formatted_content: null,
                   };
                 } else {
                   updatePayload = {
@@ -567,7 +647,7 @@ export const EditStoryModal = ({
             }}
             disabled={isLoading || isSaving}
           >
-            {t('saveChanges')}
+            {t("saveChanges")}
           </PrimaryButton>
         </div>
       </div>
@@ -583,7 +663,7 @@ export const DownloadStoryButton = ({
   setIsLoading,
   setIsPdfDownloading,
   access_token,
-  t
+  t,
 }) => {
   const [triggerDownload, setTriggerDownload] = useState(false);
   const [storyData, setStoryData] = useState(null);
@@ -614,7 +694,10 @@ export const DownloadStoryButton = ({
 
       const story = await getStoryBySession(sessionid);
       const story_media = story[0]?.story_media;
-      const pdfMedia = story_media?.filter(media => media.media_type === 'application/pdf') || [];
+      const pdfMedia =
+        story_media?.filter(
+          (media) => media.media_type === "application/pdf"
+        ) || [];
 
       const pdfFileName = story[0]?.title + ".pdf";
       const fileUrl = pdfMedia[0]?.public_url;
@@ -633,7 +716,7 @@ export const DownloadStoryButton = ({
           }
 
           const blob = new Blob(chunks);
-          const a = document.createElement('a');
+          const a = document.createElement("a");
           const url = window.URL.createObjectURL(blob);
           a.href = url;
           a.download = pdfFileName;
@@ -645,7 +728,7 @@ export const DownloadStoryButton = ({
         }
       }
     } catch (error) {
-      console.error('Error downloading file:', error);
+      console.error("Error downloading file:", error);
     } finally {
       setIsPdfDownloading(false);
       setIsLoading(false);
@@ -673,7 +756,7 @@ export const DownloadStoryButton = ({
         >
           <div className="download-story-div">
             <FiDownload className="icon-1" />
-            <span className="div16">{t('downloadStoryText')}</span>
+            <span className="div16">{t("downloadStoryText")}</span>
           </div>
         </button>
       </div>
@@ -691,7 +774,12 @@ export const DownloadStoryButton = ({
 };
 
 // Edit Story Button Component
-export const EditStoryButton = ({ openModal, isLoading, isPdfDownloading, t }) => {
+export const EditStoryButton = ({
+  openModal,
+  isLoading,
+  isPdfDownloading,
+  t,
+}) => {
   return (
     <div className="div20">
       <button
@@ -701,7 +789,7 @@ export const EditStoryButton = ({ openModal, isLoading, isPdfDownloading, t }) =
       >
         <div className="download-story-div">
           <MdEdit className="icon-1" />
-          <span className="div16">{t('editStoryText')}</span>
+          <span className="div16">{t("editStoryText")}</span>
         </div>
       </button>
     </div>
@@ -725,27 +813,31 @@ export const StoryActionsContainer = ({
   setIsPdfDownloading,
   access_token,
   flowConfig,
-  showDownload = true,  // Add this
-  showEdit = true,      // Add this
-  t
+  showDownload = true, // Add this
+  showEdit = true, // Add this
+  t,
 }) => {
   return (
     <div className="div19">
       <ChatMessage
         botNameToDisplay={botNameToDisplay}
         userType="bot"
-        message={t('storyText')}
+        message={t("storyText")}
         isTalking={false}
         handleOnStopSpeaking={() => handleOnStopSpeaking()}
         handleOnSpeaking={() => {
-          const lang = getFromStorage('local_route', true);
+          const lang = getFromStorage("local_route", true);
           console.log("lang", lang);
-          const message_to_use = t('storyText');
-          handleOnSpeaking(flowConfig?.storyTextAudio[lang].storyReportAudio, "download-story-id", {
-            msg: message_to_use,
-            updated_at: "download-story-id",
-            source: "bot"
-          });
+          const message_to_use = t("storyText");
+          handleOnSpeaking(
+            flowConfig?.storyTextAudio[lang].storyReportAudio,
+            "download-story-id",
+            {
+              msg: message_to_use,
+              updated_at: "download-story-id",
+              source: "bot",
+            }
+          );
         }}
         isAnyPlaying={!!hasOverRideId || isTalking}
         isPlaying={hasOverRideId === "download-story-id"}
