@@ -5,8 +5,7 @@ import { LANGUAGE_ENUMS, sessionFlowName } from "pages/ShikshalokamVoiceChat/enu
 import { useLanguage } from "../../hooks/useLanguage";
 import { useAudio } from "../../hooks/useAudio";
 import { useFlow } from "../../hooks/useFlow";
-import { useNavigation } from "../../hooks/useNavigation";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { SESSION_USECASE_TYPE } from "constants/session";
 
 // Components
@@ -44,7 +43,7 @@ function CommonHomePage({ usecaseType }) {
   } = useAudio();
   const { isLoading, setIsLoading, handleFlowSelection } = useFlow(usecaseType);
 
-  const navigate = useNavigation();
+  const navigate = useNavigate();
   const setPreviousUrl = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.setPreviousUrl)
 
   const [searchParams] = useSearchParams();

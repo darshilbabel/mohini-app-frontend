@@ -9,13 +9,8 @@ const useChatDataLocalStore = create(
     createPersistentStore(
         STORE_NAME_CONSTANTS.CHAT_DATA,
         (set, get) => ({
-            ...initialState,
+            ...initialState(set, get),
 
-            setChatHistory: (chatHistory) => set({ chatHistory }),
-
-            setFlow: (flow) => set({ flow }),
-
-            getFlow: () => get().flow,
         })
     )
 )

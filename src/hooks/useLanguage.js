@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { setLanguage } from "i18n";
-import { setInStorage } from "services/storage_service";
 import { useStorage } from "hooks/useStorage";
 import { STORE_NAME_CONSTANTS } from "store/constants";
 
@@ -12,6 +11,7 @@ export const useLanguage = () => {
   
   const setChatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.setChatLanguage)
   const hasSelectedLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.hasSelectedLanguage)
+  const { setHasSelectedLanguage } = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.setHasSelectedLanguage)
 
   /**
    * @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]}
@@ -30,7 +30,7 @@ export const useLanguage = () => {
   // Auto-apply URL language on mount
   useEffect(() => {
     if (urlLanguage) {
-      setInStorage("hasSelectedLanguage", true);
+      setHasSelectedLanguage(true);
       setLanguage(urlLanguage);
       setChatLanguage(urlLanguage);
       setLanguageButtonSelect(true);

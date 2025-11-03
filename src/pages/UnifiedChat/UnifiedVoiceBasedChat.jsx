@@ -1,61 +1,39 @@
-import { useEffect, useRef, useState } from "react";
-import { MdSend } from "react-icons/md";
-import useVoiceRecord from "../interview-text-voice/useVoiceRecord";
-import { createMessage } from "../interview-voice";
-import { BiLoader } from "react-icons/bi";
-import { ai4BharatASRApi } from "../../api/endpoints/ai";
-import { savePTMQuestionApi } from "../../api/endpoints/ptm";
-import { getSessionDetailsApi } from "../../api/endpoints/chat";
-import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
 import "../../style.css";
 import "../ShikshalokamVoiceChat/shikshaChatStyle.css";
-import Swal from "sweetalert2";
+import { ai4BharatASRApi } from "api/endpoints/ai";
+import { BiLoader } from "react-icons/bi";
+import { clearFromStorage, handleS3Upload } from "../../services/storage_service";
+import { createMessage } from "../interview-voice";
+import { EditStoryModal, PhotoUploadSection, StoryActionsContainer } from "./StoryActionsModule";
+import { FaCircle } from "react-icons/fa6";
+import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
+import { getFlowConfig } from "../../config/flowConfig";
+import { getSessionDetailsApi } from "../../api/endpoints/chat";
+import { getStoryAllMedia } from "api/endpoints";
+import { languageList, PTM_CONVERSATION_STATUS_TYPE } from "../ShikshalokamVoiceChat/enum";
+import { MdSend } from "react-icons/md";
+import { savePTMQuestionApi } from "../../api/endpoints/ptm";
+import { setLanguage } from "../../i18n";
+import { showNotification } from "components/ToastMessage/TotastMessage";
+import { TbReload } from "react-icons/tb";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { setLanguage } from "../../i18n";
-import { showNotification } from "../../components/ToastMessage/TotastMessage";
-import {
-  languageList,
-  PTM_CONVERSATION_STATUS_TYPE,
-} from "../ShikshalokamVoiceChat/enum";
-import PrivacyPolicyPopup from "../../components/TnC/privacyPolicyPopup";
-import { FaCircle } from "react-icons/fa6";
-import {
-  clearFromStorage,
-  getFromStorage,
-  handleS3Upload,
-  setInStorage,
-  removeFromStorage,
-} from "../../services/storage_service";
+import axiosInstance from "utils/axios";
 import ChatMessage from "../ShikshalokamMegaPTM/ChatMessage";
-import useCustomMediaQuery from "../../hooks/useCustomMediaQuery";
-import SpeedNotification from "../ShikshalokamMegaPTM/SpeedNotification";
-import useSmartChatStorage from "../../hooks/useSmartChatStorage";
 import Header from "../ShikshalokamVoiceChat/shikshaChatHeader";
-import { getFlowConfig } from "../../config/flowConfig";
-import axiosInstance from "../../utils/axios";
-import { TbReload } from "react-icons/tb";
-import {
-  EditStoryModal,
-  PhotoUploadSection,
-  StoryActionsContainer,
-} from "./StoryActionsModule";
-import { getStoryAllMedia } from "../../api/endpoints";
+import PrivacyPolicyPopup from "components/TnC/privacyPolicyPopup";
+import SpeedNotification from "../ShikshalokamMegaPTM/SpeedNotification";
+import Swal from "sweetalert2";
+import useCustomMediaQuery from "hooks/useCustomMediaQuery";
+import useSmartChatStorage from "hooks/useSmartChatStorage";
+import useVoiceRecord from "../interview-text-voice/useVoiceRecord";
+import { useStorage } from "hooks/useStorage";
+import { STORE_NAME_CONSTANTS } from "store/constants";
+import { useChatDataLocalStore } from "store";
 
 const UnifiedVoiceBasedChat = ({ flowType }) => {
-  const audioRef = useRef();
-  const textAreaRef = useRef(null);
-  const lastBotMessageIndex = useRef(-1);
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-
-  // Get flow-specific configuration
-  const flowConfig = getFlowConfig(flowType);
-  const questions = flowConfig.questions;
-  const FLOW_ROUTE = flowConfig.apiRoute;
-  const storyActionsConfig = flowConfig.storyActions || {};
-  const showCompletionPopup = flowConfig.showCompletionPopup !== false;
-
+  // useState hooks
   const [localChatHistory, setLocalChatHistory, removeLocalChatHistory] =
     useSmartChatStorage();
   const [chatHistory, setChatHistory] = useState(
@@ -68,7 +46,6 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const [audioCache, setAudioCache] = useState({});
   const [hasStartedListening, setHasStartedListening] = useState(false);
   const [trigger, setTrigger] = useState(false);
-  const botNameToDisplay = t("botName");
   const [hasStartedRecording, setHasStartedRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [sentences, setSentences] = useState([]);
@@ -76,25 +53,14 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const [isMute, setNotMute] = useState(true);
   const [hasOverRideId, setHasOverRideId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [acceptedTnc, setAcceptedTnC] = useState(
-    getFromStorage("has_accepted_tnc", true)
-  );
   const [seconds, setSeconds] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
-  const questionCounter = useRef(1);
-
-  const endPageToScrollRef = useRef(null);
   const [fileErrorText, setFileErrorText] = useState("");
-
-  let isMobile = useCustomMediaQuery("(max-width: 500px)");
-  let chatToAddLength = isMobile ? 10 : 10;
-  const [visibleItemCount, setVisibleItemCount] = useState(chatToAddLength);
-  const [languageToUse, setLanguageToUse] = useState(() => {
-    const savedLang = getFromStorage("local_route", false);
-    return savedLang ? JSON.parse(savedLang) : null;
-  });
-
-  // Story-related states
+  const [visibleItemCount, setVisibleItemCount] = useState(10);
+  // const [languageToUse, setLanguageToUse] = useState(() => {
+  //   const savedLang = getFromStorage("local_route", false);
+  //   return savedLang ? JSON.parse(savedLang) : null;
+  // });
   const [storyData, setStoryData] = useState(null);
   const [files, setFiles] = useState([]);
   const [showFileInput, setShowFileInput] = useState(false);
@@ -105,13 +71,54 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const [isEndStoryLoading, setIsEndStoryLoading] = useState(false);
   const [noStoryFound, setNoStoryFound] = useState(false);
   const [llmError, setLlmError] = useState("");
-
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isTalking, setTalking] = useState(0);
 
-  const { recordings, HiddenRecorder } = useVoiceRecord();
+  // Other hooks
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const audioRef = useRef();
+  const textAreaRef = useRef(null);
+  const lastBotMessageIndex = useRef(-1);
+  const questionCounter = useRef(1);
+  const endPageToScrollRef = useRef(null);
   const hasAutoPlayedStoryAudios = useRef(false);
+  let isMobile = useCustomMediaQuery("(max-width: 500px)");
+  const { recordings, HiddenRecorder } = useVoiceRecord();
 
+  const accessToken = useChatDataLocalStore((state) => state.accessToken);
+
+  const acceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.has_accepted_tnc);
+  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow);
+  const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.sessionId);
+  const profileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.profileId);
+  const previousUrl = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.previousUrl);
+
+  const languageToUse = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.chatLanguage);
+  const setLanguageToUse = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.setChatLanguage);
+  const {
+    setIsNewChatOpen,
+    setIsOldChatOpen,
+    setSessionId,
+    setChatLanguage,
+    setChatBotClickedOn
+  } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState();
+
+  const { setAcceptedTnC } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState();
+
+  // Other variable definitions
+  // Get flow-specific configuration
+  const flowConfig = getFlowConfig(flowType);
+  const questions = flowConfig.questions;
+  const FLOW_ROUTE = flowConfig.apiRoute;
+  const storyActionsConfig = flowConfig.storyActions || {};
+  const showCompletionPopup = flowConfig.showCompletionPopup !== false;
+  const botNameToDisplay = t("botName");
+  let chatToAddLength = isMobile ? 10 : 10;
+
+  useEffect(() => {
+    console.log("storageFlow", storageFlow);
+  }, [storageFlow]);
   useEffect(() => {
     if (isLoading || isEndStoryLoading) {
       document.body.style.overflowY = "hidden";
@@ -274,9 +281,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
 
   const sendQuestionToUser = async () => {
     try {
-      const profileId = getFromStorage("profileid", true);
-      const flow = getFromStorage("flow", false);
-      let sessionId = getFromStorage("sessionid", true);
+      const flow = storageFlow;
       const selected_question = questions[`${questionCounter.current}`];
       const current_questions = selected_question.questions;
       const question_to_use = current_questions[0];
@@ -299,10 +304,10 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       };
 
       setChatHistory((prev) => [...prev, bot_messsage]);
-      setInStorage("chatbot_clickedOn?", "true", flow);
-      setInStorage("isOldChatOpen", JSON.stringify(true), flow);
-      setInStorage("sessionid", JSON.stringify(sessionId), flow);
-      setInStorage("isNewChatOpen", JSON.stringify(false), flow);
+      setChatBotClickedOn(true);
+      setIsOldChatOpen(true);
+      setSessionId(sessionId);
+      setIsNewChatOpen(false);
     } catch (error) {
       console.error("Error sending question to user:", error);
       showNotification({
@@ -323,14 +328,12 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
     }
     setIsLoading(true);
 
-    const currentFlow = getFromStorage("flow", false);
-
     removeLocalChatHistory();
-    setInStorage("isOldChatOpen", JSON.stringify(false), currentFlow);
+    setIsOldChatOpen(false);
 
     const session = await getSessionDetailsApi();
-    setInStorage("sessionid", JSON.stringify(session.sessionid), currentFlow);
-    setInStorage("chatbot_clickedOn?", "", currentFlow);
+    setSessionId(session.sessionid);
+    setChatBotClickedOn("");
     setIsLoading(false);
   }
 
@@ -346,19 +349,18 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
           executeCustomFunction();
         } else {
           if (wantToNavigateBack) {
-            let rerouteUrl = getFromStorage("previousUrl");
             stopAllAudio();
             clearFromStorage();
             setLanguage(languageList[0].value);
-            setInStorage("local_route", JSON.stringify(languageList[0].value));
+            setChatLanguage(languageList[0].value);
 
             if (
-              rerouteUrl &&
-              rerouteUrl !== null &&
-              rerouteUrl !== undefined &&
-              rerouteUrl !== ""
+              previousUrl &&
+              previousUrl !== null &&
+              previousUrl !== undefined &&
+              previousUrl !== ""
             ) {
-              window.location.href = rerouteUrl;
+              window.location.href = previousUrl;
             } else {
               navigate(flowConfig.homePageRoute);
             }
@@ -388,7 +390,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         clearFromStorage();
-        setInStorage("local_route", JSON.stringify(languageList[0].value));
+        setChatLanguage(languageList[0].value);
         setLanguage(languageList[0].value);
         stopAllAudio();
         navigate(flowConfig.homePageRoute);
@@ -413,10 +415,9 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
 
   // Fetch story on mount to check if it already exists
   useEffect(() => {
-    const sessionid = getFromStorage("sessionid", true);
-    if (sessionid) {
+    if (sessionId) {
       (async () => {
-        const story_data = await getStoryBySession(sessionid);
+        const story_data = await getStoryBySession(sessionId);
         if (story_data && story_data?.length > 0 && story_data[0]) {
           setStoryData(story_data[0]);
           const formatted_content = story_data[0].formatted_content;
@@ -489,19 +490,19 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       setIsLoading(true);
       setIsEndStoryLoading(true);
 
-      const sessionid = getFromStorage("sessionid", true);
-      const profileId = getFromStorage("profileid", true);
-      const access_token = getFromStorage("accessToken", true);
-      const flow = getFromStorage("flow", false);
+      // const sessionid = ;
+      // const profileId = getFromStorage("profileid", true);
+      // const access_token = getFromStorage("accessToken", true);
+      // const flow = getFromStorage("flow", false);
 
       const endStoryResponse = await axiosInstance({
         url: `/api/end-story/`,
         data: {
-          session: sessionid,
+          session: sessionId,
           profile_id: profileId,
           stage: "COMPLETED",
-          access_token: access_token,
-          flow: flow,
+          access_token: accessToken,
+          flow: storageFlow,
           language: languageToUse,
         },
         method: "POST",
@@ -513,7 +514,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
         setLlmError("");
 
         // Fetch the generated story
-        const story_data = await getStoryBySession(sessionid);
+        const story_data = await getStoryBySession(sessionId);
         if (story_data && story_data?.length > 0 && story_data[0]) {
           setStoryData(story_data[0]);
           const formatted_content = story_data[0].formatted_content;
@@ -838,7 +839,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
               let s3Url = await handleS3Upload(
                 audioBlob,
                 `${Date.now()}`,
-                `chatbot/companychat/${getFromStorage("sessionid", true)}/`,
+                `chatbot/companychat/${sessionId}/`,
                 null
               );
               if (!s3Url || s3Url === "") {
@@ -914,7 +915,6 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   }
 
   function handleAcceptTnC() {
-    setInStorage("has_accepted_tnc", true);
     setAcceptedTnC(true);
   }
 
@@ -941,7 +941,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   return (
     <>
       <SpeedNotification />
-      {getFromStorage("local_route") && !isLoading && !acceptedTnc && (
+      {languageToUse && !isLoading && !acceptedTnc && (
         <PrivacyPolicyPopup
           tncText={t("tncText")}
           onAccept={handleAcceptTnC}
@@ -987,7 +987,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
           setIsLoading={setIsLoading}
           isSaving={isSaving}
           setIsSaving={setIsSaving}
-          access_token={getFromStorage("accessToken", true)}
+          access_token={accessToken}
           navigate={navigate}
         />
       )}
@@ -995,7 +995,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       <div>
         <HiddenRecorder />
         <div className={`div33 div9`}>
-          {getFromStorage("flow", false) && (
+          {storageFlow && (
             <>
               <div className="div10">
                 <h3 className="h3-1">
@@ -1096,7 +1096,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                   setFiles={setFiles}
                   isLoading={isLoading}
                   setIsLoading={setIsLoading}
-                  access_token={getFromStorage("accessToken", true)}
+                  access_token={accessToken}
                   botNameToDisplay={botNameToDisplay}
                   handleOnSpeaking={handleOnSpeaking}
                   handleOnStopSpeaking={handleOnStopSpeaking}
@@ -1121,13 +1121,13 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                   isTalking={isTalking}
                   isStreamingComplete={true}
                   setNotMute={setNotMute}
-                  sessionid={getFromStorage("sessionid", true)}
+                  sessionid={sessionId}
                   openModal={openModal}
                   isLoading={isLoading}
                   isPdfDownloading={isPdfDownloading}
                   setIsLoading={setIsLoading}
                   setIsPdfDownloading={setIsPdfDownloading}
-                  access_token={getFromStorage("accessToken", true)}
+                  access_token={accessToken}
                   flowConfig={flowConfig}
                   showDownload={storyActionsConfig.showDownload}
                   showEdit={storyActionsConfig.showEdit}
@@ -1159,10 +1159,10 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                   status = PTM_CONVERSATION_STATUS_TYPE.COMPLETED;
                 }
                 const data = {
-                  session: getFromStorage("sessionid", true),
+                  session: sessionId,
                   status: status,
-                  flow: getFromStorage("flow", false),
-                  profile_id: getFromStorage("profileid", true),
+                  flow: storageFlow,
+                  profile_id: profileId,
                   id: last_question.question_id,
                   answer_id: `answer_${last_question.sequence}_${last_question.question_id}`,
                   sequence: last_question.sequence,
