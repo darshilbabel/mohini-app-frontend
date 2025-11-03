@@ -6,9 +6,9 @@ import {
   getStoryById,
   partialUpdateStoryById,
   updateStoryMedia,
+  getProfileUserApi,
 } from "../../../api/endpoints";
 import html2pdf from "html2pdf.js";
-import axiosInstance from "../../../utils/axios";
 import { useUserStore } from "../../../context/user";
 import ROUTES from "../../../url";
 import StorySecondPage from "./StorySecondPage";
@@ -108,29 +108,24 @@ const PdfDownloader = ({
 
   useEffect(() => {
     if (!accessToken) return;
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    };
 
     let profID = cookie.get("profileid");
 
-    const response = axiosInstance
-      .get(`/api/profileuser/${profID}/`, { headers })
+    getProfileUserApi(profID, accessToken)
       .then((response) => {
-        if (response && response.data) {
+        if (response) {
           setUserData((prev) => ({
             ...prev,
-            authorName: response?.data?.first_name,
-            organization: response?.data?.org_associated,
-            address: !!response?.data?.profile_address[0]
-              ? response?.data?.profile_address[0]?.district
+            authorName: response?.first_name,
+            organization: response?.org_associated,
+            address: !!response?.profile_address[0]
+              ? response?.profile_address[0]?.district
               : "",
           }));
         }
       })
       .catch((error) => {
-        return error?.response?.data;
+        console.error("Error fetching profile user:", error);
       });
   }, [accessToken]);
 

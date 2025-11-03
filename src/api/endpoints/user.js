@@ -74,3 +74,26 @@ export const readElevateProfileApi = async (accessToken) => {
     return error?.response?.data;
   }
 };
+
+/**
+ * Get profile user by ID
+ * @param {string} profileId - The profile ID to fetch
+ * @param {string} accessToken - The access token for authentication
+ * @returns {Promise<Object>} The profile user data including first_name, org_associated, profile_address
+ */
+export const getProfileUserApi = async (profileId, accessToken) => {
+  try {
+    const response = await apiClient.get(
+      `${API_ENDPOINTS.PROFILE_USER}${profileId}/`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return error?.response?.data;
+  }
+};
