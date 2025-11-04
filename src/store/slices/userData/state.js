@@ -1,45 +1,50 @@
-export const INITIAL_STATE = (set, get) => ({
-    access_token: null,
-    companyName: null,
-    device_id: null,
-    firstName: "",
-    flow: null,
-    has_accepted_tnc: "ONGOING",
-    ipCity: null,
-    ipCountry: null,
-    ipState: null,
-    preferredLanguage: null,
-    profileId: null,
-    state: null,
-    userId: null,
+export const INITIAL_STATE = (set, get, store) => ({
+  access_token: null,
+  companyName: null,
+  device_id: null,
+  firstName: "",
+  flow: null,
+  has_accepted_tnc: "ONGOING",
+  ipCity: null,
+  ipCountry: null,
+  ipState: null,
+  preferredLanguage: null,
+  profileId: null,
+  state: null,
+  userId: null,
 
-    setPrefferedLanguage: (preferredLanguage) => set({ preferredLanguage }),
+  setPrefferedLanguage: preferredLanguage => set({ preferredLanguage }),
 
-    setFirstName: (firstName) => set({ firstName }),
+  setFirstName: firstName => set({ firstName }),
 
-    setCompanyName: (companyName) => set({ companyName }),
+  setCompanyName: companyName => set({ companyName }),
 
-    setState: (state) => set({ state }),
+  setState: state => set({ state }),
 
-    setAcceptedTnC: (has_accepted_tnc) => set({ has_accepted_tnc }),
+  setAcceptedTnC: has_accepted_tnc => set({ has_accepted_tnc }),
 
-    setHasAcceptedTnc: (has_accepted_tnc) => set({ has_accepted_tnc }),
+  setHasAcceptedTnc: has_accepted_tnc => set({ has_accepted_tnc }),
 
-    setProfileid: (profileid) => set({ profileid }),
+  setProfileid: profileid => set({ profileid }),
 
-    setAccessToken: (access_token) => set({ access_token }),
+  setAccessToken: access_token => set({ access_token }),
 
-    getAccessToken: () => get().access_token,
-    
-    setUserId: (userId) => set({ userId }),
+  getAccessToken: () => get().access_token,
 
-    setDeviceId: (device_id) => set({ device_id }),
+  setUserId: userId => set({ userId }),
 
-    setProfileId: (profileId) => set({ profileId }),
+  setDeviceId: device_id => set({ device_id }),
 
-    setIpCity: (ipCity) => set({ ipCity }),
+  setProfileId: profileId => set({ profileId }),
 
-    setIpState: (ipState) => set({ ipState }),
+  setIpCity: ipCity => set({ ipCity }),
 
-    setIpCountry: (ipCountry) => set({ ipCountry }),
+  setIpState: ipState => set({ ipState }),
+
+  setIpCountry: ipCountry => set({ ipCountry }),
+
+  reset: () => {
+    console.log(store.getInitialState(), "initial_state")
+    set(store.getInitialState())
+  },
 })

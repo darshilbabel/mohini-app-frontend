@@ -1,67 +1,71 @@
-export const INITIAL_STATE = (set, get) => ({
-    showFileInput: null,
-    llmError: "",
-    chatHistory: [],
-    introMessage: null,
-    flow: null,
-    sessionId: null,
-    isOldChatOpen: true,
-    isNewChatOpen: false,
-    langProgress: null,
-    isChatVisible: false,
-    chatbotClickedOn: null,
-    showHomepage: null,
-    botName: null,
-    defaultBotName: null,
-    selectedType: "normal",
-    stateMachineLength: 0,
-    projectId: null,
-    taskId: null,
-    chatBotClickedOn: null,
+export const INITIAL_STATE = (set, get, store) => ({
+  showFileInput: null,
+  llmError: "",
+  chatHistory: [],
+  introMessage: null,
+  flow: null,
+  sessionId: null,
+  isOldChatOpen: true,
+  isNewChatOpen: false,
+  langProgress: null,
+  isChatVisible: false,
+  chatbotClickedOn: null,
+  showHomepage: null,
+  botName: null,
+  defaultBotName: null,
+  selectedType: "normal",
+  stateMachineLength: 0,
+  projectId: null,
+  taskId: null,
+  chatBotClickedOn: null,
 
-    setShowFileInput: (showFileInput) => set({ showFileInput }),
+  setShowFileInput: showFileInput => set({ showFileInput }),
 
-    setLlmError: (llmError) => set({ llmError }),
+  setLlmError: llmError => set({ llmError }),
 
-    setChatHistory: (chatHistory) => set({ chatHistory }),
+  setChatHistory: chatHistory => set({ chatHistory }),
 
-    setIntroMessage: (introMessage) => set({ introMessage }),
+  setIntroMessage: introMessage => set({ introMessage }),
 
-    getIntroMessage: () => get().introMessage,
+  getIntroMessage: () => get().introMessage,
 
-    setFlow: (flow) => set({ flow }),
+  setFlow: flow => set({ flow }),
 
-    getFlow: () => get().flow,
+  getFlow: () => get().flow,
 
-    setSessionId: (sessionId) => set({ sessionId }),
+  setSessionId: sessionId => set({ sessionId }),
 
-    getSessionId: () => get().sessionId,
+  getSessionId: () => get().sessionId,
 
-    setIsOldChatOpen: (isOldChatOpen) => set({ isOldChatOpen }),
-    
-    setIsNewChatOpen: (isNewChatOpen) => set({ isNewChatOpen }),
+  setIsOldChatOpen: isOldChatOpen => set({ isOldChatOpen }),
 
-    setLangProgress: (langProgress) => set({ langProgress }),
+  setIsNewChatOpen: isNewChatOpen => set({ isNewChatOpen }),
 
-    getLangProgress: () => get().langProgress,
+  setLangProgress: langProgress => set({ langProgress }),
 
-    setIsChatVisible: (isChatVisible) => set({ isChatVisible }),
+  getLangProgress: () => get().langProgress,
 
-    setChatbotClickedOn: (chatbotClickedOn) => set({ chatbotClickedOn }),
+  setIsChatVisible: isChatVisible => set({ isChatVisible }),
 
-    setShowHomepage: (showHomepage) => set({ showHomepage }),
+  setChatbotClickedOn: chatbotClickedOn => set({ chatbotClickedOn }),
 
-    setBotName: (botName) => set({ botName }),
+  setShowHomepage: showHomepage => set({ showHomepage }),
 
-    setDefaultBotName: (defaultBotName) => set({ defaultBotName }),
+  setBotName: botName => set({ botName }),
 
-    setSelectedType: (selectedType) => set({ selectedType }),
+  setDefaultBotName: defaultBotName => set({ defaultBotName }),
 
-    setStateMachineLength: (stateMachineLength) => set({ stateMachineLength }),
+  setSelectedType: selectedType => set({ selectedType }),
 
-    setProjectId: (projectId) => set({ projectId }),
+  setStateMachineLength: stateMachineLength => set({ stateMachineLength }),
 
-    setTaskId: (taskId) => set({ taskId }),
+  setProjectId: projectId => set({ projectId }),
 
-    setChatBotClickedOn: (chatBotClickedOn) => set({ chatBotClickedOn }),
+  setTaskId: taskId => set({ taskId }),
+
+  setChatBotClickedOn: chatBotClickedOn => set({ chatBotClickedOn }),
+
+  reset: () => {
+    set(store.getInitialState())
+  },
 })

@@ -1,31 +1,28 @@
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
-import axiosInstance from "../utils/axios";
-import { useUserPreferenceLocalStore, useUserPreferenceSessionStore } from 'store';
-import { STORAGE_TYPES } from "store/middleware/storage/storageFactory";
-import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
-import { SLICES_STORE_MAP } from "../store";
-import { useEffect } from "react";
+import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
+import { SLICES_STORE_MAP } from "../store"
+import { useUserPreferenceLocalStore, useUserPreferenceSessionStore } from "store"
+import axiosInstance from "../utils/axios"
+import { useUserDataSessionStore, useUserDataLocalStore, useChatDataLocalStore, useSiteDataSessionStore, useSiteDataLocalStore, useChatDataSessionStore } from "store"
 
-export const setInStorage = (key, value, currentFlow, storageName='') => {
+export const setInStorage = (key, value, currentFlow, storageName = "") => {
+  const { flow: flow_local } = useUserPreferenceLocalStore.getState()
+  const { flow: flow_session } = useUserPreferenceSessionStore.getState()
+  const { projectId: projectId_local } = useUserPreferenceLocalStore.getState()
+  const { projectId: projectId_session } = useUserPreferenceSessionStore.getState()
 
-  const { flow: flow_local } = useUserPreferenceLocalStore.getState();
-  const { flow: flow_session } = useUserPreferenceSessionStore.getState();
-  const { projectId: projectId_local } = useUserPreferenceLocalStore.getState();
-  const { projectId: projectId_session } = useUserPreferenceSessionStore.getState();
-
-  let storage;
-  if (storageName && storageName !== '') {
-    const isTemporary = storageName === 'sessionStorage';
-    storage = isTemporary ? sessionStorage : localStorage;
+  let storage
+  if (storageName && storageName !== "") {
+    const isTemporary = storageName === "sessionStorage"
+    storage = isTemporary ? sessionStorage : localStorage
   } else {
-    const flow = currentFlow || flow_local || flow_session;
-    const projectId = projectId_local || projectId_session;
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity];
-    const isTemporary = flow && sessionFlows.includes(flow) && !projectId;
-    storage = isTemporary ? sessionStorage : localStorage;
+    const flow = currentFlow || flow_local || flow_session
+    const projectId = projectId_local || projectId_session
+    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity]
+    const isTemporary = flow && sessionFlows.includes(flow) && !projectId
+    storage = isTemporary ? sessionStorage : localStorage
   }
-  storage.setItem(key, value);
-};
+  storage.setItem(key, value)
+}
 
 /**
  * Sets a value in a storage slice
@@ -36,36 +33,34 @@ export const setInStorage = (key, value, currentFlow, storageName='') => {
  * @param {string|null} storageType - The type of storage ('sessionStorage' or 'localStorage'), or null for auto-detection
  */
 export function setInStorageSlice(sliceName, value, funcName, currentFlow, storageType = null) {
-  const SLICE_PATH = "store/slices";
-  const LOCAL_STORAGE_SLICES = "persistent";
-  const SESSION_STORAGE_SLICES = "session";
+  const SLICE_PATH = "store/slices"
+  const LOCAL_STORAGE_SLICES = "persistent"
+  const SESSION_STORAGE_SLICES = "session"
 
   try {
+    let storage = null
 
-    let storage = null;
-
-    const { flow: flow_local } = useUserPreferenceLocalStore.getState();
-    const { flow: flow_session } = useUserPreferenceSessionStore.getState();
-    const { projectId: projectId_local } = useUserPreferenceLocalStore.getState();
-    const { projectId: projectId_session } = useUserPreferenceSessionStore.getState();
+    const { flow: flow_local } = useUserPreferenceLocalStore.getState()
+    const { flow: flow_session } = useUserPreferenceSessionStore.getState()
+    const { projectId: projectId_local } = useUserPreferenceLocalStore.getState()
+    const { projectId: projectId_session } = useUserPreferenceSessionStore.getState()
 
     if (typeof storageType == "string" && storageType !== "") {
-      storage = storageType === 'sessionStorage' ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES;
+      storage = storageType === "sessionStorage" ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES
+    } else {
+      const flow = currentFlow || flow_local || flow_session
+      const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity]
+      const isTemporary = flow && sessionFlows.includes(flow) && !projectId_local && !projectId_session
+      storage = isTemporary ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES
     }
-    else {
-      const flow = currentFlow || flow_local || flow_session;
-      const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity];
-      const isTemporary = flow && sessionFlows.includes(flow) && !projectId_local && !projectId_session;
-      storage = isTemporary ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES;
-    }
-    const module = require(`../${SLICE_PATH}/${storage}/${sliceName}.js`);
-    const store = module.default.getState();
+    const module = require(`../${SLICE_PATH}/${storage}/${sliceName}.js`)
+    const store = module.default.getState()
     console.log(store)
     console.log(funcName)
-    store[funcName](value);
+    store[funcName](value)
   } catch (error) {
-    console.error(`Error loading storage slice ${sliceName}:`, error);
-    throw error;
+    console.error(`Error loading storage slice ${sliceName}:`, error)
+    throw error
   }
 }
 
@@ -82,108 +77,99 @@ export function setInStorageSlice(sliceName, value, funcName, currentFlow, stora
  * The function constructs the module path as: store/slices/{sliceName}/{sliceName}{Local|Session}.js
  */
 export const getStorageSlice = (sliceName, storageType = null, accessToken = undefined) => {
-  const LOCAL_STORAGE_SLICES = "local";
-  const SESSION_STORAGE_SLICES = "session";
+  const LOCAL_STORAGE_SLICES = "local"
+  const SESSION_STORAGE_SLICES = "session"
 
-  let storage = null;
+  let storage = null
 
   if (typeof storageType == "string" && storageType !== "") {
-    storage = storageType === 'sessionStorage' ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES;
-  }
-  else {
-    storage = accessToken ? LOCAL_STORAGE_SLICES : SESSION_STORAGE_SLICES;
+    storage = storageType === "sessionStorage" ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES
+  } else {
+    storage = accessToken ? LOCAL_STORAGE_SLICES : SESSION_STORAGE_SLICES
   }
 
-  console.log("storage: ", SLICES_STORE_MAP[storage]);
-
-  const slice = SLICES_STORE_MAP[storage][sliceName];
+  const slice = SLICES_STORE_MAP[storage][sliceName]
   return slice
 }
 
-
-  
 export const getFromStorageSlice = (sliceName, key, parseValue = false, storageType = null) => {
-  const SLICE_PATH = "store/slices";
-  const LOCAL_STORAGE_SLICES = "persistent";
-  const SESSION_STORAGE_SLICES = "session";
+  const SLICE_PATH = "store/slices"
+  const LOCAL_STORAGE_SLICES = "persistent"
+  const SESSION_STORAGE_SLICES = "session"
 
-  const { flow: flow_local } = useUserPreferenceLocalStore.getState();
-  const { flow: flow_session } = useUserPreferenceSessionStore.getState();
-  const { projectId: projectId_local } = useUserPreferenceLocalStore.getState();
-  const { projectId: projectId_session } = useUserPreferenceSessionStore.getState();
+  const { flow: flow_local } = useUserPreferenceLocalStore.getState()
+  const { flow: flow_session } = useUserPreferenceSessionStore.getState()
+  const { projectId: projectId_local } = useUserPreferenceLocalStore.getState()
+  const { projectId: projectId_session } = useUserPreferenceSessionStore.getState()
 
-  let storage = null;
-  
+  let storage = null
+
   if (typeof storageType == "string" && storageType !== "") {
-    storage = storageType === 'sessionStorage' ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES;
-  }
-  else {
-    const flow = flow_local || flow_session;
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity];
-    const isTemporary = flow && sessionFlows.includes(flow) && !projectId_local && !projectId_session;
-    storage = isTemporary ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES;
+    storage = storageType === "sessionStorage" ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES
+  } else {
+    const flow = flow_local || flow_session
+    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity]
+    const isTemporary = flow && sessionFlows.includes(flow) && !projectId_local && !projectId_session
+    storage = isTemporary ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES
   }
 
-  const module = require(`../${SLICE_PATH}/${storage}/${sliceName}.js`);
-  const slice = module.default.getState();
-  const value = slice[key];
+  const module = require(`../${SLICE_PATH}/${storage}/${sliceName}.js`)
+  const slice = module.default.getState()
+  const value = slice[key]
   if (value && parseValue) {
-    return JSON.parse(value);
+    return JSON.parse(value)
   }
-  return value;
+  return value
 }
 
-export const getFromStorage = (key, parseValue = false, storageName='') => {
-  const { flow: flow_local } = useUserPreferenceLocalStore.getState();
-  const { flow: flow_session } = useUserPreferenceSessionStore.getState();
+export const getFromStorage = (key, parseValue = false, storageName = "") => {
+  const { flow: flow_local } = useUserPreferenceLocalStore.getState()
+  const { flow: flow_session } = useUserPreferenceSessionStore.getState()
 
-  let storage;
-  if (storageName && storageName !== '') {
-    storage = storageName === 'sessionStorage' ? sessionStorage : localStorage;
-  } else{
-    const flow = flow_local || flow_session;
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity];
-    const isTemporary = flow && sessionFlows.includes(flow) && !(
-      localStorage.getItem('projectId') ||
-      sessionStorage.getItem('projectId')
-    );
-    storage = isTemporary ? sessionStorage : localStorage;
+  let storage
+  if (storageName && storageName !== "") {
+    storage = storageName === "sessionStorage" ? sessionStorage : localStorage
+  } else {
+    const flow = flow_local || flow_session
+    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity]
+    const isTemporary = flow && sessionFlows.includes(flow) && !(localStorage.getItem("projectId") || sessionStorage.getItem("projectId"))
+    storage = isTemporary ? sessionStorage : localStorage
   }
-  const value = storage.getItem(key);
-  
+  const value = storage.getItem(key)
+
   if (value && parseValue) {
     try {
-      return JSON.parse(value);
+      return JSON.parse(value)
     } catch (e) {
-      console.error(`Error parsing value for key "${key}":`, e);
-      return null;
+      console.error(`Error parsing value for key "${key}":`, e)
+      return null
     }
   }
-  
-  return value;
-};
-  
-export const removeFromStorage = (key, removeFromAll=false, storageName='') => {
+
+  return value
+}
+
+export const removeFromStorage = (key, removeFromAll = false, storageName = "") => {
   if (removeFromAll) {
-    sessionStorage.removeItem(key);
-    localStorage.removeItem(key);
-    return;
+    sessionStorage.removeItem(key)
+    localStorage.removeItem(key)
+    return
   }
 
-  const { flow: flow_local } = useUserPreferenceLocalStore.getState();
-  const { flow: flow_session } = useUserPreferenceSessionStore.getState();
+  const { flow: flow_local } = useUserPreferenceLocalStore.getState()
+  const { flow: flow_session } = useUserPreferenceSessionStore.getState()
 
-  let storage;
-  if (storageName && storageName !== '') {
-    storage = storageName === 'sessionStorage' ? sessionStorage : localStorage;
-  } else{
-    const flow = flow_local || flow_session;
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity];
-    const isTemporary = flow && sessionFlows.includes(flow);
-    storage = isTemporary ? sessionStorage : localStorage;
+  let storage
+  if (storageName && storageName !== "") {
+    storage = storageName === "sessionStorage" ? sessionStorage : localStorage
+  } else {
+    const flow = flow_local || flow_session
+    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity]
+    const isTemporary = flow && sessionFlows.includes(flow)
+    storage = isTemporary ? sessionStorage : localStorage
   }
-  storage.removeItem(key);
-};
+  storage.removeItem(key)
+}
 
 // Helper for exponential backoff with jitter
 // This function calculates a delay time for retries using exponential backoff strategy.
@@ -191,9 +177,9 @@ export const removeFromStorage = (key, removeFromAll=false, storageName='') => {
 // and a random jitter (up to 1000ms) is added to help avoid retry storms when many clients retry at once.
 // The delay is capped at maxDelay milliseconds.
 function exponentialBackoff(attempt, baseDelay = 1000, maxDelay = 30000) {
-  const expDelay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
-  const jitter = Math.random() * 1000;
-  return expDelay + jitter;
+  const expDelay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay)
+  const jitter = Math.random() * 1000
+  return expDelay + jitter
 }
 
 // S3 upload with exponential backoff and retry logic
@@ -208,76 +194,70 @@ export const handleS3Upload = async (file, fileName, folderStructure, storyData,
         fileName: fileName,
         fileType: file.type,
         storyId: storyData?.id,
-        folder_structure: folderStructure
-      });
+        folder_structure: folderStructure,
+      })
 
-      const { uploadUrl, s3Url } = res.data;
+      const { uploadUrl, s3Url } = res.data
 
       // Attempt to upload the file to S3
       const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",
         headers: {
           "Content-Type": file.type,
-          "x-amz-acl": "public-read"
+          "x-amz-acl": "public-read",
         },
         body: file,
-      });
+      })
 
       // If upload is successful, return the S3 URL
       if (uploadResponse.ok) {
-        return s3Url;
+        return s3Url
       }
 
       // Handle S3 rate limiting (SlowDown)
       if (uploadResponse.status === 503) {
-        const errorText = await uploadResponse.text();
-        if (errorText.includes('SlowDown')) {
+        const errorText = await uploadResponse.text()
+        if (errorText.includes("SlowDown")) {
           if (attempt < maxRetries - 1) {
-            const delay = exponentialBackoff(attempt);
-            console.warn(`S3 rate limited (SlowDown), retrying in ${delay}ms... [attempt ${attempt + 1}]`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-            continue;
+            const delay = exponentialBackoff(attempt)
+            console.warn(`S3 rate limited (SlowDown), retrying in ${delay}ms... [attempt ${attempt + 1}]`)
+            await new Promise(resolve => setTimeout(resolve, delay))
+            continue
           }
         }
       }
 
       // Throw error for other failed uploads
-      throw new Error(`Upload failed: ${uploadResponse.status}`);
+      throw new Error(`Upload failed: ${uploadResponse.status}`)
     } catch (error) {
       // Retry on network errors or explicit SlowDown
-      if (attempt < maxRetries - 1 && (error.message?.includes('SlowDown') || error.message === 'Failed to fetch')) {
-        const delay = exponentialBackoff(attempt);
-        console.warn(`Upload error, retrying in ${delay}ms... [attempt ${attempt + 1}]`, error);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        continue;
+      if (attempt < maxRetries - 1 && (error.message?.includes("SlowDown") || error.message === "Failed to fetch")) {
+        const delay = exponentialBackoff(attempt)
+        console.warn(`Upload error, retrying in ${delay}ms... [attempt ${attempt + 1}]`, error)
+        await new Promise(resolve => setTimeout(resolve, delay))
+        continue
       }
       // Log error and return empty string if all retries fail
-      console.error("Error uploading to S3:", error);
-      if (attempt === maxRetries - 1) return '';
+      console.error("Error uploading to S3:", error)
+      if (attempt === maxRetries - 1) return ""
     }
   }
-  return '';
-};
-
-
-export function clearFromStorage(removeFromAll=false, excludeKeys = []) {
-  try{
-    const keysToRemove = [
-      'botName', 'chat-history', 'company', 'first_name', 'has_accepted_tnc', 'intro_message', 
-      'isChatVisible', 'isNewChatOpen', 'isOldChatOpen', 'profileid', 'route', 'sessionid', 'showFileInput', 
-      'showHomepage', 'state', 'accessToken', 'flow', 'statemachine_length', 'selected_type', 
-      'preferred_route', 'country', 'city', 'ip_city', 'ip_state', 'ip_country', 'llmError', 'lang_progress',
-      'grit', 'device_id', 'defaultBotName', 'phoneNumber', 'english_first_name', 'hasSelectedLanguage', 'chatLanguage',
-      'projectId', 'taskId', 'ssoRerouteURL'
-    ];
-    keysToRemove.forEach((key) => {
-      if (!excludeKeys.includes(key)) {
-        removeFromStorage(key, removeFromAll);
-      }
-    });
-  } catch (error){
-    console.error("Error while clearing: ", error);
-  }
+  return ""
 }
 
+export function clearFromStorage(removeFromAll = false, excludeKeys = []) {
+  try {
+    // useChatDataLocalStore.getState().reset()
+    // useChatDataSessionStore.getState().reset()
 
+    // useSiteDataLocalStore.getState().reset()
+    // useSiteDataSessionStore.getState().reset()
+
+    // useUserDataLocalStore.getState().reset()
+    // useUserDataSessionStore.getState().reset()
+    localStorage.clear()
+    sessionStorage.clear()
+  } catch (error) {
+    console.error("Error while clearing: ", error)
+  }
+}

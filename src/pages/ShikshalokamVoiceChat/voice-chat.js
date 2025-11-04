@@ -191,21 +191,21 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       route: chatLanguage,
       bot_route: getSessionRoute(),
       flow_name: storageFlow,
-    });
+    })
   }, [sessionId, profileToUse, projectIdStore, searchParams, taskId, accessToken, chatLanguage, storageFlow])
 
-  const onWebSocketMessage = useCallback((event) => {
+  const onWebSocketMessage = useCallback(event => {
     const data = JSON.parse(event.data)
     const message = data["text"]
     if (message.source === "bot") {
       setIsStreamingComplete(false)
-      setSentences((prevSentences) => {
-        const updatedSentences = [...prevSentences];
-        const lastSentence = updatedSentences[updatedSentences.length - 1];
+      setSentences(prevSentences => {
+        const updatedSentences = [...prevSentences]
+        const lastSentence = updatedSentences[updatedSentences.length - 1]
 
         if (lastSentence?.source === "bot") {
           if (message?.msg) {
-            lastSentence.message += message?.msg;
+            lastSentence.message += message?.msg
           }
         } else {
           updatedSentences.push({
@@ -213,28 +213,25 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             source: "bot",
             isNarrated: false,
             id: new Date().valueOf(),
-          });
-          lastBotMessageIndex.current = updatedSentences.length - 1;
+          })
+          lastBotMessageIndex.current = updatedSentences.length - 1
         }
-        return updatedSentences;
-      });
+        return updatedSentences
+      })
       handleScrollToView()
-    }
-    else {
+    } else {
       setIsStreamingComplete(true)
     }
 
     if (message.finish_reason === "stop" && message.source === "bot") {
-      setStrandStep(message?.step);
-      handleScrollToView();
-      setTalking(0);
-      setIsStreamingComplete(true);
+      setStrandStep(message?.step)
+      handleScrollToView()
+      setTalking(0)
+      setIsStreamingComplete(true)
     }
   }, [])
 
-  const {
-    sendMessage: sendSocketMessage,
-  } = useChatWebhook(
+  const { sendMessage: sendSocketMessage } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
       storageFlow,
@@ -243,7 +240,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }),
     {
       onOpen: onWebSocketOpen,
-      onMessage: onWebSocketMessage
+      onMessage: onWebSocketMessage,
     }
   )
 
@@ -2568,6 +2565,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }
 
   const handleSelectedTypeNameChanges = e => {
+    console.log("reached here")
     let { value } = e?.target
     function changeSelectedValue(value, e) {
       if (value === "") value = selectedLabel?.types[0]?.value
@@ -2752,7 +2750,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             )}
             {isEndStoryLoading && (
               <div className="div69 text-center">
-                <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">{storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("feedbackLoaderHeading") : storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoaderHeading") : storageFlow && [sessionFlowName.GuestMiStory].includes(storageFlow) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}</h2>
+                <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
+                  {storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("feedbackLoaderHeading") : storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoaderHeading") : storageFlow && [sessionFlowName.GuestMiStory].includes(storageFlow) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}
+                </h2>
                 <label className="form-label label1 text-center">{storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoader") : t("storyLoader")}</label>
               </div>
             )}

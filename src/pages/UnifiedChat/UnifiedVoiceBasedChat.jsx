@@ -1,296 +1,411 @@
-import "../../style.css";
-import "../ShikshalokamVoiceChat/shikshaChatStyle.css";
-import { ai4BharatASRApi } from "api/endpoints/ai";
-import { BiLoader } from "react-icons/bi";
-import { clearFromStorage, handleS3Upload } from "../../services/storage_service";
-import { createMessage } from "../interview-voice";
-import { EditStoryModal, PhotoUploadSection, StoryActionsContainer } from "./StoryActionsModule";
-import { FaCircle } from "react-icons/fa6";
-import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
-import { getFlowConfig } from "../../config/flowConfig";
-import { getSessionDetailsApi } from "../../api/endpoints/chat";
-import { getStoryAllMedia } from "api/endpoints";
-import { languageList, PTM_CONVERSATION_STATUS_TYPE } from "../ShikshalokamVoiceChat/enum";
-import { MdSend } from "react-icons/md";
-import { savePTMQuestionApi } from "../../api/endpoints/ptm";
-import { setLanguage } from "../../i18n";
-import { showNotification } from "components/ToastMessage/TotastMessage";
-import { TbReload } from "react-icons/tb";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import axiosInstance from "utils/axios";
-import ChatMessage from "../ShikshalokamMegaPTM/ChatMessage";
-import Header from "../ShikshalokamVoiceChat/shikshaChatHeader";
-import PrivacyPolicyPopup from "components/TnC/privacyPolicyPopup";
-import SpeedNotification from "../ShikshalokamMegaPTM/SpeedNotification";
-import Swal from "sweetalert2";
-import useCustomMediaQuery from "hooks/useCustomMediaQuery";
-import useSmartChatStorage from "hooks/useSmartChatStorage";
-import useVoiceRecord from "../interview-text-voice/useVoiceRecord";
-import { useStorage } from "hooks/useStorage";
-import { STORE_NAME_CONSTANTS } from "store/constants";
-import { useChatDataLocalStore } from "store";
+import "../../style.css"
+import "../ShikshalokamVoiceChat/shikshaChatStyle.css"
+import { ai4BharatASRApi } from "api/endpoints/ai"
+import { BiLoader } from "react-icons/bi"
+import { clearFromStorage, handleS3Upload } from "../../services/storage_service"
+import { createMessage } from "../interview-voice"
+import { EditStoryModal, PhotoUploadSection, StoryActionsContainer } from "./StoryActionsModule"
+import { FaCircle } from "react-icons/fa6"
+import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
+import { getFlowConfig } from "../../config/flowConfig"
+import { getSessionDetailsApi } from "../../api/endpoints/chat"
+import { getStoryAllMedia } from "api/endpoints"
+import { languageList, PTM_CONVERSATION_STATUS_TYPE } from "../ShikshalokamVoiceChat/enum"
+import { MdSend } from "react-icons/md"
+import { savePTMQuestionApi } from "../../api/endpoints/ptm"
+import { setLanguage } from "../../i18n"
+import { showNotification } from "components/ToastMessage/TotastMessage"
+import { TbReload } from "react-icons/tb"
+import { useEffect, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
+import axiosInstance from "utils/axios"
+import ChatMessage from "../ShikshalokamMegaPTM/ChatMessage"
+import Header from "../ShikshalokamVoiceChat/shikshaChatHeader"
+import PrivacyPolicyPopup from "components/TnC/privacyPolicyPopup"
+import SpeedNotification from "../ShikshalokamMegaPTM/SpeedNotification"
+import Swal from "sweetalert2"
+import useCustomMediaQuery from "hooks/useCustomMediaQuery"
+import useSmartChatStorage from "hooks/useSmartChatStorage"
+import useVoiceRecord from "../interview-text-voice/useVoiceRecord"
+import { useStorage } from "hooks/useStorage"
+import { STORE_NAME_CONSTANTS } from "store/constants"
+import { useChatDataLocalStore } from "store"
+import { useSiteDataLocalStore } from "store"
 
 const UnifiedVoiceBasedChat = ({ flowType }) => {
   // useState hooks
-  const [localChatHistory, setLocalChatHistory, removeLocalChatHistory] =
-    useSmartChatStorage();
-  const [chatHistory, setChatHistory] = useState(
-    !!localChatHistory?.length ? localChatHistory : []
-  );
-  const [textMessage, setTextMessage] = useState("");
-  const [asrAudio, setAsrAudio] = useState(null);
-  const [isFetchingData, setIsFetchingData] = useState(false);
-  const [reconText, setReconText] = useState("");
-  const [audioCache, setAudioCache] = useState({});
-  const [hasStartedListening, setHasStartedListening] = useState(false);
-  const [trigger, setTrigger] = useState(false);
-  const [hasStartedRecording, setHasStartedRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [sentences, setSentences] = useState([]);
-  const [isNextAllowed, setIsNextAllowed] = useState(true);
-  const [isMute, setNotMute] = useState(true);
-  const [hasOverRideId, setHasOverRideId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [seconds, setSeconds] = useState(0);
-  const [intervalId, setIntervalId] = useState(null);
-  const [fileErrorText, setFileErrorText] = useState("");
-  const [visibleItemCount, setVisibleItemCount] = useState(10);
-  // const [languageToUse, setLanguageToUse] = useState(() => {
-  //   const savedLang = getFromStorage("local_route", false);
-  //   return savedLang ? JSON.parse(savedLang) : null;
-  // });
-  const [storyData, setStoryData] = useState(null);
-  const [files, setFiles] = useState([]);
-  const [showFileInput, setShowFileInput] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editorCopyChanges, setEditorCopyChanges] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPdfDownloading, setIsPdfDownloading] = useState(false);
-  const [isEndStoryLoading, setIsEndStoryLoading] = useState(false);
-  const [noStoryFound, setNoStoryFound] = useState(false);
-  const [llmError, setLlmError] = useState("");
-  const [isImageUploading, setIsImageUploading] = useState(false);
-  const [isTalking, setTalking] = useState(0);
+  const [localChatHistory, setLocalChatHistory, removeLocalChatHistory] = useSmartChatStorage()
+  const [chatHistory, setChatHistory] = useState(!!localChatHistory?.length ? localChatHistory : [])
+  const [textMessage, setTextMessage] = useState("")
+  const [asrAudio, setAsrAudio] = useState(null)
+  const [isFetchingData, setIsFetchingData] = useState(false)
+  const [reconText, setReconText] = useState("")
+  const [audioCache, setAudioCache] = useState({})
+  const [hasStartedListening, setHasStartedListening] = useState(false)
+  const [trigger, setTrigger] = useState(false)
+  const [hasStartedRecording, setHasStartedRecording] = useState(false)
+  const [mediaRecorder, setMediaRecorder] = useState(null)
+  const [sentences, setSentences] = useState([])
+  const [isNextAllowed, setIsNextAllowed] = useState(true)
+  const [isMute, setNotMute] = useState(true)
+  const [hasOverRideId, setHasOverRideId] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [seconds, setSeconds] = useState(0)
+  const [intervalId, setIntervalId] = useState(null)
+  const [fileErrorText, setFileErrorText] = useState("")
+  const [visibleItemCount, setVisibleItemCount] = useState(10)
+  const [storyData, setStoryData] = useState(null)
+  const [files, setFiles] = useState([])
+  const [showFileInput, setShowFileInput] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editorCopyChanges, setEditorCopyChanges] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isPdfDownloading, setIsPdfDownloading] = useState(false)
+  const [isEndStoryLoading, setIsEndStoryLoading] = useState(false)
+  const [noStoryFound, setNoStoryFound] = useState(false)
+  const [llmError, setLlmError] = useState("")
+  const [isImageUploading, setIsImageUploading] = useState(false)
+  const [isTalking, setTalking] = useState(0)
 
   // Other hooks
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const audioRef = useRef();
-  const textAreaRef = useRef(null);
-  const lastBotMessageIndex = useRef(-1);
-  const questionCounter = useRef(1);
-  const endPageToScrollRef = useRef(null);
-  const hasAutoPlayedStoryAudios = useRef(false);
-  let isMobile = useCustomMediaQuery("(max-width: 500px)");
-  const { recordings, HiddenRecorder } = useVoiceRecord();
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const audioRef = useRef()
+  const textAreaRef = useRef(null)
+  const lastBotMessageIndex = useRef(-1)
+  const questionCounter = useRef(1)
+  const endPageToScrollRef = useRef(null)
+  const hasAutoPlayedStoryAudios = useRef(false)
+  let isMobile = useCustomMediaQuery("(max-width: 500px)")
+  const { recordings, HiddenRecorder } = useVoiceRecord()
 
-  const accessToken = useChatDataLocalStore((state) => state.accessToken);
+  const accessToken = useChatDataLocalStore(state => state.accessToken)
 
-  const acceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.has_accepted_tnc);
-  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow);
-  const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.sessionId);
-  const profileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.profileId);
-  const previousUrl = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.previousUrl);
+  const acceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.has_accepted_tnc)
+  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
+  const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.sessionId)
+  const profileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.profileId)
+  const previousUrl = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.previousUrl)
 
-  const languageToUse = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.chatLanguage);
-  const setLanguageToUse = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.setChatLanguage);
-  const {
-    setIsNewChatOpen,
-    setIsOldChatOpen,
-    setSessionId,
-    setChatLanguage,
-    setChatBotClickedOn
-  } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState();
+  const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
+  const setLanguageToUse = useSiteDataLocalStore(state => state.setChatLanguage)
+  const { setIsNewChatOpen, setIsOldChatOpen, setSessionId, setChatBotClickedOn } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState()
 
-  const { setAcceptedTnC } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState();
+  const { setAcceptedTnC } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState()
 
   // Other variable definitions
   // Get flow-specific configuration
-  const flowConfig = getFlowConfig(flowType);
-  const questions = flowConfig.questions;
-  const FLOW_ROUTE = flowConfig.apiRoute;
-  const storyActionsConfig = flowConfig.storyActions || {};
-  const showCompletionPopup = flowConfig.showCompletionPopup !== false;
-  const botNameToDisplay = t("botName");
-  let chatToAddLength = isMobile ? 10 : 10;
+  const flowConfig = getFlowConfig(flowType)
+  const questions = flowConfig.questions
+  const FLOW_ROUTE = flowConfig.apiRoute
+  const storyActionsConfig = flowConfig.storyActions || {}
+  const showCompletionPopup = flowConfig.showCompletionPopup !== false
+  const botNameToDisplay = t("botName")
+  let chatToAddLength = isMobile ? 10 : 10
 
-  useEffect(() => {
-    console.log("storageFlow", storageFlow);
-  }, [storageFlow]);
-  useEffect(() => {
-    if (isLoading || isEndStoryLoading) {
-      document.body.style.overflowY = "hidden";
-    } else {
-      document.body.style.overflowY = "auto";
-    }
-
-    return () => {
-      document.body.style.overflowY = "auto";
-    };
-  }, [isLoading, isEndStoryLoading]);
-
-  useEffect(() => {
-    setVisibleItemCount(chatToAddLength);
-  }, [chatToAddLength]);
-
-  useEffect(() => {
-    const last_question = chatHistory
-      .filter((x) => x?.source === "bot")
-      .sort((a, b) => b?.updated_at - a?.updated_at)[0];
-    if (last_question?.sequence) {
-      questionCounter.current = last_question?.sequence;
-    }
-    if (
-      !chatHistory[chatHistory.length - 1]?.source ||
-      chatHistory[chatHistory.length - 1]?.source !== "bot"
-    ) {
-      if (!(last_question?.sequence >= Object.keys(questions).length)) {
-        sendQuestionToUser();
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const textErrorTime = setTimeout(() => {
-      setFileErrorText("");
-    }, 5000);
-
-    return () => {
-      clearTimeout(textErrorTime);
-    };
-  }, [fileErrorText]);
-
-  useEffect(() => {
-    if (textAreaRef.current) {
-      textAreaRef.current.style.height = "auto";
-      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
-    }
-  }, [textMessage]);
-
-  useEffect(() => {
-    if (hasStartedRecording) {
-      const id = setInterval(() => {
-        setSeconds((prev) => prev + 1);
-      }, 500);
-      setIntervalId(id);
-    } else {
-      clearInterval(intervalId);
-      setSeconds(0);
-    }
-
-    return () => clearInterval(intervalId);
-  }, [hasStartedRecording]);
-
-  useEffect(() => {
-    const allQuestionsCompleted =
-      questionCounter.current === Object.keys(questions).length &&
-      chatHistory.length === Object.keys(questions).length * 2;
-
-    const shouldGenerateStory =
-      storyActionsConfig.showPhotoUpload ||
-      storyActionsConfig.showEdit ||
-      storyActionsConfig.showDownload;
-
-    if (
-      allQuestionsCompleted &&
-      shouldGenerateStory &&
-      acceptedTnc &&
-      !hasAutoPlayedStoryAudios.current &&
-      (showFileInput || storyData) &&
-      !llmError &&
-      !isLoading &&
-      !isEndStoryLoading
-    ) {
-      hasAutoPlayedStoryAudios.current = true;
-
-      setTimeout(() => {
-        try {
-          const storySpeakerButtons = document.querySelectorAll(
-            ".button-11.button-3"
-          );
-
-          const storyButtonIndex = chatHistory.length;
-
-          if (storySpeakerButtons[storyButtonIndex]) {
-            storySpeakerButtons[storyButtonIndex].click();
-          } else if (storySpeakerButtons.length > 0) {
-            storySpeakerButtons[storySpeakerButtons.length - 1].click();
-          }
-          setTimeout(() => {
-            handleScrollToView();
-          }, 100);
-        } catch (error) {
-          console.error("Error auto-playing story audio:", error);
-        }
-      }, 800);
-    }
-
-    return () => {};
-  }, [
-    chatHistory.length,
-    acceptedTnc,
-    showFileInput,
-    llmError,
-    isLoading,
-    isEndStoryLoading,
-    questionCounter.current,
-  ]);
-
-  const formatTime = (secs) => {
-    const minutes = Math.floor(secs / 60);
-    const seconds = secs % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-      2,
-      "0"
-    )}`;
-  };
+  const formatTime = secs => {
+    const minutes = Math.floor(secs / 60)
+    const seconds = secs % 60
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+  }
 
   const narrateLastMessage = () => {
     try {
-      const speakerButtons = document.querySelectorAll(".button-11.button-3");
-      const lastSpeakerButton = speakerButtons[speakerButtons.length - 1];
+      const speakerButtons = document.querySelectorAll(".button-11.button-3")
+      const lastSpeakerButton = speakerButtons[speakerButtons.length - 1]
 
       if (lastSpeakerButton) {
-        lastSpeakerButton.click();
+        lastSpeakerButton.click()
       }
     } catch (error) {
-      console.error("Error narrating last message:", error);
+      console.error("Error narrating last message:", error)
     }
-  };
+  }
 
+  // ==================== INITIALIZATION PHASE ====================
+  // Browser back button handler - runs on mount
   useEffect(() => {
-    if (
-      !(
-        questionCounter.current === Object.keys(questions).length &&
-        chatHistory.length === Object.keys(questions).length * 2
-      )
-    ) {
-      if (
-        chatHistory[chatHistory.length - 1]?.source === "bot" &&
-        acceptedTnc
-      ) {
-        setTimeout(() => {
-          narrateLastMessage();
-        }, 500);
+    const handleBack = () => {
+      showInterruptionPopup(true)
+    }
+
+    window.history.pushState({ isCustom: true }, "", window.location.href)
+
+    window.addEventListener("popstate", handleBack)
+
+    return () => {
+      window.removeEventListener("popstate", handleBack)
+    }
+  }, [])
+
+  // Fetch story on mount to check if it already exists
+  useEffect(() => {
+    if (sessionId) {
+      ;(async () => {
+        const story_data = await getStoryBySession(sessionId)
+        if (story_data && story_data?.length > 0 && story_data[0]) {
+          setStoryData(story_data[0])
+          const formatted_content = story_data[0].formatted_content
+          const textBlocks = extractTextBlocks(formatted_content)
+          setEditorCopyChanges(textBlocks)
+          setNoStoryFound(false)
+          setShowFileInput(true)
+          setIsLoading(false)
+        } else {
+          setIsLoading(false)
+          if (!llmError) {
+            setNoStoryFound(true)
+          }
+        }
+      })()
+    }
+  }, [])
+
+  // Initialize questionCounter and send question on mount
+  useEffect(() => {
+    const last_question = chatHistory.filter(x => x?.source === "bot").sort((a, b) => b?.updated_at - a?.updated_at)[0]
+    if (last_question?.sequence) {
+      questionCounter.current = last_question?.sequence
+    }
+    if (!chatHistory[chatHistory.length - 1]?.source || chatHistory[chatHistory.length - 1]?.source !== "bot") {
+      if (!(last_question?.sequence >= Object.keys(questions).length)) {
+        sendQuestionToUser()
       }
     }
-    return () => {};
-  }, [chatHistory, acceptedTnc]);
+  }, [])
+
+  // Set visible item count based on chat length
+  useEffect(() => {
+    setVisibleItemCount(chatToAddLength)
+  }, [chatToAddLength])
+
+  // ==================== UI/STATE MANAGEMENT ====================
+  // Manage body overflow based on TNC acceptance
+  useEffect(() => {
+    if (acceptedTnc === false) {
+      document.body.style.overflowY = "hidden"
+    } else {
+      document.body.style.overflowY = "auto"
+    }
+
+    return () => {
+      document.body.style.overflowY = "auto"
+    }
+  }, [acceptedTnc])
+
+  // Manage body overflow based on loading states
+  useEffect(() => {
+    if (isLoading || isEndStoryLoading) {
+      document.body.style.overflowY = "hidden"
+    } else {
+      document.body.style.overflowY = "auto"
+    }
+
+    return () => {
+      document.body.style.overflowY = "auto"
+    }
+  }, [isLoading, isEndStoryLoading])
+
+  // Update audio muted state
+  useEffect(() => {
+    if (audioRef?.current) {
+      if (isMute) {
+        audioRef.current.muted = true
+      } else {
+        audioRef.current.muted = false
+      }
+    }
+  }, [isMute])
+
+  // ==================== CHAT FLOW MANAGEMENT ====================
+  // Update local storage and bot message index when chatHistory changes
+  useEffect(() => {
+    setLocalChatHistory(chatHistory)
+    lastBotMessageIndex.current = chatHistory?.length - 1
+  }, [chatHistory])
+
+  // Scroll to view when chatHistory length or acceptedTnc changes
+  useEffect(() => {
+    if (acceptedTnc === true) {
+      handleScrollToView()
+    }
+  }, [chatHistory?.length, acceptedTnc])
+
+  // Narrate last message when bot message is added and TNC is accepted
+  useEffect(() => {
+    if (!(questionCounter.current === Object.keys(questions).length && chatHistory.length === Object.keys(questions).length * 2)) {
+      if (chatHistory[chatHistory.length - 1]?.source === "bot" && acceptedTnc) {
+        setTimeout(() => {
+          narrateLastMessage()
+        }, 500)
+      }
+    }
+    return () => {}
+  }, [chatHistory, acceptedTnc])
+
+  // Auto-play story audio when all questions are completed
+  useEffect(() => {
+    const allQuestionsCompleted = questionCounter.current === Object.keys(questions).length && chatHistory.length === Object.keys(questions).length * 2
+
+    const shouldGenerateStory = storyActionsConfig.showPhotoUpload || storyActionsConfig.showEdit || storyActionsConfig.showDownload
+
+    if (allQuestionsCompleted && shouldGenerateStory && acceptedTnc && !hasAutoPlayedStoryAudios.current && (showFileInput || storyData) && !llmError && !isLoading && !isEndStoryLoading) {
+      hasAutoPlayedStoryAudios.current = true
+
+      setTimeout(() => {
+        try {
+          const storySpeakerButtons = document.querySelectorAll(".button-11.button-3")
+
+          const storyButtonIndex = chatHistory.length
+
+          if (storySpeakerButtons[storyButtonIndex]) {
+            storySpeakerButtons[storyButtonIndex].click()
+          } else if (storySpeakerButtons.length > 0) {
+            storySpeakerButtons[storySpeakerButtons.length - 1].click()
+          }
+          setTimeout(() => {
+            handleScrollToView()
+          }, 100)
+        } catch (error) {
+          console.error("Error auto-playing story audio:", error)
+        }
+      }, 800)
+    }
+
+    return () => {}
+  }, [chatHistory.length, acceptedTnc, showFileInput, llmError, isLoading, isEndStoryLoading, questionCounter.current])
+
+  // ==================== STORY MANAGEMENT ====================
+  // Fetch media files for the story
+  useEffect(() => {
+    const fetchMedia = async () => {
+      if (storyData && storyData?.id !== "") {
+        const story_id = storyData?.id
+        const tempMediaArr = []
+        setIsImageUploading(true)
+
+        await getStoryAllMedia({
+          setter: data => {
+            for (let item of Object.values(data?.results || [])) {
+              if (item.include_in_story) {
+                tempMediaArr.push(item)
+              }
+            }
+            setFiles(tempMediaArr)
+          },
+          data: {
+            story: story_id,
+          },
+        })
+
+        setIsImageUploading(false)
+      }
+    }
+
+    fetchMedia()
+
+    return () => {}
+  }, [storyData])
+
+  // Check and fetch story when questions are completed
+  useEffect(() => {
+    const checkAndFetchStory = async () => {
+      const allQuestionsCompleted = questionCounter.current === Object.keys(questions).length && chatHistory.length === Object.keys(questions).length * 2
+
+      if (allQuestionsCompleted) {
+        const shouldGenerateStory = storyActionsConfig.showPhotoUpload || storyActionsConfig.showEdit || storyActionsConfig.showDownload
+
+        if (shouldGenerateStory && noStoryFound && (!llmError || llmError === "")) {
+          // Call end-story API to generate the story only when noStoryFound is true
+          await callEndStory()
+        } else if (!shouldGenerateStory && showCompletionPopup) {
+          // Just show completion popup if no story actions needed
+          showCompletionPopupFn()
+        }
+      }
+    }
+
+    checkAndFetchStory()
+  }, [chatHistory, questionCounter.current, noStoryFound, llmError])
+
+  // ==================== USER INPUT/RECORDING MANAGEMENT ====================
+  // Manage recording timer when hasStartedRecording changes
+  useEffect(() => {
+    if (hasStartedRecording) {
+      const id = setInterval(() => {
+        setSeconds(prev => prev + 1)
+      }, 500)
+      setIntervalId(id)
+    } else {
+      clearInterval(intervalId)
+      setSeconds(0)
+    }
+
+    return () => clearInterval(intervalId)
+  }, [hasStartedRecording])
+
+  // Adjust textarea height based on textMessage
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = "auto"
+      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`
+    }
+  }, [textMessage])
+
+  // Reset trigger and reconText
+  useEffect(() => {
+    try {
+      if (!!trigger && !!reconText) {
+        setReconText("")
+        setTrigger(false)
+      }
+    } catch (error) {
+      console.error({ error })
+    }
+  }, [reconText, trigger, recordings])
+
+  // Handle TTS narration queue
+  useEffect(() => {
+    let unnarratedMessages = sentences.filter(x => !x?.isNarrated)
+    let hasUnnarratedMessages = !!unnarratedMessages?.length
+    let sourceLanguage = languageToUse
+
+    if (isNextAllowed && hasUnnarratedMessages && !isLoading) {
+      handleTTSRequest(unnarratedMessages[0].message, unnarratedMessages[0].id, sourceLanguage)
+    }
+
+    return () => {}
+  }, [isNextAllowed, sentences, languageToUse, isLoading, acceptedTnc])
+
+  // ==================== UTILITY/ERROR MANAGEMENT ====================
+  // Clear fileErrorText after timeout
+  useEffect(() => {
+    const textErrorTime = setTimeout(() => {
+      setFileErrorText("")
+    }, 5000)
+
+    return () => {
+      clearTimeout(textErrorTime)
+    }
+  }, [fileErrorText])
+
+  // Debug log for storageFlow
+  useEffect(() => {
+    console.log("storageFlow", storageFlow)
+  }, [storageFlow])
 
   const sendQuestionToUser = async () => {
     try {
-      const flow = storageFlow;
-      const selected_question = questions[`${questionCounter.current}`];
-      const current_questions = selected_question.questions;
-      const question_to_use = current_questions[0];
-      const question = question_to_use.title[languageToUse];
+      const flow = storageFlow
+      const selected_question = questions[`${questionCounter.current}`]
+      const current_questions = selected_question.questions
+      const question_to_use = current_questions[0]
+      const question = question_to_use.title[languageToUse]
 
       const bot_messsage = {
         sequence: selected_question.sequence,
-        translated_question:
-          languageToUse !== "en" ? question_to_use?.title?.en : null,
+        translated_question: languageToUse !== "en" ? question_to_use?.title?.en : null,
         session: sessionId,
         flow: flow,
         profile_id: profileId,
@@ -301,15 +416,15 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
         updated_at: Date.now(),
         question_id: question_to_use.variant_id,
         service: selected_question.service || null,
-      };
+      }
 
-      setChatHistory((prev) => [...prev, bot_messsage]);
-      setChatBotClickedOn(true);
-      setIsOldChatOpen(true);
-      setSessionId(sessionId);
-      setIsNewChatOpen(false);
+      setChatHistory(prev => [...prev, bot_messsage])
+      setChatBotClickedOn(true)
+      setIsOldChatOpen(true)
+      setSessionId(sessionId)
+      setIsNewChatOpen(false)
     } catch (error) {
-      console.error("Error sending question to user:", error);
+      console.error("Error sending question to user:", error)
       showNotification({
         message: t("errorSendingQuestion"),
         type: "error",
@@ -318,23 +433,23 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
           autoClose: 6000,
           style: { fontWeight: "bold" },
         },
-      });
+      })
     }
-  };
+  }
 
   async function resetChatState(e) {
     if (e) {
-      e.preventDefault();
+      e.preventDefault()
     }
-    setIsLoading(true);
+    setIsLoading(true)
 
-    removeLocalChatHistory();
-    setIsOldChatOpen(false);
+    removeLocalChatHistory()
+    setIsOldChatOpen(false)
 
-    const session = await getSessionDetailsApi();
-    setSessionId(session.sessionid);
-    setChatBotClickedOn("");
-    setIsLoading(false);
+    const session = await getSessionDetailsApi()
+    setSessionId(session.sessionid)
+    setChatBotClickedOn("")
+    setIsLoading(false)
   }
 
   function showInterruptionPopup(wantToNavigateBack, executeCustomFunction) {
@@ -343,37 +458,32 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       showCancelButton: true,
       confirmButtonText: t("confirmChanges"),
       cancelButtonText: t("denyButton"),
-    }).then((result) => {
+    }).then(result => {
       if (result.isConfirmed) {
         if (executeCustomFunction) {
-          executeCustomFunction();
+          executeCustomFunction()
         } else {
           if (wantToNavigateBack) {
-            stopAllAudio();
-            clearFromStorage();
-            setLanguage(languageList[0].value);
-            setChatLanguage(languageList[0].value);
+            stopAllAudio()
+            clearFromStorage()
+            setLanguage(languageList[0].value)
+            setLanguageToUse(languageList[0].value)
 
-            if (
-              previousUrl &&
-              previousUrl !== null &&
-              previousUrl !== undefined &&
-              previousUrl !== ""
-            ) {
-              window.location.href = previousUrl;
+            if (previousUrl && previousUrl !== null && previousUrl !== undefined && previousUrl !== "") {
+              window.location.href = previousUrl
             } else {
-              navigate(flowConfig.homePageRoute);
+              navigate(flowConfig.homePageRoute)
             }
           } else {
-            resetChatState();
+            resetChatState()
           }
         }
       } else {
         if (wantToNavigateBack) {
-          window.history.pushState(null, "", window.location.href);
+          window.history.pushState(null, "", window.location.href)
         }
       }
-    });
+    })
   }
 
   function showCompletionPopupFn() {
@@ -384,111 +494,51 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       showCloseButton: false,
       allowEscapeKey: false,
       allowOutsideClick: false,
-      imageUrl:
-        "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/check-mark.png",
+      imageUrl: "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/check-mark.png",
       imageHeight: "100",
-    }).then((result) => {
+    }).then(result => {
       if (result.isConfirmed) {
-        clearFromStorage();
-        setChatLanguage(languageList[0].value);
-        setLanguage(languageList[0].value);
-        stopAllAudio();
-        navigate(flowConfig.homePageRoute);
+        clearFromStorage()
+        setLanguageToUse(languageList[0].value)
+        setLanguage(languageList[0].value)
+        stopAllAudio()
+        navigate(flowConfig.homePageRoute)
       }
-    });
+    })
   }
 
   // Fetch story data when all questions are completed
-  const getStoryBySession = async (sessionID) => {
+  const getStoryBySession = async sessionID => {
     const res = await axiosInstance({
       url: `api/get-story/?session=${sessionID}`,
-    });
-    return res?.data?.results;
-  };
+    })
+    return res?.data?.results
+  }
 
-  const extractTextBlocks = (formattedContent) => {
-    if (!formattedContent) return [];
-    const blocks = JSON.parse(formattedContent);
-    if (!blocks || blocks?.length === 0) return [];
-    return blocks.filter((block) => block.type === "paragraph");
-  };
-
-  // Fetch story on mount to check if it already exists
-  useEffect(() => {
-    if (sessionId) {
-      (async () => {
-        const story_data = await getStoryBySession(sessionId);
-        if (story_data && story_data?.length > 0 && story_data[0]) {
-          setStoryData(story_data[0]);
-          const formatted_content = story_data[0].formatted_content;
-          const textBlocks = extractTextBlocks(formatted_content);
-          setEditorCopyChanges(textBlocks);
-          setNoStoryFound(false);
-          setShowFileInput(true);
-          setIsLoading(false);
-        } else {
-          setIsLoading(false);
-          if (!llmError) {
-            setNoStoryFound(true);
-          }
-        }
-      })();
-    }
-  }, []);
-
-  // Fetch media files for the story
-  useEffect(() => {
-    const fetchMedia = async () => {
-      if (storyData && storyData?.id !== "") {
-        const story_id = storyData?.id;
-        const tempMediaArr = [];
-        setIsImageUploading(true);
-
-        await getStoryAllMedia({
-          setter: (data) => {
-            for (let item of Object.values(data?.results || [])) {
-              if (item.include_in_story) {
-                tempMediaArr.push(item);
-              }
-            }
-            setFiles(tempMediaArr);
-          },
-          data: {
-            story: story_id,
-          },
-        });
-
-        setIsImageUploading(false);
-      }
-    };
-
-    fetchMedia();
-
-    return () => {};
-  }, [storyData]);
+  const extractTextBlocks = formattedContent => {
+    if (!formattedContent) return []
+    const blocks = JSON.parse(formattedContent)
+    if (!blocks || blocks?.length === 0) return []
+    return blocks.filter(block => block.type === "paragraph")
+  }
 
   // Call end-story API to generate the story
   const callEndStory = async (hasClickedOnRegenerate = false) => {
-    const shouldGenerateStory =
-      storyActionsConfig.showPhotoUpload ||
-      storyActionsConfig.showEdit ||
-      storyActionsConfig.showDownload;
+    const shouldGenerateStory = storyActionsConfig.showPhotoUpload || storyActionsConfig.showEdit || storyActionsConfig.showDownload
 
     if (!shouldGenerateStory) {
-      return;
+      return
     }
 
-    const allQuestionsCompleted =
-      questionCounter.current === Object.keys(questions).length &&
-      chatHistory.length === Object.keys(questions).length * 2;
+    const allQuestionsCompleted = questionCounter.current === Object.keys(questions).length && chatHistory.length === Object.keys(questions).length * 2
 
     if (!allQuestionsCompleted && !hasClickedOnRegenerate) {
-      return;
+      return
     }
 
     try {
-      setIsLoading(true);
-      setIsEndStoryLoading(true);
+      setIsLoading(true)
+      setIsEndStoryLoading(true)
 
       // const sessionid = ;
       // const profileId = getFromStorage("profileid", true);
@@ -506,320 +556,210 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
           language: languageToUse,
         },
         method: "POST",
-      });
+      })
 
       if (endStoryResponse?.data?.id) {
-        setFiles([]);
-        setShowFileInput(true);
-        setLlmError("");
+        setFiles([])
+        setShowFileInput(true)
+        setLlmError("")
 
         // Fetch the generated story
-        const story_data = await getStoryBySession(sessionId);
+        const story_data = await getStoryBySession(sessionId)
         if (story_data && story_data?.length > 0 && story_data[0]) {
-          setStoryData(story_data[0]);
-          const formatted_content = story_data[0].formatted_content;
-          const textBlocks = extractTextBlocks(formatted_content);
-          setEditorCopyChanges(textBlocks);
-          setNoStoryFound(false);
+          setStoryData(story_data[0])
+          const formatted_content = story_data[0].formatted_content
+          const textBlocks = extractTextBlocks(formatted_content)
+          setEditorCopyChanges(textBlocks)
+          setNoStoryFound(false)
         }
       } else {
-        setLlmError(
-          endStoryResponse?.data?.error_message || t("storyGenerationError")
-        );
+        setLlmError(endStoryResponse?.data?.error_message || t("storyGenerationError"))
       }
     } catch (error) {
-      console.error("Error completing the story:", error);
-      setLlmError(
-        error?.response?.data?.error_message || t("storyGenerationError")
-      );
+      console.error("Error completing the story:", error)
+      setLlmError(error?.response?.data?.error_message || t("storyGenerationError"))
     } finally {
-      setIsEndStoryLoading(false);
-      setIsLoading(false);
-      setNoStoryFound(false);
+      setIsEndStoryLoading(false)
+      setIsLoading(false)
+      setNoStoryFound(false)
     }
-  };
-
-  useEffect(() => {
-    const checkAndFetchStory = async () => {
-      const allQuestionsCompleted =
-        questionCounter.current === Object.keys(questions).length &&
-        chatHistory.length === Object.keys(questions).length * 2;
-
-      if (allQuestionsCompleted) {
-        const shouldGenerateStory =
-          storyActionsConfig.showPhotoUpload ||
-          storyActionsConfig.showEdit ||
-          storyActionsConfig.showDownload;
-
-        if (
-          shouldGenerateStory &&
-          noStoryFound &&
-          (!llmError || llmError === "")
-        ) {
-          // Call end-story API to generate the story only when noStoryFound is true
-          await callEndStory();
-        } else if (!shouldGenerateStory && showCompletionPopup) {
-          // Just show completion popup if no story actions needed
-          showCompletionPopupFn();
-        }
-      }
-    };
-
-    checkAndFetchStory();
-  }, [chatHistory, questionCounter.current, noStoryFound, llmError]);
-
-  useEffect(() => {
-    const handleBack = () => {
-      showInterruptionPopup(true);
-    };
-
-    window.history.pushState({ isCustom: true }, "", window.location.href);
-
-    window.addEventListener("popstate", handleBack);
-
-    return () => {
-      window.removeEventListener("popstate", handleBack);
-    };
-  }, []);
-
-  useEffect(() => {
-    setLocalChatHistory(chatHistory);
-    lastBotMessageIndex.current = chatHistory?.length - 1;
-  }, [chatHistory]);
-
-  useEffect(() => {
-    if (acceptedTnc === true) {
-      handleScrollToView();
-    }
-  }, [chatHistory?.length, acceptedTnc]);
-
-  useEffect(() => {
-    try {
-      if (!!trigger && !!reconText) {
-        setReconText("");
-        setTrigger(false);
-      }
-    } catch (error) {
-      console.error({ error });
-    }
-  }, [reconText, trigger, recordings]);
-
-  useEffect(() => {
-    if (audioRef?.current) {
-      if (isMute) {
-        audioRef.current.muted = true;
-      } else {
-        audioRef.current.muted = false;
-      }
-    }
-  }, [isMute]);
+  }
 
   const handleScrollToView = () => {
     try {
       document?.querySelector("#last-chat-boundary")?.scrollIntoView({
         behavior: "smooth",
-      });
+      })
     } catch (error) {
-      console.error({ error });
+      console.error({ error })
     }
-  };
+  }
 
-  const handleOnInputText = (e) => {
-    e.preventDefault();
-    setTextMessage(e.target.value);
+  const handleOnInputText = e => {
+    e.preventDefault()
+    setTextMessage(e.target.value)
 
     if (e.target.value.trim() === "") {
-      setHasStartedListening(false);
+      setHasStartedListening(false)
     }
-  };
+  }
 
   const handleTTSRequest = async (_audio, id, sourceLanguage) => {
     try {
       async function handleSpeaking(cachedAudioUrl) {
-        let audio = null;
+        let audio = null
         if (cachedAudioUrl) {
           if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
+            audioRef.current.pause()
+            audioRef.current.currentTime = 0
           }
-          audioRef.current = new Audio(cachedAudioUrl);
-          audio = audioRef.current;
+          audioRef.current = new Audio(cachedAudioUrl)
+          audio = audioRef.current
 
           audio.onplay = () => {
-            setIsNextAllowed(false);
-          };
+            setIsNextAllowed(false)
+          }
           audio.onended = () => {
-            setSentences((prev) => {
-              let all_sentences = JSON.parse(JSON.stringify([...prev]));
-              let index = prev.findIndex((x) => x.id === id);
-              if (index > -1) all_sentences[index].isNarrated = true;
-              return all_sentences;
-            });
-            setIsNextAllowed(true);
-            setHasOverRideId(null);
-          };
+            setSentences(prev => {
+              let all_sentences = JSON.parse(JSON.stringify([...prev]))
+              let index = prev.findIndex(x => x.id === id)
+              if (index > -1) all_sentences[index].isNarrated = true
+              return all_sentences
+            })
+            setIsNextAllowed(true)
+            setHasOverRideId(null)
+          }
 
           try {
-            await audio.play();
+            await audio.play()
           } catch (error) {
-            console.error("Error playing audio:", error);
-            setSentences((prev) => {
-              let all_sentences = JSON.parse(JSON.stringify([...prev]));
-              let index = prev.findIndex((x) => x.id === id);
-              if (index > -1) all_sentences[index].isNarrated = true;
-              return all_sentences;
-            });
-            setIsNextAllowed(true);
-            setHasOverRideId(null);
+            console.error("Error playing audio:", error)
+            setSentences(prev => {
+              let all_sentences = JSON.parse(JSON.stringify([...prev]))
+              let index = prev.findIndex(x => x.id === id)
+              if (index > -1) all_sentences[index].isNarrated = true
+              return all_sentences
+            })
+            setIsNextAllowed(true)
+            setHasOverRideId(null)
           }
         }
       }
-      let cachedAudioUrl = audioCache[id];
+      let cachedAudioUrl = audioCache[id]
       if (isMute && !hasOverRideId) {
-        setSentences((prev) => {
-          let all_sentences = JSON.parse(JSON.stringify([...prev]));
-          return all_sentences.map((x) => ({ ...x, isNarrated: true }));
-        });
-        setIsNextAllowed(true);
-        setHasOverRideId(null);
-        return;
+        setSentences(prev => {
+          let all_sentences = JSON.parse(JSON.stringify([...prev]))
+          return all_sentences.map(x => ({ ...x, isNarrated: true }))
+        })
+        setIsNextAllowed(true)
+        setHasOverRideId(null)
+        return
       }
       if (_audio?.length) {
         if (!cachedAudioUrl) {
           fetch(_audio)
-            .then((res) => res.text())
-            .then((base64) => {
-              cachedAudioUrl = `data:audio/mpeg;base64,${base64}`;
-              setAudioCache((prevCache) => ({
+            .then(res => res.text())
+            .then(base64 => {
+              cachedAudioUrl = `data:audio/mpeg;base64,${base64}`
+              setAudioCache(prevCache => ({
                 ...prevCache,
                 [id]: cachedAudioUrl,
-              }));
-              handleSpeaking(cachedAudioUrl);
+              }))
+              handleSpeaking(cachedAudioUrl)
             })
-            .catch((err) => {
-              console.error("Error fetching audio:", err);
-            });
+            .catch(err => {
+              console.error("Error fetching audio:", err)
+            })
         } else {
-          handleSpeaking(cachedAudioUrl);
+          handleSpeaking(cachedAudioUrl)
         }
       }
     } catch (error) {
-      console.error("Error in handleTTSRequest:", error);
-      handleOnStopSpeaking();
+      console.error("Error in handleTTSRequest:", error)
+      handleOnStopSpeaking()
     }
-  };
+  }
 
-  const isTyping = !!textMessage.trim();
-
-  useEffect(() => {
-    let unnarratedMessages = sentences.filter((x) => !x?.isNarrated);
-    let hasUnnarratedMessages = !!unnarratedMessages?.length;
-    let sourceLanguage = languageToUse;
-
-    if (isNextAllowed && hasUnnarratedMessages && !isLoading) {
-      handleTTSRequest(
-        unnarratedMessages[0].message,
-        unnarratedMessages[0].id,
-        sourceLanguage
-      );
-    }
-
-    return () => {};
-  }, [isNextAllowed, sentences, languageToUse, isLoading, acceptedTnc]);
+  const isTyping = !!textMessage.trim()
 
   const handleOnSpeaking = async (audio, id) => {
     try {
       try {
-        if (!!audioRef.current) await audioRef.current.pause();
+        if (!!audioRef.current) await audioRef.current.pause()
       } catch (error) {
-        console.error({ error });
+        console.error({ error })
       }
 
-      setHasOverRideId(id);
-      setIsNextAllowed(true);
-      setSentences((prev) => {
+      setHasOverRideId(id)
+      setIsNextAllowed(true)
+      setSentences(prev => {
         return [
           {
             message: audio,
             isNarrated: false,
             id: id,
           },
-        ];
-      });
+        ]
+      })
     } catch (error) {
-      console.error({ error });
+      console.error({ error })
     }
-  };
+  }
 
   const handleOnStopSpeaking = async () => {
     try {
       try {
-        if (audioRef.current) await audioRef.current.pause();
+        if (audioRef.current) await audioRef.current.pause()
       } catch (error) {
-        console.error({ error });
+        console.error({ error })
       }
-      setHasOverRideId(null);
-      setSentences([]);
-      setIsNextAllowed(true);
+      setHasOverRideId(null)
+      setSentences([])
+      setIsNextAllowed(true)
     } catch (error) {
-      console.error({ error });
+      console.error({ error })
     }
-  };
+  }
 
   const isSilentAudio = async (blob, silenceThreshold = 0.01) => {
-    const audioContext = new (window.AudioContext ||
-      window.webkitAudioContext)();
-    const arrayBuffer = await blob.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    const rawData = audioBuffer.getChannelData(0);
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    const arrayBuffer = await blob.arrayBuffer()
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+    const rawData = audioBuffer.getChannelData(0)
 
-    const rms = Math.sqrt(
-      rawData.reduce((acc, val) => acc + val * val, 0) / rawData.length
-    );
-    return rms < silenceThreshold;
-  };
-
-  useEffect(() => {
-    if (acceptedTnc === false) {
-      document.body.style.overflowY = "hidden";
-    } else {
-      document.body.style.overflowY = "auto";
-    }
-
-    return () => {
-      document.body.style.overflowY = "auto";
-    };
-  }, [acceptedTnc]);
+    const rms = Math.sqrt(rawData.reduce((acc, val) => acc + val * val, 0) / rawData.length)
+    return rms < silenceThreshold
+  }
 
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      handleOnStopSpeaking();
-      setTextMessage("");
+      handleOnStopSpeaking()
+      setTextMessage("")
       navigator.mediaDevices
         .getUserMedia({ audio: true })
-        .then((stream) => {
+        .then(stream => {
           const options = {
             mimeType: "audio/webm;codecs=opus",
             audioBitsPerSecond: 16000,
-          };
-          const recorder = new MediaRecorder(stream, options);
-          setMediaRecorder(recorder);
+          }
+          const recorder = new MediaRecorder(stream, options)
+          setMediaRecorder(recorder)
 
-          const localAudioChunks = [];
+          const localAudioChunks = []
 
-          recorder.start();
-          setHasStartedRecording(true);
+          recorder.start()
+          setHasStartedRecording(true)
 
-          recorder.ondataavailable = (event) => {
-            localAudioChunks.push(event.data);
-          };
+          recorder.ondataavailable = event => {
+            localAudioChunks.push(event.data)
+          }
 
           recorder.onstop = async () => {
             if (localAudioChunks.length > 0) {
               const audioBlob = new Blob(localAudioChunks, {
                 type: "audio/webm;codecs=opus",
-              });
-              const isSilent = await isSilentAudio(audioBlob, 0.02);
+              })
+              const isSilent = await isSilentAudio(audioBlob, 0.02)
 
               if (!audioBlob || isSilent) {
                 showNotification({
@@ -830,27 +770,18 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                     autoClose: 6000,
                     style: { fontWeight: "bold" },
                   },
-                });
-                return;
+                })
+                return
               }
 
-              setIsFetchingData(true);
-              let transcriptResult = "";
-              let s3Url = await handleS3Upload(
-                audioBlob,
-                `${Date.now()}`,
-                `chatbot/companychat/${sessionId}/`,
-                null
-              );
+              setIsFetchingData(true)
+              let transcriptResult = ""
+              let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${sessionId}/`, null)
               if (!s3Url || s3Url === "") {
-                transcriptResult = t("asrError");
+                transcriptResult = t("asrError")
               }
-              setAsrAudio(s3Url);
-              transcriptResult = await ai4BharatASRApi(
-                s3Url,
-                languageToUse,
-                FLOW_ROUTE
-              );
+              setAsrAudio(s3Url)
+              transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, FLOW_ROUTE)
               if (!transcriptResult || transcriptResult === "") {
                 showNotification({
                   message: t("asrError"),
@@ -860,94 +791,80 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                     autoClose: 6000,
                     style: { fontWeight: "bold" },
                   },
-                });
+                })
               } else {
-                setTextMessage(transcriptResult);
+                setTextMessage(transcriptResult)
               }
-              setIsFetchingData(false);
+              setIsFetchingData(false)
             } else {
-              console.warn("No audio chunks were recorded.");
-              setIsFetchingData(false);
+              console.warn("No audio chunks were recorded.")
+              setIsFetchingData(false)
             }
-          };
+          }
         })
-        .catch((err) => {
-          console.error("Error accessing microphone:", err);
-          setIsFetchingData(false);
-        });
+        .catch(err => {
+          console.error("Error accessing microphone:", err)
+          setIsFetchingData(false)
+        })
     } else {
-      console.warn("getUserMedia not supported on your browser!");
+      console.warn("getUserMedia not supported on your browser!")
     }
-  };
+  }
 
   const stopRecording = () => {
     if (mediaRecorder) {
-      mediaRecorder.stop();
-      setHasStartedRecording(false);
+      mediaRecorder.stop()
+      setHasStartedRecording(false)
     }
-  };
+  }
 
   function stopAllAudio() {
     if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-      audioRef.current.removeAttribute("src");
-      audioRef.current.load();
-      audioRef.current.muted = true;
-      audioRef.current.currentTime = 0;
-      setHasOverRideId(null);
-      setSentences([]);
-      setIsNextAllowed(true);
-      setNotMute(true);
-      setHasStartedListening(false);
-      setHasStartedRecording(false);
-      setTextMessage("");
-      setAsrAudio(null);
-      setIntervalId(null);
-      setSeconds(0);
-      setMediaRecorder(null);
+      audioRef.current.pause()
+      audioRef.current.src = ""
+      audioRef.current.removeAttribute("src")
+      audioRef.current.load()
+      audioRef.current.muted = true
+      audioRef.current.currentTime = 0
+      setHasOverRideId(null)
+      setSentences([])
+      setIsNextAllowed(true)
+      setNotMute(true)
+      setHasStartedListening(false)
+      setHasStartedRecording(false)
+      setTextMessage("")
+      setAsrAudio(null)
+      setIntervalId(null)
+      setSeconds(0)
+      setMediaRecorder(null)
       if (textAreaRef.current) {
-        textAreaRef.current.value = "";
-        textAreaRef.current.style.height = "auto";
+        textAreaRef.current.value = ""
+        textAreaRef.current.style.height = "auto"
       }
-      audioRef.current = null;
+      audioRef.current = null
     }
   }
 
   function handleAcceptTnC() {
-    setAcceptedTnC(true);
+    setAcceptedTnC(true)
   }
 
   const openModal = () => {
-    setIsModalOpen(true);
-  };
+    setIsModalOpen(true)
+  }
 
   const closeModal = () => {
-    setIsModalOpen(false);
-  };
+    setIsModalOpen(false)
+  }
 
-  const isReplying =
-    !hasStartedListening &&
-    chatHistory[chatHistory?.length - 1]?.source === "user" &&
-    !(
-      chatHistory[chatHistory.length - 1].sequence >=
-      Object.keys(questions).length
-    );
+  const isReplying = !hasStartedListening && chatHistory[chatHistory?.length - 1]?.source === "user" && !(chatHistory[chatHistory.length - 1].sequence >= Object.keys(questions).length)
 
-  const allQuestionsCompleted =
-    questionCounter.current === Object.keys(questions).length &&
-    chatHistory.length === Object.keys(questions).length * 2;
+  const allQuestionsCompleted = questionCounter.current === Object.keys(questions).length && chatHistory.length === Object.keys(questions).length * 2
 
   return (
     <>
       <SpeedNotification />
-      {languageToUse && !isLoading && !acceptedTnc && (
-        <PrivacyPolicyPopup
-          tncText={t("tncText")}
-          onAccept={handleAcceptTnC}
-          useStaticText={false}
-        />
-      )}
+      {languageToUse && !isLoading && !acceptedTnc && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={isMobile ? "div30_a" : "div30"}>
         <Header
           isMobileFirst={isMobile}
@@ -965,12 +882,8 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
             <BiLoader className="loader-rotate-loader loader-icon" />
             {isEndStoryLoading && (
               <div className="div69 text-center">
-                <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
-                  {t("storyLoaderHeading")}
-                </h2>
-                <label className="form-label label1 text-center">
-                  {t("storyLoader")}
-                </label>
+                <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">{t("storyLoaderHeading")}</h2>
+                <label className="form-label label1 text-center">{t("storyLoader")}</label>
               </div>
             )}
           </div>
@@ -978,19 +891,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       )}
 
       {/* Edit Story Modal */}
-      {storyActionsConfig.showEdit && (
-        <EditStoryModal
-          isModalOpen={isModalOpen}
-          closeModal={closeModal}
-          storyData={storyData}
-          editorCopyChanges={editorCopyChanges}
-          setIsLoading={setIsLoading}
-          isSaving={isSaving}
-          setIsSaving={setIsSaving}
-          access_token={accessToken}
-          navigate={navigate}
-        />
-      )}
+      {storyActionsConfig.showEdit && <EditStoryModal isModalOpen={isModalOpen} closeModal={closeModal} storyData={storyData} editorCopyChanges={editorCopyChanges} setIsLoading={setIsLoading} isSaving={isSaving} setIsSaving={setIsSaving} access_token={accessToken} navigate={navigate} />}
 
       <div>
         <HiddenRecorder />
@@ -1004,26 +905,14 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                   {t(flowConfig?.introHeadingKey1)}
                 </h3>
               </div>
-              <ul className="div11 pb-6">
-                {flowConfig?.introLines &&
-                  flowConfig?.introLines.map((lineKey, index) => (
-                    <li key={index}>{t(lineKey)}</li>
-                  ))}
-              </ul>
+              <ul className="div11 pb-6">{flowConfig?.introLines && flowConfig?.introLines.map((lineKey, index) => <li key={index}>{t(lineKey)}</li>)}</ul>
             </>
           )}
           {
             <ul className="div34">
               {chatHistory?.map((chat, i) => (
-                <li
-                  key={i}
-                  className={`div34 div35 ${
-                    chat?.source === "user" ? "label1" : "label1"
-                  }`}
-                >
-                  <div
-                    className={`div36 ${chat?.source === "user" && "div37"}`}
-                  >
+                <li key={i} className={`div34 div35 ${chat?.source === "user" ? "label1" : "label1"}`}>
+                  <div className={`div36 ${chat?.source === "user" && "div37"}`}>
                     <ChatMessage
                       botNameToDisplay={botNameToDisplay}
                       userType={chat?.source}
@@ -1032,12 +921,10 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                       recording={chat?.recording}
                       hasAppendix={chat?.recording}
                       appendixURL={chat?.appendixURL}
-                      isTalking={
-                        chat.source === "bot" && i === chatHistory.length - 1
-                      }
+                      isTalking={chat.source === "bot" && i === chatHistory.length - 1}
                       handleOnStopSpeaking={() => handleOnStopSpeaking()}
                       handleOnSpeaking={() => {
-                        handleOnSpeaking(chat?.audio, chat?.updated_at);
+                        handleOnSpeaking(chat?.audio, chat?.updated_at)
                       }}
                       isAnyPlaying={!!hasOverRideId}
                       isPlaying={hasOverRideId === chat?.updated_at}
@@ -1068,9 +955,9 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                 <button
                   className="clickable-button"
                   onClick={async () => {
-                    setIsLoading(true);
-                    setIsEndStoryLoading(true);
-                    await callEndStory(true);
+                    setIsLoading(true)
+                    setIsEndStoryLoading(true)
+                    await callEndStory(true)
                   }}
                   disabled={isLoading || isPdfDownloading}
                 >
@@ -1111,8 +998,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
               )}
 
               {/* Download and Edit Section */}
-              {(storyActionsConfig.showDownload ||
-                storyActionsConfig.showEdit) && (
+              {(storyActionsConfig.showDownload || storyActionsConfig.showEdit) && (
                 <StoryActionsContainer
                   botNameToDisplay={botNameToDisplay}
                   handleOnSpeaking={handleOnSpeaking}
@@ -1141,22 +1027,18 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
         {!allQuestionsCompleted && !isEndStoryLoading && (
           <form
             className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
-            onSubmit={async (event) => {
-              event.stopPropagation();
-              event.preventDefault();
-              stopAllAudio();
+            onSubmit={async event => {
+              event.stopPropagation()
+              event.preventDefault()
+              stopAllAudio()
               if (!hasStartedListening && !isFetchingData) {
-                const last_question = chatHistory
-                  .filter((x) => x.source === "bot")
-                  .sort((a, b) => b.updated_at - a.updated_at)[0];
-                const question = last_question.msg;
-                let status = PTM_CONVERSATION_STATUS_TYPE.IN_PROGRESS;
+                const last_question = chatHistory.filter(x => x.source === "bot").sort((a, b) => b.updated_at - a.updated_at)[0]
+                const question = last_question.msg
+                let status = PTM_CONVERSATION_STATUS_TYPE.IN_PROGRESS
                 if (last_question.sequence === 1) {
-                  status = PTM_CONVERSATION_STATUS_TYPE.STARTED;
-                } else if (
-                  last_question.sequence === Object.keys(questions).length
-                ) {
-                  status = PTM_CONVERSATION_STATUS_TYPE.COMPLETED;
+                  status = PTM_CONVERSATION_STATUS_TYPE.STARTED
+                } else if (last_question.sequence === Object.keys(questions).length) {
+                  status = PTM_CONVERSATION_STATUS_TYPE.COMPLETED
                 }
                 const data = {
                   session: sessionId,
@@ -1167,16 +1049,15 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                   answer_id: `answer_${last_question.sequence}_${last_question.question_id}`,
                   sequence: last_question.sequence,
                   question: question,
-                  translated_question:
-                    last_question?.translated_question?.text || null,
+                  translated_question: last_question?.translated_question?.text || null,
                   answer: textMessage,
                   language: languageToUse,
                   sent_at: new Date().toISOString(),
                   audio_url: asrAudio,
                   service: last_question.service || null,
-                };
-                savePTMQuestionApi(data);
-                setChatHistory((prev) => [
+                }
+                savePTMQuestionApi(data)
+                setChatHistory(prev => [
                   ...prev,
                   {
                     ...data,
@@ -1186,22 +1067,22 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                       updated_at: Date.now(),
                     }),
                   },
-                ]);
-                setTextMessage("");
-                setAsrAudio(null);
-                setHasStartedListening(false);
-                setIsFetchingData(false);
-                setHasStartedRecording(false);
-                setSeconds(0);
-                setIntervalId(null);
-                setHasOverRideId(null);
-                setIsNextAllowed(true);
+                ])
+                setTextMessage("")
+                setAsrAudio(null)
+                setHasStartedListening(false)
+                setIsFetchingData(false)
+                setHasStartedRecording(false)
+                setSeconds(0)
+                setIntervalId(null)
+                setHasOverRideId(null)
+                setIsNextAllowed(true)
                 setTimeout(() => {
                   if (questionCounter.current < Object.keys(questions).length) {
-                    questionCounter.current += 1;
-                    sendQuestionToUser();
+                    questionCounter.current += 1
+                    sendQuestionToUser()
                   }
-                }, 2000);
+                }, 2000)
               }
             }}
             autoComplete="off"
@@ -1209,53 +1090,45 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
             <div className="textarea-wrapper relative">
               <textarea
                 id="textBoxID"
-                className={`input-2 input-1 ${
-                  isFetchingData ? "min-h-[68px] sm:min-h-0 py-0" : ""
-                }`}
+                className={`input-2 input-1 ${isFetchingData ? "min-h-[68px] sm:min-h-0 py-0" : ""}`}
                 style={{ alignContent: isFetchingData ? "normal" : "center" }}
                 onChange={handleOnInputText}
-                placeholder={
-                  hasStartedRecording
-                    ? t("placeholder1")
-                    : isFetchingData
-                    ? t("placeholder2")
-                    : t("placeholder3")
-                }
+                placeholder={hasStartedRecording ? t("placeholder1") : isFetchingData ? t("placeholder2") : t("placeholder3")}
                 name="message-box"
                 value={textMessage}
                 autoFocus={false}
                 disabled={hasStartedRecording || isFetchingData}
                 ref={textAreaRef}
-                onInput={(e) => {
-                  e.target.style.height = "auto";
-                  const maxHeight = 150;
+                onInput={e => {
+                  e.target.style.height = "auto"
+                  const maxHeight = 150
                   if (e.target.scrollHeight > maxHeight) {
-                    e.target.style.height = `${maxHeight}px`;
-                    e.target.style.overflowY = "scroll";
+                    e.target.style.height = `${maxHeight}px`
+                    e.target.style.overflowY = "scroll"
                   } else {
-                    e.target.style.height = `${e.target.scrollHeight}px`;
-                    e.target.style.overflowY = "hidden";
+                    e.target.style.height = `${e.target.scrollHeight}px`
+                    e.target.style.overflowY = "hidden"
                   }
                 }}
                 onFocus={() => {
                   setTimeout(() => {
-                    handleScrollToView();
+                    handleScrollToView()
                     if (textAreaRef.current) {
                       textAreaRef.current.scrollIntoView({
                         behavior: "smooth",
                         block: "center",
-                      });
+                      })
                     }
-                  }, 300);
+                  }, 300)
                 }}
-                onKeyDown={(e) => {
+                onKeyDown={e => {
                   if (e.key === "Enter") {
                     if (e.shiftKey) {
-                      e.preventDefault();
-                      e.target.form.requestSubmit();
+                      e.preventDefault()
+                      e.target.form.requestSubmit()
                       setTimeout(() => {
-                        e.target.value = "";
-                      }, 0);
+                        e.target.value = ""
+                      }, 0)
                     }
                   }
                 }}
@@ -1269,28 +1142,13 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
             </div>
             {isTyping && !hasStartedListening && !isFetchingData ? (
               <div className="button-container">
-                <button
-                  type="submit"
-                  disabled={hasStartedRecording || isFetchingData || isReplying}
-                  className="button-6 sm:ml-[1.3rem] ml-[0.8rem]"
-                >
+                <button type="submit" disabled={hasStartedRecording || isFetchingData || isReplying} className="button-6 sm:ml-[1.3rem] ml-[0.8rem]">
                   <MdSend />
                 </button>
               </div>
             ) : (
-              <div
-                className={`audio-recorder ${
-                  isFetchingData ? "button-container" : ""
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={hasStartedRecording ? stopRecording : startRecording}
-                  disabled={isFetchingData || isReplying}
-                  className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${
-                    hasStartedRecording ? "button-8" : "button-9"
-                  }`}
-                >
+              <div className={`audio-recorder ${isFetchingData ? "button-container" : ""}`}>
+                <button type="button" onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData || isReplying} className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${hasStartedRecording ? "button-8" : "button-9"}`}>
                   {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
                 </button>
               </div>
@@ -1300,7 +1158,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       </div>
       <div ref={endPageToScrollRef} id="last-chat-boundary" />
     </>
-  );
-};
+  )
+}
 
-export default UnifiedVoiceBasedChat;
+export default UnifiedVoiceBasedChat
