@@ -62,12 +62,12 @@ const unprotected_old_routes = [
   { path: ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE, element: <UnifiedChat type={sessionFlowName.YLC} />},
   { path: ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE, element: <CommonHomePage usecaseType={SESSION_USECASE_TYPE.YLC} /> },
   
-  {path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage />},
+  { path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage />},
   { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <CommonHomePage /> },
-  {path: ROUTES.SSO_FLOW, element: <SsoFlow />},
-  {path: ROUTES.SHIKSHAGRAHA_REPOSITORY, element: <ShikshagrahaRepository />},
-  {path: ROUTES.SHIKSHAGRAHA_REPOSITORY_DETAIL, element: <ShikshagrahaRepositoryDetail />},
-  {path: ROUTES.NOT_FOUND, element: <NotFound />},
+  { path: ROUTES.SSO_FLOW, element: <SsoFlow />},
+  { path: ROUTES.SHIKSHAGRAHA_REPOSITORY, element: <ShikshagrahaRepository />},
+  { path: ROUTES.SHIKSHAGRAHA_REPOSITORY_DETAIL, element: <ShikshagrahaRepositoryDetail />},
+  { path: ROUTES.NOT_FOUND, element: <NotFound />},
 ];
 
 const unprotected_routes_config = [

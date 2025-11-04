@@ -58,16 +58,16 @@ import { getCompanyBotApi } from "api/endpoints/chat";
 
 
 const cookies = new Cookies();
-const company_bot_list_url = `/api/companybot/`;
 
 // TODO: After testing, revert this to the original code
 // const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
+
+
   // ========== useState Hooks ==========
   const [storyMediaIdArray, ] = useState(null);
-  const [chatSocket, setChatSocket] = useState(null);
   const [textMessage, setTextMessage] = useState("");
   const [asrAudio, setAsrAudio] = useState(null);
   const [isFetchingData, setIsFetchingData] = useState(false);
@@ -117,6 +117,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const [error, setError] = useState({ response: "", status: 200, });
   const [visibleItemCount, setVisibleItemCount] = useState(10);
   const [showHomepage, setShowHomepage] = useState(false);
+  const [isReconnectInProgress, setIsReconnectInProgress] = useState(false);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
 
   // ========== useRef Hooks ==========
   const textAreaRef = useRef(null);
@@ -125,57 +127,58 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const editorContainerRef = useRef(null);
   const endPageToScrollRef = useRef(null);
   const isIntroPlayed = useRef(false);
+  const retryConnectionRef = useRef(null);
+  const chatSocketRef = useRef(null);
   // const introMessageRef = useRef(null);
 
   // ========== Other Hooks ==========
+  const [chatHistory, setChatHistory, removeChatHistory] = useSmartChatStorage();
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
-  const [chatHistory, setChatHistory, removeChatHistory] = useSmartChatStorage();
 
   const accessToken = useUserDataLocalStore((state) => state.access_token);
 
-	const isOldChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isOldChatOpen);
+  // const defaultBotName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.defaultBotName);
+  // const isChatVisible = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isChatVisible);
+  // const showHomepage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.showHomepage);
   const acceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.has_accepted_tnc);
   const botName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.botName);
   const chatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.chatLanguage);
   const companyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.companyName);
-  // const defaultBotName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.defaultBotName);
   const firstName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.firstName);
   const introMessage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.introMessage);
-  // const isChatVisible = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isChatVisible);
   const isNewChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isNewChatOpen);
+	const isOldChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isOldChatOpen);
   const langProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.langProgress);
   const languageToUse = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.chatLanguage);
   const preferredLanguage = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.preferredLanguage);
   const previousUrl = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.previousUrl);
   const profileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.profileId);
+  const profileToUse = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.profileId);
   const projectIdStore = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.projectId);
   const selectedType = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.selectedType);
   const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.sessionId);
   const setChatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.setChatLanguage);
-  const setIntroMessage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setIntroMessage);
   const setLangProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setLangProgress);
   const setStorageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setFlow);
-  // const showHomepage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.showHomepage);
-  const userState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.state);
   const ssoRerouteURL = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.ssoRerouteURL);
   const stateMachineLength = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.stateMachineLength);
   const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow);
   const taskId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.taskId);
-  const profileToUse = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.profileId);
+  const userState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.state);
 
   // chat data actions
   const {
+    setBotName,
     setChatbotClickedOn,
+    setDefaultBotName,
+    setIntroMessage,
     setIsChatVisible,
     setIsNewChatOpen,
     setIsOldChatOpen,
     setSelectedType,
-    // setShowHomepage,
-    setBotName,
-    setDefaultBotName,
-    setStateMachineLength,
     setSessionId,
+    setStateMachineLength,
   } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState();
 
   // user data actions
@@ -197,7 +200,823 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const { showGuestPopup, showConfirmationPopup } = useConfirmationPopup();
   const { stopAllAudio, audioRef } = useAudio();
 
-  // ========== useCallback Hooks ==========
+  const isShikshalokamPublicType = true;
+  const shouldShowChatHistoryFeature = true;
+  const maxReconnectAttempts = process.env.REACT_APP_WEBSOCKET_RETRY_NUM || 3;
+
+  const isSpecialFlow = useMemo(() => {
+    if (!storageFlow) return false;
+    return [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow);
+  }, [storageFlow])
+  const shouldFetchChatSession = useMemo(() => {
+    return storageFlow && [sessionFlowName.Reflection].includes(storageFlow);
+  }, [storageFlow]);
+
+  // ========================================================================
+  // SECTION: Helper Functions (Must be defined before callbacks that use them)
+  // These helper functions are used by callbacks and must be defined first
+  // ========================================================================
+
+  /**
+   * Adds user messages to chat history
+   * Creates and appends user message to conversation
+   */
+  const handleMessagesForUser = (sentence) => {
+    const chat_history = [
+      ...chatHistory,
+      createMessage({
+        msg: sentence,
+        source: "user",
+      }),
+    ]
+    setChatHistory(chat_history);
+
+    return chat_history;
+  };
+
+  /**
+   * Stops audio playback and resets TTS state
+   * Clears sentences queue and allows next audio to play
+   */
+  const handleOnStopSpeaking = async () => {
+    try {
+      try {
+        if (audioRef.current) await audioRef.current.pause();
+      } catch (error) {
+        console.error({ error });
+      }
+      setHasOverRideId(null);
+      setSentences([]);
+      setIsNextAllowed(true);
+    } catch (error) {
+      console.error({ error });
+    }
+  };
+
+  /**
+   * Handles intro message customization and initialization
+   * Fetches translated message and personalizes with user's first name
+   */
+  const handleIntroMessage = async () => {
+    let data = await getTranslatedIntroMessage()
+    let message = data[0]?.introductory_message;
+    if (data && data[0]) {
+      if (
+        profileToUse &&
+        firstName &&
+        firstName !== "null" &&
+        firstName !== ""
+      ) {
+        message = data[0]?.introductory_message;
+      } else {
+        message = data[0]?.alt_introductory_message;
+      }
+    }
+    const botName = data[0]?.name || "Bot";
+
+    setBotName(botName);
+    setDefaultBotName(data[0]?.default_name);
+    setBotNameToDisplay(botName);
+
+    if(isOldChatOpen) {
+      let sessionInfo = await getSessionInfo();
+      if(sessionInfo && sessionInfo.length>0) {
+        setStrandStep(sessionInfo[0]?.current_step)
+        if(sessionInfo[0]?.session_type) {
+          setSelectedType(sessionInfo[0]?.session_type)
+        }
+      }
+    }
+    console.log("message: ", message);
+    console.log("firstName: ", firstName);
+    if (message && firstName) {
+      const words = message.split(" ");
+      words.splice(1, 0, firstName);
+      message = words.join(" ");
+    }
+    if (message && !!message?.trim() &&
+      chatHistory[chatHistory?.length - 1]?.msg !== message &&
+      !sentences.some((msg) => msg.message === message)
+    ) {
+        const isGuestFlow = !accessToken
+        setIntroMessage(message)
+        setSentences((prev) => [
+          ...prev,
+          {
+            message: message,
+            isNarrated: isGuestFlow ? false : false,
+            id: "intro_msg_id",
+          },
+        ]);
+        if (isGuestFlow) {
+          setHasOverRideId("intro_msg_id");
+          setNotMute(false);
+          setIsNextAllowed(true);
+        }
+      }
+  }
+
+  /**
+   * Transforms chat data from API into sentences and chat history format
+   * @param {Object} chat - Chat object from API
+   * @param {string} introMessage - The intro message to skip duplicates
+   * @returns {Object|null} Transformed message object or null if should be skipped
+   */
+  const transformChatMessage = (chat, introMessage) => {
+    // Skip intro message duplicates
+    if (chat?.id === "intro_msg_id" || chat?.message === introMessage) {
+      return null;
+    }
+
+    // Use translated message if available
+    const messageToUse = chat?.translated_message && chat?.translated_message !== ""
+      ? chat?.translated_message
+      : chat?.message;
+
+    const isBot = chat?.sender?.id === 1;
+    
+    return {
+      sentence: {
+        message: isBot ? messageToUse : chat?.message,
+        source: isBot ? "bot" : "user",
+        isNarrated: true,
+        id: chat?.id,
+      },
+      chatHistory: {
+        msg: isBot ? messageToUse : chat?.message,
+        source: isBot ? "bot" : "user",
+        updated_at: chat?.id,
+      },
+    };
+  };
+
+  /**
+   * Comparison functions for sorting by ID
+   */
+  function compareById(a, b) {
+    return a.id - b.id;
+  }
+
+  function compareByIdDesc(a, b) {
+    return b.id - a.id;
+  }
+
+  /**
+   * Quick sort implementation for sorting arrays
+   * @param {Array} arr - Array to sort
+   * @param {Function} compare - Comparison function
+   * @returns {Array} Sorted array
+   */
+  function quickSort(arr, compare) {
+    if (arr?.length <= 1) {
+      return arr;
+    }
+
+    const pivot = arr[0];
+    const left = [];
+    const right = [];
+
+    for (let i = 1; i < arr?.length; i++) {
+      if (compare(arr[i], pivot) < 0) {
+        left.push(arr[i]);
+      } else {
+        right.push(arr[i]);
+      }
+    }
+
+    return [...quickSort(left, compare), pivot, ...quickSort(right, compare)];
+  }
+
+  /**
+   * Fetches bot configuration and intro message for current session
+   * Initializes bot name, state machine length, and intro message
+   */
+  const fetchBotInfo = async () => {
+    if(!languageToUse) return;
+
+    setIsIntroLoading(true);
+    if (!isSpecialFlow) {
+      setIsLoading(true);
+    }
+
+    try {
+      let storedRoute = getSessionRoute();
+      const response = await getCompanyBotApi({
+        company__slug: companySlug,
+        target_language: languageToUse,
+        route: storedRoute,
+      });
+      const bots = response?.results;
+
+      if (!bots || bots.length === 0) {
+        handleScrollToView();
+        return;
+      }
+
+      // Set state machine length from selected bot
+      const selectedBot = bots.find((bot) => bot.route === storedRoute) || bots[0] || { route: "/" };
+      if (selectedBot?.statemachine_length) {
+        setStateMachineLength(selectedBot.statemachine_length);
+      }
+
+      // Find the latest bot based on flow type
+      const latestBot = bots.find((bot) => bot.route === storedRoute);
+      if (!latestBot) {
+        handleScrollToView();
+        return;
+      }
+        
+      await handleIntroMessage();
+    } catch (error) {
+      console.error({ error });
+      setIsLoading(false);
+    } finally {
+      setHasFetchIntro(true);
+      setShouldFetchIntro(false);
+      setIsLoading(false);
+    }
+  };
+
+  // ========================================================================
+  // SECTION: WebSocket Connection Management Callbacks
+  // These callbacks handle WebSocket lifecycle, connection, reconnection, and message handling
+  // ========================================================================
+
+  /**
+   * Builds WebSocket URL based on flow configuration and type
+   * @param {Object} config - Configuration object
+   * @param {URLSearchParams} config.searchParams - URL search parameters
+   * @param {string} config.storageFlow - Current storage flow
+   * @param {string} config.selectedType - Selected type (normal/oneshot)
+   * @param {string} config.wssProtocol - WebSocket protocol (wss:// or ws://)
+   * @returns {string|null} - WebSocket URL or null if invalid
+   */
+  const buildWebSocketUrl = useCallback(({ searchParams, storageFlow, selectedType, wssProtocol }) => {
+    // Handle SSO code path
+    if (searchParams.get("code")) {
+      // NOTE: revert this code after testing
+      // return `${wssProtocol}${window.location.host}/ws/chat/company/`;
+      return `${wssProtocol}${process.env.REACT_APP_WEBSOCKET_HOST}/ws/chat/company/`;
+    }
+
+    const baseUrl = `${wssProtocol}${process.env.REACT_APP_WEBSOCKET_HOST}`;
+    const currentFlow = storageFlow;
+
+    // Direct flow to websocket mapping
+    const websocketConfig = {
+      [sessionFlowName.GuestDiscussion]: bot_websocket.shikshalokam_chaupal,
+      [sessionFlowName.LoginDiscussion]: bot_websocket.shikshalokam_chaupal,
+      [sessionFlowName.ListeningActivity]: bot_websocket.listening_activity,
+    };
+
+    // Type-based flow to websocket mapping
+    const normalTypeConfig = {
+      normal: {
+        [sessionFlowName.LoginMiStory]: bot_websocket.normal,
+        [sessionFlowName.GuestMiStory]: bot_websocket.guest_normal,
+      },
+      oneshot: {
+        [sessionFlowName.LoginMiStory]: bot_websocket.oneshot,
+        [sessionFlowName.GuestMiStory]: bot_websocket.guest_oneshot,
+      }
+    };
+
+    // Check direct flow mapping first
+    if (websocketConfig[currentFlow]) {
+      return `${baseUrl}${websocketConfig[currentFlow]}`;
+    }
+
+    // Check type-based mapping
+    const selectedTypeConfig = normalTypeConfig[selectedType];
+    if (selectedTypeConfig && selectedTypeConfig[currentFlow]) {
+      return `${baseUrl}${selectedTypeConfig[currentFlow]}`;
+    }
+
+    return null;
+  }, []);
+
+  /**
+   * Creates WebSocket message handler
+   * @param {Object} callbacks - Callback functions
+   * @returns {Function} - Message handler function
+   */
+  const createWebSocketMessageHandler = useCallback((callbacks) => {
+    const {
+      onBotMessage,
+      onStreamComplete,
+      onStreamStart,
+      onFinishMessage,
+    } = callbacks;
+
+    return (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const message = data["text"];
+
+        if (message.source === "bot") {
+          onStreamStart();
+          onBotMessage(message);
+
+          if (isShikshalokamPublicType) {
+            handleScrollToView();
+          }
+        } else {
+          onStreamStart();
+        }
+
+        if (message.finish_reason === "stop" && message.source === "bot") {
+          onFinishMessage(message);
+        }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error);
+      }
+    };
+  }, [isShikshalokamPublicType, handleScrollToView]);
+
+  /**
+   * Creates WebSocket open handler
+   * @param {Object} callbacks - Callback functions
+   * @returns {Function} - Open handler function
+   */
+  const createWebSocketOpenHandler = useCallback((callbacks) => {
+    const {
+      onConnectionReady,
+      onAuthenticate,
+    } = callbacks;
+
+    return () => {
+      onConnectionReady();
+
+      if (isShikshalokamPublicType && onAuthenticate) {
+        onAuthenticate();
+      }
+    };
+  }, [isShikshalokamPublicType]);
+
+  /**
+   * Creates WebSocket close handler
+   * @param {Object} callbacks - Callback functions
+   * @returns {Function} - Close handler function
+   */
+  const createWebSocketCloseHandler = useCallback((callbacks) => {
+    const {
+      onReconnect,
+      shouldRetry,
+    } = callbacks;
+
+    return (event) => {
+      console.warn("WebSocket closed:", event);
+      if (event.code !== 1000 && shouldRetry()) {
+        console.error("Unexpected WebSocket closure. Retrying...");
+        onReconnect();
+      }
+    };
+  }, []);
+
+  /**
+   * Creates WebSocket error handler
+   * @param {Object} callbacks - Callback functions
+   * @returns {Function} - Error handler function
+   */
+  const createWebSocketErrorHandler = useCallback((callbacks) => {
+    const {
+      onError,
+      onReconnect,
+      shouldRetry,
+    } = callbacks;
+
+    return (error) => {
+      console.error("WebSocket error:", error);
+      if (onError) {
+        onError(error);
+      }
+      if (shouldRetry()) {
+        onReconnect();
+      }
+    };
+  }, []);
+
+  /**
+   * Authenticates WebSocket connection
+   * @param {Object} params - Authentication parameters
+   */
+  const authenticateConnection = useCallback((socket, params) => {
+    const {
+      profileId: profileid,
+      sessionId: sessionid,
+      chatLanguage: route,
+      storageFlow: currentFlow,
+      projectId,
+      taskId,
+      searchParams,
+      accessToken,
+      getSessionRoute,
+    } = params;
+
+    if (
+      (profileid || (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow))) &&
+      sessionid
+    ) {
+      socket.send(JSON.stringify({
+        type: 'authenticate',
+        sessionid: sessionid,
+        profileid: profileid,
+        projectid: projectId || "",
+        taskid: searchParams.get("taskId") || taskId,
+        access_token: accessToken,
+        route: route,
+        bot_route: getSessionRoute(),
+        flow_name: currentFlow
+      }));
+    }
+  }, []);
+
+  /**
+   * Checks if an existing WebSocket connection is available and open
+   * @returns {WebSocket|null} - Open socket if available, null otherwise
+   */
+  const checkExistingSocket = useCallback(() => {
+    if (chatSocketRef.current && chatSocketRef.current.readyState === WebSocket.OPEN) {
+      return chatSocketRef.current;
+    }
+    return null;
+  }, []);
+
+  /**
+   * Establishes WebSocket connection with proper error handling and reconnection support
+   * @param {string} currentTextMessage - Message to send after reconnection
+   * @returns {Promise<WebSocket>} - Promise resolving to WebSocket instance
+   */
+  const MakeSocketConnection = useCallback((currentTextMessage) => {
+    return new Promise((resolve, reject) => {
+      try {
+        // Check for existing open connection
+        const existingSocket = checkExistingSocket();
+        if (existingSocket) {
+          return resolve(existingSocket);
+        }
+
+        // Build WebSocket URL
+        const url = buildWebSocketUrl({
+          searchParams,
+          storageFlow,
+          selectedType,
+          wssProtocol: wss_protocol,
+        });
+
+        if (!url) {
+          return reject(new Error("Invalid WebSocket URL configuration"));
+        }
+
+        // Create WebSocket connection
+        const socket = new WebSocket(url);
+
+        // Handle bot messages
+        const handleBotMessage = (message) => {
+          setIsStreamingComplete(false);
+
+          // Update sentences state
+          setSentences((prevSentences) => {
+            const updatedSentences = [...prevSentences];
+            const lastSentence = updatedSentences[updatedSentences.length - 1];
+
+            if (lastSentence?.source === "bot") {
+              if (message?.msg) {
+                lastSentence.message += message?.msg;
+              }
+            } else {
+              updatedSentences.push({
+                message: message?.msg || "",
+                source: "bot",
+                isNarrated: false,
+                id: new Date().valueOf(),
+              });
+              lastBotMessageIndex.current = updatedSentences.length - 1;
+            }
+            return updatedSentences;
+          });
+
+          // Update chat history
+          const updatedChatHistory = [...chatHistory];
+          console.log("handleBotMessage chatHistory", chatHistory)
+          const lastMessage = updatedChatHistory[updatedChatHistory.length - 1];
+
+          if (lastMessage?.source === "bot") {
+            if (message?.msg) {
+              lastMessage.msg += message?.msg;
+            }
+          } else {
+            updatedChatHistory.push({
+              msg: message?.msg || "",
+              source: "bot",
+              updated_at: new Date().valueOf(),
+            });
+          }
+          console.log("handleBotMessage updatedChatHistory: ", updatedChatHistory);
+          setChatHistory(updatedChatHistory);
+        };
+
+        // Handle stream completion
+        const handleFinishMessage = (message) => {
+          setStrandStep(message?.step);
+          handleScrollToView();
+          setTalking(0);
+          setIsStreamingComplete(true);
+        };
+
+        // Create message handler
+        socket.onmessage = createWebSocketMessageHandler({
+          onBotMessage: handleBotMessage,
+          onStreamStart: () => setIsStreamingComplete(false),
+          onFinishMessage: handleFinishMessage,
+        });
+
+        // Handle connection open
+        const handleConnectionReady = () => {
+          chatSocketRef.current = socket;
+          setIsReconnectInProgress(false);
+          setReconnectAttempts(0);
+        };
+
+        const handleAuthenticate = () => {
+          authenticateConnection(socket, {
+            profileId,
+            sessionId,
+            chatLanguage,
+            storageFlow,
+            projectId,
+            taskId,
+            searchParams,
+            accessToken,
+            getSessionRoute,
+          });
+        };
+
+        // Handle connection open
+        socket.onopen = () => {
+          handleConnectionReady();
+          if (isShikshalokamPublicType) {
+            handleAuthenticate();
+          }
+          resolve(socket);
+        };
+
+        // Handle connection close
+        socket.onclose = createWebSocketCloseHandler({
+          onReconnect: () => {
+            setIsReconnectInProgress(true);
+            if (retryConnectionRef.current) {
+              retryConnectionRef.current(currentTextMessage);
+            }
+          },
+          shouldRetry: () => !isReconnectInProgress,
+        });
+
+        // Handle connection errors
+        socket.onerror = createWebSocketErrorHandler({
+          onError: (error) => {
+            console.error("WebSocket error:", error);
+            socket.close();
+            reject(error);
+          },
+          onReconnect: () => {
+            setIsReconnectInProgress(true);
+            if (retryConnectionRef.current) {
+              retryConnectionRef.current(currentTextMessage);
+            }
+          },
+          shouldRetry: () => !isReconnectInProgress,
+        });
+      } catch (error) {
+        console.error("Error establishing WebSocket connection:", error);
+        reject(error);
+      }
+    });
+  }, [
+    checkExistingSocket,
+    buildWebSocketUrl,
+    searchParams,
+    storageFlow,
+    selectedType,
+    // createWebSocketMessageHandler,
+    // createWebSocketOpenHandler,
+    // createWebSocketCloseHandler,
+    // createWebSocketErrorHandler,
+    // authenticateConnection,
+    profileId,
+    sessionId,
+    chatLanguage,
+    projectId,
+    taskId,
+    accessToken,
+    // getSessionRoute,
+    isShikshalokamPublicType,
+    isReconnectInProgress,
+    chatHistory,
+  ]);
+
+  /**
+   * Sends user message through WebSocket connection
+   * Handles message submission, WebSocket connection, and UI updates
+   */
+  const handleSendMessage = useCallback(
+    async (event) => {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      setLlmError("");
+
+      // NOTE: This might cause an error
+      // removeFromStorage('llmError');
+
+      handleOnStopSpeaking();
+      try {
+        const socket = await MakeSocketConnection(textMessage);
+        setIsChatVisible(true);
+        setShowHomepage(false);
+        setNotMute(true);
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+        }
+
+        if (!textMessage.trim()) return;
+
+        handleMessagesForUser(textMessage);
+        socket.send(
+          JSON.stringify({
+            text: textMessage,
+            context: "",
+            asr_audio: asrAudio,
+          })
+        );
+        setAsrAudio(null);
+        handleScrollToView();
+        setTextMessage("");
+      } catch (error) {
+        console.error("WebSocket connection failed:", error);
+      }
+    },
+    [textMessage, MakeSocketConnection]
+  );
+
+  /**
+   * Retries WebSocket connection with exponential backoff
+   * @param {string} currentTextMessage - Message to send after successful reconnection
+   */
+  const retryConnection = useCallback((currentTextMessage = "") => {
+    if (reconnectAttempts >= maxReconnectAttempts) {
+      console.error("Max reconnection attempts reached. Stopping.");
+      try {
+        const chat_history = [...chatHistory] || [];
+        if (
+          chat_history.length > 0 &&
+          chat_history[chat_history.length - 1].source === "user"
+        ) {
+          chat_history.pop();
+          setChatHistory(chat_history);
+          console.log("🗑️ Removed last user message from storage.");
+        }
+      } catch (error) {
+        console.error("⚠️ Error modifying storage:", error);
+      }
+      showConfirmationPopup(() => {
+        if (accessToken) {
+          clearFromStorage();
+          navigate(-1);
+        } else {
+          ResetChat();
+        }
+      });
+      return;
+    }
+
+    setReconnectAttempts((prev) => prev + 1);
+
+    setTimeout(() => {
+      MakeSocketConnection(currentTextMessage)
+        .then((newSocket) => {
+          setReconnectAttempts(0);
+          setIsReconnectInProgress(false);
+          if (currentTextMessage && currentTextMessage.trim() !== "") {
+            handleSendMessage(null);
+          }
+        })
+        .catch((error) => {
+          console.error("Reconnection Failed:", error);
+        });
+    }, 1000);
+  }, [
+    reconnectAttempts,
+    maxReconnectAttempts,
+    chatHistory,
+    setChatHistory,
+    showConfirmationPopup,
+    accessToken,
+    clearFromStorage,
+    navigate,
+    ResetChat,
+    MakeSocketConnection,
+    handleSendMessage,
+  ]);
+
+  // ========================================================================
+  // SECTION: Message & Chat Handling Callbacks
+  // These callbacks manage sending messages and fetching chat history
+  // ========================================================================
+
+  /**
+   * Fetches company chat history for the current session
+   * Transforms and batches chat messages to avoid duplicates
+   */
+  const handleCompanyChatCall = useCallback(async () => {
+    try{
+        const storedChatHistory = chatHistory;
+        if (storedChatHistory.length >= 1) {
+          return;
+        }
+
+        console.log("handleCompanyChatCall");
+        setIsFetchingOldIntro(true);
+
+        try {
+          const resp = await getCompanyChatApi(sessionId);
+          const sortedResult = quickSort(resp?.data?.results, compareById);
+
+          const intro_message = introMessage;
+          console.log("introMessage: ", intro_message);
+
+          // Collect all new sentences and chat history items
+          const newSentences = [];
+          const newChatHistoryItems = [];
+          
+          // Use Set with IDs for reliable duplicate detection
+          const existingChatIds = new Set(chatHistory.map(msg => msg.updated_at));
+
+          // Add intro message if it exists and not already in history
+          if (intro_message && !existingChatIds.has("intro_msg_id")) {
+            newSentences.push({
+              message: intro_message,
+              source: "bot",
+              isNarrated: true,
+              id: "intro_msg_id",
+            });
+
+            newChatHistoryItems.push({
+              msg: intro_message,
+              source: "bot",
+              updated_at: "intro_msg_id",
+            });
+          }
+
+          // Process all chat messages
+          sortedResult.forEach((chat) => {
+            const transformed = transformChatMessage(chat, intro_message);
+            if (!transformed) {
+              return; // Skip duplicates
+            }
+
+            // Only add if not already in chat history
+            if (!existingChatIds.has(transformed.chatHistory.updated_at)) {
+              newSentences.push(transformed.sentence);
+              newChatHistoryItems.push(transformed.chatHistory);
+            }
+          });
+
+          // Batch state updates - update all at once
+          if (newSentences.length > 0) {
+            setSentences((prev) => [...prev, ...newSentences]);
+          }
+
+          if (newChatHistoryItems.length > 0) {
+            console.log("filteredItems: ", newChatHistoryItems);
+            setChatHistory([...chatHistory, ...newChatHistoryItems]);
+            lastBotMessageIndex.current += newChatHistoryItems.length;
+          }
+        } catch (error) {
+          console.error("Error fetching company chat data:", error);
+        } finally {
+          setIsFetchingOldIntro(false);
+          if(accessToken) {
+            setIsLoading(false);
+          }
+        }
+    }
+    catch(error){
+      console.error("Error fetching company chat data:", error);
+    } finally {
+      setIsFetchingOldIntro(false);
+      if(accessToken) {
+        setIsLoading(false);
+      }
+    }
+  }, [introMessage, sessionId])
+
+  /**
+   * Handles chat session button clicks from sidebar
+   * Loads selected chat session or fetches intro for new session
+   */
   const handleChatSessionButtonClick = useCallback(async ({ key }) => {
     lastBotMessageIndex.current = -1;
     let key_num;
@@ -217,16 +1036,48 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       currentSession = sessionId;
       try{
         await fetchBotInfo()
-        await handleCompanyChatCall(currentSession);
+        await handleCompanyChatCall()
       }
-      catch(error){
+      finally{
         setIsIntroLoading(false);
       }
       setIsIntroLoading(false);
     }
-  }, [chatTitle]);
+  }, []);
 
-  // ========== Variable Definitions ==========
+  /**
+   * Adds bot messages to chat history during streaming
+   * Prevents duplicate messages and manages message state
+   */
+  const handleMessagesForBot = useCallback(
+    (sentence) => {
+      if (isRecognizing || hasStartedListening || !shouldSendMessage) return;
+
+      const lastMessage = chatHistory[chatHistory?.length - 1];
+      if (lastMessage?.msg === sentence && lastMessage?.source === "bot") {
+        return;
+      }
+
+      if (chatHistory[chatHistory?.length - 1]?.source === "bot") {
+        const lastMessage = chatHistory[chatHistory?.length - 1];
+        lastMessage.msg += " " + sentence;
+        setChatHistory([...chatHistory]);
+      } else {
+        setChatHistory([
+          ...chatHistory,
+          createMessage({
+            msg: sentence,
+            source: "bot",
+          }),
+        ]);
+      }
+    },
+    [chatHistory]
+  );
+
+  // ========================================================================
+  // SECTION: Variable Definitions
+  // ========================================================================
   // const { access_token } =  getStorageSlice(STORE_NAME_CONSTANTS.USER_DATA, 'localStorage').getState();
   const { showFileInput, setShowFileInput } = useChatDataSessionStore.getState();
   const selectedLabel = {
@@ -240,20 +1091,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   let isMobile = useCustomMediaQuery('(max-width: 500px)');
   let chatToAddLength = isMobile? 10: 10;
 
-  const isShikshalokamPublicType = true;
-  const shouldShowChatHistoryFeature = true;
-  const isSpecialFlow = useMemo(() => {
-    if (!storageFlow) return false;
-    return [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow);
-  }, [storageFlow])
-  const shouldFetchChatSession = useMemo(() => {
-    return storageFlow && [sessionFlowName.Reflection].includes(storageFlow);
-  }, [storageFlow]);
 
-  // SECTION 1: Lifecycle & Browser Events
+
+  // ========================================================================
+  // SECTION: Lifecycle & Browser Events (Execution Order: 1 - On Mount)
+  // These effects run once when component mounts and set up event listeners
+  // ========================================================================
+
   /**
-   * * Network monitoring - sets up listeners for online/offline events and network speed
-   * * Runs once on component mount
+   * Network monitoring - detects online/offline status and connection speed
+   * Shows toast notifications for network changes
    */
   useEffect(() => {
     const connection =
@@ -320,8 +1167,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, []);
 
   /**
-   * * Browser back button handling - manages navigation on browser back
-   * * Depends on navigate and acceptedTnc
+   * Browser back button handling - intercepts browser navigation
+   * Shows guest popup for special flows or navigates to previous page
    */
   useEffect(() => {
     const currentFlow = storageFlow;
@@ -362,18 +1209,22 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     };
   }, [navigate, acceptedTnc]);
 
-  // SECTION 2: Initial Configuration
+  // ========================================================================
+  // SECTION: Initial Configuration (Execution Order: 2 - On Mount & Specific Deps)
+  // These effects initialize component state and configuration on mount
+  // ========================================================================
+
   /**
-   * * Initialize visible item count for chat history pagination
-   * * Runs when chatToAddLength changes
+   * Initialize visible item count for chat history pagination
+   * Sets initial number of visible chat sessions
    */
   useEffect(()=>{
     setVisibleItemCount(chatToAddLength)
   }, [chatToAddLength])
 
   /**
-   * * Initialize bot name display
-   * * Runs once on component mount
+   * Initialize bot name display from storage
+   * Updates bot name when available in storage
    */
   useEffect(()=>{
     if (botName && botName?.trim()) {
@@ -382,8 +1233,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [botName])
 
   /**
-   * * Initialize chat history state - set isNewChatOpen if chat history exists
-   * * Runs once on component mount
+   * Initialize new chat state based on existing chat history
+   * Sets isNewChatOpen flag if chat history is present
    */
   useEffect(()=>{
     if(chatHistory?.length!== 0){
@@ -392,8 +1243,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, []);
 
   /**
-   * * Initialize language selection for guest flows
-   * * Runs once on component mount
+   * Initialize language selection for guest flows on mount
+   * Handles language change and TnC acceptance for guest users
    */
   useEffect(() => {
     const handleLanguageSelect = (language) => {
@@ -427,11 +1278,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }, []);
 
-  // SECTION 3: User Profile & Authentication
+  // ========================================================================
+  // SECTION: User Profile & Authentication (Execution Order: 3 - On Token Available)
+  // These effects handle user authentication and profile creation
+  // ========================================================================
+
   /**
-   * * Create user profile when accessToken is available and profileToUse is not set
-   * * Sets up user data, session, and initial configuration
-   * * Depends on accessToken and profileToUse
+   * Create user profile for authenticated users
+   * Fetches user details, creates session, and initializes user-specific data
    */
   useEffect(() => {
     async function createUserProfile() {
@@ -482,8 +1336,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [accessToken, profileToUse]);
 
   /**
-   * *Fetch chat session based on projectId for Reflection flow
-   * *Works based on change on project id
+   * Fetch chat session for Reflection flow based on projectId
+   * Retrieves existing session for project-based reflections
    */
   useEffect(() => {
     async function fetchChatSession() {
@@ -500,10 +1354,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     fetchChatSession();
   }, [projectId, shouldFetchChatSession]);
 
-  // SECTION 4: Session & Chat Configuration
+  // ========================================================================
+  // SECTION: Session & Chat Configuration (Execution Order: 4 - After Auth)
+  // These effects manage session state, chat visibility, and bot configuration
+  // ========================================================================
+
   /**
-   * *Set up public type configuration
-   * *Triggers intro fetching for public type flows
+   * Set up public type configuration and trigger intro fetch
+   * Enables intro message fetching for public/guest flows
    */
   useEffect(() => {
     if (isShikshalokamPublicType) {
@@ -513,8 +1371,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isShikshalokamPublicType]);
 
   /**
-   * *Handle chat history feature visibility and homepage state
-   * *Manages new/old chat open states
+   * Handle chat history feature visibility and homepage display
+   * Controls homepage vs chat view based on new/old chat state
    */
   useEffect(() => {
     if(shouldShowChatHistoryFeature) {
@@ -531,23 +1389,26 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isOldChatOpen, isNewChatOpen]);
 
   /**
-   * *Handle old chat open scenario - fetch chat session when conditions are met
+   * Fetch chat session when old chat is opened
+   * Loads existing conversation when user selects from history
    */
   useEffect(()=>{
-    if(isOldChatOpen === true && (hasFetchIntro || !accessToken) && chatHistory?.length === 0 && sentences?.length === 0) {
+    if(isOldChatOpen === true && !hasFetchIntro && isSpecialFlow && chatHistory?.length === 0 && sentences?.length === 0) {
       handleChatSessionButtonClick({key: null})
     }
   }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences]);
 
-  // SECTION 5: Language & Bot Setup
+  // ========================================================================
+  // SECTION: Language & Bot Setup (Execution Order: 5 - When Profile Ready)
+  // These effects fetch bot information and set up language-specific configuration
+  // ========================================================================
+
   /**
-   * *Fetch bot info and intro message when conditions are met
-   * *Sets up bot configuration, intro message, and triggers company chat call
+   * Fetch bot information and intro message for new chat sessions
+   * Initializes bot name, intro message, and calls company chat API
    */
   useEffect(() => {
-    if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && 
-        (profileToUse || [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow))
-      ) {
+    if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow)) {
       setIsIntroLoading(true);
       fetchBotInfo().then(() => {
         if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
@@ -562,7 +1423,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage]);
 
   /**
-   * *Set language progress when intro message is loaded
+   * Set language progress to complete when intro message loads
+   * Marks language selection as complete after successful load
    */
   useEffect(() => {
     if(introMessage && !isLoading) {
@@ -570,10 +1432,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }, [isLoading, introMessage])
 
-  // SECTION 6: Story & Media Management
+  // ========================================================================
+  // SECTION: Story & Media Management (Execution Order: 6 - When Session Ready)
+  // These effects handle story creation, media uploads, and completion
+  // ========================================================================
+
   /**
-   * *Fetch story by sessionId
-   * *Loads story data and sets up editor content
+   * Fetch story content by session ID
+   * Retrieves story data and prepares editor content blocks
    */
   useEffect(()=>{
     if (!sessionId) return;
@@ -600,7 +1466,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [sessionId])
 
   /**
-   * *Fetch media for story when storyData is available
+   * Fetch media files associated with story
+   * Loads images and media items included in the story
    */
   useEffect(() => {
     const fetchMedia = async () => {
@@ -637,8 +1504,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [accessToken, storyData]);
 
   /**
-   * *Call end story when all conditions are met
-   * *Triggers story completion process
+   * Trigger story completion when conversation reaches end
+   * Calls end-story API when all state machine steps complete
    */
   useEffect(() => {
     if (
@@ -655,8 +1522,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound]);
 
   /**
-   * *Show chat title for guest users after delay
-   * *Manages loading state for title display
+   * Display chat session titles for guest users after delay
+   * Shows available chat sessions in sidebar with loading state
    */
   useEffect(()=>{
     const currentFlow = storageFlow;
@@ -686,9 +1553,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   },[profileToUse, accessToken, isEndStoryLoading, noStoryFound])
 
-  // SECTION 7: UI State Management
+  // ========================================================================
+  // SECTION: UI State Management (Execution Order: 7 - Throughout Lifecycle)
+  // These effects manage UI state, modals, and visual feedback
+  // ========================================================================
+
   /**
-   * *Control body overflow based on loading and modal states
+   * Control body scroll overflow based on loading and modal states
+   * Prevents background scrolling when modals or loaders are active
    */
   useEffect(() => {
     if (
@@ -708,7 +1580,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isLoading, isEndStoryLoading, isModalOpen]);
 
   /**
-   * *Auto-dismiss file error text after 5 seconds
+   * Auto-dismiss file upload error messages after 5 seconds
+   * Clears error text to improve user experience
    */
   useEffect(() => {
     const textErrorTime = setTimeout(() => {
@@ -721,7 +1594,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [fileErrorText]);
 
   /**
-   * *Recording timer - tracks recording duration
+   * Track voice recording duration with timer
+   * Updates recording time counter every second during recording
    */
   useEffect(() => {
     if (hasStartedRecording) {
@@ -738,7 +1612,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [hasStartedRecording]);
 
   /**
-   * *Adjust textarea height based on content
+   * Dynamically adjust textarea height based on content
+   * Provides better UX by expanding textarea as user types
    */
   useEffect(() => {
     if (textAreaRef.current) {
@@ -747,10 +1622,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }, [textMessage]);
 
-  // SECTION 8: Chat History & Messages
+  // ========================================================================
+  // SECTION: Chat History & Messages (Execution Order: 8 - During Conversation)
+  // These effects manage chat messages, recordings, and scroll behavior
+  // ========================================================================
+
   /**
-   * *Update chat history and scroll to view
-   * *Manages chat history state and scrolling behavior
+   * Update chat history index and trigger scroll to view
+   * Keeps track of last bot message and scrolls to latest message
    */
   useEffect(() => {
     // setChatHistory(chatHistory);
@@ -759,7 +1638,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [chatHistory]);
 
   /**
-   * *Scroll to end page when file input is shown
+   * Scroll to end of page when file input section appears
+   * Ensures user sees upload controls after story completion
    */
   useEffect(() => {
     if (!isLoading && showFileInput && acceptedTnc !== "ONGOING") {
@@ -768,7 +1648,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isLoading, showFileInput, acceptedTnc]);
 
   /**
-   * *Update chat history with recordings when available
+   * Attach audio recordings to user messages in chat history
+   * Updates latest user message with voice recording data
    */
   useEffect(() => {
     if (
@@ -786,7 +1667,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [recordings, chatHistory]);
 
   /**
-   * *Handle appendix URL attachment to chat messages
+   * Attach appendix URLs to bot messages when available
+   * Adds supplementary content links to bot responses
    */
   useEffect(() => {
     if (
@@ -803,7 +1685,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [appendix, chatHistory]);
 
   /**
-   * *Handle reconText and trigger reset
+   * Reset recognition text and trigger state after processing
+   * Manages voice recognition cleanup after message processing
    */
   useEffect(() => {
     try {
@@ -814,11 +1697,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     } catch (error) {
       console.error({ error });
     }
-  }, [chatSocket, reconText, trigger, recordings]);
+  }, [reconText, trigger, recordings]);
 
-  // SECTION 9: Audio & TTS Management
+  // ========================================================================
+  // SECTION: Audio & TTS Management (Execution Order: 9 - During Message Playback)
+  // These effects handle text-to-speech, audio playback, and speaker controls
+  // ========================================================================
+
   /**
-   * *Control audio mute state
+   * Control audio mute/unmute state
+   * Toggles audio muting based on user preference
    */
   useEffect(() => {
     if (audioRef?.current) {
@@ -831,8 +1719,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }, [isMute]);
 
   /**
-   * *Auto-play audio for bot messages
-   * *Handles automatic audio playback when conditions are met
+   * Auto-play audio for bot messages when streaming completes
+   * Automatically triggers TTS playback for new bot responses
    */
   useEffect(() => {
     let shouldPlay = false;
@@ -907,8 +1795,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   ]);
 
   /**
-   * *Handle TTS requests for unnarrated messages
-   * *Processes and plays audio for messages that haven't been narrated
+   * Process TTS requests for unnarrated bot messages
+   * Converts text to speech for messages not yet played aloud
    */
   useEffect(() => {
     let unnarratedMessages = sentences.filter((x) => !x?.isNarrated);
@@ -941,16 +1829,21 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   ]);
 
   /**
-   * *Debug logging for hasOverRideId changes
+   * Debug log for tracking override ID changes
+   * Helps debug audio playback override scenarios
    */
   useEffect(() => {
     console.log("hasOverideId: ", hasOverRideId);
   }, [hasOverRideId]);
 
-  // SECTION 10: Editor Management
+  // ========================================================================
+  // SECTION: Editor Management (Execution Order: 10 - When Modal Opens)
+  // These effects initialize and manage the EditorJS instance for story editing
+  // ========================================================================
+
   /**
-   * *Initialize EditorJS when modal opens with story data
-   * *Sets up the editor with appropriate content based on flow type
+   * Initialize EditorJS when modal opens with story data
+   * Configures editor with flow-specific content (challenges/solutions or Q&A)
    */
   useEffect(() => {
     if (!!editorCopyChanges && isModalOpen && storyData) {
@@ -1362,366 +2255,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }
 
-  useEffect(() => {
-    if (isShikshalokamPublicType) {
-      setShouldFetchIntro(true);
-      setIsStreamingComplete(true);
-    }
-  }, [isShikshalokamPublicType]);
-
-  useEffect(() => {
-    if (!!editorCopyChanges && isModalOpen && storyData) {
-      const flow = storageFlow
-      let parsed_content = [];
-      try {
-        if (storageFlow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(storageFlow)) {
-          const challenges = storyData?.other_params?.challenges_faced || [];
-          const solutions = storyData?.other_params?.solutions_discussed || [];
-
-          parsed_content = [
-            {
-              type: "header",
-              data: {
-                text: t("challengesHeader"),
-                level: 2,
-                customId: "challenges",
-              },
-            },
-            {
-              type: "list",
-              data: {
-                style: "unordered",
-                items: challenges.length > 0 ? challenges : [""],
-              },
-            },
-            {
-              type: "header",
-              data: {
-                text: t("solutionsHeader"),
-                level: 2,
-                customId: "solutions",
-              },
-            },
-            {
-              type: "list",
-              data: {
-                style: "unordered",
-                items: solutions.length > 0 ? solutions : [""],
-              },
-            },
-          ];
-        } else if (storageFlow && [sessionFlowName.ListeningActivity].includes(flow)) {
-          const questionAnswers = storyData?.other_params?.question_answers || [];
-          
-          parsed_content = [];
-          questionAnswers.forEach((qa, index) => {
-            // Add question header
-            parsed_content.push({
-              type: "header",
-              data: {
-                text: `Q${index + 1}: ${qa.question}`,
-                level: 3,
-                customId: `question-${index}`,
-              },
-            });
-
-            parsed_content.push({
-              type: "paragraph",
-              data: {
-                text: qa.answer || "",
-              },
-            });
-
-            if (index < questionAnswers.length - 1) {
-              parsed_content.push({
-                type: "paragraph",
-                data: {
-                  text: "​",
-                },
-                readonly: true,
-              });
-            }
-          });
-        } else {
-          parsed_content = editorCopyChanges.map((item) => ({
-            type: item.type,
-            data: {
-              text: item.data.text,
-            },
-          }));
-        }
-      } catch (error) {
-        parsed_content = [];
-      }
-
-      if (!document.getElementById("editorjs")) {
-        return;
-      }
-
-      const _editor = new EditorJS({
-        holder: "editorjs",
-        placeholder: t("editorPlaceholder"),
-        autofocus: true,
-        hideToolbar: true,
-        tools: {
-          header: {
-            class: Header,
-            inlineToolbar: false,
-          },
-          list: {
-            class: List,
-            inlineToolbar: false,
-            config: {
-              defaultStyle: "unordered",
-            },
-          },
-        },
-        onReady: () => {
-          setEditor(_editor);
-          const style = document.createElement("style");
-          style.innerHTML = `
-            .ce-toolbar__plus, .ce-toolbar__actions { display: none !important; }
-            .ce-popover, .ce-settings, .ce-settings__button { display: none !important; }
-            .ce-block--selected .ce-block__drag-handle { display: none !important; }
-            .ce-inline-toolbar { display: none !important; }
-            .ce-block--selected { outline: none !important; }
-            
-            /* Style for spacer blocks */
-            .spacer-block {
-              min-height: 0.75rem !important;
-              background: transparent !important;
-              border: none !important;
-              pointer-events: none !important;
-              user-select: none !important;
-              cursor: default !important;
-              margin: 0.5rem 0 !important;
-              position: relative;
-            }
-            
-            .spacer-block .ce-paragraph {
-              pointer-events: none !important;
-              user-select: none !important;
-              outline: none !important;
-              cursor: default !important;
-              opacity: 0 !important;
-              min-height: 0.75rem !important;
-            }
-            
-            .spacer-block::before {
-              content: '';
-              display: block;
-              width: 100%;
-              height: 1px;
-              background-color: #e5e7eb;
-              position: absolute;
-              top: 50%;
-              left: 0;
-              transform: translateY(-50%);
-            }
-            
-            /* Add visual separation after answer paragraphs */
-            .answer-paragraph {
-              margin-bottom: 0.5rem !important;
-              padding-bottom: 0.5rem !important;
-            }
-            
-            /* Question header styling */
-            .question-header {
-              color: #374151 !important;
-              font-weight: bold !important;
-              margin-top: 2rem !important;
-              margin-bottom: 1rem !important;
-            }
-            
-            .question-header:first-child {
-              margin-top: 0 !important;
-            }
-            
-            /* Non-deletable block styling */
-            .non-deletable {
-              position: relative;
-            }
-            
-            .non-deletable::after {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              bottom: 0;
-              pointer-events: none;
-              z-index: 1;
-            }
-          `;
-          document.head.appendChild(style);
-          setTimeout(() => {
-            const blocks = document.querySelectorAll(".ce-block");
-
-            blocks.forEach((block, blockIndex) => {
-              const headerEl = block.querySelector(".ce-header");
-              const paragraphEl = block.querySelector(".ce-paragraph");
-
-              if (headerEl) {
-                const text = headerEl.innerText.trim().toLowerCase();
-
-                if (
-                  text === t("challengesHeader").toLowerCase() ||
-                  text === t("solutionsHeader").toLowerCase() ||
-                  (text.startsWith("q") && text.includes(":"))
-                ) {
-                  headerEl.setAttribute("contenteditable", "false");
-                  headerEl.style.pointerEvents = "none";
-                  headerEl.style.color = "#374151";
-                  headerEl.style.fontWeight = "bold";
-
-                  if (text.startsWith("q") && text.includes(":")) {
-                    headerEl.classList.add("question-header");
-
-                    block.classList.add("non-deletable");
-                    block.setAttribute("data-readonly", "true");
-
-                    const preventDeletion = (e) => {
-                      if (e.key === "Backspace" || e.key === "Delete") {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                      }
-                    };
-
-                    block.addEventListener("keydown", preventDeletion, true);
-                    headerEl.addEventListener("keydown", preventDeletion, true);
-
-                    block.addEventListener(
-                      "contextmenu",
-                      (e) => {
-                        e.preventDefault();
-                        return false;
-                      },
-                      true
-                    );
-
-                    block.style.userSelect = "none";
-                    block.style.webkitUserSelect = "none";
-                    block.style.mozUserSelect = "none";
-                    block.style.msUserSelect = "none";
-                  }
-                }
-              } else if (paragraphEl) {
-                const paragraphText =
-                  paragraphEl.textContent || paragraphEl.innerText || "";
-                const isEmpty =
-                  !paragraphText.trim() ||
-                  paragraphText === "​" ||
-                  paragraphText === " ";
-
-                const prevBlock = block.previousElementSibling;
-                const prevPrevBlock = prevBlock?.previousElementSibling;
-
-                const isPrevBlockAnswer =
-                  prevBlock?.querySelector(".ce-paragraph");
-                const isPrevPrevBlockQuestion = prevPrevBlock
-                  ?.querySelector(".ce-header")
-                  ?.innerText.toLowerCase()
-                  .startsWith("q");
-
-                if (isEmpty && isPrevBlockAnswer && isPrevPrevBlockQuestion) {
-                  block.classList.add("spacer-block");
-                  paragraphEl.setAttribute("contenteditable", "false");
-                  paragraphEl.style.pointerEvents = "none";
-                  paragraphEl.style.userSelect = "none";
-                  paragraphEl.style.cursor = "default";
-
-                  const preventInteraction = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    return false;
-                  };
-
-                  block.addEventListener("click", preventInteraction, true);
-                  block.addEventListener("mousedown", preventInteraction, true);
-                  block.addEventListener(
-                    "focus",
-                    (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (e.target.blur) e.target.blur();
-                      return false;
-                    },
-                    true
-                  );
-                  block.addEventListener("keydown", preventInteraction, true);
-                  block.addEventListener("keyup", preventInteraction, true);
-                  block.addEventListener("input", preventInteraction, true);
-
-                  block.style.userSelect = "none";
-                  block.style.webkitUserSelect = "none";
-                  block.style.mozUserSelect = "none";
-                  block.style.msUserSelect = "none";
-                } else if (
-                  isPrevBlockAnswer === false &&
-                  prevBlock
-                    ?.querySelector(".ce-header")
-                    ?.innerText.toLowerCase()
-                    .startsWith("q")
-                ) {
-                  paragraphEl.classList.add("answer-paragraph");
-                }
-              }
-            });
-          }, 500);
-        },
-        defaultBlock: "paragraph",
-        data: {
-          blocks:
-            parsed_content.length > 0
-              ? parsed_content
-              : [{ type: "paragraph", data: { text: "" } }],
-        },
-        onChange: async (api, event) => {
-          setIsSaving(false);
-          const savedData = await api.saver.save();
-
-          const filteredBlocks = savedData.blocks.filter((block, index) => {
-            if (block.type === "paragraph") {
-              const isEmpty =
-                !block.data.text.trim() ||
-                block.data.text === "​" ||
-                block.data.text === " ";
-              return !isEmpty;
-            }
-            return true;
-          });
-
-          const imageBlocks = filteredBlocks.filter(
-            (block) => block.type === "image"
-          );
-
-          if (!isInitialLoadRef.current) {
-            if (storyMediaIdArray?.length !== imageBlocks?.length) {
-              for (let i = 0; i < storyMediaIdArray?.length; i++) {
-                const storyFile = storyMediaIdArray[i];
-                let fileFound = false;
-                for (let j = 0; j < imageBlocks?.length; j++) {
-                  if (storyFile?.file === imageBlocks[j]?.data?.url) {
-                    fileFound = true;
-                    break;
-                  }
-                }
-                if (!fileFound) {
-                  partialUpdateMedia(storyFile?.id);
-                }
-              }
-            }
-          }
-        },
-      });
-    }
-
-    return () => {
-      if (!!Object.keys(editor || {})?.length) editor.destroy();
-    };
-  }, [editorCopyChanges, isModalOpen, storyData]);
 
   const navigateBack = () => {
     let rerouteUrl = previousUrl;
@@ -2057,10 +2590,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setIsLoading(true);
     if (
       isResetCalled &&
-      chatSocket &&
-      chatSocket.readyState === chatSocket.OPEN
+      chatSocketRef.current &&
+      chatSocketRef.current.readyState === chatSocketRef.current.OPEN
     ) {
-      chatSocket.close();
+      chatSocketRef.current.close();
     }
     const currentFlow = storageFlow;
   
@@ -2076,222 +2609,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setShowHomepage(true)
 
     window.location.reload();
-  }
-
-  let isReconnectInProgress = false;
-  
-  const MakeSocketConnection = useCallback((currentTextMessage, currentSocket) => {
-    return new Promise((resolve, reject) => {
-      try{
-        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-          return resolve(chatSocket);
-        } else if(currentSocket && currentSocket.readyState === WebSocket.OPEN) {
-          return resolve(currentSocket);
-        }
-        let socket;
-    
-        let url;
-    
-        if (!!searchParams.get("code")) {
-          // NOTE: revert this code after testing
-          // url = `${wss_protocol}${window.location.host}/ws/chat/company/`;
-          url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}/ws/chat/company/`
-        } else {
-            const base_url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}`;
-            const currentFlow = storageFlow;
-            
-            const websocketConfig = {
-              [sessionFlowName.GuestDiscussion]: bot_websocket.shikshalokam_chaupal,
-              [sessionFlowName.LoginDiscussion]: bot_websocket.shikshalokam_chaupal,
-              [sessionFlowName.ListeningActivity]: bot_websocket.listening_activity,
-            };
-            
-            const normalTypeConfig = {
-              normal: {
-                [sessionFlowName.LoginMiStory]: bot_websocket.normal,
-                [sessionFlowName.GuestMiStory]: bot_websocket.guest_normal,
-              },
-              oneshot: {
-                [sessionFlowName.LoginMiStory]: bot_websocket.oneshot,
-                [sessionFlowName.GuestMiStory]: bot_websocket.guest_oneshot,
-              }
-            };
-            
-            const selectedTypeConfig = normalTypeConfig[selectedType];
-            if (websocketConfig[currentFlow]) {
-              url = `${base_url}${websocketConfig[currentFlow]}`;
-            } else if (selectedTypeConfig && selectedTypeConfig[currentFlow]) {
-              url = `${base_url}${selectedTypeConfig[currentFlow]}`;
-            }
-          }
-          socket = new WebSocket(url);
-
-          socket.onmessage = (e) => {
-            const data = JSON.parse(e.data);
-            const message = data["text"];
-
-            if (message.source === "bot") {
-              setIsStreamingComplete(false);
-
-              setSentences((prevSentences) => {
-                const updatedSentences = [...prevSentences];
-
-                if (
-                  updatedSentences.length > 0 &&
-                  updatedSentences[updatedSentences.length - 1]?.source ===
-                    "bot"
-                ) {
-                  if (message?.msg) {
-                    updatedSentences[updatedSentences.length - 1].message +=
-                      message?.msg;
-                  }
-                } else {
-                  updatedSentences.push({
-                    message: message?.msg || "",
-                    source: "bot",
-                    isNarrated: false,
-                    id: new Date().valueOf(),
-                  });
-                  lastBotMessageIndex.current = updatedSentences.length - 1;
-                }
-                return updatedSentences;
-              });
-
-              const updatedChatHistory = [...chatHistory];
-              if (
-                updatedChatHistory.length > 0 &&
-                updatedChatHistory[updatedChatHistory.length - 1]?.source ===
-                  "bot"
-              ) {
-                if (message?.msg) {
-                  updatedChatHistory[updatedChatHistory.length - 1].msg +=
-                    message?.msg;
-                }
-              } else {
-                updatedChatHistory.push({
-                  msg: message?.msg || "",
-                  source: "bot",
-                  updated_at: new Date().valueOf(),
-                });
-              }
-              setChatHistory(updatedChatHistory);
-
-              if (isShikshalokamPublicType) {
-                handleScrollToView();
-              }
-            } else {
-              setIsStreamingComplete(false);
-            }
-
-            if (message.finish_reason === "stop" && message.source === "bot") {
-              setStrandStep(message?.step);
-              handleScrollToView();
-              setTalking(0);
-              setIsStreamingComplete(true);
-            }
-          };
-
-        socket.onopen = () => {
-          setChatSocket(socket);
-          isReconnectInProgress = false;
-          reconnectAttempts = 0;
-          if (isShikshalokamPublicType){
-            let profileid = profileId
-            let sessionid = sessionId
-            let route = chatLanguage
-            let currentFlow = storageFlow;
-
-            if((profileid || currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) && sessionid){
-              socket.send(JSON.stringify({
-                type: 'authenticate',
-                sessionid: sessionid,
-                profileid: profileid,
-                projectid: projectId || "",
-                taskid: searchParams.get("taskId") || taskId,
-                access_token: accessToken,
-                route: route,
-                bot_route: getSessionRoute(),
-                flow_name: currentFlow
-              }));
-            }
-          }
-          resolve(socket);
-        };
-        socket.onclose = (event) => {
-          console.warn("WebSocket closed:", event);
-          if (event.code !== 1000 && !isReconnectInProgress) { 
-            console.error("Unexpected WebSocket closure. Retrying...");
-            isReconnectInProgress = true; 
-            retryConnection(currentTextMessage);
-          }
-        };
-        
-        socket.onerror = (error) => {
-          console.error("WebSocket error:", error);
-          socket.close();
-            isReconnectInProgress = true; 
-            retryConnection(currentTextMessage);
-            reject(error);
-          };
-
-          return () => {
-            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-              chatSocket.close();
-            }
-          };
-        } catch (error) {
-          console.error("Error establishing WebSocket connection:", error);
-          reject(error);
-        }
-      });
-    },
-    [chatSocket]
-  );
-
-  let reconnectAttempts = 0;
-  const maxReconnectAttempts = process.env.REACT_APP_WEBSOCKET_RETRY_NUM || 3;
-
-  function retryConnection(currentTextMessage = "") {
-    if (reconnectAttempts >= maxReconnectAttempts) {
-      console.error("Max reconnection attempts reached. Stopping.");
-      try {
-        let chat_history = [...chatHistory] || [];
-        if (
-          chat_history.length > 0 &&
-          chat_history[chat_history.length - 1].source === "user"
-        ) {
-          chat_history.pop();
-          setChatHistory(chat_history);
-          console.log("🗑️ Removed last user message from storage.");
-        }
-      } catch (error) {
-        console.error("⚠️ Error modifying storage:", error);
-      }
-      showConfirmationPopup(() => {
-        if (accessToken){
-          clearFromStorage()
-          navigate(-1)
-        } else {
-          ResetChat();
-        }
-      });
-      return;
-    }
-    reconnectAttempts++;
-
-    setTimeout(() => {
-      MakeSocketConnection(currentTextMessage)
-        .then((newSocket) => {
-          reconnectAttempts = 0;
-          isReconnectInProgress = false;
-          if (currentTextMessage && currentTextMessage.trim() !== "") {
-            handleSendMessage(null, newSocket);
-          }
-        })
-        .catch((error) => {
-          console.error("Reconnection Failed:", error);
-        });
-    }, 1000);
   }
 
   async function getStoryBySession(sessionID){
@@ -2310,7 +2627,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   }
 
 
-  async function getTranslatedIntroMessage(storedRoute) {
+  async function getTranslatedIntroMessage() {
+    let storedRoute = getSessionRoute();
     let translate_api_url = `api/bot_vernacular/?language=${languageToUse}&company_bot__route=${storedRoute}`;
     try {
       const response = await axiosInstance.get(translate_api_url);
@@ -2332,7 +2650,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     }
   }
 
-  const getSessionRoute = () => {
+  function getSessionRoute() {
     const currentFlow = storageFlow;
     console.log("Current Flow:", currentFlow);
     console.log(
@@ -2376,116 +2694,23 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     return bot_routes.reflection;
   };
 
-  const handleIntroMessage = async () => {
-    let data = await getTranslatedIntroMessage(storageFlow)
-    let message = data[0]?.introductory_message;
-    if (data && data[0]) {
-      if (
-        profileToUse &&
-        firstName &&
-        firstName !== "null" &&
-        firstName !== ""
-      ) {
-        message = data[0]?.introductory_message;
-      } else {
-        message = data[0]?.alt_introductory_message;
-      }
-    }
-    const botName = data[0]?.name || "Bot";
+  // ========================================================================
+  // SECTION: Utility & Helper Updates
+  // Updates ref values to maintain latest function references
+  // ========================================================================
 
-    setBotName(botName);
-    setDefaultBotName(data[0]?.default_name);
-    setBotNameToDisplay(botName);
+  /**
+   * Update retry connection ref with latest function
+   * Ensures reconnection logic uses current state values
+   */
+  // Update ref with latest retryConnection function
+  retryConnectionRef.current = retryConnection;
 
-    if(isOldChatOpen) {
-      let sessionInfo = await getSessionInfo();
-      if(sessionInfo && sessionInfo.length>0) {
-        setStrandStep(sessionInfo[0]?.current_step)
-        if(sessionInfo[0]?.session_type) {
-          setSelectedType(sessionInfo[0]?.session_type)
-        }
-      }
-    }
-    if (message && firstName) {
-      const words = message.split(" ");
-      words.splice(1, 0, firstName);
-      message = words.join(" ");
-    }
-    if (message && !!message?.trim() &&
-      chatHistory[chatHistory?.length - 1]?.msg !== message &&
-      !sentences.some((msg) => msg.message === message)
-    ) {
-        const isGuestFlow = !accessToken
-        setIntroMessage(message)
-        setSentences((prev) => [
-          ...prev,
-          {
-            message: message,
-            isNarrated: isGuestFlow ? false : false,
-            id: "intro_msg_id",
-          },
-        ]);
-        if (isGuestFlow) {
-          setHasOverRideId("intro_msg_id");
-          setNotMute(false);
-          setIsNextAllowed(true);
-        }
-      }
-  }
+  // ========================================================================
+  // SECTION: Regular Function Definitions
+  // Non-hook functions used throughout the component
+  // ========================================================================
 
-  const fetchBotInfo = async () => {
-    if(!languageToUse) return;
-
-    setIsIntroLoading(true);
-    if (!isSpecialFlow) {
-      setIsLoading(true);
-    }
-
-    try {
-      let storedRoute = getSessionRoute();
-      const response = await getCompanyBotApi({
-        company__slug: companySlug,
-        target_language: languageToUse,
-        route: storedRoute,
-      });
-      const bots = response?.results;
-
-      if (!bots || bots.length === 0) {
-        handleScrollToView();
-        return;
-      }
-
-      // Set state machine length from selected bot
-      const selectedBot = bots.find((bot) => bot.route === storedRoute) || bots[0] || { route: "/" };
-      if (selectedBot?.statemachine_length) {
-        setStateMachineLength(selectedBot.statemachine_length);
-      }
-
-      // Find the latest bot based on flow type
-      const latestBot = bots.find((bot) => bot.route === storedRoute);
-      if (!latestBot) {
-        handleScrollToView();
-        return;
-      }
-        
-      await handleIntroMessage();
-    } catch (error) {
-      console.error({ error });
-      setIsLoading(false);
-    } finally {
-      setHasFetchIntro(true);
-      setShouldFetchIntro(false);
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    console.log("hasOverideId: ", hasOverRideId);
-  }, [hasOverRideId]);
-
-
-
-  // ========== Function Definitions ==========
   const closeModal = () => {
     setIsModalOpen(false);
   };
@@ -2495,7 +2720,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setIsModalOpen(true);
   };
 
-  const handleScrollToView = () => {
+  function handleScrollToView () {
     if (acceptedTnc === "ONGOING") return;
     try {
       document?.querySelector("#last-chat-boundary")?.scrollIntoView({
@@ -2564,121 +2789,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       url: `/api/companychat/?session=${currentSession}`,
     });
     return resp;
-  }
-
-  async function handleCompanyChatCall(currentSession) {
-    const storedChatHistory = chatHistory;
-    if (storedChatHistory.length >= 1) {
-      return;
-    }
-
-    console.log("handleCompanyChatCall");
-    setIsFetchingOldIntro(true);
-
-    try {
-      const resp = await getCompanyChatApi(currentSession);
-
-      const newChatSessionDetail = [];
-
-      let sortedResult = quickSort(resp?.data?.results, compareById);
-
-      console.log("introMessage: ", introMessage);
-
-      if (introMessage) {
-        setSentences((prev) => [
-          ...prev,
-          {
-            message: introMessage,
-            source: "bot",
-            isNarrated: true,
-            id: "intro_msg_id",
-          },
-        ]);
-
-        newChatSessionDetail.push({
-          msg: introMessage,
-          source: "bot",
-          updated_at: "intro_msg_id",
-        });
-
-        // NOTE: This might cause an error
-        // introMessageRef.current = "";
-      }
-
-      sortedResult.forEach((chats) => {
-        let messageToUse = chats?.message;
-        if (chats?.translated_message && chats?.translated_message !== "") {
-          messageToUse = chats?.translated_message;
-        }
-        if (chats?.id === "intro_msg_id" || messageToUse === introMessage) {
-          return;
-        }
-        const chatMessage = {
-          message: chats?.sender?.id === 1 ? messageToUse : chats?.message,
-          source: chats?.sender?.id === 1 ? "bot" : "user",
-          isNarrated: true,
-          id: chats?.id,
-        };
-
-        setSentences((prev) => [...prev, chatMessage]);
-
-        newChatSessionDetail.push({
-          msg: chats?.sender?.id === 1 ? messageToUse : chats?.message,
-          source: chats?.sender?.id === 1 ? "bot" : "user",
-          updated_at: chats?.id,
-        });
-      });
-
-        const newChatHistoryItems = newChatSessionDetail.map((item) => ({
-            msg: item.msg,
-            source: item.source,
-            updated_at: item.updated_at,
-        }));
-
-        const existingMessages = new Set(chatHistory.map(msg => msg.msg));
-        const filteredItems = newChatHistoryItems.filter(item => !existingMessages.has(item.msg));
-
-      console.log("filteredItems: ", filteredItems);
-      const updatedChatHistory = [...chatHistory, ...filteredItems];
-      setChatHistory(updatedChatHistory);
-
-      lastBotMessageIndex.current += newChatSessionDetail.length;
-    } catch (error) {
-      console.error("Error fetching company chat data:", error);
-    } finally {
-        setIsFetchingOldIntro(false);
-        if(accessToken) {
-          setIsLoading(false);
-        }
-    }
-  }
-
-  function compareById(a, b) {
-    return a.id - b.id;
-  }
-
-  function compareByIdDesc(a, b) {
-    return b.id - a.id;
-  }
-
-  function quickSort(arr, compare) {
-    if (arr?.length <= 1) {
-      return arr;
-    }
-
-    const pivot = arr[0];
-    const left = [];
-    const right = [];
-
-    for (let i = 1; i < arr?.length; i++) {
-      if (compare(arr[i], pivot) < 0) {
-        left.push(arr[i]);
-      } else {
-        right.push(arr[i]);
-      }
-    }
-
-    return [...quickSort(left, compare), pivot, ...quickSort(right, compare)];
   }
 
   async function showChatTitle(){
@@ -2793,47 +2903,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     );
   }
 
-  const handleSendMessage = useCallback(
-    async (event, currentSocket) => {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      setLlmError("");
-
-      // NOTE: This might cause an error
-      // removeFromStorage('llmError');
-
-      handleOnStopSpeaking();
-      try {
-        const socket = await MakeSocketConnection(textMessage, currentSocket);
-        setIsChatVisible(true);
-        setShowHomepage(false);
-        setNotMute(true);
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        }
-
-        if (!textMessage.trim()) return;
-
-        handleMessagesForUser(textMessage);
-        socket.send(
-          JSON.stringify({
-            text: textMessage,
-            context: "",
-            asr_audio: asrAudio,
-          })
-        );
-        setAsrAudio(null);
-        handleScrollToView();
-        setTextMessage("");
-      } catch (error) {
-        console.error("WebSocket connection failed:", error);
-      }
-    },
-    [textMessage, MakeSocketConnection]
-  );
 
   const handleOnInputText = (e) => {
     e.preventDefault();
@@ -2843,42 +2912,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       setIsRecognizing(false);
       setHasStartedListening(false);
     }
-  };
-
-  const handleMessagesForBot = useCallback(
-    (sentence) => {
-      if (isRecognizing || hasStartedListening || !shouldSendMessage) return;
-
-      const lastMessage = chatHistory[chatHistory?.length - 1];
-      if (lastMessage?.msg === sentence && lastMessage?.source === "bot") {
-        return;
-      }
-
-      if (chatHistory[chatHistory?.length - 1]?.source === "bot") {
-        const lastMessage = chatHistory[chatHistory?.length - 1];
-        lastMessage.msg += " " + sentence;
-        setChatHistory([...chatHistory]);
-      } else {
-        setChatHistory([
-          ...chatHistory,
-          createMessage({
-            msg: sentence,
-            source: "bot",
-          }),
-        ]);
-      }
-    },
-    [chatHistory]
-  );
-
-  const handleMessagesForUser = (sentence) => {
-    setChatHistory((prev) => [
-      ...prev,
-      createMessage({
-        msg: sentence,
-        source: "user",
-      }),
-    ]);
   };
 
   const handleAI4BharatTTSRequest = async (text, id, sourceLanguage) => {
@@ -3028,21 +3061,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           },
         ];
       });
-    } catch (error) {
-      console.error({ error });
-    }
-  };
-
-  const handleOnStopSpeaking = async () => {
-    try {
-      try {
-        if (audioRef.current) await audioRef.current.pause();
-      } catch (error) {
-        console.error({ error });
-      }
-      setHasOverRideId(null);
-      setSentences([]);
-      setIsNextAllowed(true);
     } catch (error) {
       console.error({ error });
     }
@@ -3346,8 +3364,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         <PrivacyPolicyPopup tncText={t('tncText')} onAccept={handleAcceptTnC} />
       }
 
-      {(chatLanguage && acceptedTnc==="ONGOING" && !isLoading && storageFlow && 
-        [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow)
+      {(chatLanguage && acceptedTnc==="ONGOING" && !isLoading && storageFlow && isSpecialFlow
       )&& 
         <PrivacyPolicyPopup 
           tncText={t('tncText')}  
@@ -3357,8 +3374,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       <></>
       <div className={`div27 ${isOpen && " div70"}`}>
         <div className={`div28 ${isOpen ? "div29" : ""}`}>
-          {(isShikshalokamPublicType && storageFlow && 
-            !([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow)))&& 
+          {(isShikshalokamPublicType && storageFlow && !(isSpecialFlow)) && 
             <Sidebar
               isOpen={isOpen}
               toggle={setIsOpen}
@@ -3368,10 +3384,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               setIsResetCalled={setIsResetCalled}
               languageToUse={languageToUse}
               stopAllAudio={stopAllAudio}
-              showGuestPopup={(isSpecialFlow && !accessToken) ? () => showGuestPopup(() => {
-                if (isSpecialFlow) removeFromStorage('botName');
-                ResetChat();
-              }, stayOnPage): undefined}
+              // showGuestPopup={(isSpecialFlow && !accessToken) ? () => showGuestPopup(() => {
+              //   if (isSpecialFlow) removeFromStorage('botName');
+              //   ResetChat();
+              // }, stayOnPage): undefined}
             />}
         </div>
         {isOpen && (
@@ -3487,7 +3503,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         >
           {(!showHomepage)&&
             <ul className="div34">
-              {chatHistory?.map((chat, i) => (
+              {chatHistory && chatHistory?.map((chat, i) => (
                 <li
                   key={i}
                   className={`div34 div35 ${

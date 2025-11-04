@@ -2,7 +2,7 @@ export const INITIAL_STATE = (set, get) => ({
     showFileInput: null,
     llmError: "",
     chatHistory: [],
-    intro_message: null,
+    introMessage: null,
     flow: null,
     sessionId: null,
     isOldChatOpen: true,
@@ -25,9 +25,9 @@ export const INITIAL_STATE = (set, get) => ({
 
     setChatHistory: (chatHistory) => set({ chatHistory }),
 
-    setIntroMessage: (intro_message) => set({ intro_message }),
+    setIntroMessage: (introMessage) => set({ introMessage }),
 
-    getIntroMessage: () => get().intro_message,
+    getIntroMessage: () => get().introMessage,
 
     setFlow: (flow) => set({ flow }),
 
