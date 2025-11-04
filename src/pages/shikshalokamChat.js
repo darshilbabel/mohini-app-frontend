@@ -42,6 +42,11 @@ function ShikshalokamChat({type, variant}) {
 
 	const accessToken = useUserDataLocalStore((state) => state.access_token);
 
+	useEffect(() => {
+		console.log('companyName chk', companyName);
+		console.log('isLoading chk', isLoading);
+	}, [companyName, isLoading])
+
 		  
 	// useEffect(() => {
 	// 	if(accessToken) return;
@@ -115,10 +120,10 @@ function ShikshalokamChat({type, variant}) {
 		  setIsLoading(true);
 		  const res = await getProfileDetails(body);
 		  
-		  if (res?.status === "error") {
-			setIsLoading(false);
-			return;
-		  }
+		//   if (res?.status === "error") {
+		// 	setIsLoading(false);
+		// 	return;
+		//   }
 	  
 		  setProfileId(res.id);
 	  
@@ -179,7 +184,7 @@ function ShikshalokamChat({type, variant}) {
 			// }
 		};
 		runSetup();
-	}, [])
+	}, [accessToken, sessionId])
 
   return (
     <>

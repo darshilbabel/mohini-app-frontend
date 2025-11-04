@@ -1,6 +1,35 @@
-export { default as useUserPreferenceLocalStore } from './slices/persistent/userPreference'
-export { default as useUserPreferenceSessionStore } from './slices/session/userPreference'
-export { default as useChatDataSessionStore } from './slices/chatData/chatDataSession'
-export { default as useChatDataLocalStore } from './slices/chatData/chatDataLocal'
-export { default as useSiteDataLocalStore } from './slices/siteData/siteDataLocal'
-export { default as useSiteDataSessionStore } from './slices/siteData/siteDataSession'
+import { STORE_NAME_CONSTANTS } from './constants'
+
+import useUserPreferenceLocalStore from './slices/persistent/userPreference'
+import useUserPreferenceSessionStore from './slices/session/userPreference'
+import useChatDataSessionStore from './slices/chatData/chatDataSession'
+import useChatDataLocalStore from './slices/chatData/chatDataLocal'
+import useSiteDataLocalStore from './slices/siteData/siteDataLocal'
+import useSiteDataSessionStore from './slices/siteData/siteDataSession'
+import useUserDataLocalStore from './slices/userData/userDataLocal'
+import useUserDataSessionStore from './slices/userData/userDataSession'
+
+const SLICES_STORE_MAP = {
+    local: {
+        [STORE_NAME_CONSTANTS.USER_DATA]: useUserDataLocalStore,
+        [STORE_NAME_CONSTANTS.CHAT_DATA]: useChatDataLocalStore,
+        [STORE_NAME_CONSTANTS.SITE_DATA]: useSiteDataLocalStore,
+    },
+    session: {
+        [STORE_NAME_CONSTANTS.USER_DATA]: useUserDataSessionStore,
+        [STORE_NAME_CONSTANTS.CHAT_DATA]: useChatDataSessionStore,
+        [STORE_NAME_CONSTANTS.SITE_DATA]: useSiteDataSessionStore,
+    },
+}
+
+export {
+    useUserPreferenceLocalStore,
+    useUserPreferenceSessionStore,
+    useChatDataLocalStore,
+    useChatDataSessionStore,
+    useSiteDataLocalStore,
+    useSiteDataSessionStore,
+
+    // slices export
+    SLICES_STORE_MAP
+}

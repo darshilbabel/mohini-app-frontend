@@ -155,7 +155,6 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const setChatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.setChatLanguage);
   const setIntroMessage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setIntroMessage);
   const setLangProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setLangProgress);
-  const setSessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setSessionId);
   const setStorageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setFlow);
   // const showHomepage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.showHomepage);
   const userState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.state);
@@ -176,6 +175,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setBotName,
     setDefaultBotName,
     setStateMachineLength,
+    setSessionId,
   } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState();
 
   // user data actions
@@ -215,11 +215,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
       window.location.reload();
     } else {
       currentSession = sessionId;
-      await fetchBotInfo()
+      try{
+        await fetchBotInfo()
+        await handleCompanyChatCall(currentSession);
+      }
+      catch(error){
+        setIsIntroLoading(false);
+      }
       setIsIntroLoading(false);
-      await handleCompanyChatCall(currentSession);
     }
-  }, [chatTitle, sessionId]);
+  }, [chatTitle]);
 
   // ========== Variable Definitions ==========
   // const { access_token } =  getStorageSlice(STORE_NAME_CONSTANTS.USER_DATA, 'localStorage').getState();
@@ -748,7 +753,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * *Manages chat history state and scrolling behavior
    */
   useEffect(() => {
-    setChatHistory(chatHistory);
+    // setChatHistory(chatHistory);
     lastBotMessageIndex.current = chatHistory?.length - 1;
     if (!showFileInput) handleScrollToView();
   }, [chatHistory]);
@@ -2250,13 +2255,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     if (reconnectAttempts >= maxReconnectAttempts) {
       console.error("Max reconnection attempts reached. Stopping.");
       try {
-        let chatHistory = chatHistory || [];
+        let chat_history = [...chatHistory] || [];
         if (
-          chatHistory.length > 0 &&
-          chatHistory[chatHistory.length - 1].source === "user"
+          chat_history.length > 0 &&
+          chat_history[chat_history.length - 1].source === "user"
         ) {
-          chatHistory.pop();
-          setChatHistory(chatHistory);
+          chat_history.pop();
+          setChatHistory(chat_history);
           console.log("🗑️ Removed last user message from storage.");
         }
       } catch (error) {
@@ -2571,7 +2576,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
     setIsFetchingOldIntro(true);
 
     try {
-        const resp = await getCompanyChatApi(currentSession);
+      const resp = await getCompanyChatApi(currentSession);
 
       const newChatSessionDetail = [];
 
@@ -3328,7 +3333,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
 
   function handleAcceptTnC() {    
     setAcceptedTnC(true);
-    if(storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow)) {
+    if(isSpecialFlow) {
       setShouldFetchIntro(true);
     }
   }

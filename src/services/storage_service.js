@@ -3,6 +3,7 @@ import axiosInstance from "../utils/axios";
 import { useUserPreferenceLocalStore, useUserPreferenceSessionStore } from 'store';
 import { STORAGE_TYPES } from "store/middleware/storage/storageFactory";
 import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
+import { SLICES_STORE_MAP } from "../store";
 
 export const setInStorage = (key, value, currentFlow, storageName='') => {
 
@@ -80,9 +81,8 @@ export function setInStorageSlice(sliceName, value, funcName, currentFlow, stora
  * The function constructs the module path as: store/slices/{sliceName}/{sliceName}{Local|Session}.js
  */
 export const getStorageSlice = (sliceName, storageType = null, accessToken = undefined) => {
-  const SLICE_PATH = "store/slices";
-  const LOCAL_STORAGE_SLICES = "Local";
-  const SESSION_STORAGE_SLICES = "Session";
+  const LOCAL_STORAGE_SLICES = "local";
+  const SESSION_STORAGE_SLICES = "session";
 
   let storage = null;
 
@@ -93,9 +93,9 @@ export const getStorageSlice = (sliceName, storageType = null, accessToken = und
     storage = accessToken ? LOCAL_STORAGE_SLICES : SESSION_STORAGE_SLICES;
   }
 
-  const module = require(`../${SLICE_PATH}/${sliceName}/${sliceName}${storage}.js`);
-  const slice = module.default;
+  console.log("storage: ", SLICES_STORE_MAP[storage]);
 
+  const slice = SLICES_STORE_MAP[storage][sliceName];
   return slice
 }
 
