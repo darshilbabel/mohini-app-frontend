@@ -1,216 +1,268 @@
 import "../../style.css"
 import "./shikshaChatStyle.css"
-import { AiOutlineEye } from "react-icons/ai";
-import { BiLoader } from "react-icons/bi";
-import { bot_routes, bot_websocket } from "../../configure";
-import { clearFromStorage, handleS3Upload, removeFromStorage, getStorageSlice } from "../../services/storage_service";
-import { createAuthRequest, createStoryMedia, getStoryAllMedia, partialUpdateStoryById } from "../story/api.service";
-import { createMessage } from "../interview-voice";
-import { createUserProfileApi } from "api/endpoints/user";
-import { FaCircle } from "react-icons/fa6";
-import { FaMicrophone, FaRegStopCircle } from "react-icons/fa";
-import { FiDownload } from "react-icons/fi";
-import { getChatSessionApi } from "api/endpoints/chat";
-import { getSessionDetails, updateReflectionStatus } from "../../services/api.service";
-import { GrGallery } from "react-icons/gr";
-import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2";
-import { IoClose } from "react-icons/io5";
-import { LANGUAGE_ENUMS, languageList, sessionFlowName } from "./enum";
-import { MdAccountCircle, MdEdit, MdSend, } from "react-icons/md";
-import { PrimaryButton } from "../../components/Buttons";
-import { RxCross2 } from "react-icons/rx";
-import { setLanguage } from "../../i18n";
-import { STORE_NAME_CONSTANTS } from "store/constants";
-import { TbReload } from "react-icons/tb";
-import { toast } from "react-toastify";
-import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi } from "api/endpoints";
-import { useAudio } from "hooks/useAudio";
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
-import { useChatDataSessionStore } from 'store';
-import { useConfirmationPopup } from "hooks/useConfirmationPopup";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useStorage } from "hooks/useStorage";
-import { useTranslation } from "react-i18next";
-import axiosInstance from "../../utils/axios";
-import Cookies from "universal-cookie";
-import CustomFormData from "../../components/Form/FormData";
-import DOMPurify from "dompurify";
-import EditorJS from "@editorjs/editorjs";
-import Header from "@editorjs/header";
-import InfiniteScroll from "react-infinite-scroll-component";
-import List from "@editorjs/list";
-import MainHeader from "./shikshaChatHeader";
-import Notification, { showNotification } from "../../components/ToastMessage/TotastMessage";
-import PdfDownloader from "../story/upload-content/pdfDownloader";
-import PrivacyPolicyPopup from "../../components/TnC/privacyPolicyPopup";
-import ReactMarkdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
-import remarkGfm from "remark-gfm";
-import ROUTES from "../../url";
-import Sidebar from "./shikshaChatSidebar";
-import UploadImages from "./upload-images";
-import useCustomMediaQuery from "hooks/useCustomMediaQuery";
-import useSmartChatStorage from "hooks/useSmartChatStorage";
-import useUserDataLocalStore from "store/slices/userData/userDataLocal";
-import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord";
-import WaveSurferPlayer from "../interview-text-voice/voice-player";
-import { getCompanyBotApi } from "api/endpoints/chat";
+import { AiOutlineEye } from "react-icons/ai"
+import { BiLoader } from "react-icons/bi"
+import { bot_routes } from "../../configure"
+import { buildWebSocketUrl } from "utils/helpers"
+import { clearFromStorage, handleS3Upload, removeFromStorage, getStorageSlice } from "../../services/storage_service"
+import { createAuthRequest, createStoryMedia, getStoryAllMedia, partialUpdateStoryById } from "../story/api.service"
+import { createMessage } from "../interview-voice"
+import { createUserProfileApi, getProfileUserApi } from "api/endpoints/user"
+import { FaCircle } from "react-icons/fa6"
+import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
+import { FiDownload } from "react-icons/fi"
+import { getChatSessionApi } from "api/endpoints/chat"
+import { getCompanyBotApi } from "api/endpoints/chat"
+import { getSessionDetails, updateReflectionStatus } from "../../services/api.service"
+import { GrGallery } from "react-icons/gr"
+import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
+import { LANGUAGE_ENUMS, languageList, sessionFlowName } from "./enum"
+import { MdAccountCircle, MdEdit, MdSend } from "react-icons/md"
+import { RxCross2 } from "react-icons/rx"
+import { setLanguage } from "../../i18n"
+import { STORE_NAME_CONSTANTS } from "store/constants"
+import { TbReload } from "react-icons/tb"
+import { toast } from "react-toastify"
+import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi } from "api/endpoints"
+import { useAudio } from "hooks/useAudio"
+import { useCallback, useEffect, useRef, useState, useMemo } from "react"
+import { useChatDataSessionStore } from "store"
+import { useChatWebhook } from "hooks/useChatWebhook"
+import { useConfirmationPopup } from "hooks/useConfirmationPopup"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { useStorage } from "hooks/useStorage"
+import { useTranslation } from "react-i18next"
+import axiosInstance from "../../utils/axios"
+import Cookies from "universal-cookie"
+import CustomFormData from "../../components/Form/FormData"
+import DOMPurify from "dompurify"
+import EditorJS from "@editorjs/editorjs"
+import Header from "@editorjs/header"
+import InfiniteScroll from "react-infinite-scroll-component"
+import List from "@editorjs/list"
+import MainHeader from "./shikshaChatHeader"
+import Notification, { showNotification } from "../../components/ToastMessage/TotastMessage"
+import PdfDownloader from "../story/upload-content/pdfDownloader"
+import PrivacyPolicyPopup from "../../components/TnC/privacyPolicyPopup"
+import ReactMarkdown from "react-markdown"
+import rehypeRaw from "rehype-raw"
+import remarkGfm from "remark-gfm"
+import ROUTES from "../../url"
+import Sidebar from "./shikshaChatSidebar"
+import UploadImages from "./upload-images"
+import useCustomMediaQuery from "hooks/useCustomMediaQuery"
+import useSmartChatStorage from "hooks/useSmartChatStorage"
+import useUserDataLocalStore from "store/slices/userData/userDataLocal"
+import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord"
+import WaveSurferPlayer from "../interview-text-voice/voice-player"
+import ReportEditor from "components/ReportEditor"
 
-
-const cookies = new Cookies();
+const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
 // const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 const wss_protocol = "wss://"
 
-const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
-
-
+const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
-  const [storyMediaIdArray, ] = useState(null);
-  const [textMessage, setTextMessage] = useState("");
-  const [asrAudio, setAsrAudio] = useState(null);
-  const [isFetchingData, setIsFetchingData] = useState(false);
-  const [reconText, setReconText] = useState("");
-  const [isStreamingComplete, setIsStreamingComplete] = useState(true);
-  const [audioCache, setAudioCache] = useState({});
-  const [isPdfDownloading, setIsPdfDownloading] = useState(false);
-  const [editor, setEditor] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [editorCopyChanges, setEditorCopyChanges] = useState(null);
-  const [hasStartedListening, setHasStartedListening] = useState(false);
-  const [trigger, setTrigger] = useState(false);
-  const [botNameToDisplay, setBotNameToDisplay] = useState("Bot");
-  const [hasStartedRecording, setHasStartedRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [sentences, setSentences] = useState([]);
-  const [isNextAllowed, setIsNextAllowed] = useState(true);
-  const [isMute, setNotMute] = useState(true);
-  const [isTalking, setTalking] = useState(0);
-  const [appendix, setAppendix] = useState([]);
-  const [hasOverRideId, setHasOverRideId] = useState(null);
-  const [shouldFetchIntro, setShouldFetchIntro] = useState(false);
-  const [hasFetchIntro, setHasFetchIntro] = useState(false);
-  const [chatTitle, setChatTitle] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isImageUploading, setIsImageUploading] = useState(false);
-  const [isIntroLoading, setIsIntroLoading] = useState(false);
-  const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false);
-  const [sessionTitleDetail, setSessionTitleDetail] = useState(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isResetCalled, setIsResetCalled] = useState(false);
-  const [strandStep, setStrandStep] = useState(null);
-  const [isEndStoryLoading, setIsEndStoryLoading] = useState(false);
-  const [storyData, setStoryData] = useState(null);
-  const [noStoryFound, setNoStoryFound] = useState(false);
-  const [triggerDownload, setTriggerDownload] = useState(false);
-  const [isRecognizing, setIsRecognizing] = useState(false);
-  const [shouldSendMessage, ] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [seconds, setSeconds] = useState(0);
-  const [intervalId, setIntervalId] = useState(null);
-  const [ssoNavigationTriggered, setSsoNavigationTriggered] = useState(false);
-  const [files, setFiles] = useState([]);
-  const [fileErrorText, setFileErrorText] = useState('');
+  const [storyMediaIdArray] = useState(null)
+  const [textMessage, setTextMessage] = useState("")
+  const [asrAudio, setAsrAudio] = useState(null)
+  const [isFetchingData, setIsFetchingData] = useState(false)
+  const [reconText, setReconText] = useState("")
+  const [isStreamingComplete, setIsStreamingComplete] = useState(true)
+  const [audioCache, setAudioCache] = useState({})
+  const [isPdfDownloading, setIsPdfDownloading] = useState(false)
+  const [editor, setEditor] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [editorCopyChanges, setEditorCopyChanges] = useState(null)
+  const [hasStartedListening, setHasStartedListening] = useState(false)
+  const [trigger, setTrigger] = useState(false)
+  const [botNameToDisplay, setBotNameToDisplay] = useState("Bot")
+  const [hasStartedRecording, setHasStartedRecording] = useState(false)
+  const [mediaRecorder, setMediaRecorder] = useState(null)
+  const [sentences, setSentences] = useState([])
+  const [isNextAllowed, setIsNextAllowed] = useState(true)
+  const [isMute, setNotMute] = useState(true)
+  const [isTalking, setTalking] = useState(0)
+  const [appendix, setAppendix] = useState([])
+  const [hasOverRideId, setHasOverRideId] = useState(null)
+  const [shouldFetchIntro, setShouldFetchIntro] = useState(false)
+  const [hasFetchIntro, setHasFetchIntro] = useState(false)
+  const [chatTitle, setChatTitle] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isImageUploading, setIsImageUploading] = useState(false)
+  const [isIntroLoading, setIsIntroLoading] = useState(false)
+  const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false)
+  const [sessionTitleDetail, setSessionTitleDetail] = useState(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const [isResetCalled, setIsResetCalled] = useState(false)
+  const [strandStep, setStrandStep] = useState(null)
+  const [isEndStoryLoading, setIsEndStoryLoading] = useState(false)
+  const [storyData, setStoryData] = useState(null)
+  const [noStoryFound, setNoStoryFound] = useState(false)
+  const [triggerDownload, setTriggerDownload] = useState(false)
+  const [isRecognizing, setIsRecognizing] = useState(false)
+  const [shouldSendMessage] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [seconds, setSeconds] = useState(0)
+  const [intervalId, setIntervalId] = useState(null)
+  const [ssoNavigationTriggered, setSsoNavigationTriggered] = useState(false)
+  const [files, setFiles] = useState([])
+  const [fileErrorText, setFileErrorText] = useState("")
   // const [selectedType, setSelectedType] = useState(getFromStorageSlice("userPreference", "selected_type") || 'normal');
-  const [companySlug, setCompanySlug] = useState("");
-  const [error, setError] = useState({ response: "", status: 200, });
-  const [visibleItemCount, setVisibleItemCount] = useState(10);
-  const [showHomepage, setShowHomepage] = useState(false);
-  const [isReconnectInProgress, setIsReconnectInProgress] = useState(false);
-  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const [companySlug, setCompanySlug] = useState("")
+  const [error, setError] = useState({ response: "", status: 200 })
+  const [visibleItemCount, setVisibleItemCount] = useState(10)
+  const [showHomepage, setShowHomepage] = useState(false)
+  // const [isReconnectInProgress, setIsReconnectInProgress] = useState(false);
+  // const [reconnectAttempts, setReconnectAttempts] = useState(0);
 
   // ========== useRef Hooks ==========
-  const textAreaRef = useRef(null);
-  const lastBotMessageIndex = useRef(-1);
-  const isInitialLoadRef = useRef(true);
-  const editorContainerRef = useRef(null);
-  const endPageToScrollRef = useRef(null);
-  const isIntroPlayed = useRef(false);
-  const retryConnectionRef = useRef(null);
-  const chatSocketRef = useRef(null);
+  const textAreaRef = useRef(null)
+  const lastBotMessageIndex = useRef(-1)
+  const isInitialLoadRef = useRef(true)
+  const editorContainerRef = useRef(null)
+  const endPageToScrollRef = useRef(null)
+  const isIntroPlayed = useRef(false)
+  // const retryConnectionRef = useRef(null);
+  const chatSocketRef = useRef(null)
   // const introMessageRef = useRef(null);
 
   // ========== Other Hooks ==========
-  const [chatHistory, setChatHistory, removeChatHistory] = useSmartChatStorage();
-  const [searchParams] = useSearchParams();
-  const { t } = useTranslation();
+  const [chatHistory, setChatHistory, removeChatHistory] = useSmartChatStorage()
+  const [searchParams] = useSearchParams()
+  const { t } = useTranslation()
 
-  const accessToken = useUserDataLocalStore((state) => state.access_token);
+  const accessToken = useUserDataLocalStore(state => state.access_token)
 
   // const defaultBotName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.defaultBotName);
   // const isChatVisible = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isChatVisible);
   // const showHomepage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.showHomepage);
-  const acceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.has_accepted_tnc);
-  const botName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.botName);
-  const chatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.chatLanguage);
-  const companyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.companyName);
-  const firstName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.firstName);
-  const introMessage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.introMessage);
-  const isNewChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isNewChatOpen);
-	const isOldChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isOldChatOpen);
-  const langProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.langProgress);
-  const languageToUse = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.chatLanguage);
-  const preferredLanguage = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.preferredLanguage);
-  const previousUrl = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.previousUrl);
-  const profileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.profileId);
-  const profileToUse = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.profileId);
-  const projectIdStore = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.projectId);
-  const selectedType = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.selectedType);
-  const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.sessionId);
-  const setChatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.setChatLanguage);
-  const setLangProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setLangProgress);
-  const setStorageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.setFlow);
-  const ssoRerouteURL = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)((state) => state.ssoRerouteURL);
-  const stateMachineLength = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.stateMachineLength);
-  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow);
-  const taskId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.taskId);
-  const userState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)((state) => state.state);
+  const acceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.has_accepted_tnc)
+  const botName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.botName)
+  const chatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.chatLanguage)
+  const companyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.companyName)
+  const firstName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.firstName)
+  const introMessage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.introMessage)
+  const isNewChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.isNewChatOpen)
+  const isOldChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.isOldChatOpen)
+  const langProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.langProgress)
+  const languageToUse = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.chatLanguage)
+  const preferredLanguage = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.preferredLanguage)
+  const previousUrl = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.previousUrl)
+  const profileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.profileId)
+  const profileToUse = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.profileId)
+  const projectIdStore = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.projectId)
+  const selectedType = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.selectedType)
+  const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.sessionId)
+  const setChatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.setChatLanguage)
+  const setLangProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.setLangProgress)
+  const setStorageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.setFlow)
+  const ssoRerouteURL = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.ssoRerouteURL)
+  const stateMachineLength = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.stateMachineLength)
+  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
+  const taskId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.taskId)
+  const userState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.state)
 
   // chat data actions
-  const {
-    setBotName,
-    setChatbotClickedOn,
-    setDefaultBotName,
-    setIntroMessage,
-    setIsChatVisible,
-    setIsNewChatOpen,
-    setIsOldChatOpen,
-    setSelectedType,
-    setSessionId,
-    setStateMachineLength,
-  } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState();
+  const { setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState()
 
   // user data actions
-	const {
-    setAcceptedTnC,
-    setCompanyName,
-    setFirstName,
-    setState,
-  } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState();
-  const { llmError, setLlmError } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState();
-  const { setProfileId: setProfileToUse } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState();
+  const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState()
+  const { llmError, setLlmError } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState()
+  const { setProfileId: setProfileToUse } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState()
 
-  const { recordings, HiddenRecorder, } = useVoiceRecord();
+  const { recordings, HiddenRecorder } = useVoiceRecord()
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
-  const projectId = useMemo(() => projectIdStore || searchParams.get("projectId"), [projectIdStore, searchParams]);
+  const { showGuestPopup, showConfirmationPopup } = useConfirmationPopup()
+  const { stopAllAudio, audioRef } = useAudio()
 
-  const { showGuestPopup, showConfirmationPopup } = useConfirmationPopup();
-  const { stopAllAudio, audioRef } = useAudio();
+  const onWebSocketOpen = useCallback(() => {
+    sendSocketMessage({
+      type: "authenticate",
+      sessionid: sessionId,
+      profileid: profileToUse,
+      projectid: projectIdStore || searchParams.get("projectId") || "",
+      taskid: searchParams.get("taskId") || taskId,
+      access_token: accessToken,
+      route: chatLanguage,
+      bot_route: getSessionRoute(),
+      flow_name: storageFlow,
+    });
+  }, [sessionId, profileToUse, projectIdStore, searchParams, taskId, accessToken, chatLanguage, storageFlow])
 
-  const isShikshalokamPublicType = true;
-  const shouldShowChatHistoryFeature = true;
-  const maxReconnectAttempts = process.env.REACT_APP_WEBSOCKET_RETRY_NUM || 3;
+  const onWebSocketMessage = useCallback((event) => {
+    const data = JSON.parse(event.data)
+    const message = data["text"]
+    if (message.source === "bot") {
+      setIsStreamingComplete(false)
+      setSentences((prevSentences) => {
+        const updatedSentences = [...prevSentences];
+        const lastSentence = updatedSentences[updatedSentences.length - 1];
+
+        if (lastSentence?.source === "bot") {
+          if (message?.msg) {
+            lastSentence.message += message?.msg;
+          }
+        } else {
+          updatedSentences.push({
+            message: message?.msg || "",
+            source: "bot",
+            isNarrated: false,
+            id: new Date().valueOf(),
+          });
+          lastBotMessageIndex.current = updatedSentences.length - 1;
+        }
+        return updatedSentences;
+      });
+      handleScrollToView()
+    }
+    else {
+      setIsStreamingComplete(true)
+    }
+
+    if (message.finish_reason === "stop" && message.source === "bot") {
+      setStrandStep(message?.step);
+      handleScrollToView();
+      setTalking(0);
+      setIsStreamingComplete(true);
+    }
+  }, [])
+
+  const {
+    sendMessage: sendSocketMessage,
+  } = useChatWebhook(
+    buildWebSocketUrl({
+      searchParams,
+      storageFlow,
+      selectedType,
+      wssProtocol: wss_protocol,
+    }),
+    {
+      onOpen: onWebSocketOpen,
+      onMessage: onWebSocketMessage
+    }
+  )
+
+  const isShikshalokamPublicType = true
+  const shouldShowChatHistoryFeature = true
+  const maxReconnectAttempts = process.env.REACT_APP_WEBSOCKET_RETRY_NUM || 3
+
+  // ========== useMemo Hooks ==========
+
+  const projectId = useMemo(() => projectIdStore || searchParams.get("projectId"), [projectIdStore, searchParams])
 
   const isSpecialFlow = useMemo(() => {
-    if (!storageFlow) return false;
-    return [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow);
+    if (!storageFlow) return false
+    return [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow)
   }, [storageFlow])
+
   const shouldFetchChatSession = useMemo(() => {
-    return storageFlow && [sessionFlowName.Reflection].includes(storageFlow);
-  }, [storageFlow]);
+    return storageFlow && [sessionFlowName.Reflection].includes(storageFlow)
+  }, [storageFlow])
 
   // ========================================================================
   // SECTION: Helper Functions (Must be defined before callbacks that use them)
@@ -221,7 +273,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * Adds user messages to chat history
    * Creates and appends user message to conversation
    */
-  const handleMessagesForUser = (sentence) => {
+  const handleMessagesForUser = sentence => {
     const chat_history = [
       ...chatHistory,
       createMessage({
@@ -229,10 +281,76 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         source: "user",
       }),
     ]
-    setChatHistory(chat_history);
+    setChatHistory(chat_history)
 
-    return chat_history;
-  };
+    return chat_history
+  }
+
+  async function onEditorSave() {
+    try {
+      setIsLoading(true)
+      const outputData = await editor.save()
+      const flow = storageFlow
+
+      let updatePayload = {
+        id: storyData?.id,
+        access_token: accessToken,
+        session: sessionId,
+        flow,
+      }
+
+      if (flow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
+        const blocks = outputData?.blocks || []
+        const challenges = getListAfterHeaderText(t("challengesHeader"), blocks)
+        const solutions = getListAfterHeaderText(t("solutionsHeader"), blocks)
+
+        updatePayload = {
+          ...updatePayload,
+          ...storyData?.other_params,
+          other_params: {
+            ...(storyData?.other_params || {}),
+            challenges_faced: challenges,
+            solutions_discussed: solutions,
+          },
+          formatted_content: null,
+        }
+      } else if (flow && [sessionFlowName.ListeningActivity].includes(flow)) {
+        const blocks = outputData?.blocks || []
+        const questionAnswers = getQuestionAnswersFromBlocks(blocks)
+
+        updatePayload = {
+          ...updatePayload,
+          ...storyData?.other_params,
+          other_params: {
+            ...(storyData?.other_params || {}),
+            question_answers: questionAnswers,
+          },
+          formatted_content: null,
+        }
+      } else {
+        updatePayload = {
+          ...updatePayload,
+          formatted_content: outputData?.blocks,
+        }
+      }
+
+      await partialUpdateStoryById({
+        setter: setStoryData,
+        loader: setIsSaving,
+        data: updatePayload,
+        token: accessToken,
+      })
+    } catch (error) {
+      setIsLoading(false)
+      console.error("Saving failed: ", error)
+      if (accessToken) {
+        clearFromStorage()
+        navigate(-1)
+      }
+    } finally {
+      window.location.reload()
+    }
+  }
 
   /**
    * Stops audio playback and resets TTS state
@@ -241,17 +359,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const handleOnStopSpeaking = async () => {
     try {
       try {
-        if (audioRef.current) await audioRef.current.pause();
+        if (audioRef.current) await audioRef.current.pause()
       } catch (error) {
-        console.error({ error });
+        console.error({ error })
       }
-      setHasOverRideId(null);
-      setSentences([]);
-      setIsNextAllowed(true);
+      setHasOverRideId(null)
+      setSentences([])
+      setIsNextAllowed(true)
     } catch (error) {
-      console.error({ error });
+      console.error({ error })
     }
-  };
+  }
 
   /**
    * Handles intro message customization and initialization
@@ -259,61 +377,53 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    */
   const handleIntroMessage = async () => {
     let data = await getTranslatedIntroMessage()
-    let message = data[0]?.introductory_message;
+    let message = data[0]?.introductory_message
     if (data && data[0]) {
-      if (
-        profileToUse &&
-        firstName &&
-        firstName !== "null" &&
-        firstName !== ""
-      ) {
-        message = data[0]?.introductory_message;
+      if (profileToUse && firstName && firstName !== "null" && firstName !== "") {
+        message = data[0]?.introductory_message
       } else {
-        message = data[0]?.alt_introductory_message;
+        message = data[0]?.alt_introductory_message
       }
     }
-    const botName = data[0]?.name || "Bot";
+    const botName = data[0]?.name || "Bot"
 
-    setBotName(botName);
-    setDefaultBotName(data[0]?.default_name);
-    setBotNameToDisplay(botName);
+    setBotName(botName)
+    setDefaultBotName(data[0]?.default_name)
+    setBotNameToDisplay(botName)
 
-    if(isOldChatOpen) {
-      let sessionInfo = await getSessionInfo();
-      if(sessionInfo && sessionInfo.length>0) {
+    if (isOldChatOpen) {
+      let sessionInfo = await getSessionInfo()
+      if (sessionInfo && sessionInfo.length > 0) {
         setStrandStep(sessionInfo[0]?.current_step)
-        if(sessionInfo[0]?.session_type) {
+        if (sessionInfo[0]?.session_type) {
           setSelectedType(sessionInfo[0]?.session_type)
         }
       }
     }
-    console.log("message: ", message);
-    console.log("firstName: ", firstName);
+    console.log("message: ", message)
+    console.log("firstName: ", firstName)
     if (message && firstName) {
-      const words = message.split(" ");
-      words.splice(1, 0, firstName);
-      message = words.join(" ");
+      const words = message.split(" ")
+      words.splice(1, 0, firstName)
+      message = words.join(" ")
     }
-    if (message && !!message?.trim() &&
-      chatHistory[chatHistory?.length - 1]?.msg !== message &&
-      !sentences.some((msg) => msg.message === message)
-    ) {
-        const isGuestFlow = !accessToken
-        setIntroMessage(message)
-        setSentences((prev) => [
-          ...prev,
-          {
-            message: message,
-            isNarrated: isGuestFlow ? false : false,
-            id: "intro_msg_id",
-          },
-        ]);
-        if (isGuestFlow) {
-          setHasOverRideId("intro_msg_id");
-          setNotMute(false);
-          setIsNextAllowed(true);
-        }
+    if (message && !!message?.trim() && chatHistory[chatHistory?.length - 1]?.msg !== message && !sentences.some(msg => msg.message === message)) {
+      const isGuestFlow = !accessToken
+      setIntroMessage(message)
+      setSentences(prev => [
+        ...prev,
+        {
+          message: message,
+          isNarrated: isGuestFlow ? false : false,
+          id: "intro_msg_id",
+        },
+      ])
+      if (isGuestFlow) {
+        setHasOverRideId("intro_msg_id")
+        setNotMute(false)
+        setIsNextAllowed(true)
       }
+    }
   }
 
   /**
@@ -325,16 +435,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   const transformChatMessage = (chat, introMessage) => {
     // Skip intro message duplicates
     if (chat?.id === "intro_msg_id" || chat?.message === introMessage) {
-      return null;
+      return null
     }
 
     // Use translated message if available
-    const messageToUse = chat?.translated_message && chat?.translated_message !== ""
-      ? chat?.translated_message
-      : chat?.message;
+    const messageToUse = chat?.translated_message && chat?.translated_message !== "" ? chat?.translated_message : chat?.message
 
-    const isBot = chat?.sender?.id === 1;
-    
+    const isBot = chat?.sender?.id === 1
+
     return {
       sentence: {
         message: isBot ? messageToUse : chat?.message,
@@ -347,18 +455,18 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         source: isBot ? "bot" : "user",
         updated_at: chat?.id,
       },
-    };
-  };
+    }
+  }
 
   /**
    * Comparison functions for sorting by ID
    */
   function compareById(a, b) {
-    return a.id - b.id;
+    return a.id - b.id
   }
 
   function compareByIdDesc(a, b) {
-    return b.id - a.id;
+    return b.id - a.id
   }
 
   /**
@@ -369,22 +477,22 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    */
   function quickSort(arr, compare) {
     if (arr?.length <= 1) {
-      return arr;
+      return arr
     }
 
-    const pivot = arr[0];
-    const left = [];
-    const right = [];
+    const pivot = arr[0]
+    const left = []
+    const right = []
 
     for (let i = 1; i < arr?.length; i++) {
       if (compare(arr[i], pivot) < 0) {
-        left.push(arr[i]);
+        left.push(arr[i])
       } else {
-        right.push(arr[i]);
+        right.push(arr[i])
       }
     }
 
-    return [...quickSort(left, compare), pivot, ...quickSort(right, compare)];
+    return [...quickSort(left, compare), pivot, ...quickSort(right, compare)]
   }
 
   /**
@@ -392,50 +500,50 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * Initializes bot name, state machine length, and intro message
    */
   const fetchBotInfo = async () => {
-    if(!languageToUse) return;
+    if (!languageToUse) return
 
-    setIsIntroLoading(true);
+    setIsIntroLoading(true)
     if (!isSpecialFlow) {
-      setIsLoading(true);
+      setIsLoading(true)
     }
 
     try {
-      let storedRoute = getSessionRoute();
+      let storedRoute = getSessionRoute()
       const response = await getCompanyBotApi({
         company__slug: companySlug,
         target_language: languageToUse,
         route: storedRoute,
-      });
-      const bots = response?.results;
+      })
+      const bots = response?.results
 
       if (!bots || bots.length === 0) {
-        handleScrollToView();
-        return;
+        handleScrollToView()
+        return
       }
 
       // Set state machine length from selected bot
-      const selectedBot = bots.find((bot) => bot.route === storedRoute) || bots[0] || { route: "/" };
+      const selectedBot = bots.find(bot => bot.route === storedRoute) || bots[0] || { route: "/" }
       if (selectedBot?.statemachine_length) {
-        setStateMachineLength(selectedBot.statemachine_length);
+        setStateMachineLength(selectedBot.statemachine_length)
       }
 
       // Find the latest bot based on flow type
-      const latestBot = bots.find((bot) => bot.route === storedRoute);
+      const latestBot = bots.find(bot => bot.route === storedRoute)
       if (!latestBot) {
-        handleScrollToView();
-        return;
+        handleScrollToView()
+        return
       }
-        
-      await handleIntroMessage();
+
+      await handleIntroMessage()
     } catch (error) {
-      console.error({ error });
-      setIsLoading(false);
+      console.error({ error })
+      setIsLoading(false)
     } finally {
-      setHasFetchIntro(true);
-      setShouldFetchIntro(false);
-      setIsLoading(false);
+      setHasFetchIntro(true)
+      setShouldFetchIntro(false)
+      setIsLoading(false)
     }
-  };
+  }
 
   // ========================================================================
   // SECTION: WebSocket Connection Management Callbacks
@@ -451,475 +559,114 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * @param {string} config.wssProtocol - WebSocket protocol (wss:// or ws://)
    * @returns {string|null} - WebSocket URL or null if invalid
    */
-  const buildWebSocketUrl = useCallback(({ searchParams, storageFlow, selectedType, wssProtocol }) => {
-    // Handle SSO code path
-    if (searchParams.get("code")) {
-      // NOTE: revert this code after testing
-      // return `${wssProtocol}${window.location.host}/ws/chat/company/`;
-      return `${wssProtocol}${process.env.REACT_APP_WEBSOCKET_HOST}/ws/chat/company/`;
-    }
-
-    const baseUrl = `${wssProtocol}${process.env.REACT_APP_WEBSOCKET_HOST}`;
-    const currentFlow = storageFlow;
-
-    // Direct flow to websocket mapping
-    const websocketConfig = {
-      [sessionFlowName.GuestDiscussion]: bot_websocket.shikshalokam_chaupal,
-      [sessionFlowName.LoginDiscussion]: bot_websocket.shikshalokam_chaupal,
-      [sessionFlowName.ListeningActivity]: bot_websocket.listening_activity,
-    };
-
-    // Type-based flow to websocket mapping
-    const normalTypeConfig = {
-      normal: {
-        [sessionFlowName.LoginMiStory]: bot_websocket.normal,
-        [sessionFlowName.GuestMiStory]: bot_websocket.guest_normal,
-      },
-      oneshot: {
-        [sessionFlowName.LoginMiStory]: bot_websocket.oneshot,
-        [sessionFlowName.GuestMiStory]: bot_websocket.guest_oneshot,
-      }
-    };
-
-    // Check direct flow mapping first
-    if (websocketConfig[currentFlow]) {
-      return `${baseUrl}${websocketConfig[currentFlow]}`;
-    }
-
-    // Check type-based mapping
-    const selectedTypeConfig = normalTypeConfig[selectedType];
-    if (selectedTypeConfig && selectedTypeConfig[currentFlow]) {
-      return `${baseUrl}${selectedTypeConfig[currentFlow]}`;
-    }
-
-    return null;
-  }, []);
 
   /**
    * Creates WebSocket message handler
    * @param {Object} callbacks - Callback functions
    * @returns {Function} - Message handler function
    */
-  const createWebSocketMessageHandler = useCallback((callbacks) => {
-    const {
-      onBotMessage,
-      onStreamComplete,
-      onStreamStart,
-      onFinishMessage,
-    } = callbacks;
+  const createWebSocketMessageHandler = useCallback(
+    callbacks => {
+      const { onBotMessage, onStreamComplete, onStreamStart, onFinishMessage } = callbacks
 
-    return (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const message = data["text"];
+      return event => {
+        try {
+          const data = JSON.parse(event.data)
+          const message = data["text"]
 
-        if (message.source === "bot") {
-          onStreamStart();
-          onBotMessage(message);
+          if (message.source === "bot") {
+            onStreamStart()
+            onBotMessage(message)
 
-          if (isShikshalokamPublicType) {
-            handleScrollToView();
+            if (isShikshalokamPublicType) {
+              handleScrollToView()
+            }
+          } else {
+            onStreamStart()
           }
-        } else {
-          onStreamStart();
-        }
 
-        if (message.finish_reason === "stop" && message.source === "bot") {
-          onFinishMessage(message);
+          if (message.finish_reason === "stop" && message.source === "bot") {
+            onFinishMessage(message)
+          }
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error)
         }
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
       }
-    };
-  }, [isShikshalokamPublicType, handleScrollToView]);
+    },
+    [isShikshalokamPublicType, handleScrollToView]
+  )
 
   /**
    * Creates WebSocket open handler
    * @param {Object} callbacks - Callback functions
    * @returns {Function} - Open handler function
    */
-  const createWebSocketOpenHandler = useCallback((callbacks) => {
-    const {
-      onConnectionReady,
-      onAuthenticate,
-    } = callbacks;
+  const createWebSocketOpenHandler = useCallback(
+    callbacks => {
+      const { onConnectionReady, onAuthenticate } = callbacks
 
-    return () => {
-      onConnectionReady();
+      return () => {
+        onConnectionReady()
 
-      if (isShikshalokamPublicType && onAuthenticate) {
-        onAuthenticate();
+        if (isShikshalokamPublicType && onAuthenticate) {
+          onAuthenticate()
+        }
       }
-    };
-  }, [isShikshalokamPublicType]);
+    },
+    [isShikshalokamPublicType]
+  )
 
   /**
    * Creates WebSocket close handler
    * @param {Object} callbacks - Callback functions
    * @returns {Function} - Close handler function
    */
-  const createWebSocketCloseHandler = useCallback((callbacks) => {
-    const {
-      onReconnect,
-      shouldRetry,
-    } = callbacks;
+  const createWebSocketCloseHandler = useCallback(callbacks => {
+    const { onReconnect, shouldRetry } = callbacks
 
-    return (event) => {
-      console.warn("WebSocket closed:", event);
+    return event => {
+      console.warn("WebSocket closed:", event)
       if (event.code !== 1000 && shouldRetry()) {
-        console.error("Unexpected WebSocket closure. Retrying...");
-        onReconnect();
+        console.error("Unexpected WebSocket closure. Retrying...")
+        onReconnect()
       }
-    };
-  }, []);
-
-  /**
-   * Creates WebSocket error handler
-   * @param {Object} callbacks - Callback functions
-   * @returns {Function} - Error handler function
-   */
-  const createWebSocketErrorHandler = useCallback((callbacks) => {
-    const {
-      onError,
-      onReconnect,
-      shouldRetry,
-    } = callbacks;
-
-    return (error) => {
-      console.error("WebSocket error:", error);
-      if (onError) {
-        onError(error);
-      }
-      if (shouldRetry()) {
-        onReconnect();
-      }
-    };
-  }, []);
-
-  /**
-   * Authenticates WebSocket connection
-   * @param {Object} params - Authentication parameters
-   */
-  const authenticateConnection = useCallback((socket, params) => {
-    const {
-      profileId: profileid,
-      sessionId: sessionid,
-      chatLanguage: route,
-      storageFlow: currentFlow,
-      projectId,
-      taskId,
-      searchParams,
-      accessToken,
-      getSessionRoute,
-    } = params;
-
-    if (
-      (profileid || (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow))) &&
-      sessionid
-    ) {
-      socket.send(JSON.stringify({
-        type: 'authenticate',
-        sessionid: sessionid,
-        profileid: profileid,
-        projectid: projectId || "",
-        taskid: searchParams.get("taskId") || taskId,
-        access_token: accessToken,
-        route: route,
-        bot_route: getSessionRoute(),
-        flow_name: currentFlow
-      }));
     }
-  }, []);
-
-  /**
-   * Checks if an existing WebSocket connection is available and open
-   * @returns {WebSocket|null} - Open socket if available, null otherwise
-   */
-  const checkExistingSocket = useCallback(() => {
-    if (chatSocketRef.current && chatSocketRef.current.readyState === WebSocket.OPEN) {
-      return chatSocketRef.current;
-    }
-    return null;
-  }, []);
-
-  /**
-   * Establishes WebSocket connection with proper error handling and reconnection support
-   * @param {string} currentTextMessage - Message to send after reconnection
-   * @returns {Promise<WebSocket>} - Promise resolving to WebSocket instance
-   */
-  const MakeSocketConnection = useCallback((currentTextMessage) => {
-    return new Promise((resolve, reject) => {
-      try {
-        // Check for existing open connection
-        const existingSocket = checkExistingSocket();
-        if (existingSocket) {
-          return resolve(existingSocket);
-        }
-
-        // Build WebSocket URL
-        const url = buildWebSocketUrl({
-          searchParams,
-          storageFlow,
-          selectedType,
-          wssProtocol: wss_protocol,
-        });
-
-        if (!url) {
-          return reject(new Error("Invalid WebSocket URL configuration"));
-        }
-
-        // Create WebSocket connection
-        const socket = new WebSocket(url);
-
-        // Handle bot messages
-        const handleBotMessage = (message) => {
-          setIsStreamingComplete(false);
-
-          // Update sentences state
-          setSentences((prevSentences) => {
-            const updatedSentences = [...prevSentences];
-            const lastSentence = updatedSentences[updatedSentences.length - 1];
-
-            if (lastSentence?.source === "bot") {
-              if (message?.msg) {
-                lastSentence.message += message?.msg;
-              }
-            } else {
-              updatedSentences.push({
-                message: message?.msg || "",
-                source: "bot",
-                isNarrated: false,
-                id: new Date().valueOf(),
-              });
-              lastBotMessageIndex.current = updatedSentences.length - 1;
-            }
-            return updatedSentences;
-          });
-
-          // Update chat history
-          const updatedChatHistory = [...chatHistory];
-          console.log("handleBotMessage chatHistory", chatHistory)
-          const lastMessage = updatedChatHistory[updatedChatHistory.length - 1];
-
-          if (lastMessage?.source === "bot") {
-            if (message?.msg) {
-              lastMessage.msg += message?.msg;
-            }
-          } else {
-            updatedChatHistory.push({
-              msg: message?.msg || "",
-              source: "bot",
-              updated_at: new Date().valueOf(),
-            });
-          }
-          console.log("handleBotMessage updatedChatHistory: ", updatedChatHistory);
-          setChatHistory(updatedChatHistory);
-        };
-
-        // Handle stream completion
-        const handleFinishMessage = (message) => {
-          setStrandStep(message?.step);
-          handleScrollToView();
-          setTalking(0);
-          setIsStreamingComplete(true);
-        };
-
-        // Create message handler
-        socket.onmessage = createWebSocketMessageHandler({
-          onBotMessage: handleBotMessage,
-          onStreamStart: () => setIsStreamingComplete(false),
-          onFinishMessage: handleFinishMessage,
-        });
-
-        // Handle connection open
-        const handleConnectionReady = () => {
-          chatSocketRef.current = socket;
-          setIsReconnectInProgress(false);
-          setReconnectAttempts(0);
-        };
-
-        const handleAuthenticate = () => {
-          authenticateConnection(socket, {
-            profileId,
-            sessionId,
-            chatLanguage,
-            storageFlow,
-            projectId,
-            taskId,
-            searchParams,
-            accessToken,
-            getSessionRoute,
-          });
-        };
-
-        // Handle connection open
-        socket.onopen = () => {
-          handleConnectionReady();
-          if (isShikshalokamPublicType) {
-            handleAuthenticate();
-          }
-          resolve(socket);
-        };
-
-        // Handle connection close
-        socket.onclose = createWebSocketCloseHandler({
-          onReconnect: () => {
-            setIsReconnectInProgress(true);
-            if (retryConnectionRef.current) {
-              retryConnectionRef.current(currentTextMessage);
-            }
-          },
-          shouldRetry: () => !isReconnectInProgress,
-        });
-
-        // Handle connection errors
-        socket.onerror = createWebSocketErrorHandler({
-          onError: (error) => {
-            console.error("WebSocket error:", error);
-            socket.close();
-            reject(error);
-          },
-          onReconnect: () => {
-            setIsReconnectInProgress(true);
-            if (retryConnectionRef.current) {
-              retryConnectionRef.current(currentTextMessage);
-            }
-          },
-          shouldRetry: () => !isReconnectInProgress,
-        });
-      } catch (error) {
-        console.error("Error establishing WebSocket connection:", error);
-        reject(error);
-      }
-    });
-  }, [
-    checkExistingSocket,
-    buildWebSocketUrl,
-    searchParams,
-    storageFlow,
-    selectedType,
-    // createWebSocketMessageHandler,
-    // createWebSocketOpenHandler,
-    // createWebSocketCloseHandler,
-    // createWebSocketErrorHandler,
-    // authenticateConnection,
-    profileId,
-    sessionId,
-    chatLanguage,
-    projectId,
-    taskId,
-    accessToken,
-    // getSessionRoute,
-    isShikshalokamPublicType,
-    isReconnectInProgress,
-    chatHistory,
-  ]);
+  }, [])
 
   /**
    * Sends user message through WebSocket connection
    * Handles message submission, WebSocket connection, and UI updates
    */
-  const handleSendMessage = useCallback(
-    async (event) => {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      setLlmError("");
-
-      // NOTE: This might cause an error
-      // removeFromStorage('llmError');
-
-      handleOnStopSpeaking();
-      try {
-        const socket = await MakeSocketConnection(textMessage);
-        setIsChatVisible(true);
-        setShowHomepage(false);
-        setNotMute(true);
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        }
-
-        if (!textMessage.trim()) return;
-
-        handleMessagesForUser(textMessage);
-        socket.send(
-          JSON.stringify({
-            text: textMessage,
-            context: "",
-            asr_audio: asrAudio,
-          })
-        );
-        setAsrAudio(null);
-        handleScrollToView();
-        setTextMessage("");
-      } catch (error) {
-        console.error("WebSocket connection failed:", error);
-      }
-    },
-    [textMessage, MakeSocketConnection]
-  );
-
-  /**
-   * Retries WebSocket connection with exponential backoff
-   * @param {string} currentTextMessage - Message to send after successful reconnection
-   */
-  const retryConnection = useCallback((currentTextMessage = "") => {
-    if (reconnectAttempts >= maxReconnectAttempts) {
-      console.error("Max reconnection attempts reached. Stopping.");
-      try {
-        const chat_history = [...chatHistory] || [];
-        if (
-          chat_history.length > 0 &&
-          chat_history[chat_history.length - 1].source === "user"
-        ) {
-          chat_history.pop();
-          setChatHistory(chat_history);
-          console.log("🗑️ Removed last user message from storage.");
-        }
-      } catch (error) {
-        console.error("⚠️ Error modifying storage:", error);
-      }
-      showConfirmationPopup(() => {
-        if (accessToken) {
-          clearFromStorage();
-          navigate(-1);
-        } else {
-          ResetChat();
-        }
-      });
-      return;
+  function handleSendMessage(event) {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
     }
 
-    setReconnectAttempts((prev) => prev + 1);
+    setLlmError("")
+    handleOnStopSpeaking()
+    setIsChatVisible(true)
+    setShowHomepage(false)
+    setNotMute(true)
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+    console.log(textMessage, "textMessage")
 
-    setTimeout(() => {
-      MakeSocketConnection(currentTextMessage)
-        .then((newSocket) => {
-          setReconnectAttempts(0);
-          setIsReconnectInProgress(false);
-          if (currentTextMessage && currentTextMessage.trim() !== "") {
-            handleSendMessage(null);
-          }
-        })
-        .catch((error) => {
-          console.error("Reconnection Failed:", error);
-        });
-    }, 1000);
-  }, [
-    reconnectAttempts,
-    maxReconnectAttempts,
-    chatHistory,
-    setChatHistory,
-    showConfirmationPopup,
-    accessToken,
-    clearFromStorage,
-    navigate,
-    ResetChat,
-    MakeSocketConnection,
-    handleSendMessage,
-  ]);
+    if (!textMessage.trim()) return
+
+    handleMessagesForUser(textMessage)
+    sendSocketMessage({
+      text: textMessage,
+      context: "",
+      asr_audio: asrAudio,
+    })
+
+    setAsrAudio(null)
+    handleScrollToView()
+    setTextMessage("")
+  }
 
   // ========================================================================
   // SECTION: Message & Chat Handling Callbacks
@@ -931,84 +678,83 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * Transforms and batches chat messages to avoid duplicates
    */
   const handleCompanyChatCall = useCallback(async () => {
-    try{
-        const storedChatHistory = chatHistory;
-        if (storedChatHistory.length >= 1) {
-          return;
+    try {
+      const storedChatHistory = chatHistory
+      if (storedChatHistory.length >= 1) {
+        return
+      }
+
+      console.log("handleCompanyChatCall")
+      setIsFetchingOldIntro(true)
+
+      try {
+        const resp = await getCompanyChatApi(sessionId)
+        const sortedResult = quickSort(resp?.data?.results, compareById)
+
+        const intro_message = introMessage
+        console.log("introMessage: ", intro_message)
+
+        // Collect all new sentences and chat history items
+        const newSentences = []
+        const newChatHistoryItems = []
+
+        // Use Set with IDs for reliable duplicate detection
+        const existingChatIds = new Set(chatHistory.map(msg => msg.updated_at))
+
+        // Add intro message if it exists and not already in history
+        if (intro_message && !existingChatIds.has("intro_msg_id")) {
+          newSentences.push({
+            message: intro_message,
+            source: "bot",
+            isNarrated: true,
+            id: "intro_msg_id",
+          })
+
+          newChatHistoryItems.push({
+            msg: intro_message,
+            source: "bot",
+            updated_at: "intro_msg_id",
+          })
         }
 
-        console.log("handleCompanyChatCall");
-        setIsFetchingOldIntro(true);
-
-        try {
-          const resp = await getCompanyChatApi(sessionId);
-          const sortedResult = quickSort(resp?.data?.results, compareById);
-
-          const intro_message = introMessage;
-          console.log("introMessage: ", intro_message);
-
-          // Collect all new sentences and chat history items
-          const newSentences = [];
-          const newChatHistoryItems = [];
-          
-          // Use Set with IDs for reliable duplicate detection
-          const existingChatIds = new Set(chatHistory.map(msg => msg.updated_at));
-
-          // Add intro message if it exists and not already in history
-          if (intro_message && !existingChatIds.has("intro_msg_id")) {
-            newSentences.push({
-              message: intro_message,
-              source: "bot",
-              isNarrated: true,
-              id: "intro_msg_id",
-            });
-
-            newChatHistoryItems.push({
-              msg: intro_message,
-              source: "bot",
-              updated_at: "intro_msg_id",
-            });
+        // Process all chat messages
+        sortedResult.forEach(chat => {
+          const transformed = transformChatMessage(chat, intro_message)
+          if (!transformed) {
+            return // Skip duplicates
           }
 
-          // Process all chat messages
-          sortedResult.forEach((chat) => {
-            const transformed = transformChatMessage(chat, intro_message);
-            if (!transformed) {
-              return; // Skip duplicates
-            }
-
-            // Only add if not already in chat history
-            if (!existingChatIds.has(transformed.chatHistory.updated_at)) {
-              newSentences.push(transformed.sentence);
-              newChatHistoryItems.push(transformed.chatHistory);
-            }
-          });
-
-          // Batch state updates - update all at once
-          if (newSentences.length > 0) {
-            setSentences((prev) => [...prev, ...newSentences]);
+          // Only add if not already in chat history
+          if (!existingChatIds.has(transformed.chatHistory.updated_at)) {
+            newSentences.push(transformed.sentence)
+            newChatHistoryItems.push(transformed.chatHistory)
           }
+        })
 
-          if (newChatHistoryItems.length > 0) {
-            console.log("filteredItems: ", newChatHistoryItems);
-            setChatHistory([...chatHistory, ...newChatHistoryItems]);
-            lastBotMessageIndex.current += newChatHistoryItems.length;
-          }
-        } catch (error) {
-          console.error("Error fetching company chat data:", error);
-        } finally {
-          setIsFetchingOldIntro(false);
-          if(accessToken) {
-            setIsLoading(false);
-          }
+        // Batch state updates - update all at once
+        if (newSentences.length > 0) {
+          setSentences(prev => [...prev, ...newSentences])
         }
-    }
-    catch(error){
-      console.error("Error fetching company chat data:", error);
+
+        if (newChatHistoryItems.length > 0) {
+          console.log("filteredItems: ", newChatHistoryItems)
+          setChatHistory([...chatHistory, ...newChatHistoryItems])
+          lastBotMessageIndex.current += newChatHistoryItems.length
+        }
+      } catch (error) {
+        console.error("Error fetching company chat data:", error)
+      } finally {
+        setIsFetchingOldIntro(false)
+        if (accessToken) {
+          setIsLoading(false)
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching company chat data:", error)
     } finally {
-      setIsFetchingOldIntro(false);
-      if(accessToken) {
-        setIsLoading(false);
+      setIsFetchingOldIntro(false)
+      if (accessToken) {
+        setIsLoading(false)
       }
     }
   }, [introMessage, sessionId])
@@ -1018,50 +764,50 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * Loads selected chat session or fetches intro for new session
    */
   const handleChatSessionButtonClick = useCallback(async ({ key }) => {
-    lastBotMessageIndex.current = -1;
-    let key_num;
-    let currentSession;
+    lastBotMessageIndex.current = -1
+    let key_num
+    let currentSession
     if (key) {
       /** String representation of array index that can be converted to number */
-      key_num = parseInt(key?.split("-").pop());
-      if(isNaN(key_num)) return
-      currentSession = chatTitle[key_num]?.session;
+      key_num = parseInt(key?.split("-").pop())
+      if (isNaN(key_num)) return
+      currentSession = chatTitle[key_num]?.session
       // removeFromStorage("llmError");
-      setIsOldChatOpen(true);
-      setIsNewChatOpen(false);
-      setSessionId(currentSession);
-      setChatHistory([]);
-      window.location.reload();
+      setLlmError("")
+      setIsOldChatOpen(true)
+      setIsNewChatOpen(false)
+      setSessionId(currentSession)
+      setChatHistory([])
+      window.location.reload()
     } else {
-      currentSession = sessionId;
-      try{
+      currentSession = sessionId
+      try {
         await fetchBotInfo()
         await handleCompanyChatCall()
+      } finally {
+        setIsIntroLoading(false)
       }
-      finally{
-        setIsIntroLoading(false);
-      }
-      setIsIntroLoading(false);
+      setIsIntroLoading(false)
     }
-  }, []);
+  }, [])
 
   /**
    * Adds bot messages to chat history during streaming
    * Prevents duplicate messages and manages message state
    */
   const handleMessagesForBot = useCallback(
-    (sentence) => {
-      if (isRecognizing || hasStartedListening || !shouldSendMessage) return;
+    sentence => {
+      if (isRecognizing || hasStartedListening || !shouldSendMessage) return
 
-      const lastMessage = chatHistory[chatHistory?.length - 1];
+      const lastMessage = chatHistory[chatHistory?.length - 1]
       if (lastMessage?.msg === sentence && lastMessage?.source === "bot") {
-        return;
+        return
       }
 
       if (chatHistory[chatHistory?.length - 1]?.source === "bot") {
-        const lastMessage = chatHistory[chatHistory?.length - 1];
-        lastMessage.msg += " " + sentence;
-        setChatHistory([...chatHistory]);
+        const lastMessage = chatHistory[chatHistory?.length - 1]
+        lastMessage.msg += " " + sentence
+        setChatHistory([...chatHistory])
       } else {
         setChatHistory([
           ...chatHistory,
@@ -1069,29 +815,27 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
             msg: sentence,
             source: "bot",
           }),
-        ]);
+        ])
       }
     },
     [chatHistory]
-  );
+  )
 
   // ========================================================================
   // SECTION: Variable Definitions
   // ========================================================================
   // const { access_token } =  getStorageSlice(STORE_NAME_CONSTANTS.USER_DATA, 'localStorage').getState();
-  const { showFileInput, setShowFileInput } = useChatDataSessionStore.getState();
+  const { showFileInput, setShowFileInput } = useChatDataSessionStore.getState()
   const selectedLabel = {
     types: [
-      {label:t('guidedReflection'), value:'normal'}, 
-      {label:t('oneStepReflection'), value:'oneshot'}, 
-    ]
-  };
-  const fileExceedText = t('fileExceedText');
-  const fileSizeText = t('fileSizeText');
-  let isMobile = useCustomMediaQuery('(max-width: 500px)');
-  let chatToAddLength = isMobile? 10: 10;
-
-
+      { label: t("guidedReflection"), value: "normal" },
+      { label: t("oneStepReflection"), value: "oneshot" },
+    ],
+  }
+  const fileExceedText = t("fileExceedText")
+  const fileSizeText = t("fileSizeText")
+  let isMobile = useCustomMediaQuery("(max-width: 500px)")
+  let chatToAddLength = isMobile ? 10 : 10
 
   // ========================================================================
   // SECTION: Lifecycle & Browser Events (Execution Order: 1 - On Mount)
@@ -1103,24 +847,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * Shows toast notifications for network changes
    */
   useEffect(() => {
-    const connection =
-      navigator.connection ||
-      navigator.mozConnection ||
-      navigator.webkitConnection;
-    let toastId = null;
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+    let toastId = null
 
     const checkNetworkSpeed = () => {
       if (connection) {
-        const { effectiveType, downlink } = connection;
-        if (
-          effectiveType &&
-          (effectiveType === "2g" || effectiveType === "3g") &&
-          navigator.onLine
-        ) {
+        const { effectiveType, downlink } = connection
+        if (effectiveType && (effectiveType === "2g" || effectiveType === "3g") && navigator.onLine) {
           if (toastId) {
-            toast.dismiss(toastId);
+            toast.dismiss(toastId)
           }
-          const message = t("networkWarning");
+          const message = t("networkWarning")
           toastId = showNotification({
             message: message,
             type: "warning",
@@ -1128,86 +865,85 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               position: "top-center",
               style: { fontWeight: "bold", color: "#1D1616" },
             },
-          });
+          })
         }
       }
-    };
+    }
 
     const handleOffline = () => {
       if (toastId) {
-        toast.dismiss(toastId);
+        toast.dismiss(toastId)
       }
       toastId = toast.error(t("offlineNetwork"), {
         position: "top-center",
         style: { fontWeight: "bold", color: "#fff" },
-      });
-    };
+      })
+    }
 
     const handleOnline = () => {
       if (toastId) {
-        toast.dismiss(toastId);
+        toast.dismiss(toastId)
       }
       toastId = toast.success(t("onlineNetwork"), {
         position: "top-center",
         style: { fontWeight: "bold", color: "#1D1616" },
-      });
-      checkNetworkSpeed();
-    };
+      })
+      checkNetworkSpeed()
+    }
 
-    checkNetworkSpeed();
-    connection?.addEventListener("change", checkNetworkSpeed);
-    window.addEventListener("offline", handleOffline);
-    window.addEventListener("online", handleOnline);
+    checkNetworkSpeed()
+    connection?.addEventListener("change", checkNetworkSpeed)
+    window.addEventListener("offline", handleOffline)
+    window.addEventListener("online", handleOnline)
 
     return () => {
-      connection?.removeEventListener("change", checkNetworkSpeed);
-      window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("online", handleOnline);
-    };
-  }, []);
+      connection?.removeEventListener("change", checkNetworkSpeed)
+      window.removeEventListener("offline", handleOffline)
+      window.removeEventListener("online", handleOnline)
+    }
+  }, [])
 
   /**
    * Browser back button handling - intercepts browser navigation
    * Shows guest popup for special flows or navigates to previous page
    */
   useEffect(() => {
-    const currentFlow = storageFlow;
+    const currentFlow = storageFlow
     const handleBack = () => {
-      console.log("History length:", window.history.length);
-      console.log("Can go back 1?", window.history.length > 1);
-      console.log("Can go back 3?", window.history.length > 3);
-      if((acceptedTnc || acceptedTnc==="ONGOING") && currentFlow && 
-      [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow].includes(currentFlow)){
-        if(ssoNavigationTriggered && accessToken){
+      console.log("History length:", window.history.length)
+      console.log("Can go back 1?", window.history.length > 1)
+      console.log("Can go back 3?", window.history.length > 3)
+      if ((acceptedTnc || acceptedTnc === "ONGOING") && currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow].includes(currentFlow)) {
+        if (ssoNavigationTriggered && accessToken) {
           console.log("isnide navigate happens")
           navigate(-2)
-        } else{
+        } else {
           showGuestPopup(navigateBack, stayOnPage)
         }
-    } else {
-        setLanguage(languageList[0].value);
-        setChatLanguage(languageList[0].value);
-        stopAllAudio();
-      if(accessToken) {
-          clearFromStorage(true);
-          navigateSsoFlow(ssoRerouteURL);
+      } else {
+        setLanguage(languageList[0].value)
+        setChatLanguage(languageList[0].value)
+        stopAllAudio()
+        if (accessToken) {
+          clearFromStorage(true)
+          navigateSsoFlow(ssoRerouteURL)
         } else {
-          navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN);
+          navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN)
         }
       }
-    };
+    }
     // Check if we already pushed a custom state
     if (!window.history.state?.isCustom) {
-      console.log("shouldPushState is true so pushing state now.");
-      window.history.pushState({ isCustom: true }, "", window.location.href);
+      console.log("shouldPushState is true so pushing state now.")
+      window.history.pushState({ isCustom: true }, "", window.location.href)
     }
 
-    window.addEventListener("popstate", handleBack);
+    window.addEventListener("popstate", handleBack)
 
     return () => {
-      window.removeEventListener("popstate", handleBack);
-    };
-  }, [navigate, acceptedTnc]);
+      window.removeEventListener("popstate", handleBack)
+    }
+  }, [navigate, acceptedTnc])
 
   // ========================================================================
   // SECTION: Initial Configuration (Execution Order: 2 - On Mount & Specific Deps)
@@ -1218,7 +954,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * Initialize visible item count for chat history pagination
    * Sets initial number of visible chat sessions
    */
-  useEffect(()=>{
+  useEffect(() => {
     setVisibleItemCount(chatToAddLength)
   }, [chatToAddLength])
 
@@ -1226,57 +962,64 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * Initialize bot name display from storage
    * Updates bot name when available in storage
    */
-  useEffect(()=>{
+  useEffect(() => {
     if (botName && botName?.trim()) {
-      setBotNameToDisplay(botName);
+      setBotNameToDisplay(botName)
     }
   }, [botName])
+
+  useEffect(() => {
+    if (!profileToUse) setCompanySlug("shikshalokamstaging")
+    const profile = getProfileUserApi(profileToUse, accessToken)
+    setCompanySlug(profile?.company?.slug)
+  }, [profileToUse])
 
   /**
    * Initialize new chat state based on existing chat history
    * Sets isNewChatOpen flag if chat history is present
    */
-  useEffect(()=>{
-    if(chatHistory?.length!== 0){
-      setIsNewChatOpen(true);
+  useEffect(() => {
+    if (chatHistory?.length !== 0) {
+      setIsNewChatOpen(true)
     }
-  }, []);
+  }, [])
 
   /**
    * Initialize language selection for guest flows on mount
    * Handles language change and TnC acceptance for guest users
    */
   useEffect(() => {
-    const handleLanguageSelect = (language) => {
+    const handleLanguageSelect = language => {
       if (chatHistory && chatHistory.length <= 1) {
-        stopAllAudio();
-        isIntroPlayed.current = false;
-        setIsLoading(true);
-        removeFromStorage("chat-history");
-        setChatHistory([]);
-        removeFromStorage("intro_message");
-        setChatHistory([]);
-        setSentences([]);
-        setLangProgress("IN_PROGRESS");
-        setAudioCache({});
-        setLanguage(language);
+        stopAllAudio()
+        isIntroPlayed.current = false
+        setIsLoading(true)
+        // removeFromStorage("chat-history")
+        // removeFromStorage("intro_message")
+        setIntroMessage(null)
+        setChatHistory([])
+        setSentences([])
+        setLangProgress("IN_PROGRESS")
+        setAudioCache({})
+        setLanguage(language)
 
-        const isTncAccepted = acceptedTnc;
-        if(isTncAccepted && isTncAccepted !== 'ONGOING') {
-          setIsLoading(false);
-          setAcceptedTnC(true);
-          setShouldFetchIntro(true);
+        const isTncAccepted = acceptedTnc
+        if (isTncAccepted && isTncAccepted !== "ONGOING") {
+          setIsLoading(false)
+          setAcceptedTnC(true)
+          setShouldFetchIntro(true)
         } else {
-          setIsLoading(false);
+          setIsLoading(false)
         }
       }
-    };
-    if (chatLanguage && storageFlow && !accessToken) {
-      setIsLoading(true);
-      handleLanguageSelect(chatLanguage);
-      removeFromStorage('chatLanguage');
     }
-  }, []);
+    if (chatLanguage && storageFlow && !accessToken) {
+      setIsLoading(true)
+      handleLanguageSelect(chatLanguage)
+      // removeFromStorage("chatLanguage")
+      setChatLanguage(LANGUAGE_ENUMS.ENGLISH)
+    }
+  }, [])
 
   // ========================================================================
   // SECTION: User Profile & Authentication (Execution Order: 3 - On Token Available)
@@ -1290,50 +1033,48 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     async function createUserProfile() {
       try {
-        setIsLoading(true);
+        setIsLoading(true)
 
         const response = await createUserProfileApi({
           access_token: accessToken,
-        });
+        })
 
         if (response) {
-          const data  = response.profile_details;
-          const preferredLanguage = preferredLanguage || {};
-          const language = preferredLanguage.value || LANGUAGE_ENUMS.ENGLISH;
-          setStorageFlow(type);
-          setChatLanguage(language || LANGUAGE_ENUMS.ENGLISH);
+          const data = response.profile_details
+          const preferredLanguage = preferredLanguage || {}
+          const language = preferredLanguage.value || LANGUAGE_ENUMS.ENGLISH
+          setStorageFlow(type)
+          setChatLanguage(language || LANGUAGE_ENUMS.ENGLISH)
           setLanguage(language || LANGUAGE_ENUMS.ENGLISH)
-          setProfileToUse(data?.id);
+          setProfileToUse(data?.id)
           if (!sessionId) {
-            let session = await getSessionDetails();
-            setSessionId(session.sessionid);
+            let session = await getSessionDetails()
+            setSessionId(session.sessionid)
           }
-          setFirstName(data?.first_name);
-          setCompanyName(data?.company?.slug);
-          setState(data?.profile_address[0]?.state);
-          setIsNewChatOpen(true);
+          setFirstName(data?.first_name)
+          setCompanyName(data?.company?.slug)
+          setState(data?.profile_address[0]?.state)
+          setIsNewChatOpen(true)
         } else {
-          navigate(ROUTES.EXIT_ROUTE);
-          clearFromStorage();
-          navigate(-1);
+          navigate(ROUTES.EXIT_ROUTE)
+          clearFromStorage()
+          navigate(-1)
         }
       } catch (error) {
-        console.error(error);
-        clearFromStorage();
-        navigate(-1);
+        console.error(error)
+        clearFromStorage()
+        navigate(-1)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
-    
-    
+
     if (!profileToUse && accessToken) {
-      
-      createUserProfile();
-      setShouldFetchIntro(true);
-      setIsStreamingComplete(true);
+      createUserProfile()
+      setShouldFetchIntro(true)
+      setIsStreamingComplete(true)
     }
-  }, [accessToken, profileToUse]);
+  }, [accessToken, profileToUse])
 
   /**
    * Fetch chat session for Reflection flow based on projectId
@@ -1342,17 +1083,17 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     async function fetchChatSession() {
       let response = null
-      response = await getChatSessionApi({ projectId, sessionId }).then(res => res.data);
-      if(!response) return;
-      if (response.results.length === 0) return;
-      setSessionId(response.results[0].session);
-      setIsOldChatOpen(true);
-      setIsNewChatOpen(false);
+      response = await getChatSessionApi({ projectId, sessionId }).then(res => res.data)
+      if (!response) return
+      if (response.results.length === 0) return
+      setSessionId(response.results[0].session)
+      setIsOldChatOpen(true)
+      setIsNewChatOpen(false)
     }
 
-    if (!shouldFetchChatSession) return;
-    fetchChatSession();
-  }, [projectId, shouldFetchChatSession]);
+    if (!shouldFetchChatSession) return
+    fetchChatSession()
+  }, [projectId, shouldFetchChatSession])
 
   // ========================================================================
   // SECTION: Session & Chat Configuration (Execution Order: 4 - After Auth)
@@ -1365,38 +1106,38 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    */
   useEffect(() => {
     if (isShikshalokamPublicType) {
-      setShouldFetchIntro(true);
-      setIsStreamingComplete(true);
+      setShouldFetchIntro(true)
+      setIsStreamingComplete(true)
     }
-  }, [isShikshalokamPublicType]);
+  }, [isShikshalokamPublicType])
 
   /**
    * Handle chat history feature visibility and homepage display
    * Controls homepage vs chat view based on new/old chat state
    */
   useEffect(() => {
-    if(shouldShowChatHistoryFeature) {
-      if(isOldChatOpen === true){
-        setShouldFetchIntro(true);
-        setShowHomepage(false);
-      } else if(isNewChatOpen === true){
+    if (shouldShowChatHistoryFeature) {
+      if (isOldChatOpen === true) {
+        setShouldFetchIntro(true)
+        setShowHomepage(false)
+      } else if (isNewChatOpen === true) {
         // setShowHomepage(showHomepage !== null ? showHomepage : true);
-        setShowHomepage(true);
+        setShowHomepage(true)
       }
     } else {
-      removeChatHistory();
+      removeChatHistory()
     }
-  }, [isOldChatOpen, isNewChatOpen]);
+  }, [isOldChatOpen, isNewChatOpen])
 
   /**
    * Fetch chat session when old chat is opened
    * Loads existing conversation when user selects from history
    */
-  useEffect(()=>{
-    if(isOldChatOpen === true && !hasFetchIntro && isSpecialFlow && chatHistory?.length === 0 && sentences?.length === 0) {
-      handleChatSessionButtonClick({key: null})
+  useEffect(() => {
+    if (isOldChatOpen === true && !hasFetchIntro && isSpecialFlow && chatHistory?.length === 0 && sentences?.length === 0) {
+      handleChatSessionButtonClick({ key: null })
     }
-  }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences]);
+  }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences])
 
   // ========================================================================
   // SECTION: Language & Bot Setup (Execution Order: 5 - When Profile Ready)
@@ -1409,26 +1150,28 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    */
   useEffect(() => {
     if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow)) {
-      setIsIntroLoading(true);
-      fetchBotInfo().then(() => {
-        if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
-          handleCompanyChatCall(sessionId);
-        }
-      }).finally(() => {
-        setIsIntroLoading(false);
-      });      
+      setIsIntroLoading(true)
+      fetchBotInfo()
+        .then(() => {
+          if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
+            handleCompanyChatCall(sessionId)
+          }
+        })
+        .finally(() => {
+          setIsIntroLoading(false)
+        })
     }
 
-    return () => {};
-  }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage]);
+    return () => {}
+  }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage])
 
   /**
    * Set language progress to complete when intro message loads
    * Marks language selection as complete after successful load
    */
   useEffect(() => {
-    if(introMessage && !isLoading) {
-      setLangProgress(true);
+    if (introMessage && !isLoading) {
+      setLangProgress(true)
     }
   }, [isLoading, introMessage])
 
@@ -1441,28 +1184,28 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * Fetch story content by session ID
    * Retrieves story data and prepares editor content blocks
    */
-  useEffect(()=>{
-    if (!sessionId) return;
+  useEffect(() => {
+    if (!sessionId) return
 
     async function fetchStory() {
-      const story_data = await getStoryBySession(sessionId, accessToken);
+      const story_data = await getStoryBySession(sessionId, accessToken)
       if (story_data && story_data?.length > 0 && story_data[0]) {
-        setStoryData(story_data[0]);
-        const formatted_content = story_data[0].formatted_content;
-        const textBlocks = extractTextBlocks(formatted_content);
-        setEditorCopyChanges(textBlocks);
-        setNoStoryFound(false);
-        setShowFileInput(true);
-        setIsLoading(false);
+        setStoryData(story_data[0])
+        const formatted_content = story_data[0].formatted_content
+        const textBlocks = extractTextBlocks(formatted_content)
+        setEditorCopyChanges(textBlocks)
+        setNoStoryFound(false)
+        setShowFileInput(true)
+        setIsLoading(false)
       } else {
-        setIsLoading(false);
-        if(!llmError) {
-          setNoStoryFound(true);
+        setIsLoading(false)
+        if (!llmError) {
+          setNoStoryFound(true)
         }
       }
     }
 
-    fetchStory();
+    fetchStory()
   }, [sessionId])
 
   /**
@@ -1471,87 +1214,70 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    */
   useEffect(() => {
     const fetchMedia = async () => {
-      if (storyData && storyData?.id !== '') {
-        if(accessToken || accessToken) {
+      if (storyData && storyData?.id !== "") {
+        if (accessToken || accessToken) {
           openModal()
         }
-        const story_id = storyData?.id;
-        const tempMediaArr = [];
-        setIsImageUploading(true);
+        const story_id = storyData?.id
+        const tempMediaArr = []
+        setIsImageUploading(true)
 
         // TODO: This part needs to be optimized
         await getStoryAllMedia({
-          setter: (data) => {
+          setter: data => {
             for (let item of Object.values(data?.results || [])) {
               if (item.include_in_story) {
-                tempMediaArr.push(item);
+                tempMediaArr.push(item)
               }
             }
-            setFiles(tempMediaArr);
+            setFiles(tempMediaArr)
           },
           data: {
             story: story_id,
           },
-        });
+        })
 
-        setIsImageUploading(false);
+        setIsImageUploading(false)
       }
-    };
+    }
 
-    fetchMedia();
+    fetchMedia()
 
-    return () => {};
-  }, [accessToken, storyData]);
+    return () => {}
+  }, [accessToken, storyData])
 
   /**
    * Trigger story completion when conversation reaches end
    * Calls end-story API when all state machine steps complete
    */
   useEffect(() => {
-    if (
-      isStreamingComplete &&
-      stateMachineLength &&
-      strandStep >= stateMachineLength &&
-      noStoryFound &&
-      (!llmError || llmError === "") &&
-      acceptedTnc &&
-      acceptedTnc !== "ONGOING"
-    ) {
-      callEndStory();
+    if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
+      callEndStory()
     }
-  }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound]);
+  }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound])
 
   /**
    * Display chat session titles for guest users after delay
    * Shows available chat sessions in sidebar with loading state
    */
-  useEffect(()=>{
-    const currentFlow = storageFlow;
-    if(profileToUse && !accessToken && !isEndStoryLoading && 
-      !([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow))
-    ){
-      setIsLoading(true);
+  useEffect(() => {
+    const currentFlow = storageFlow
+    if (profileToUse && !accessToken && !isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+      setIsLoading(true)
       const titleTime = setTimeout(() => {
-        if (shouldShowChatHistoryFeature) showChatTitle();
-      }, 4000);
+        if (shouldShowChatHistoryFeature) showChatTitle()
+      }, 4000)
 
       return () => {
         if (!noStoryFound) {
-          setIsLoading(false);
+          setIsLoading(false)
         }
-        clearTimeout(titleTime);
-      };
-    } else if (
-      !isEndStoryLoading &&
-      ![
-        sessionFlowName.GuestDiscussion,
-        sessionFlowName.ListeningActivity,
-        sessionFlowName.GuestMiStory,
-      ].includes(currentFlow)
-    ) {
-      setIsLoading(false);
+        clearTimeout(titleTime)
+      }
+    } else if (!isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+      setIsLoading(false)
     }
-  },[profileToUse, accessToken, isEndStoryLoading, noStoryFound])
+  }, [profileToUse, accessToken, isEndStoryLoading, noStoryFound])
 
   // ========================================================================
   // SECTION: UI State Management (Execution Order: 7 - Throughout Lifecycle)
@@ -1563,21 +1289,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    * Prevents background scrolling when modals or loaders are active
    */
   useEffect(() => {
-    if (
-      isLoading ||
-      isEndStoryLoading ||
-      isModalOpen ||
-      acceptedTnc === "ONGOING"
-    ) {
-      document.body.style.overflowY = "hidden";
+    if (isLoading || isEndStoryLoading || isModalOpen || acceptedTnc === "ONGOING") {
+      document.body.style.overflowY = "hidden"
     } else {
-      document.body.style.overflowY = "auto";
+      document.body.style.overflowY = "auto"
     }
 
     return () => {
-      document.body.style.overflowY = "auto";
-    };
-  }, [isLoading, isEndStoryLoading, isModalOpen]);
+      document.body.style.overflowY = "auto"
+    }
+  }, [isLoading, isEndStoryLoading, isModalOpen])
 
   /**
    * Auto-dismiss file upload error messages after 5 seconds
@@ -1585,13 +1306,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    */
   useEffect(() => {
     const textErrorTime = setTimeout(() => {
-      setFileErrorText("");
-    }, 5000);
+      setFileErrorText("")
+    }, 5000)
 
     return () => {
-      clearTimeout(textErrorTime);
-    };
-  }, [fileErrorText]);
+      clearTimeout(textErrorTime)
+    }
+  }, [fileErrorText])
 
   /**
    * Track voice recording duration with timer
@@ -1600,16 +1321,16 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     if (hasStartedRecording) {
       const id = setInterval(() => {
-        setSeconds((prev) => prev + 1);
-      }, 1000);
-      setIntervalId(id);
+        setSeconds(prev => prev + 1)
+      }, 1000)
+      setIntervalId(id)
     } else {
-      clearInterval(intervalId);
-      setSeconds(0);
+      clearInterval(intervalId)
+      setSeconds(0)
     }
 
-    return () => clearInterval(intervalId);
-  }, [hasStartedRecording]);
+    return () => clearInterval(intervalId)
+  }, [hasStartedRecording])
 
   /**
    * Dynamically adjust textarea height based on content
@@ -1617,10 +1338,10 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    */
   useEffect(() => {
     if (textAreaRef.current) {
-      textAreaRef.current.style.height = "auto";
-      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
+      textAreaRef.current.style.height = "auto"
+      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`
     }
-  }, [textMessage]);
+  }, [textMessage])
 
   // ========================================================================
   // SECTION: Chat History & Messages (Execution Order: 8 - During Conversation)
@@ -1633,9 +1354,9 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    */
   useEffect(() => {
     // setChatHistory(chatHistory);
-    lastBotMessageIndex.current = chatHistory?.length - 1;
-    if (!showFileInput) handleScrollToView();
-  }, [chatHistory]);
+    lastBotMessageIndex.current = chatHistory?.length - 1
+    if (!showFileInput) handleScrollToView()
+  }, [chatHistory])
 
   /**
    * Scroll to end of page when file input section appears
@@ -1643,46 +1364,40 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
    */
   useEffect(() => {
     if (!isLoading && showFileInput && acceptedTnc !== "ONGOING") {
-      endPageToScrollRef.current?.scrollIntoView({ behavior: "smooth" });
+      endPageToScrollRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [isLoading, showFileInput, acceptedTnc]);
+  }, [isLoading, showFileInput, acceptedTnc])
 
   /**
    * Attach audio recordings to user messages in chat history
    * Updates latest user message with voice recording data
    */
   useEffect(() => {
-    if (
-      !!recordings?.length &&
-      chatHistory[chatHistory?.length - 1]?.source !== "bot"
-    ) {
-      const updatedChatHistory = [...chatHistory];
+    if (!!recordings?.length && chatHistory[chatHistory?.length - 1]?.source !== "bot") {
+      const updatedChatHistory = [...chatHistory]
       updatedChatHistory[chatHistory?.length - 1] = {
         ...updatedChatHistory[chatHistory?.length - 1],
         recording: recordings[recordings?.length - 1],
-      };
-      setChatHistory(updatedChatHistory);
+      }
+      setChatHistory(updatedChatHistory)
     }
-    return () => {};
-  }, [recordings, chatHistory]);
+    return () => {}
+  }, [recordings, chatHistory])
 
   /**
    * Attach appendix URLs to bot messages when available
    * Adds supplementary content links to bot responses
    */
   useEffect(() => {
-    if (
-      !!appendix?.length &&
-      chatHistory[chatHistory?.length - 1].source === "bot"
-    ) {
-      const lastMessage = chatHistory[chatHistory?.length - 1];
-      lastMessage.appendixURL = appendix;
-      lastMessage.hasAppendix = true;
-      setChatHistory([...chatHistory]);
-      setAppendix([]);
+    if (!!appendix?.length && chatHistory[chatHistory?.length - 1].source === "bot") {
+      const lastMessage = chatHistory[chatHistory?.length - 1]
+      lastMessage.appendixURL = appendix
+      lastMessage.hasAppendix = true
+      setChatHistory([...chatHistory])
+      setAppendix([])
     }
-    return () => {};
-  }, [appendix, chatHistory]);
+    return () => {}
+  }, [appendix, chatHistory])
 
   /**
    * Reset recognition text and trigger state after processing
@@ -1691,13 +1406,13 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     try {
       if (!!trigger && !!reconText) {
-        setReconText("");
-        setTrigger(false);
+        setReconText("")
+        setTrigger(false)
       }
     } catch (error) {
-      console.error({ error });
+      console.error({ error })
     }
-  }, [reconText, trigger, recordings]);
+  }, [reconText, trigger, recordings])
 
   // ========================================================================
   // SECTION: Audio & TTS Management (Execution Order: 9 - During Message Playback)
@@ -1711,130 +1426,73 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     if (audioRef?.current) {
       if (isMute) {
-        audioRef.current.muted = true;
+        audioRef.current.muted = true
       } else {
-        audioRef.current.muted = false;
+        audioRef.current.muted = false
       }
     }
-  }, [isMute]);
+  }, [isMute])
 
   /**
    * Auto-play audio for bot messages when streaming completes
    * Automatically triggers TTS playback for new bot responses
    */
   useEffect(() => {
-    let shouldPlay = false;
+    let shouldPlay = false
     if (showFileInput) {
-      shouldPlay = true;
+      shouldPlay = true
     } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !isEndStoryLoading) {
-      const currentFlow = storageFlow;
-      
-      if (
-        currentFlow &&
-        [
-          sessionFlowName.GuestDiscussion,
-          sessionFlowName.ListeningActivity,
-          sessionFlowName.GuestMiStory,
-        ].includes(currentFlow)
-      ) {
+      const currentFlow = storageFlow
+
+      if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) {
         if (chatHistory.length > 0) {
-          if (
-            isStreamingComplete &&
-            chatHistory[chatHistory.length - 1]?.source === "bot"
-          ) {
-            shouldPlay = true;
+          if (isStreamingComplete && chatHistory[chatHistory.length - 1]?.source === "bot") {
+            shouldPlay = true
           }
         } else if (langProgress === "IN_PROGRESS") {
-          shouldPlay = false;
+          shouldPlay = false
         } else {
-          shouldPlay = true;
+          shouldPlay = true
         }
-      } else if (
-        chatHistory &&
-        chatHistory.length > 0 &&
-        chatHistory[chatHistory.length - 1]?.source === "bot" &&
-        !isIntroLoading &&
-        !isLoading &&
-        !isEndStoryLoading
-      ) {
-        shouldPlay = true;
+      } else if (chatHistory && chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot" && !isIntroLoading && !isLoading && !isEndStoryLoading) {
+        shouldPlay = true
       }
     }
-    if (
-      isStreamingComplete &&
-      shouldPlay &&
-      !isEndStoryLoading &&
-      !isLoading &&
-      !isPdfDownloading &&
-      isMute &&
-      acceptedTnc &&
-      acceptedTnc !== "ONGOING" &&
-      !isIntroLoading &&
-      !isFetchingOldIntro
-    ) {
-      const speakerButtons = document.querySelectorAll(".button-11.button-3");
-      const lastSpeakerButton = speakerButtons[speakerButtons.length - 1];
+    if (isStreamingComplete && shouldPlay && !isEndStoryLoading && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading && !isFetchingOldIntro) {
+      const speakerButtons = document.querySelectorAll(".button-11.button-3")
+      const lastSpeakerButton = speakerButtons[speakerButtons.length - 1]
 
       if (lastSpeakerButton) {
-        lastSpeakerButton.click();
+        lastSpeakerButton.click()
       }
     }
-  }, [
-    isStreamingComplete,
-    showFileInput,
-    showHomepage,
-    isEndStoryLoading,
-    isLoading,
-    isPdfDownloading,
-    storyData,
-    chatHistory,
-    isMute,
-    acceptedTnc,
-    isIntroLoading,
-    noStoryFound,
-  ]);
+  }, [isStreamingComplete, showFileInput, showHomepage, isEndStoryLoading, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroLoading, noStoryFound])
 
   /**
    * Process TTS requests for unnarrated bot messages
    * Converts text to speech for messages not yet played aloud
    */
   useEffect(() => {
-    let unnarratedMessages = sentences.filter((x) => !x?.isNarrated);
-    let hasUnnarratedMessages = !!unnarratedMessages?.length;
-    let sourceLanguage = languageToUse;
-    if (acceptedTnc === 'ONGOING') {
-      return () => {};
+    let unnarratedMessages = sentences.filter(x => !x?.isNarrated)
+    let hasUnnarratedMessages = !!unnarratedMessages?.length
+    let sourceLanguage = languageToUse
+    if (acceptedTnc === "ONGOING") {
+      return () => {}
     }
-    if (
-      isNextAllowed &&
-      hasUnnarratedMessages &&
-      !isLoading &&
-      !isEndStoryLoading
-    ) {
-      handleAI4BharatTTSRequest(
-        unnarratedMessages[0].message,
-        unnarratedMessages[0].id,
-        sourceLanguage
-      );
+    if (isNextAllowed && hasUnnarratedMessages && !isLoading && !isEndStoryLoading) {
+      handleAI4BharatTTSRequest(unnarratedMessages[0].message, unnarratedMessages[0].id, sourceLanguage)
     }
 
-    return () => {};
-  }, [
-    isNextAllowed,
-    sentences,
-    languageToUse,
-    isLoading,
-    isEndStoryLoading,
-    acceptedTnc,
-  ]);
+    return () => {}
+  }, [isNextAllowed, sentences, languageToUse, isLoading, isEndStoryLoading, acceptedTnc])
 
   /**
    * Debug log for tracking override ID changes
    * Helps debug audio playback override scenarios
    */
   useEffect(() => {
-    console.log("hasOverideId: ", hasOverRideId);
-  }, [hasOverRideId]);
+    console.log("hasOverideId: ", hasOverRideId)
+  }, [hasOverRideId])
 
   // ========================================================================
   // SECTION: Editor Management (Execution Order: 10 - When Modal Opens)
@@ -1848,11 +1506,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
   useEffect(() => {
     if (!!editorCopyChanges && isModalOpen && storyData) {
       const flow = storageFlow
-      let parsed_content = [];
+      let parsed_content = []
       try {
         if (storageFlow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(storageFlow)) {
-          const challenges = storyData?.other_params?.challenges_faced || [];
-          const solutions = storyData?.other_params?.solutions_discussed || [];
+          const challenges = storyData?.other_params?.challenges_faced || []
+          const solutions = storyData?.other_params?.solutions_discussed || []
 
           parsed_content = [
             {
@@ -1885,11 +1543,11 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 items: solutions.length > 0 ? solutions : [""],
               },
             },
-          ];
+          ]
         } else if (storageFlow && [sessionFlowName.ListeningActivity].includes(flow)) {
-          const questionAnswers = storyData?.other_params?.question_answers || [];
-          
-          parsed_content = [];
+          const questionAnswers = storyData?.other_params?.question_answers || []
+
+          parsed_content = []
           questionAnswers.forEach((qa, index) => {
             // Add question header
             parsed_content.push({
@@ -1899,14 +1557,14 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 level: 3,
                 customId: `question-${index}`,
               },
-            });
+            })
 
             parsed_content.push({
               type: "paragraph",
               data: {
                 text: qa.answer || "",
               },
-            });
+            })
 
             if (index < questionAnswers.length - 1) {
               parsed_content.push({
@@ -1915,23 +1573,23 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   text: "​",
                 },
                 readonly: true,
-              });
+              })
             }
-          });
+          })
         } else {
-          parsed_content = editorCopyChanges.map((item) => ({
+          parsed_content = editorCopyChanges.map(item => ({
             type: item.type,
             data: {
               text: item.data.text,
             },
-          }));
+          }))
         }
       } catch (error) {
-        parsed_content = [];
+        parsed_content = []
       }
 
       if (!document.getElementById("editorjs")) {
-        return;
+        return
       }
 
       const _editor = new EditorJS({
@@ -1953,8 +1611,8 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           },
         },
         onReady: () => {
-          setEditor(_editor);
-          const style = document.createElement("style");
+          setEditor(_editor)
+          const style = document.createElement("style")
           style.innerHTML = `
             .ce-toolbar__plus, .ce-toolbar__actions { display: none !important; }
             .ce-popover, .ce-settings, .ce-settings__button { display: none !important; }
@@ -2028,318 +1686,278 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               pointer-events: none;
               z-index: 1;
             }
-          `;
-          document.head.appendChild(style);
+          `
+          document.head.appendChild(style)
           setTimeout(() => {
-            const blocks = document.querySelectorAll(".ce-block");
+            const blocks = document.querySelectorAll(".ce-block")
 
             blocks.forEach((block, blockIndex) => {
-              const headerEl = block.querySelector(".ce-header");
-              const paragraphEl = block.querySelector(".ce-paragraph");
+              const headerEl = block.querySelector(".ce-header")
+              const paragraphEl = block.querySelector(".ce-paragraph")
 
               if (headerEl) {
-                const text = headerEl.innerText.trim().toLowerCase();
+                const text = headerEl.innerText.trim().toLowerCase()
 
-                if (
-                  text === t("challengesHeader").toLowerCase() ||
-                  text === t("solutionsHeader").toLowerCase() ||
-                  (text.startsWith("q") && text.includes(":"))
-                ) {
-                  headerEl.setAttribute("contenteditable", "false");
-                  headerEl.style.pointerEvents = "none";
-                  headerEl.style.color = "#374151";
-                  headerEl.style.fontWeight = "bold";
+                if (text === t("challengesHeader").toLowerCase() || text === t("solutionsHeader").toLowerCase() || (text.startsWith("q") && text.includes(":"))) {
+                  headerEl.setAttribute("contenteditable", "false")
+                  headerEl.style.pointerEvents = "none"
+                  headerEl.style.color = "#374151"
+                  headerEl.style.fontWeight = "bold"
 
                   if (text.startsWith("q") && text.includes(":")) {
-                    headerEl.classList.add("question-header");
+                    headerEl.classList.add("question-header")
 
-                    block.classList.add("non-deletable");
-                    block.setAttribute("data-readonly", "true");
+                    block.classList.add("non-deletable")
+                    block.setAttribute("data-readonly", "true")
 
-                    const preventDeletion = (e) => {
+                    const preventDeletion = e => {
                       if (e.key === "Backspace" || e.key === "Delete") {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
+                        e.preventDefault()
+                        e.stopPropagation()
+                        return false
                       }
-                    };
+                    }
 
-                    block.addEventListener("keydown", preventDeletion, true);
-                    headerEl.addEventListener("keydown", preventDeletion, true);
+                    block.addEventListener("keydown", preventDeletion, true)
+                    headerEl.addEventListener("keydown", preventDeletion, true)
 
                     block.addEventListener(
                       "contextmenu",
-                      (e) => {
-                        e.preventDefault();
-                        return false;
+                      e => {
+                        e.preventDefault()
+                        return false
                       },
                       true
-                    );
+                    )
 
-                    block.style.userSelect = "none";
-                    block.style.webkitUserSelect = "none";
-                    block.style.mozUserSelect = "none";
-                    block.style.msUserSelect = "none";
+                    block.style.userSelect = "none"
+                    block.style.webkitUserSelect = "none"
+                    block.style.mozUserSelect = "none"
+                    block.style.msUserSelect = "none"
                   }
                 }
               } else if (paragraphEl) {
-                const paragraphText =
-                  paragraphEl.textContent || paragraphEl.innerText || "";
-                const isEmpty =
-                  !paragraphText.trim() ||
-                  paragraphText === "​" ||
-                  paragraphText === " ";
+                const paragraphText = paragraphEl.textContent || paragraphEl.innerText || ""
+                const isEmpty = !paragraphText.trim() || paragraphText === "​" || paragraphText === " "
 
-                const prevBlock = block.previousElementSibling;
-                const prevPrevBlock = prevBlock?.previousElementSibling;
+                const prevBlock = block.previousElementSibling
+                const prevPrevBlock = prevBlock?.previousElementSibling
 
-                const isPrevBlockAnswer =
-                  prevBlock?.querySelector(".ce-paragraph");
-                const isPrevPrevBlockQuestion = prevPrevBlock
-                  ?.querySelector(".ce-header")
-                  ?.innerText.toLowerCase()
-                  .startsWith("q");
+                const isPrevBlockAnswer = prevBlock?.querySelector(".ce-paragraph")
+                const isPrevPrevBlockQuestion = prevPrevBlock?.querySelector(".ce-header")?.innerText.toLowerCase().startsWith("q")
 
                 if (isEmpty && isPrevBlockAnswer && isPrevPrevBlockQuestion) {
-                  block.classList.add("spacer-block");
-                  paragraphEl.setAttribute("contenteditable", "false");
-                  paragraphEl.style.pointerEvents = "none";
-                  paragraphEl.style.userSelect = "none";
-                  paragraphEl.style.cursor = "default";
+                  block.classList.add("spacer-block")
+                  paragraphEl.setAttribute("contenteditable", "false")
+                  paragraphEl.style.pointerEvents = "none"
+                  paragraphEl.style.userSelect = "none"
+                  paragraphEl.style.cursor = "default"
 
-                  const preventInteraction = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    return false;
-                  };
+                  const preventInteraction = e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    e.stopImmediatePropagation()
+                    return false
+                  }
 
-                  block.addEventListener("click", preventInteraction, true);
-                  block.addEventListener("mousedown", preventInteraction, true);
+                  block.addEventListener("click", preventInteraction, true)
+                  block.addEventListener("mousedown", preventInteraction, true)
                   block.addEventListener(
                     "focus",
-                    (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (e.target.blur) e.target.blur();
-                      return false;
+                    e => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      if (e.target.blur) e.target.blur()
+                      return false
                     },
                     true
-                  );
-                  block.addEventListener("keydown", preventInteraction, true);
-                  block.addEventListener("keyup", preventInteraction, true);
-                  block.addEventListener("input", preventInteraction, true);
+                  )
+                  block.addEventListener("keydown", preventInteraction, true)
+                  block.addEventListener("keyup", preventInteraction, true)
+                  block.addEventListener("input", preventInteraction, true)
 
-                  block.style.userSelect = "none";
-                  block.style.webkitUserSelect = "none";
-                  block.style.mozUserSelect = "none";
-                  block.style.msUserSelect = "none";
-                } else if (
-                  isPrevBlockAnswer === false &&
-                  prevBlock
-                    ?.querySelector(".ce-header")
-                    ?.innerText.toLowerCase()
-                    .startsWith("q")
-                ) {
-                  paragraphEl.classList.add("answer-paragraph");
+                  block.style.userSelect = "none"
+                  block.style.webkitUserSelect = "none"
+                  block.style.mozUserSelect = "none"
+                  block.style.msUserSelect = "none"
+                } else if (isPrevBlockAnswer === false && prevBlock?.querySelector(".ce-header")?.innerText.toLowerCase().startsWith("q")) {
+                  paragraphEl.classList.add("answer-paragraph")
                 }
               }
-            });
-          }, 500);
+            })
+          }, 500)
         },
         defaultBlock: "paragraph",
         data: {
-          blocks:
-            parsed_content.length > 0
-              ? parsed_content
-              : [{ type: "paragraph", data: { text: "" } }],
+          blocks: parsed_content.length > 0 ? parsed_content : [{ type: "paragraph", data: { text: "" } }],
         },
         onChange: async (api, event) => {
-          setIsSaving(false);
-          const savedData = await api.saver.save();
+          setIsSaving(false)
+          const savedData = await api.saver.save()
 
           const filteredBlocks = savedData.blocks.filter((block, index) => {
             if (block.type === "paragraph") {
-              const isEmpty =
-                !block.data.text.trim() ||
-                block.data.text === "​" ||
-                block.data.text === " ";
-              return !isEmpty;
+              const isEmpty = !block.data.text.trim() || block.data.text === "​" || block.data.text === " "
+              return !isEmpty
             }
-            return true;
-          });
+            return true
+          })
 
-          const imageBlocks = filteredBlocks.filter(
-            (block) => block.type === "image"
-          );
+          const imageBlocks = filteredBlocks.filter(block => block.type === "image")
           if (!isInitialLoadRef.current) {
             if (storyMediaIdArray?.length !== imageBlocks?.length) {
               for (let i = 0; i < storyMediaIdArray?.length; i++) {
-                const storyFile = storyMediaIdArray[i];
-                let fileFound = false;
+                const storyFile = storyMediaIdArray[i]
+                let fileFound = false
                 for (let j = 0; j < imageBlocks?.length; j++) {
                   if (storyFile?.file === imageBlocks[j]?.data?.url) {
-                    fileFound = true;
-                    break;
+                    fileFound = true
+                    break
                   }
                 }
                 if (!fileFound) {
-                  partialUpdateMedia(storyFile?.id);
+                  partialUpdateMedia(storyFile?.id)
                 }
               }
             }
           }
         },
-      });
+      })
     }
 
     return () => {
-      if (!!Object.keys(editor || {})?.length) editor.destroy();
-    };
-  }, [editorCopyChanges, isModalOpen, storyData]);
+      if (!!Object.keys(editor || {})?.length) editor.destroy()
+    }
+  }, [editorCopyChanges, isModalOpen, storyData])
 
-  const formatTime = (secs) => {
-    const minutes = Math.floor(secs / 60);
-    const seconds = secs % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-      2,
-      "0"
-    )}`;
-  };
+  const formatTime = secs => {
+    const minutes = Math.floor(secs / 60)
+    const seconds = secs % 60
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+  }
 
   async function callEndStory(hasClickedOnRegenerate = false) {
-    let endStoryResponse;
-    if (
-      (isStreamingComplete && strandStep >= stateMachineLength) ||
-      hasClickedOnRegenerate
-    ) {
+    let endStoryResponse
+    if ((isStreamingComplete && strandStep >= stateMachineLength) || hasClickedOnRegenerate) {
       try {
-        setIsLoading(true);
-        setIsEndStoryLoading(true);
+        setIsLoading(true)
+        setIsEndStoryLoading(true)
 
-        const end_story_api_url = `/api/end-story/`;
-        
-        let sourceLanguage = preferredLanguage?.value || languageToUse;
+        const end_story_api_url = `/api/end-story/`
+
+        let sourceLanguage = preferredLanguage?.value || languageToUse
 
         endStoryResponse = await axiosInstance({
           url: end_story_api_url,
           data: {
             session: sessionId,
             profile_id: profileToUse,
-            stage: 'COMPLETED',
+            stage: "COMPLETED",
             access_token: accessToken,
             flow: storageFlow,
-            language: sourceLanguage
+            language: sourceLanguage,
           },
           method: "POST",
-        });
+        })
 
         if (endStoryResponse?.data?.id) {
-          setFiles([]);
-          setShowFileInput(true);
-          removeFromStorage("llmError");
-          window.location.reload();
+          setFiles([])
+          setShowFileInput(true)
+          // removeFromStorage("llmError")
+          setLlmError("")
+          window.location.reload()
         } else {
-          setLlmError(endStoryResponse?.data?.error_message);
-          setIsEndStoryLoading(false);
-          setIsLoading(false);
+          setLlmError(endStoryResponse?.data?.error_message)
+          setIsEndStoryLoading(false)
+          setIsLoading(false)
         }
       } catch (error) {
-        console.error("Error completing the story:", error);
-        setLlmError(error?.response?.data?.error_message);
-        setIsEndStoryLoading(false);
-        setIsLoading(false);
+        console.error("Error completing the story:", error)
+        setLlmError(error?.response?.data?.error_message)
+        setIsEndStoryLoading(false)
+        setIsLoading(false)
       } finally {
-        setNoStoryFound(false);
+        setNoStoryFound(false)
       }
     }
   }
-
 
   const navigateBack = () => {
-    let rerouteUrl = previousUrl;
-    stopAllAudio();
-    if(accessToken) {
-      clearFromStorage(true);
-      navigateSsoFlow(ssoRerouteURL);
-      return;
+    let rerouteUrl = previousUrl
+    stopAllAudio()
+    if (accessToken) {
+      clearFromStorage(true)
+      navigateSsoFlow(ssoRerouteURL)
+      return
     }
-    clearFromStorage();
-    setLanguage(languageList[0].value);
-    setChatLanguage(languageList[0].value);
+    clearFromStorage()
+    setLanguage(languageList[0].value)
+    setChatLanguage(languageList[0].value)
     // navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
     // navigate("/", { replace: true });
-    if(rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== ""){
-      window.location.href = rerouteUrl;
+    if (rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== "") {
+      window.location.href = rerouteUrl
     } else {
-      window.location.href = 'https://www.google.com';
-    }
-
-  }
-
-  function navigateSsoFlow (rerouteURL){
-    navigate(-2);
-    if(rerouteURL){
-
-    } else {
-      navigate(-2);
+      window.location.href = "https://www.google.com"
     }
   }
 
-
-  function stayOnPage (){
-    window.history.pushState(null, "", window.location.href);
+  function navigateSsoFlow(rerouteURL) {
+    navigate(-2)
+    if (rerouteURL) {
+    } else {
+      navigate(-2)
+    }
   }
 
-  const getQuestionAnswersFromBlocks = (blocks) => {
-    const questionAnswers = [];
-    let currentQuestion = null;
+  function stayOnPage() {
+    window.history.pushState(null, "", window.location.href)
+  }
 
-    const filteredBlocks = blocks.filter((block) => {
+  const getQuestionAnswersFromBlocks = blocks => {
+    const questionAnswers = []
+    let currentQuestion = null
+
+    const filteredBlocks = blocks.filter(block => {
       if (block.type === "paragraph") {
-        const text = block.data.text || "";
-        const isEmpty = !text.trim() || text === "​" || text === " ";
-        return !isEmpty;
+        const text = block.data.text || ""
+        const isEmpty = !text.trim() || text === "​" || text === " "
+        return !isEmpty
       }
-      return true;
-    });
+      return true
+    })
 
     filteredBlocks.forEach((block, index) => {
       if (block.type === "header" && block.data.text.startsWith("Q")) {
         if (currentQuestion) {
-          questionAnswers.push(currentQuestion);
+          questionAnswers.push(currentQuestion)
         }
 
-        const questionText = block.data.text.replace(/^Q\d+:\s*/, "");
-        currentQuestion = { question: questionText, answer: "" };
+        const questionText = block.data.text.replace(/^Q\d+:\s*/, "")
+        currentQuestion = { question: questionText, answer: "" }
       } else if (block.type === "paragraph" && currentQuestion) {
-        currentQuestion.answer = block.data.text || "";
-        questionAnswers.push(currentQuestion);
-        currentQuestion = null;
+        currentQuestion.answer = block.data.text || ""
+        questionAnswers.push(currentQuestion)
+        currentQuestion = null
       }
-    });
+    })
 
     if (currentQuestion) {
-      questionAnswers.push(currentQuestion);
+      questionAnswers.push(currentQuestion)
     }
 
-    return questionAnswers;
-  };
+    return questionAnswers
+  }
 
   const defaultEditorClick = (title, name, location) => {
-    stopAllAudio();
+    stopAllAudio()
     return (
       <>
         <div className="fixed inset-0 bg-white flex items-center justify-center p-0 max-sm:px-0 z-[100]">
-          <div
-            className="bg-gray-100 rounded-lg shadow-lg w-full h-full max-w-2xl p-[30px_0_0] relative"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="bg-gray-100 rounded-lg shadow-lg w-full h-full max-w-2xl p-[30px_0_0] relative" onClick={e => e.stopPropagation()}>
             <div className="overflow-y-auto h-full w-full">
               <div className="px-[73px] max-sm:px-[23px]">
-                <h2 className="text-lg font-semibold text-black-700">
-                  {t("editorHeading")}
-                </h2>
+                <h2 className="text-lg font-semibold text-black-700">{t("editorHeading")}</h2>
 
                 <div className="mt-4">
                   <h3 className="text-md font-semibold">{title}</h3>
@@ -2349,79 +1967,56 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                 </div>
 
                 <div className="mt-4 h-60 overflow-y-auto">
-                  <div
-                    id="editorjs"
-                    ref={editorContainerRef}
-                    className=""
-                  ></div>
+                  <div id="editorjs" ref={editorContainerRef} className=""></div>
                 </div>
 
                 <div className="mt-4">
-                  <UploadImages 
-                    storyData={storyData} 
-                    access_token={accessToken} 
-                    files={files} 
-                    setFiles={setFiles} 
-                    isLoading={isLoading}
-                    setIsLoading={setIsLoading}
-                    handleMultipleUploads={handleMultipleUploads}
-                    fileErrorText={fileErrorText}
-                    setFileErrorText={setFileErrorText}
-                    showImages={false}
-                  />
+                  <UploadImages storyData={storyData} access_token={accessToken} files={files} setFiles={setFiles} isLoading={isLoading} setIsLoading={setIsLoading} handleMultipleUploads={handleMultipleUploads} fileErrorText={fileErrorText} setFileErrorText={setFileErrorText} showImages={false} />
                 </div>
               </div>
               <div className="w-full flex justify-center py-4 px-[40px] bg-gray-100">
                 <button
                   onClick={async () => {
                     try {
-                      const outputData = await editor.save();
+                      const outputData = await editor.save()
                       let updatePayload = {
                         id: storyData?.id,
                         token: accessToken,
                         session: sessionId,
                         flow: storageFlow,
                         formatted_content: outputData?.blocks,
-                      };
+                      }
                       await partialUpdateStoryById({
                         setter: setStoryData,
                         loader: setIsLoading,
                         data: updatePayload,
-                      });
-                      if([sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(storageFlow) && accessToken){
-                        setIsLoading(true);
-                         await updateReflectionStatus(
-                          projectId, "completed", sessionFlowName.SsoFlow, accessToken
-                        );
-                        clearFromStorage(false);
-                        console.log("History length:", window.history.length);
-                        console.log(
-                          "Can go back 1?",
-                          window.history.length > 1
-                        );
-                        console.log(
-                          "Can go back 3?",
-                          window.history.length > 3
-                        );
-                        setSsoNavigationTriggered(true);
-                        const message = { type: "MItra", name: "MItra" };
+                      })
+                      if ([sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(storageFlow) && accessToken) {
+                        setIsLoading(true)
+                        await updateReflectionStatus(projectId, "completed", sessionFlowName.SsoFlow, accessToken)
+                        clearFromStorage(false)
+                        console.log("History length:", window.history.length)
+                        console.log("Can go back 1?", window.history.length > 1)
+                        console.log("Can go back 3?", window.history.length > 3)
+                        setSsoNavigationTriggered(true)
+                        const message = { type: "MItra", name: "MItra" }
                         setTimeout(() => {
-                          window.postMessage(message, "*");
-                          console.log("Postmessage called");
-                        }, 500);
+                          window.postMessage(message, "*")
+                          console.log("Postmessage called")
+                        }, 500)
 
-                        console.log("navigating from the condtion to -3");
-                        navigate(-3, { replace: true });
+                        console.log("navigating from the condtion to -3")
+                        navigate(-3, { replace: true })
 
-                        return;
+                        return
                       } else {
-                        window.location.reload();
+                        window.location.reload()
                       }
                     } catch (error) {
-                      console.error("Saving failed: ", error);
-                      if (accessToken){
-                        clearFromStorage();
-                        navigate(-1);
+                      console.error("Saving failed: ", error)
+                      if (accessToken) {
+                        clearFromStorage()
+                        navigate(-1)
                       }
                     }
                   }}
@@ -2435,235 +2030,94 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           </div>
         </div>
       </>
-    );
-  };
+    )
+  }
 
   const getListAfterHeaderText = (headerText, blocks) => {
-    const idx = blocks.findIndex(
-      (b) =>
-        b.type === "header" &&
-        b.data.text.trim().toLowerCase() === headerText.toLowerCase()
-    );
+    const idx = blocks.findIndex(b => b.type === "header" && b.data.text.trim().toLowerCase() === headerText.toLowerCase())
     if (idx !== -1 && blocks[idx + 1]?.type === "list") {
-      const items = blocks[idx + 1].data.items || [];
-      return items.map((item) =>
-        typeof item === "string" ? item : item?.content || ""
-      );
+      const items = blocks[idx + 1].data.items || []
+      return items.map(item => (typeof item === "string" ? item : item?.content || ""))
     }
-    return [];
-  };
-
-  const handleEditClick = () => {
-    return (
-      <>
-        <div className="voice-chat-editor-overlay" onClick={closeModal}>
-          <div
-            className="voice-chat-editor-content"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <button onClick={closeModal} className="editor-content-button">
-              <IoClose className="icon-7" />
-            </button>
-            <div id="container-editor">
-              <div className="container-editor-div">
-                <div
-                  id="editorjs"
-                  ref={editorContainerRef}
-                  className="editor-main-div"
-                ></div>
-              </div>
-            </div>
-            <div className="editor-button-div">
-            <PrimaryButton
-              onClick={async () => {
-                try {
-                  setIsLoading(true);
-                  const outputData = await editor.save();
-                  const flow = storageFlow;
-
-                  let updatePayload = {
-                    id: storyData?.id,
-                    access_token: accessToken,
-                    session: sessionId,
-                    flow,
-                  };
-
-                    if (
-                      flow &&
-                      [
-                        sessionFlowName.LoginDiscussion,
-                        sessionFlowName.GuestDiscussion,
-                      ].includes(flow)
-                    ) {
-                      const blocks = outputData?.blocks || [];
-                      const challenges = getListAfterHeaderText(
-                        t("challengesHeader"),
-                        blocks
-                      );
-                      const solutions = getListAfterHeaderText(
-                        t("solutionsHeader"),
-                        blocks
-                      );
-
-                      updatePayload = {
-                        ...updatePayload,
-                        ...storyData?.other_params,
-                        other_params: {
-                          ...(storyData?.other_params || {}),
-                          challenges_faced: challenges,
-                          solutions_discussed: solutions,
-                        },
-                        formatted_content: null,
-                      };
-                    } else if (
-                      flow &&
-                      [sessionFlowName.ListeningActivity].includes(flow)
-                    ) {
-                      const blocks = outputData?.blocks || [];
-                      const questionAnswers =
-                        getQuestionAnswersFromBlocks(blocks);
-
-                      updatePayload = {
-                        ...updatePayload,
-                        ...storyData?.other_params,
-                        other_params: {
-                          ...(storyData?.other_params || {}),
-                          question_answers: questionAnswers,
-                        },
-                        formatted_content: null,
-                      };
-                    } else {
-                      updatePayload = {
-                        ...updatePayload,
-                        formatted_content: outputData?.blocks,
-                      };
-                    }
-
-                  await partialUpdateStoryById({
-                    setter: setStoryData,
-                    loader: setIsSaving,
-                    data: updatePayload,
-                    token: accessToken,
-                  });
-                } catch (error) {
-                  setIsLoading(false);
-                  console.error("Saving failed: ", error);
-                  if (accessToken){
-                    clearFromStorage()
-                    navigate(-1)
-                  }
-                } finally {
-                  window.location.reload()
-                }
-              }}
-              disabled={isLoading || isSaving}
-            >
-              {t('saveChanges')}
-
-            </PrimaryButton>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  };
-
-  const handleDownloadClick = () => {
-    setIsLoading(true);
-    setIsPdfDownloading(true);
-    setTriggerDownload(true);
-  };
+    return []
+  }
 
   const handleDownloadStop = () => {
-    setTriggerDownload(false);
-    setIsLoading(false);
-    setIsPdfDownloading(false);
-    window.location.reload();
-  };
+    setTriggerDownload(false)
+    setIsLoading(false)
+    setIsPdfDownloading(false)
+    window.location.reload()
+  }
 
   async function ResetChat(e) {
     if (e) {
-      e.preventDefault();
+      e.preventDefault()
     }
-    setIsLoading(true);
-    if (
-      isResetCalled &&
-      chatSocketRef.current &&
-      chatSocketRef.current.readyState === chatSocketRef.current.OPEN
-    ) {
-      chatSocketRef.current.close();
-    }
-    const currentFlow = storageFlow;
-  
-    removeChatHistory();
-    setIsOldChatOpen(false);
-    setIsNewChatOpen(true);
-    removeFromStorage('llmError');
+    setIsLoading(true)
+    removeChatHistory()
+    setIsOldChatOpen(false)
+    setIsNewChatOpen(true)
+    setShowFileInput(false)
+    setLlmError("")
 
-    const session = await getSessionDetails();
-    setSessionId(session.sessionid);
-    setIsChatVisible(false);
-    setChatbotClickedOn('');
+    const session = await getSessionDetails()
+    setSessionId(session.sessionid)
+    setIsChatVisible(false)
+    setChatbotClickedOn("")
     setShowHomepage(true)
 
-    window.location.reload();
+    window.location.reload()
   }
 
-  async function getStoryBySession(sessionID){
+  async function getStoryBySession(sessionID) {
     const res = await axiosInstance({
       url: `api/get-story/?session=${sessionID}`,
     })
-    
-    return res?.data?.results;
+
+    return res?.data?.results
   }
 
   function extractTextBlocks(formattedContent) {
-    if (!formattedContent) return [];
-    const blocks = JSON.parse(formattedContent);
-    if (!blocks || blocks?.length === 0) return [];
-    return blocks.filter((block) => block.type === "paragraph");
+    if (!formattedContent) return []
+    const blocks = JSON.parse(formattedContent)
+    if (!blocks || blocks?.length === 0) return []
+    return blocks.filter(block => block.type === "paragraph")
   }
 
-
   async function getTranslatedIntroMessage() {
-    let storedRoute = getSessionRoute();
-    let translate_api_url = `api/bot_vernacular/?language=${languageToUse}&company_bot__route=${storedRoute}`;
+    let storedRoute = getSessionRoute()
+    let translate_api_url = `api/bot_vernacular/?language=${languageToUse}&company_bot__route=${storedRoute}`
     try {
-      const response = await axiosInstance.get(translate_api_url);
-      return response?.data?.results;
+      const response = await axiosInstance.get(translate_api_url)
+      return response?.data?.results
     } catch (error) {
-      console.error("Error fetching AI4Bharat audio:", error);
-      throw error;
+      console.error("Error fetching AI4Bharat audio:", error)
+      throw error
     }
   }
 
-  async function getSessionInfo(){
-    let currentSession = sessionId;
+  async function getSessionInfo() {
+    let currentSession = sessionId
     try {
-      const response = await getChatSessionApi({ sessionId: currentSession });
-      return response?.data?.results;
+      const response = await getChatSessionApi({ sessionId: currentSession })
+      return response?.data?.results
     } catch (error) {
-      console.error("Error fetching AI4Bharat audio:", error);
-      throw error;
+      console.error("Error fetching AI4Bharat audio:", error)
+      throw error
     }
   }
 
   function getSessionRoute() {
-    const currentFlow = storageFlow;
-    console.log("Current Flow:", currentFlow);
-    console.log(
-      "Is the flow equal",
-      currentFlow === sessionFlowName.ListeningActivity
-    );
+    const currentFlow = storageFlow
+    console.log("Current Flow:", currentFlow)
+    console.log("Is the flow equal", currentFlow === sessionFlowName.ListeningActivity)
 
     // Configuration mapping flow names to bot routes
     const flowToRouteMap = {
       [sessionFlowName.GuestDiscussion]: bot_routes.shikshalokam_chaupal,
       [sessionFlowName.LoginDiscussion]: bot_routes.shikshalokam_chaupal,
       [sessionFlowName.ListeningActivity]: bot_routes.listening_activity,
-    };
+    }
 
     const typeBasedRouteMap = {
       normal: {
@@ -2674,175 +2128,144 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         [sessionFlowName.LoginMiStory]: bot_routes.oneshot,
         [sessionFlowName.GuestMiStory]: bot_routes.guest_oneshot,
       },
-    };
+    }
 
     // Check direct flow mapping first
     if (currentFlow && flowToRouteMap[currentFlow]) {
-      return flowToRouteMap[currentFlow];
+      return flowToRouteMap[currentFlow]
     }
 
     // Check type-based mapping
-    const routeMap = selectedType === "normal" 
-      ? typeBasedRouteMap.normal 
-      : typeBasedRouteMap.oneshot;
+    const routeMap = selectedType === "normal" ? typeBasedRouteMap.normal : typeBasedRouteMap.oneshot
 
     if (currentFlow && routeMap[currentFlow]) {
-      return routeMap[currentFlow];
+      return routeMap[currentFlow]
     }
 
     // Default route
-    return bot_routes.reflection;
-  };
+    return bot_routes.reflection
+  }
 
   // ========================================================================
-  // SECTION: Utility & Helper Updates
-  // Updates ref values to maintain latest function references
-  // ========================================================================
-
-  /**
-   * Update retry connection ref with latest function
-   * Ensures reconnection logic uses current state values
-   */
-  // Update ref with latest retryConnection function
-  retryConnectionRef.current = retryConnection;
-
-  // ========================================================================
-  // SECTION: Regular Function Definitions
-  // Non-hook functions used throughout the component
-  // ========================================================================
-
   const closeModal = () => {
-    setIsModalOpen(false);
-  };
+    setIsModalOpen(false)
+  }
 
   const openModal = () => {
-    
-    setIsModalOpen(true);
-  };
+    setIsModalOpen(true)
+  }
 
-  function handleScrollToView () {
-    if (acceptedTnc === "ONGOING") return;
+  function handleScrollToView() {
+    if (acceptedTnc === "ONGOING") return
     try {
       document?.querySelector("#last-chat-boundary")?.scrollIntoView({
         behavior: "smooth",
-      });
+      })
     } catch (error) {
-      console.error({ error });
+      console.error({ error })
     }
-  };
+  }
 
-  const pdfDownloadSidebar = async (sessionid) => {
+  const pdfDownloadSidebar = async sessionid => {
     try {
-        setIsLoading(true);
-        setIsPdfDownloading(true);
-        
-        
-        const story = await getStoryBySession(sessionid, accessToken);
-        
-        const story_media = story[0]?.story_media;
-        const pdfMedia = story_media?.filter(media => media.media_type === 'application/pdf') || [];
-        
-        
-        const pdfFileName = story[0]?.title+".pdf";
-        const fileUrl = pdfMedia[0]?.public_url;
+      setIsLoading(true)
+      setIsPdfDownloading(true)
+
+      const story = await getStoryBySession(sessionid, accessToken)
+
+      const story_media = story[0]?.story_media
+      const pdfMedia = story_media?.filter(media => media.media_type === "application/pdf") || []
+
+      const pdfFileName = story[0]?.title + ".pdf"
+      const fileUrl = pdfMedia[0]?.public_url
 
       if (fileUrl && pdfFileName) {
-        const response = await fetch(fileUrl);
+        const response = await fetch(fileUrl)
 
         if (response.ok) {
-          const reader = response.body.getReader();
-          const chunks = [];
+          const reader = response.body.getReader()
+          const chunks = []
 
           while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
+            const { done, value } = await reader.read()
+            if (done) break
+            chunks.push(value)
           }
 
-          const blob = new Blob(chunks);
-          const a = document.createElement("a");
-          const url = window.URL.createObjectURL(blob);
-          a.href = url;
-          a.download = pdfFileName;
-          document.body.appendChild(a);
-          a.click();
+          const blob = new Blob(chunks)
+          const a = document.createElement("a")
+          const url = window.URL.createObjectURL(blob)
+          a.href = url
+          a.download = pdfFileName
+          document.body.appendChild(a)
+          a.click()
 
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a)
+          window.URL.revokeObjectURL(url)
         } else {
-          console.error("Network response was not ok.");
+          console.error("Network response was not ok.")
         }
       } else {
-        console.error("No PDF media found or invalid file URL.");
+        console.error("No PDF media found or invalid file URL.")
       }
     } catch (error) {
-      setIsLoading(false);
-      console.error("Error downloading file:", error);
+      setIsLoading(false)
+      console.error("Error downloading file:", error)
     } finally {
-      setIsPdfDownloading(false);
-      setIsLoading(false);
+      setIsPdfDownloading(false)
+      setIsLoading(false)
     }
-  };
+  }
 
   async function getCompanyChatApi(currentSession) {
     const resp = await axiosInstance({
       url: `/api/companychat/?session=${currentSession}`,
-    });
-    return resp;
+    })
+    return resp
   }
 
-  async function showChatTitle(){
-    try{
-      const currentSessionID = sessionId;
-      const currentFlow = storageFlow;
-      let sessionComplete;
-      const TitleAndSession = [];
+  async function showChatTitle() {
+    try {
+      const currentSessionID = sessionId
+      const currentFlow = storageFlow
+      let sessionComplete
+      const TitleAndSession = []
       const response = await getChatSessionApi({
         profile: profileToUse,
         flow: currentFlow,
-      });
+      })
 
       if (response) {
-        let sortedResult = quickSort(response?.data?.results, compareByIdDesc);
+        let sortedResult = quickSort(response?.data?.results, compareByIdDesc)
         sortedResult.forEach((sessionObj, index) => {
-          const status =
-            sessionObj.session_status?.toLowerCase() === "completed"
-              ? t("completedStatusText")
-              : t("inProgressStatusText");
+          const status = sessionObj.session_status?.toLowerCase() === "completed" ? t("completedStatusText") : t("inProgressStatusText")
           TitleAndSession.push({
             session: sessionObj.session,
             title: sessionObj.title,
             sessionStatus: status,
-          });
+          })
           if (sessionObj.session === currentSessionID) {
-            sessionComplete =
-              sessionObj.session_status?.toLowerCase() === "completed";
+            sessionComplete = sessionObj.session_status?.toLowerCase() === "completed"
           }
-        });
-        setShowFileInput(sessionComplete === true);
-        setSessionTitleDetail(TitleAndSession);
-        setChatTitle([...TitleAndSession.slice(0, chatToAddLength)]);
+        })
+        setShowFileInput(sessionComplete === true)
+        setSessionTitleDetail(TitleAndSession)
+        setChatTitle([...TitleAndSession.slice(0, chatToAddLength)])
       }
     } catch (error) {
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
   const fetchMoreData = () => {
     setTimeout(() => {
       if (visibleItemCount < sessionTitleDetail.length) {
-        setVisibleItemCount((prevCount) => prevCount + chatToAddLength);
-        setChatTitle((prevChatTitle) => [
-          ...prevChatTitle,
-          ...sessionTitleDetail.slice(
-            prevChatTitle.length,
-            prevChatTitle.length + chatToAddLength
-          ),
-        ]);
+        setVisibleItemCount(prevCount => prevCount + chatToAddLength)
+        setChatTitle(prevChatTitle => [...prevChatTitle, ...sessionTitleDetail.slice(prevChatTitle.length, prevChatTitle.length + chatToAddLength)])
       }
-    }, 1000);
-  };
+    }, 1000)
+  }
 
   function showScrollbarContent() {
     return (
@@ -2859,257 +2282,215 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           scrollableTarget="shikshaScrollableDiv"
         >
           {chatTitle.map((item, index) => (
-            <div
-              key={`session-title-bttn-${index}`}
-              className="chat-title-div div5"
-            >
+            <div key={`session-title-bttn-${index}`} className="chat-title-div div5">
               <div
                 className="div6"
                 onClick={() => {
                   handleChatSessionButtonClick({
                     key: `session-title-bttn-${index}`,
-                  });
+                  })
                 }}
               >
                 <span className="span1">{item?.title}</span>
-                <span
-                  className={`span2 ${
-                    item?.sessionStatus === t("completedStatusText")
-                      ? "span3"
-                      : "span4"
-                  }`}
-                >
-                  {item?.sessionStatus}
-                </span>
+                <span className={`span2 ${item?.sessionStatus === t("completedStatusText") ? "span3" : "span4"}`}>{item?.sessionStatus}</span>
               </div>
 
               {item?.sessionStatus === t("completedStatusText") && (
                 <button
                   className="span5"
                   onClick={() => {
-                    pdfDownloadSidebar(item?.session);
+                    pdfDownloadSidebar(item?.session)
                   }}
                 >
                   <FiDownload />
                 </button>
               )}
-              {item?.sessionStatus !== t("completedStatusText") && (
-                <button className="span5"></button>
-              )}
+              {item?.sessionStatus !== t("completedStatusText") && <button className="span5"></button>}
             </div>
           ))}
         </InfiniteScroll>
       </div>
-    );
+    )
   }
 
-
-  const handleOnInputText = (e) => {
-    e.preventDefault();
-    setTextMessage(e.target.value);
+  const handleOnInputText = e => {
+    e.preventDefault()
+    setTextMessage(e.target.value)
 
     if (e.target.value.trim() === "") {
-      setIsRecognizing(false);
-      setHasStartedListening(false);
+      setIsRecognizing(false)
+      setHasStartedListening(false)
     }
-  };
+  }
 
   const handleAI4BharatTTSRequest = async (text, id, sourceLanguage) => {
     try {
       if (id === "intro_msg_id" && isIntroPlayed.current === true) {
-        return;
+        return
       }
       if (id === "intro_msg_id") {
-        isIntroPlayed.current = true;
+        isIntroPlayed.current = true
       }
-      let cachedAudioUrl = audioCache[id];
-      let audio_result = "";
-      let audio;
+      let cachedAudioUrl = audioCache[id]
+      let audio_result = ""
+      let audio
 
       if (!sourceLanguage) {
-        sourceLanguage = "en";
+        sourceLanguage = "en"
       }
 
-      let storedRoute = getSessionRoute();
+      let storedRoute = getSessionRoute()
 
       if (!hasOverRideId) {
-        handleMessagesForBot(text);
+        handleMessagesForBot(text)
       }
 
       if (isMute && !hasOverRideId) {
-        setSentences((prev) => {
-          let all_sentences = JSON.parse(JSON.stringify([...prev]));
-          return all_sentences.map((x) => ({ ...x, isNarrated: true }));
-        });
-        setIsNextAllowed(true);
-        setHasOverRideId(null);
-        return;
+        setSentences(prev => {
+          let all_sentences = JSON.parse(JSON.stringify([...prev]))
+          return all_sentences.map(x => ({ ...x, isNarrated: true }))
+        })
+        setIsNextAllowed(true)
+        setHasOverRideId(null)
+        return
       }
 
       if (!cachedAudioUrl) {
-        audio_result = await getAI4BharatAudioApi(
-          text,
-          sourceLanguage,
-          storedRoute
-        );
+        audio_result = await getAI4BharatAudioApi(text, sourceLanguage, storedRoute)
         if (audio_result?.length) {
-          cachedAudioUrl = `data:audio/wav;base64,${audio_result}`;
-          setAudioCache((prevCache) => ({
+          cachedAudioUrl = `data:audio/wav;base64,${audio_result}`
+          setAudioCache(prevCache => ({
             ...prevCache,
             [id]: cachedAudioUrl,
-          }));
+          }))
         }
       }
 
       if (cachedAudioUrl) {
         if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
+          audioRef.current.pause()
+          audioRef.current.currentTime = 0
         }
-        audioRef.current = new Audio(cachedAudioUrl);
-        audio = audioRef.current;
+        audioRef.current = new Audio(cachedAudioUrl)
+        audio = audioRef.current
 
         audio.onplay = () => {
-          setIsNextAllowed(false);
-        };
+          setIsNextAllowed(false)
+        }
 
         audio.onended = () => {
-          setSentences((prev) => {
-            let all_sentences = JSON.parse(JSON.stringify([...prev]));
-            let index = prev.findIndex((x) => x.id === id);
-            if (index > -1) all_sentences[index].isNarrated = true;
-            return all_sentences;
-          });
-          setIsNextAllowed(true);
-          setHasOverRideId(null);
-        };
+          setSentences(prev => {
+            let all_sentences = JSON.parse(JSON.stringify([...prev]))
+            let index = prev.findIndex(x => x.id === id)
+            if (index > -1) all_sentences[index].isNarrated = true
+            return all_sentences
+          })
+          setIsNextAllowed(true)
+          setHasOverRideId(null)
+        }
 
         try {
-          await audio.play();
+          await audio.play()
         } catch (error) {
-          console.error("Error playing audio:", error);
-          setSentences((prev) => {
-            let all_sentences = JSON.parse(JSON.stringify([...prev]));
-            let index = prev.findIndex((x) => x.id === id);
-            if (index > -1) all_sentences[index].isNarrated = true;
-            return all_sentences;
-          });
-          setIsNextAllowed(true);
-          setHasOverRideId(null);
+          console.error("Error playing audio:", error)
+          setSentences(prev => {
+            let all_sentences = JSON.parse(JSON.stringify([...prev]))
+            let index = prev.findIndex(x => x.id === id)
+            if (index > -1) all_sentences[index].isNarrated = true
+            return all_sentences
+          })
+          setIsNextAllowed(true)
+          setHasOverRideId(null)
         }
       }
     } catch (error) {
-      console.error("Error in handleAI4BharatTTSRequest:", error);
-      handleOnStopSpeaking();
+      console.error("Error in handleAI4BharatTTSRequest:", error)
+      handleOnStopSpeaking()
     }
-  };
+  }
 
-  const isTyping = !!textMessage.trim();
-
-
-  // useEffect(() => {
-  //   const storedLanguage = getFromStorageSlice("userPreference", "route") || null;
-  //   if (storedLanguage && storedLanguage !== null) {
-  //   } else {
-  //     const currentFlow = storageFlow;
-  //     if (currentFlow && !([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow))) {
-  //       setInStorageSlice("userPreference", "en", "setRoute", type);
-  //     }
-  //   }
-  // }, []);
-
-  
+  const isTyping = !!textMessage.trim()
 
   const handleFirstMessage = ({ message, category }) => {
     try {
       if (category === "special") {
-        window.location.reload();
-        return;
+        window.location.reload()
+        return
       }
-      handleScrollToView();
+      handleScrollToView()
     } catch (error) {
-      console.error({ error });
+      console.error({ error })
     }
-  };
+  }
 
-  const handleOnSpeaking = async (
-    text,
-    id,
-    staticMsg,
-    hasClickedOnSpeaker = false
-  ) => {
+  const handleOnSpeaking = async (text, id, staticMsg, hasClickedOnSpeaker = false) => {
     try {
       try {
-        if (!!audioRef.current) await audioRef.current.pause();
+        if (!!audioRef.current) await audioRef.current.pause()
       } catch (error) {
-        console.error({ error });
+        console.error({ error })
       }
       if (id === "intro_msg_id") {
-        isIntroPlayed.current = false;
+        isIntroPlayed.current = false
       }
-      setHasOverRideId(id);
-      setIsNextAllowed(true);
-      const messageToPlay = staticMsg
-        ? staticMsg
-        : chatHistory.find((message) => message.updated_at === id);
-      setSentences((prev) => {
+      setHasOverRideId(id)
+      setIsNextAllowed(true)
+      const messageToPlay = staticMsg ? staticMsg : chatHistory.find(message => message.updated_at === id)
+      setSentences(prev => {
         return [
           {
             message: messageToPlay?.msg,
             isNarrated: false,
             id: id,
           },
-        ];
-      });
+        ]
+      })
     } catch (error) {
-      console.error({ error });
+      console.error({ error })
     }
-  };
+  }
 
   const isSilentAudio = async (blob, silenceThreshold = 0.01) => {
-    const audioContext = new (window.AudioContext ||
-      window.webkitAudioContext)();
-    const arrayBuffer = await blob.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    const rawData = audioBuffer.getChannelData(0);
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    const arrayBuffer = await blob.arrayBuffer()
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+    const rawData = audioBuffer.getChannelData(0)
 
-    const rms = Math.sqrt(
-      rawData.reduce((acc, val) => acc + val * val, 0) / rawData.length
-    );
-    console.log("RMS (volume):", rms);
+    const rms = Math.sqrt(rawData.reduce((acc, val) => acc + val * val, 0) / rawData.length)
+    console.log("RMS (volume):", rms)
 
-    return rms < silenceThreshold;
-  };
+    return rms < silenceThreshold
+  }
 
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      handleOnStopSpeaking();
-      setTextMessage("");
+      handleOnStopSpeaking()
+      setTextMessage("")
       navigator.mediaDevices
         .getUserMedia({ audio: true })
-        .then((stream) => {
+        .then(stream => {
           const options = {
             mimeType: "audio/webm;codecs=opus",
             audioBitsPerSecond: 16000,
-          };
-          const recorder = new MediaRecorder(stream, options);
-          setMediaRecorder(recorder);
+          }
+          const recorder = new MediaRecorder(stream, options)
+          setMediaRecorder(recorder)
 
-          const localAudioChunks = [];
+          const localAudioChunks = []
 
-          recorder.start();
-          setHasStartedRecording(true);
+          recorder.start()
+          setHasStartedRecording(true)
 
-          recorder.ondataavailable = (event) => {
-            localAudioChunks.push(event.data);
-          };
+          recorder.ondataavailable = event => {
+            localAudioChunks.push(event.data)
+          }
 
           recorder.onstop = async () => {
             if (localAudioChunks.length > 0) {
               const audioBlob = new Blob(localAudioChunks, {
                 type: "audio/webm;codecs=opus",
-              });
-              const isSilent = await isSilentAudio(audioBlob, 0.02);
+              })
+              const isSilent = await isSilentAudio(audioBlob, 0.02)
 
               if (!audioBlob || isSilent) {
                 showNotification({
@@ -3120,22 +2501,19 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     autoClose: 6000,
                     style: { fontWeight: "bold" },
                   },
-                });
-                return;
+                })
+                return
               }
 
-              setIsFetchingData(true);
-              let transcriptResult = '';
-              let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${sessionId}/`, storyData);              if(!s3Url || s3Url === '') {
-                transcriptResult = t('asrError');
+              setIsFetchingData(true)
+              let transcriptResult = ""
+              let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${sessionId}/`, storyData)
+              if (!s3Url || s3Url === "") {
+                transcriptResult = t("asrError")
               }
-              setAsrAudio(s3Url);
-              let storedRoute = getSessionRoute();
-              transcriptResult = await ai4BharatASRApi(
-                s3Url,
-                languageToUse,
-                storedRoute
-              );
+              setAsrAudio(s3Url)
+              let storedRoute = getSessionRoute()
+              transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
               if (!transcriptResult || transcriptResult === "") {
                 showNotification({
                   message: t("asrError"),
@@ -3145,170 +2523,125 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                     autoClose: 6000,
                     style: { fontWeight: "bold" },
                   },
-                });
+                })
               } else {
-                setTextMessage(transcriptResult);
+                setTextMessage(transcriptResult)
               }
-              setIsFetchingData(false);
+              setIsFetchingData(false)
             } else {
-              console.warn("No audio chunks were recorded.");
-              setIsFetchingData(false);
+              console.warn("No audio chunks were recorded.")
+              setIsFetchingData(false)
             }
-          };
+          }
         })
-        .catch((err) => {
-          console.error("Error accessing microphone:", err);
-          setIsFetchingData(false);
-        });
+        .catch(err => {
+          console.error("Error accessing microphone:", err)
+          setIsFetchingData(false)
+        })
     } else {
-      console.warn("getUserMedia not supported on your browser!");
+      console.warn("getUserMedia not supported on your browser!")
     }
-  };
-
-  // const containsSignificantAudio = (audioBuffer, threshold = 0.3) => {
-  //   const numOfChannels = audioBuffer.numberOfChannels;
-  //   const channelData = [];
-
-  //   for (let i = 0; i < numOfChannels; i++) {
-  //     channelData.push(audioBuffer.getChannelData(i));
-  //   }
-
-  //   for (let i = 0; i < channelData[0].length; i++) {
-  //     for (let channel = 0; channel < numOfChannels; channel++) {
-  //       if (Math.abs(channelData[channel][i]) > threshold) {
-  //         return true;
-  //       }
-  //     }
-  //   }
-
-  //   return false;
-  // };
+  }
 
   const stopRecording = () => {
     if (mediaRecorder) {
-      mediaRecorder.stop();
-      setHasStartedRecording(false);
+      mediaRecorder.stop()
+      setHasStartedRecording(false)
     }
-  };
+  }
 
   function downloadPdf() {
-    let current_company = companyName ? companyName : null;
-    let currentState = userState ? userState : null;
+    let current_company = companyName ? companyName : null
+    let currentState = userState ? userState : null
     if (!currentState) {
-      currentState = cookies.get("state");
+      currentState = cookies.get("state")
     }
     if (!current_company) {
-      current_company = cookies.get("company");
+      current_company = cookies.get("company")
     }
 
     return (
       <>
-        <PdfDownloader
-          key={new Date().getTime()}
-          storyData={storyData}
-          isShikshalokam={true}
-          downloadTriggered={triggerDownload}
-          handleDownloadStop={handleDownloadStop}
-          storyMediaArr={files}
-          currentState={currentState}
-          current_company={current_company}
-        />
+        <PdfDownloader key={new Date().getTime()} storyData={storyData} isShikshalokam={true} downloadTriggered={triggerDownload} handleDownloadStop={handleDownloadStop} storyMediaArr={files} currentState={currentState} current_company={current_company} />
       </>
-    );
+    )
   }
 
-  const handleSelectedTypeNameChanges = (e) => {
-    let { value } = e?.target;
+  const handleSelectedTypeNameChanges = e => {
+    let { value } = e?.target
     function changeSelectedValue(value, e) {
-      if (value === "") value = selectedLabel?.types[0]?.value;
-      setSelectedType(value);
-      ResetChat(e);
+      if (value === "") value = selectedLabel?.types[0]?.value
+      setSelectedType(value)
+      ResetChat(e)
     }
     if ([sessionFlowName.GuestMiStory].includes(storageFlow)) {
-      showGuestPopup(() => changeSelectedValue(value, e), stayOnPage);
+      showGuestPopup(() => changeSelectedValue(value, e), stayOnPage)
     } else {
-      changeSelectedValue(value, e);
+      changeSelectedValue(value, e)
     }
-  };
+  }
 
-  const convertHeifToJpg = async (file) => {
-    const formData = new FormData();
-    formData.append("image", file);
+  const convertHeifToJpg = async file => {
+    const formData = new FormData()
+    formData.append("image", file)
 
-    const response = await axiosInstance.post(
-      "api/image-converter/",
-      formData,
-      {
-        responseType: "blob",
-      }
-    );
+    const response = await axiosInstance.post("api/image-converter/", formData, {
+      responseType: "blob",
+    })
 
-    const convertedBlob = response.data;
+    const convertedBlob = response.data
 
-    const originalName = file.name.split(".").slice(0, -1).join(".");
+    const originalName = file.name.split(".").slice(0, -1).join(".")
     const jpgFile = new File([convertedBlob], `${originalName}.jpg`, {
       type: "image/jpeg",
-    });
+    })
 
-    return jpgFile;
-  };
+    return jpgFile
+  }
 
   const handleMultipleUploads = async (e, storyData) => {
-    const filesArray = Array.from(e.target.files);
-    const currentFiles = [...files];
+    const filesArray = Array.from(e.target.files)
+    const currentFiles = [...files]
 
     if (currentFiles?.length + filesArray.length > 10) {
-      setFileErrorText(fileExceedText);
-      return;
+      setFileErrorText(fileExceedText)
+      return
     }
 
-    const story_id = storyData?.id;
+    const story_id = storyData?.id
     if (!story_id) {
-      return;
+      return
     }
 
-    const maxFileSize = 50 * 1024 * 1024;
-    const allowedExtensions = [
-      "jpeg",
-      "jpg",
-      "png",
-      "svg",
-      "webp",
-      "heif",
-      "heic",
-    ];
+    const maxFileSize = 50 * 1024 * 1024
+    const allowedExtensions = ["jpeg", "jpg", "png", "svg", "webp", "heif", "heic"]
 
-    const uploadPromises = filesArray.map(async (file) => {
+    const uploadPromises = filesArray.map(async file => {
       if (file.size > maxFileSize) {
-        setFileErrorText(fileSizeText);
-        setIsLoading(false);
-        throw new Error("File size exceeds limit");
+        setFileErrorText(fileSizeText)
+        setIsLoading(false)
+        throw new Error("File size exceeds limit")
       }
 
-      const fileName = file.name;
-      const fileExtension = fileName.split(".").pop().toLowerCase();
-      console.log("fileName: ", fileName);
-      console.log("fileExtension: ", fileExtension);
+      const fileName = file.name
+      const fileExtension = fileName.split(".").pop().toLowerCase()
+      console.log("fileName: ", fileName)
+      console.log("fileExtension: ", fileExtension)
 
-      console.log("In promise for file:", fileName);
+      console.log("In promise for file:", fileName)
 
       if (!allowedExtensions.includes(fileExtension)) {
-        setFileErrorText(t("fileTypeErrorText"));
-        setIsLoading(false);
-        throw new Error("Invalid file type");
+        setFileErrorText(t("fileTypeErrorText"))
+        setIsLoading(false)
+        throw new Error("Invalid file type")
       }
 
       try {
         if (["heic", "heif"].includes(fileExtension)) {
-          file = await convertHeifToJpg(file);
+          file = await convertHeifToJpg(file)
         }
 
-        const s3Url = await handleS3Upload(
-          file,
-          fileName,
-          "chatbot/storymedia/",
-          storyData
-        );
+        const s3Url = await handleS3Upload(file, fileName, "chatbot/storymedia/", storyData)
 
         const formData = {
           file_url: s3Url,
@@ -3319,62 +2652,50 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           access_token: accessToken,
           flow: storageFlow,
           session: sessionId,
-        };
-  
-        const uploadedFile = await uploadImage(formData, setError, navigate, setIsLoading, setFiles);
-        return uploadedFile;
-      } catch (error) {
-        console.error({ error });
-        if (accessToken) {
-          clearFromStorage();
-          navigate(-1);
-        } else if([sessionFlowName.SsoFlow].includes(storageFlow) && accessToken) {
-          clearFromStorage(true);
-          navigateSsoFlow(ssoRerouteURL);
         }
-        setIsLoading(false);
-        return null;
+
+        const uploadedFile = await uploadImage(formData, setError, navigate, setIsLoading, setFiles)
+        return uploadedFile
+      } catch (error) {
+        console.error({ error })
+        if (accessToken) {
+          clearFromStorage()
+          navigate(-1)
+        } else if ([sessionFlowName.SsoFlow].includes(storageFlow) && accessToken) {
+          clearFromStorage(true)
+          navigateSsoFlow(ssoRerouteURL)
+        }
+        setIsLoading(false)
+        return null
       }
-    });
+    })
 
     try {
-      const uploadedFiles = await Promise.allSettled(uploadPromises);
-      const validFiles = uploadedFiles
-        .filter((result) => result.status === "fulfilled" && result.value)
-        .map((result) => result.value);
+      const uploadedFiles = await Promise.allSettled(uploadPromises)
+      const validFiles = uploadedFiles.filter(result => result.status === "fulfilled" && result.value).map(result => result.value)
 
-      setFiles([...currentFiles, ...validFiles]);
+      setFiles([...currentFiles, ...validFiles])
     } catch (e) {
-      console.error("Upload handling error", e);
+      console.error("Upload handling error", e)
     }
-  };
+  }
 
-  function handleAcceptTnC() {    
-    setAcceptedTnC(true);
-    if(isSpecialFlow) {
-      setShouldFetchIntro(true);
+  function handleAcceptTnC() {
+    setAcceptedTnC(true)
+    if (isSpecialFlow) {
+      setShouldFetchIntro(true)
     }
   }
 
   return (
     <>
-      {(acceptedTnc==="ONGOING" && !isLoading && storageFlow && 
-        [sessionFlowName.Reflection].includes(storageFlow)
-      )&& 
-        <PrivacyPolicyPopup tncText={t('tncText')} onAccept={handleAcceptTnC} />
-      }
+      {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} />}
 
-      {(chatLanguage && acceptedTnc==="ONGOING" && !isLoading && storageFlow && isSpecialFlow
-      )&& 
-        <PrivacyPolicyPopup 
-          tncText={t('tncText')}  
-          onAccept={handleAcceptTnC} useStaticText={false}
-        />
-      }
+      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && isSpecialFlow && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} useStaticText={false} />}
       <></>
       <div className={`div27 ${isOpen && " div70"}`}>
         <div className={`div28 ${isOpen ? "div29" : ""}`}>
-          {(isShikshalokamPublicType && storageFlow && !(isSpecialFlow)) && 
+          {isShikshalokamPublicType && storageFlow && !isSpecialFlow && (
             <Sidebar
               isOpen={isOpen}
               toggle={setIsOpen}
@@ -3388,36 +2709,27 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               //   if (isSpecialFlow) removeFromStorage('botName');
               //   ResetChat();
               // }, stayOnPage): undefined}
-            />}
+            />
+          )}
         </div>
-        {isOpen && (
-          <div className="div7" onClick={() => setIsOpen(false)}></div>
-        )}
+        {isOpen && <div className="div7" onClick={() => setIsOpen(false)}></div>}
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
             isMobileFirst={isMobile}
             showTheDots={false}
             content={
               <>
-                {([sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(storageFlow)) && 
-                  <CustomFormData layOut={2} selectID="selectedTypeID" selectName="selectedType"
-                    selectOptions={selectedLabel.types}  
-                    selectValue = {selectedType}
-                    selectClassName="div31"
-                    selectOnChange={handleSelectedTypeNameChanges}
-                    showDefaultDropdownText={false}
-                  />
-                }
+                {[sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(storageFlow) && <CustomFormData layOut={2} selectID="selectedTypeID" selectName="selectedType" selectOptions={selectedLabel.types} selectValue={selectedType} selectClassName="div31" selectOnChange={handleSelectedTypeNameChanges} showDefaultDropdownText={false} />}
                 <button
-                  onClick={async (e) => {
+                  onClick={async e => {
                     if (isSpecialFlow) {
                       showGuestPopup(() => {
-                        if (isSpecialFlow) removeFromStorage('botName');
-                        ResetChat();
-                      }, stayOnPage);
+                        if (isSpecialFlow) setBotName(null)
+                        ResetChat()
+                      }, stayOnPage)
                     } else {
-                      setIsResetCalled(true);
-                      await ResetChat(e);
+                      setIsResetCalled(true)
+                      await ResetChat(e)
                     }
                   }}
                   className="div32"
@@ -3429,134 +2741,92 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
           />
         </div>
       </div>
-      {(isLoading || isIntroLoading || isEndStoryLoading || isFetchingOldIntro)&& <div className="loader-load-spinner">
-        <div className="div67">
-          <BiLoader className="loader-rotate-loader loader-icon" />
-          {isPdfDownloading&& 
-            <div className="div68">
-              <label className="form-label label1">{t('downloadLoader')}</label>
-            </div>
-          }
-          {isEndStoryLoading&& 
-            <div className="div69 text-center">
-              <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
-                {
-                  (storageFlow &&
-                    [sessionFlowName.ListeningActivity].includes(storageFlow)
-                  )
-                    ? t('feedbackLoaderHeading')
-                  :
-                  (storageFlow && 
-                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow)
-                  )?
-                    t('reportLoaderHeading') : 
-                  (storageFlow && 
-                    [sessionFlowName.GuestMiStory].includes(storageFlow)
-                  )?
-                    t('storyGuestLoaderHeading') : t('storyLoaderHeading')
-                }
-              </h2>
-              <label className="form-label label1 text-center">
-                {(storageFlow && 
-                    [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow)
-                  )?
-                    t('reportLoader') : t('storyLoader')
-                }
-              </label>
-            </div>
-          }
+      {(isLoading || isIntroLoading || isEndStoryLoading || isFetchingOldIntro) && (
+        <div className="loader-load-spinner">
+          <div className="div67">
+            <BiLoader className="loader-rotate-loader loader-icon" />
+            {isPdfDownloading && (
+              <div className="div68">
+                <label className="form-label label1">{t("downloadLoader")}</label>
+              </div>
+            )}
+            {isEndStoryLoading && (
+              <div className="div69 text-center">
+                <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">{storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("feedbackLoaderHeading") : storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoaderHeading") : storageFlow && [sessionFlowName.GuestMiStory].includes(storageFlow) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}</h2>
+                <label className="form-label label1 text-center">{storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoader") : t("storyLoader")}</label>
+              </div>
+            )}
+          </div>
         </div>
-      </div> }
-     {storyData && isModalOpen && (() => {
-        const flow = storageFlow;
-        const accessToken = accessToken;
-        return [sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(flow) && accessToken
-          ? defaultEditorClick(
-              storyData?.title,
-              firstName,
-              storyData?.location
-            )
-          : handleEditClick();
-      })()}
-      <div className={`${accessToken ? 'div72' : isOpen? 'div71': ''}`}>
-      {(storageFlow && [sessionFlowName.Reflection].includes(storageFlow)) && 
-        <>
+      )}
+      {storyData &&
+        isModalOpen &&
+        (() => {
+          return isSpecialFlow && accessToken ? defaultEditorClick(storyData?.title, firstName, storyData?.location) : <ReportEditor onClose={closeModal} onSave={onEditorSave} disabled={isLoading || isSaving} />
+        })()}
+      <div className={`${accessToken ? "div72" : isOpen ? "div71" : ""}`}>
+        {shouldFetchChatSession && (
+          <>
             <button
-              onClick={(e) => {
-                if (accessToken){
+              onClick={e => {
+                if (accessToken) {
                   clearFromStorage()
                   navigate(-1)
                 }
               }}
               className="button-13"
             >
-              <div
-              >
-                {t('doLater')}
-              </div>
+              <div>{t("doLater")}</div>
             </button>
           </>
-        }
+        )}
         <HiddenRecorder />
-        <div
-          className={`${accessToken? 'div33-a': 'div33'} div9`}
-        >
-          {(!showHomepage)&&
+        <div className={`${accessToken ? "div33-a" : "div33"} div9`}>
+          {!showHomepage && (
             <ul className="div34">
-              {chatHistory && chatHistory?.map((chat, i) => (
-                <li
-                  key={i}
-                  className={`div34 div35 ${
-                    chat?.source === "user" ? "label1" : "label1"
-                  }`}
-                >
-                  <div
-                    className={`div36 ${chat?.source === "user" && "div37"}`}
-                  >
-                    <ChatMessage
-                      botNameToDisplay={botNameToDisplay}
-                      userType={chat?.source}
-                      message={`${chat?.msg}`}
-                      name={t("userName")}
-                      recording={chat?.recording}
-                      hasAppendix={chat?.recording}
-                      appendixURL={chat?.appendixURL}
-                      isTalking={
-                        chat.source === "bot" &&
-                        !isStreamingComplete &&
-                        i === chatHistory.length - 1
-                      }
-                      handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                      handleOnSpeaking={() => {
-                        handleOnSpeaking(chat?.msg, chat?.updated_at);
-                      }}
-                      isAnyPlaying={!!hasOverRideId || isTalking}
-                      isPlaying={hasOverRideId === chat?.updated_at}
-                      isStreamingComplete={isStreamingComplete}
-                      setNotMute={setNotMute}
-                      chatId={chat?.updated_at}
-                    />
-                  </div>
-                  {!hasStartedListening &&
-                  chatHistory[chatHistory?.length - 1].source === "user" &&
-                  i === chatHistory?.length - 1 ? (
-                    <div className="div57">
-                      <div className="div58">
-                        <div>{t("replyMsg")}</div>
-                      </div>
+              {chatHistory &&
+                chatHistory?.map((chat, i) => (
+                  <li key={i} className={`div34 div35 ${chat?.source === "user" ? "label1" : "label1"}`}>
+                    <div className={`div36 ${chat?.source === "user" && "div37"}`}>
+                      <ChatMessage
+                        botNameToDisplay={botNameToDisplay}
+                        userType={chat?.source}
+                        message={`${chat?.msg}`}
+                        name={t("userName")}
+                        recording={chat?.recording}
+                        hasAppendix={chat?.recording}
+                        appendixURL={chat?.appendixURL}
+                        isTalking={chat.source === "bot" && !isStreamingComplete && i === chatHistory.length - 1}
+                        handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                        handleOnSpeaking={() => {
+                          handleOnSpeaking(chat?.msg, chat?.updated_at)
+                        }}
+                        isAnyPlaying={!!hasOverRideId || isTalking}
+                        isPlaying={hasOverRideId === chat?.updated_at}
+                        isStreamingComplete={isStreamingComplete}
+                        setNotMute={setNotMute}
+                        chatId={chat?.updated_at}
+                      />
                     </div>
-                  ) : (
-                    ""
-                  )}
-                </li>
-              ))}
+                    {!hasStartedListening && chatHistory[chatHistory?.length - 1].source === "user" && i === chatHistory?.length - 1 ? (
+                      <div className="div57">
+                        <div className="div58">
+                          <div>{t("replyMsg")}</div>
+                        </div>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </li>
+                ))}
             </ul>
-          }
+          )}
           {showHomepage && (
             <>
-              {(storageFlow) && (() => {
-                const isListening = [sessionFlowName.ListeningActivity].includes(storageFlow);
-                const prefix = isListening ? 'la_' : '';
+              {storageFlow &&
+                (() => {
+                  const isListening = [sessionFlowName.ListeningActivity].includes(storageFlow)
+                  const prefix = isListening ? "la_" : ""
 
                   return (
                     <>
@@ -3573,7 +2843,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                         <li>{t(`${prefix}homepageList2`)}</li>
                       </ul>
                     </>
-                  );
+                  )
                 })()}
 
               {chatHistory?.length > 0 && (
@@ -3590,10 +2860,7 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                       isTalking={false}
                       handleOnStopSpeaking={() => handleOnStopSpeaking()}
                       handleOnSpeaking={() => {
-                        handleOnSpeaking(
-                          chatHistory[0]?.msg,
-                          chatHistory[0]?.updated_at
-                        );
+                        handleOnSpeaking(chatHistory[0]?.msg, chatHistory[0]?.updated_at)
                       }}
                       isAnyPlaying={!!hasOverRideId || isTalking}
                       isPlaying={hasOverRideId === chatHistory[0]?.updated_at}
@@ -3606,35 +2873,24 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
               )}
             </>
           )}
-          {(isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading &&
-            !isLoading && !isPdfDownloading && storyData?.id !== '' && !(
-              [sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken
-            )) && (
+          {isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading && !isLoading && !isPdfDownloading && storyData?.id !== "" && !([sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken) && (
             <>
-              {!([sessionFlowName.ListeningActivity].includes(storageFlow))&&
-                <div className="div13" >
-                  <ChatMessage 
+              {![sessionFlowName.ListeningActivity].includes(storageFlow) && (
+                <div className="div13">
+                  <ChatMessage
                     botNameToDisplay={botNameToDisplay}
                     userType="bot"
-                    message={
-                      (() => {
-                        const flow = storageFlow;
-                        return flow && [sessionFlowName.GuestMiStory].includes(flow)
-                          ? t('evidenceStory')
-                          : t('evidence');
-                      })()
-                    }
+                    message={(() => {
+                      const flow = storageFlow
+                      return flow && [sessionFlowName.GuestMiStory].includes(flow) ? t("evidenceStory") : t("evidence")
+                    })()}
                     isTalking={false}
                     handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                    handleOnSpeaking={() =>{
-                      const flow = storageFlow;
-                      const message_to_use = flow && [sessionFlowName.GuestMiStory].includes(flow)
-                        ? t('evidenceStory')
-                        : t('evidence');
-                      handleOnSpeaking(message_to_use, "upload-img-id",
-                        {msg: message_to_use, updated_at: "upload-img-id", source:"bot"}
-                      )}
-                    }
+                    handleOnSpeaking={() => {
+                      const flow = storageFlow
+                      const message_to_use = flow && [sessionFlowName.GuestMiStory].includes(flow) ? t("evidenceStory") : t("evidence")
+                      handleOnSpeaking(message_to_use, "upload-img-id", { msg: message_to_use, updated_at: "upload-img-id", source: "bot" })
+                    }}
                     isAnyPlaying={!!hasOverRideId || isTalking}
                     isPlaying={hasOverRideId === "upload-img-id"}
                     isStreamingComplete={isStreamingComplete}
@@ -3645,106 +2901,74 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   <div className="div14">
                     <label className="clickable-label" htmlFor="file-upload">
                       <GrGallery className="icon-1" />
-                      <span className="div16">
-                        {t('upload')}
-                      </span>
-                      <input 
+                      <span className="div16">{t("upload")}</span>
+                      <input
                         id="file-upload"
-                        type="file" 
-                        accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic" 
+                        type="file"
+                        accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic"
                         // multiple
-                        onChange={(e) => {
-                          setIsLoading(true);
+                        onChange={e => {
+                          setIsLoading(true)
                           handleMultipleUploads(e, storyData)
                         }}
-                        onClick={(e) => {
+                        onClick={e => {
                           if (files?.length >= 10) {
-                            setFileErrorText(fileExceedText);
+                            setFileErrorText(fileExceedText)
                           } else {
-                            setFileErrorText('');
+                            setFileErrorText("")
                           }
                         }}
-                        disabled={isLoading || isImageUploading || (fileErrorText !== '' && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
+                        disabled={isLoading || isImageUploading || (fileErrorText !== "" && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
                         className="div17"
                       />
                     </label>
                   </div>
-                  
+
                   <div className="div18">
-                        <p className="li-message">
-                          {t('photosLimitMsg')}
-                        </p>
-                      </div>
+                    <p className="li-message">{t("photosLimitMsg")}</p>
+                  </div>
                   <>
-                    {isImageUploading && (  
+                    {isImageUploading && (
                       <div className="div18">
-                        <p className="li-3">
-                          {t('uploadLoadMsg')}
-                        </p>
+                        <p className="li-3">{t("uploadLoadMsg")}</p>
                       </div>
                     )}
                   </>
                   {files?.length > 0 ? (
                     <div className="div18">
-                      <h4 className="h4-1">{t('uploadedFiles')}:</h4>
+                      <h4 className="h4-1">{t("uploadedFiles")}:</h4>
                       <ul>
-                        {fileErrorText && (
-                          <li className="li-1">
-                            {fileErrorText}
-                          </li>
-                        )}
+                        {fileErrorText && <li className="li-1">{fileErrorText}</li>}
                         {files.map((file, index) => (
                           <li key={index} className="li-2">
                             {file.name.slice(0, 20)}
-                            {file.name.length > 20 && '...'} 
-                            <button 
-                              className="button-1" 
-                              onClick={() => partialUpdateMedia(file?.id, false, setIsLoading)}
-                            >
+                            {file.name.length > 20 && "..."}
+                            <button className="button-1" onClick={() => partialUpdateMedia(file?.id, false, setIsLoading)}>
                               <RxCross2 />
                             </button>
                           </li>
                         ))}
                       </ul>
                     </div>
-                  ):
-                  (<div className="div18">
-                      <ul>
-                        {fileErrorText && (
-                          <li className="li-1">
-                            {fileErrorText}
-                          </li>
-                        )}
-                      </ul>
-                    </div>)
-                  }
-
+                  ) : (
+                    <div className="div18">
+                      <ul>{fileErrorText && <li className="li-1">{fileErrorText}</li>}</ul>
+                    </div>
+                  )}
                 </div>
-              }
+              )}
 
               <div className="div19">
-                <ChatMessage 
+                <ChatMessage
                   botNameToDisplay={botNameToDisplay}
                   userType="bot"
-                  message={
-                    (storageFlow && 
-                      [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow)
-                    )?
-                    t('reportText') : (storageFlow && 
-                      [sessionFlowName.ListeningActivity].includes(storageFlow)
-                    ) ? t('reportFeedbackText'): t('storyText')
-                  }
+                  message={storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")}
                   isTalking={false}
                   handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                  handleOnSpeaking={(message, updatedAt, staticMessage) =>{
-                    const message_to_use = (storageFlow && 
-                    [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow)
-                  )?
-                  t('reportText') : (storageFlow && !accessToken) ? t('reportFeedbackText'): t('storyText')
-                    handleOnSpeaking(message_to_use, "download-story-id",
-                      {msg: message_to_use, updated_at: "download-story-id", source:"bot"}
-                    )}
-                  }
+                  handleOnSpeaking={(message, updatedAt, staticMessage) => {
+                    const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && !accessToken ? t("reportFeedbackText") : t("storyText")
+                    handleOnSpeaking(message_to_use, "download-story-id", { msg: message_to_use, updated_at: "download-story-id", source: "bot" })
+                  }}
                   isAnyPlaying={!!hasOverRideId || isTalking}
                   isPlaying={hasOverRideId === "download-story-id"}
                   isStreamingComplete={isStreamingComplete}
@@ -3752,101 +2976,86 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
                   chatId={"download-story-id"}
                   isStaticMessage={true}
                 />
-                {(!projectId) && <div className="div20">
-                  <button
-                    className="clickable-button"
-                    onClick={()=>{
-                      if (sessionId) {
-                        pdfDownloadSidebar(sessionId);
-                      }
-                    }}
-                    disabled={isLoading || isPdfDownloading}
-                  >
-                    <div className="download-story-div">
-                      <FiDownload className="icon-1" />
-                      <span className="div16" ref={endPageToScrollRef}>
-                        {(storageFlow && !accessToken) ?
-                          t('downloadReportText') : t('downloadStoryText')
-                        }
-                      </span>
-                    </div>
-                  </button>
-
-                      {triggerDownload &&
-                        isPdfDownloading &&
-                        !isLoading &&
-                        downloadPdf()}
-                    </div>
-                  }
+                {!projectId && (
                   <div className="div20">
                     <button
                       className="clickable-button"
-                      onClick={openModal}
+                      onClick={() => {
+                        if (sessionId) {
+                          pdfDownloadSidebar(sessionId)
+                        }
+                      }}
                       disabled={isLoading || isPdfDownloading}
                     >
                       <div className="download-story-div">
-                        <MdEdit className="icon-1" />
+                        <FiDownload className="icon-1" />
                         <span className="div16" ref={endPageToScrollRef}>
-                          {(storageFlow && !accessToken) ?
-                            t('editReportText') : t('editStoryText')
-                          }
+                          {storageFlow && !accessToken ? t("downloadReportText") : t("downloadStoryText")}
+                        </span>
+                      </div>
+                    </button>
+
+                    {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
+                  </div>
+                )}
+                <div className="div20">
+                  <button className="clickable-button" onClick={openModal} disabled={isLoading || isPdfDownloading}>
+                    <div className="download-story-div">
+                      <MdEdit className="icon-1" />
+                      <span className="div16" ref={endPageToScrollRef}>
+                        {storageFlow && !accessToken ? t("editReportText") : t("editStoryText")}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+                {projectId && (
+                  <div className="div20">
+                    <button
+                      className="clickable-button"
+                      onClick={async () => {
+                        if (projectId) {
+                          setIsLoading(true)
+                          await updateReflectionStatusApi(projectId)
+                        } else {
+                          window.location.reload()
+                        }
+                      }}
+                      disabled={isLoading || isPdfDownloading}
+                    >
+                      <div className="download-story-div">
+                        <AiOutlineEye className="icon-1" />
+                        <span className="div16" ref={endPageToScrollRef}>
+                          {t("viewStoryText")}
                         </span>
                       </div>
                     </button>
                   </div>
-                  {projectId && (
-                    <div className="div20">
-                      <button
-                        className="clickable-button"
-                        onClick={async () => {
-                          if (projectId) {
-                            setIsLoading(true);
-                            await updateReflectionStatusApi(projectId);
-                          } else {
-                            window.location.reload();
-                          }
-                        }}
-                        disabled={isLoading || isPdfDownloading}
-                      >
-                        <div className="download-story-div">
-                          <AiOutlineEye className="icon-1" />
-                          <span className="div16" ref={endPageToScrollRef}>
-                            {t("viewStoryText")}
-                          </span>
-                        </div>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
+                )}
+              </div>
+            </>
+          )}
           {llmError && llmError !== "" && (
             <>
-                <p className="error-para">{llmError}</p>
-                <div className="div20">
-                  <button
-                    className="clickable-button"
-                    onClick={async ()=>{
-                        setIsLoading(true);
-                        setIsEndStoryLoading(true);
-                        await callEndStory(true);
-                    }}
-                    disabled={isLoading || isPdfDownloading}
-                  >
-                    <div className="download-story-div">
-                      <TbReload className="icon-1" />
-                      <span className="div16" ref={endPageToScrollRef}>
-                      {(storageFlow && !accessToken) ?
-                          t('reDownloadReportText') : t('reDownloadStoryText')
-                      }
-                      </span>
-                    </div>
-                  </button>
+              <p className="error-para">{llmError}</p>
+              <div className="div20">
+                <button
+                  className="clickable-button"
+                  onClick={async () => {
+                    setIsLoading(true)
+                    setIsEndStoryLoading(true)
+                    await callEndStory(true)
+                  }}
+                  disabled={isLoading || isPdfDownloading}
+                >
+                  <div className="download-story-div">
+                    <TbReload className="icon-1" />
+                    <span className="div16" ref={endPageToScrollRef}>
+                      {storageFlow && !accessToken ? t("reDownloadReportText") : t("reDownloadStoryText")}
+                    </span>
+                  </div>
+                </button>
 
-                {triggerDownload &&
-                  isPdfDownloading &&
-                  !isLoading &&
-                  downloadPdf()}
+                {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
               </div>
             </>
           )}
@@ -3854,142 +3063,94 @@ const ShikshalokamVoiceBasedChat = ({ type="", variant="" }) => {
         </div>
         <Notification />
 
-        {(!showFileInput || showFileInput === null) &&
-          !isLoading &&
-          !isEndStoryLoading &&
-          (llmError === "" || !llmError) &&
-          Array.isArray(chatHistory) &&
-          chatHistory.some((item) => item && Object.keys(item).length > 0) && (
-            <form
-              className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
-              onSubmit={(event) => {
-                if (!hasStartedListening && !isFetchingData) {
-                  handleSendMessage(event);
-                }
-              }}
-              autoComplete="off"
-            >
-              <div className="textarea-wrapper relative">
-                <textarea
-                  id="textBoxID"
-                  className={`input-2 input-1 ${
-                    isFetchingData ? "min-h-[68px] sm:min-h-0 py-0" : ""
-                  }`}
-                  style={{ alignContent: isFetchingData ? "normal" : "center" }}
-                  onChange={handleOnInputText}
-                  placeholder={
-                    hasStartedRecording
-                      ? t("placeholder1")
-                      : isFetchingData
-                      ? t("placeholder2")
-                      : t("placeholder3")
+        {(!showFileInput || showFileInput === null) && !isLoading && !isEndStoryLoading && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
+          <form
+            className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
+            onSubmit={event => {
+              if (!hasStartedListening && !isFetchingData) {
+                handleSendMessage(event)
+              }
+            }}
+            autoComplete="off"
+          >
+            <div className="textarea-wrapper relative">
+              <textarea
+                id="textBoxID"
+                className={`input-2 input-1 ${isFetchingData ? "min-h-[68px] sm:min-h-0 py-0" : ""}`}
+                style={{ alignContent: isFetchingData ? "normal" : "center" }}
+                onChange={handleOnInputText}
+                placeholder={hasStartedRecording ? t("placeholder1") : isFetchingData ? t("placeholder2") : t("placeholder3")}
+                name="message-box"
+                value={textMessage}
+                autoFocus={false}
+                disabled={hasStartedRecording || isFetchingData}
+                ref={textAreaRef}
+                onInput={e => {
+                  e.target.style.height = "auto"
+                  const maxHeight = 150
+                  if (e.target.scrollHeight > maxHeight) {
+                    e.target.style.height = `${maxHeight}px`
+                    e.target.style.overflowY = "scroll"
+                  } else {
+                    e.target.style.height = `${e.target.scrollHeight}px`
+                    e.target.style.overflowY = "hidden"
                   }
-                  name="message-box"
-                  value={textMessage}
-                  autoFocus={false}
-                  disabled={hasStartedRecording || isFetchingData}
-                  ref={textAreaRef}
-                  onInput={(e) => {
-                    e.target.style.height = "auto";
-                    const maxHeight = 150;
-                    if (e.target.scrollHeight > maxHeight) {
-                      e.target.style.height = `${maxHeight}px`;
-                      e.target.style.overflowY = "scroll";
+                }}
+                onFocus={() => {
+                  setTimeout(() => {
+                    handleScrollToView()
+                    if (textAreaRef.current) {
+                      textAreaRef.current.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      })
+                    }
+                  }, 300)
+                }}
+                onKeyDown={e => {
+                  if (e.key === "Enter") {
+                    if (e.shiftKey) {
+                      e.preventDefault()
+                      e.target.form.requestSubmit()
+                      setTimeout(() => {
+                        e.target.value = ""
+                      }, 0)
                     } else {
-                      e.target.style.height = `${e.target.scrollHeight}px`;
-                      e.target.style.overflowY = "hidden";
                     }
-                  }}
-                  onFocus={() => {
-                    setTimeout(() => {
-                      handleScrollToView();
-                      if (textAreaRef.current) {
-                        textAreaRef.current.scrollIntoView({
-                          behavior: "smooth",
-                          block: "center",
-                        });
-                      }
-                    }, 300);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      if (e.shiftKey) {
-                        e.preventDefault();
-                        e.target.form.requestSubmit();
-                        setTimeout(() => {
-                          e.target.value = "";
-                        }, 0);
-                      } else {
-                      }
-                    }
-                  }}
-                />
-                {hasStartedRecording && (
-                  <div className="absolute bottom-3 right-3 flex items-center space-x-1 text-red-600 text-sm font-medium pointer-events-none">
-                    <FaCircle className="text-red-500 animate-pulse text-xs" />
-                    <span>{formatTime(seconds)}</span>
-                  </div>
-                )}
-              </div>
-              {isTyping && !hasStartedListening && !isFetchingData ? (
-                <div className="button-container">
-                  <button
-                    type="submit"
-                    disabled={hasStartedRecording || isFetchingData}
-                    className="button-6 sm:ml-[1.3rem] ml-[0.8rem]"
-                  >
-                    <MdSend />
-                  </button>
-                </div>
-              ) : (
-                <div
-                  className={`audio-recorder ${
-                    isFetchingData ? "button-container" : ""
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={
-                      hasStartedRecording ? stopRecording : startRecording
-                    }
-                    disabled={isFetchingData}
-                    className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${
-                      hasStartedRecording ? "button-8" : "button-9"
-                    }`}
-                  >
-                    {hasStartedRecording ? (
-                      <FaRegStopCircle />
-                    ) : (
-                      <FaMicrophone />
-                    )}
-                  </button>
+                  }
+                }}
+              />
+              {hasStartedRecording && (
+                <div className="absolute bottom-3 right-3 flex items-center space-x-1 text-red-600 text-sm font-medium pointer-events-none">
+                  <FaCircle className="text-red-500 animate-pulse text-xs" />
+                  <span>{formatTime(seconds)}</span>
                 </div>
               )}
-            </form>
-          )}
+            </div>
+            {isTyping && !hasStartedListening && !isFetchingData ? (
+              <div className="button-container">
+                <button type="submit" disabled={hasStartedRecording || isFetchingData} className="button-6 sm:ml-[1.3rem] ml-[0.8rem]">
+                  <MdSend />
+                </button>
+              </div>
+            ) : (
+              <div className={`audio-recorder ${isFetchingData ? "button-container" : ""}`}>
+                <button type="button" onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData} className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${hasStartedRecording ? "button-8" : "button-9"}`}>
+                  {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
+                </button>
+              </div>
+            )}
+          </form>
+        )}
       </div>
     </>
-  );
-};
+  )
+}
 
-export default ShikshalokamVoiceBasedChat;
+export default ShikshalokamVoiceBasedChat
 
-function ChatMessage({
-  userType,
-  message,
-  name,
-  recording,
-  handleOnSpeaking,
-  handleOnStopSpeaking,
-  isPlaying,
-  botNameToDisplay,
-  isStreamingComplete,
-  setNotMute,
-  chat,
-  staticMessage,
-  chatId,
-}) {
-  let sanitizedContent = DOMPurify.sanitize(message);
+function ChatMessage({ userType, message, name, recording, handleOnSpeaking, handleOnStopSpeaking, isPlaying, botNameToDisplay, isStreamingComplete, setNotMute, chat, staticMessage, chatId }) {
+  let sanitizedContent = DOMPurify.sanitize(message)
   return (
     <div className="div41">
       {userType === "bot" && (
@@ -4000,24 +3161,15 @@ function ChatMessage({
           <div className="div46">
             {userType === "bot" ? (
               isPlaying ? (
-                <button
-                  className={`button-10 button-3`}
-                  onClick={handleOnStopSpeaking}
-                  disabled={!isStreamingComplete}
-                >
+                <button className={`button-10 button-3`} onClick={handleOnStopSpeaking} disabled={!isStreamingComplete}>
                   <HiMiniSpeakerWave />
                 </button>
               ) : (
                 <button
                   className={`button-11 button-3`}
                   onClick={() => {
-                    setNotMute(false);
-                    handleOnSpeaking(
-                      message,
-                      chat?.updated_at,
-                      staticMessage,
-                      true
-                    );
+                    setNotMute(false)
+                    handleOnSpeaking(message, chat?.updated_at, staticMessage, true)
                   }}
                   disabled={!isStreamingComplete}
                 >
@@ -4039,89 +3191,75 @@ function ChatMessage({
         </div>
         {!!message && !!recording && (
           <div className={` ${userType === "bot" ? "div53" : "div54"} div50`}>
-            <WaveSurferPlayer
-              url={recording?.result}
-              {...default_wave_surfer_config}
-            />
+            <WaveSurferPlayer url={recording?.result} {...default_wave_surfer_config} />
           </div>
         )}
-        <div
-          className={` ${
-            userType === "bot" ? "div53" : "div54"
-          } div52 custom-voice-chat-chats`}
-          id={chatId}
-        >
-          <ReactMarkdown
-            children={sanitizedContent}
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
-            className="prose max-w-none"
-          />
+        <div className={` ${userType === "bot" ? "div53" : "div54"} div52 custom-voice-chat-chats`} id={chatId}>
+          <ReactMarkdown children={sanitizedContent} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} className="prose max-w-none" />
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 const uploadImage = (formData, setError, navigate, setIsLoading, setFiles) => {
-  const accessToken = useUserDataLocalStore.getState().getAccessToken();
+  const accessToken = useUserDataLocalStore.getState().getAccessToken()
   return new Promise((resolve, reject) => {
     try {
       createStoryMedia({
-        setter: (uploadedFile) => {
-          setFiles((prevFiles) => [...prevFiles, uploadedFile]);
+        setter: uploadedFile => {
+          setFiles(prevFiles => [...prevFiles, uploadedFile])
         },
-        errorHandler: (err) => {
-          if (accessToken){
-            clearFromStorage();
-            navigate(-1);
+        errorHandler: err => {
+          if (accessToken) {
+            clearFromStorage()
+            navigate(-1)
           }
-          setError(err);
-          setIsLoading(false);
-          reject(err);
+          setError(err)
+          setIsLoading(false)
+          reject(err)
         },
         data: formData,
         loader: setIsLoading,
         token: accessToken,
-      });
+      })
     } catch (error) {
-      console.error({ error });
-      if (accessToken){
+      console.error({ error })
+      if (accessToken) {
         clearFromStorage()
         navigate(-1)
-
       }
-      setIsLoading(false);
-      reject(error);
+      setIsLoading(false)
+      reject(error)
     }
-  });
-};
+  })
+}
 
-export const partialUpdateMedia = (partialUpdateId, include_in_story=false, setIsLoading, setFiles) => {
+export const partialUpdateMedia = (partialUpdateId, include_in_story = false, setIsLoading, setFiles) => {
   try {
-    const formData = new FormData();
-    const accessToken = useUserDataLocalStore.getState().getAccessToken();
-    const sessionId = getStorageSlice(STORE_NAME_CONSTANTS.CHAT_DATA).getState().getSessionId();
-    const storageFlow = getStorageSlice(STORE_NAME_CONSTANTS.CHAT_DATA).getState().getFlow();
+    const formData = new FormData()
+    const accessToken = useUserDataLocalStore.getState().getAccessToken()
+    const sessionId = getStorageSlice(STORE_NAME_CONSTANTS.CHAT_DATA, null, accessToken).getState().getSessionId()
+    const storageFlow = getStorageSlice(STORE_NAME_CONSTANTS.CHAT_DATA, null, accessToken).getState().getFlow()
 
-    formData.append('include_in_story', include_in_story);
-    formData.append('flow',storageFlow);
-    formData.append('access_token', accessToken);
-    formData.append('session', sessionId);
+    formData.append("include_in_story", include_in_story)
+    formData.append("flow", storageFlow)
+    formData.append("access_token", accessToken)
+    formData.append("session", sessionId)
 
     createAuthRequest({
       setter: () => {
-        window.location.reload();
+        window.location.reload()
       },
       loader: setIsLoading,
       data: formData,
       token: accessToken,
-      method: 'PATCH',
+      method: "PATCH",
       url: `/api/storymedia/${partialUpdateId}/`,
-    });
+    })
   } catch (error) {
     console.error({
       error,
-    });
+    })
   }
-};
+}

@@ -4,6 +4,7 @@ import { useUserPreferenceLocalStore, useUserPreferenceSessionStore } from 'stor
 import { STORAGE_TYPES } from "store/middleware/storage/storageFactory";
 import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
 import { SLICES_STORE_MAP } from "../store";
+import { useEffect } from "react";
 
 export const setInStorage = (key, value, currentFlow, storageName='') => {
 
@@ -257,6 +258,7 @@ export const handleS3Upload = async (file, fileName, folderStructure, storyData,
   }
   return '';
 };
+
 
 export function clearFromStorage(removeFromAll=false, excludeKeys = []) {
   try{
