@@ -32,6 +32,7 @@ import { useStorage } from "hooks/useStorage"
 import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useChatDataLocalStore } from "store"
 import { useSiteDataLocalStore } from "store"
+import ROUTES from "../../url"
 
 const UnifiedVoiceBasedChat = ({ flowType }) => {
   // useState hooks
@@ -472,7 +473,8 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
             if (previousUrl && previousUrl !== null && previousUrl !== undefined && previousUrl !== "") {
               window.location.href = previousUrl
             } else {
-              navigate(flowConfig.homePageRoute)
+              // navigate(flowConfig.homePageRoute)
+              window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
             }
           } else {
             resetChatState()
@@ -502,7 +504,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
         setLanguageToUse(languageList[0].value)
         setLanguage(languageList[0].value)
         stopAllAudio()
-        navigate(flowConfig.homePageRoute)
+        window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
       }
     })
   }
