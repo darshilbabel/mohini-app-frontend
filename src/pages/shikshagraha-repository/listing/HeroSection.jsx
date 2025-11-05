@@ -8,7 +8,7 @@ export default function HeroSection() {
         <div>
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Shikshagraha Commons</h1>
           <p className="text-gray-600 text-sm">
-            A compendium of solutions shared for public use by the ShikshaGraha movement partners under Creative Commons License
+            A compendium of solutions shared for public use by the Shikshagraha movement partners under the Creative Commons Attribution Share-Alike license.
           </p>
         </div>
       
