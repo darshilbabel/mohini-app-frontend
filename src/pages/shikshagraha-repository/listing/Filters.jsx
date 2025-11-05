@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Search, X, XIcon } from "lucide-react";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
-import Select from "react-select";
+import Select, { components } from "react-select";
 import { useDebounce } from "react-use";
 import { useRef } from "react";
 
@@ -100,7 +100,7 @@ export default function Filters() {
   console.log("ref", ref.current);
   return (
     <div className="md:sticky top-0 z-50 flex flex-row items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
-      <div className="flex flex-wrap items-center p-0 gap-0 w-full">
+      <div className="flex flex-wrap items-center p-0 gap-3 w-full md:w-[75%]">
         {!!dropdown_meta?.length
           ? dropdown_meta?.map(({ label, options, key }, index) => (
               <React.Fragment key={`label-${label}-${index}`}>
@@ -125,7 +125,7 @@ export default function Filters() {
         )}
       </div>
 
-      <div className="flex justify-end ml-auto relative z-10 w-full">
+      <div className="flex justify-end ml-auto relative z-10 w-full md:w-[25%]">
         <div className="flex flex-col items-start max-w-[331px] w-full h-[53px]">
           {searchInput}
         </div>
@@ -134,8 +134,82 @@ export default function Filters() {
   );
 }
 
+const CustomMultiValue = (props) => {
+  const { index, getValue } = props;
+  const maxToShow = 2;
+  const selected = getValue();
+
+  if (index < maxToShow) {
+    return <components.MultiValue {...props} />;
+  }
+
+  if (index === maxToShow) {
+    const remaining = selected.length - maxToShow;
+    return (
+      <div className="flex items-center px-2 text-sm text-gray-600">
+        +{remaining} more
+      </div>
+    );
+  }
+
+  return null;
+};
+
+
+const CheckboxOption = (props) => {
+  return (
+    <components.Option {...props}>
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={props.isSelected}
+          readOnly
+          className="mr-2 accent-blue-500"
+        />
+        <label>{props.label}</label>
+      </div>
+    </components.Option>
+  );
+};
+
+const MenuList = (props) => {
+  const {
+    options,
+    value,
+    onChange,
+  } = props.selectProps;
+
+  const allSelected = value?.length === options?.length;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      onChange([], { action: "deselect-all" });
+    } else {
+      onChange(options, { action: "select-all" });
+    }
+  };
+
+  return (
+    <components.MenuList {...props}>
+      <div className="flex items-center px-3 py-2 border-b border-gray-200 bg-gray-50">
+        <input
+          type="checkbox"
+          checked={allSelected}
+          onChange={toggleSelectAll}
+          className="mr-2 accent-blue-500"
+        />
+        <label className="font-medium text-gray-700 cursor-pointer select-none">
+          {allSelected ? "Deselect All" : "Select All"}
+        </label>
+      </div>
+      {props.children}
+    </components.MenuList>
+  );
+};
+
+
 const DropdownSelect = ({ label, options, selected, onChange, ref }) => (
-  <div className={`relative  mr-4 p-1`}>
+  <div className="relative mr-4 p-1">
     <Select
       ref={ref}
       options={options.map((x) => ({ value: x.value, label: x.display }))}
@@ -144,42 +218,49 @@ const DropdownSelect = ({ label, options, selected, onChange, ref }) => (
       isMulti
       placeholder={label}
       closeMenuOnSelect={false}
+      hideSelectedOptions={false}
+      components={{
+        Option: CheckboxOption,
+        MenuList: MenuList,
+        MultiValue: CustomMultiValue,
+      }}
       styles={{
         control: (base) => ({
           ...base,
           border: "none",
           background: "rgb(82 82 91 / 1%)",
-
           boxShadow: "none",
-          "&:hover": {
-            border: "none",
-            boxShadow: "none",
-          },
-          "&:focus": {
-            border: "none",
-            boxShadow: "none",
-          },
+          minHeight: "40px",
+          "&:hover": { border: "none" },
         }),
-        indicatorSeparator: (base) => ({
-          color: "rgb(82 82 91 / 1%)",
-        }),
-        indicatorsContainer: (base) => ({}),
-        placeholder: (base) => ({
+        placeholder: (base) => ({ ...base, color: "#49454F" }),
+        valueContainer: (base) => ({
           ...base,
-          color: "#49454F",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "4px",
+          alignItems: "center",
+          padding: "2px 8px",
+        }),
+        multiValue: (base) => ({
+          ...base,
+          background: "white",
+          borderRadius: "6px",
+          display: "flex",
+          alignItems: "center",
         }),
         multiValueLabel: (base) => ({
           ...base,
           color: "black",
-          background: "white",
+          fontSize: "13px",
+          padding: "0 4px",
         }),
-        multiValue: (base) => ({
+        menu: (base) => ({
           ...base,
-          color: "black",
-          background: "white",
+          zIndex: 9999,
         }),
       }}
-      className="max-w-[200px] bg-gray-100 rounded-[12px] text-zinc-600 text-sm  border border-transparent focus:border-blue-500 focus:outline-none appearance-none"
+      className="max-w-[200px] bg-gray-100 rounded-[12px] text-zinc-600 text-sm"
     />
   </div>
 );
