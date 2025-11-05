@@ -2752,11 +2752,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           </div>
         </div>
       )}
-      {storyData &&
-        isModalOpen &&
-        (() => {
-          return isSpecialFlow && accessToken ? defaultEditorClick(storyData?.title, firstName, storyData?.location) : <ReportEditor onClose={closeModal} onSave={onEditorSave} disabled={isLoading || isSaving} />
-        })()}
+      {storyData && isModalOpen && isSpecialFlow && accessToken ? defaultEditorClick(storyData?.title, firstName, storyData?.location) : <ReportEditor onClose={closeModal} onSave={onEditorSave} disabled={isLoading || isSaving} />}
       <div className={`${accessToken ? "div72" : isOpen ? "div71" : ""}`}>
         {shouldFetchChatSession && (
           <>

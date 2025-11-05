@@ -25,8 +25,6 @@ export const INITIAL_STATE = (set, get, store) => ({
 
   setHasAcceptedTnc: has_accepted_tnc => set({ has_accepted_tnc }),
 
-  setProfileid: profileid => set({ profileid }),
-
   setAccessToken: access_token => set({ access_token }),
 
   getAccessToken: () => get().access_token,
