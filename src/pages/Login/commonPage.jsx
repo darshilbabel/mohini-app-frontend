@@ -64,7 +64,7 @@ function CommonHomePage({ usecaseType }) {
   }, [chatLanguage])
 
   useEffect(() => {
-    if (!chatLanguage) return
+    if (!hasSelectedLanguage) return
     const ROUTE_MAP = {
       [SESSION_USECASE_TYPE.MEGA_PTM]: ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE,
       [SESSION_USECASE_TYPE.YLC]: ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE,

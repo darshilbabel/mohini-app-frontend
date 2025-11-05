@@ -22,6 +22,7 @@ const API_ENDPOINTS = {
   STORY: "/api/story/",
   STORY_MEDIA: "/api/storymedia/",
   GET_COMPANY_BOT: "/api/companybot/",
-};
+  GET_STORY: "/api/get-story",
+}
 
-export default API_ENDPOINTS;
+export default API_ENDPOINTS

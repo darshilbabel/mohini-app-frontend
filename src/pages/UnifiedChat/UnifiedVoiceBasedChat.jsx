@@ -33,6 +33,7 @@ import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useChatDataLocalStore } from "store"
 import { useSiteDataLocalStore } from "store"
 import ROUTES from "../../url"
+import { getStoryBySessionAPI } from "api/endpoints"
 
 const UnifiedVoiceBasedChat = ({ flowType }) => {
   // useState hooks
@@ -144,7 +145,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   useEffect(() => {
     if (sessionId) {
       ;(async () => {
-        const story_data = await getStoryBySession(sessionId)
+        const story_data = await getStoryBySessionAPI(sessionId)
         if (story_data && story_data?.length > 0 && story_data[0]) {
           setStoryData(story_data[0])
           const formatted_content = story_data[0].formatted_content
@@ -510,12 +511,6 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   }
 
   // Fetch story data when all questions are completed
-  const getStoryBySession = async sessionID => {
-    const res = await axiosInstance({
-      url: `api/get-story/?session=${sessionID}`,
-    })
-    return res?.data?.results
-  }
 
   const extractTextBlocks = formattedContent => {
     if (!formattedContent) return []
@@ -566,7 +561,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
         setLlmError("")
 
         // Fetch the generated story
-        const story_data = await getStoryBySession(sessionId)
+        const story_data = await getStoryBySessionAPI(sessionId)
         if (story_data && story_data?.length > 0 && story_data[0]) {
           setStoryData(story_data[0])
           const formatted_content = story_data[0].formatted_content

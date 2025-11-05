@@ -56,12 +56,13 @@ import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord"
 import WaveSurferPlayer from "../interview-text-voice/voice-player"
 import ReportEditor from "components/ReportEditor"
+import { getStoryBySessionAPI } from "api/endpoints"
 
 const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
-// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-const wss_protocol = "wss://"
+const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
+// const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
@@ -1185,7 +1186,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (!sessionId) return
 
     async function fetchStory() {
-      const story_data = await getStoryBySession(sessionId, accessToken)
+      const story_data = await getStoryBySessionAPI(sessionId, accessToken)
       if (story_data && story_data?.length > 0 && story_data[0]) {
         setStoryData(story_data[0])
         const formatted_content = story_data[0].formatted_content
@@ -2066,14 +2067,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     window.location.reload()
   }
 
-  async function getStoryBySession(sessionID) {
-    const res = await axiosInstance({
-      url: `api/get-story/?session=${sessionID}`,
-    })
-
-    return res?.data?.results
-  }
-
   function extractTextBlocks(formattedContent) {
     if (!formattedContent) return []
     const blocks = JSON.parse(formattedContent)
@@ -2168,7 +2161,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       setIsLoading(true)
       setIsPdfDownloading(true)
 
-      const story = await getStoryBySession(sessionid, accessToken)
+      const story = await getStoryBySessionAPI(sessionid, accessToken)
 
       const story_media = story[0]?.story_media
       const pdfMedia = story_media?.filter(media => media.media_type === "application/pdf") || []
