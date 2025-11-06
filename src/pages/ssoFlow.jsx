@@ -22,8 +22,8 @@ function SsoFlow() {
 
   const { sessionId } = useChatDataLocalStore()
   const { setChatLanguage, setHasSelectedLanguage, setSsoRerouteURL } = useSiteDataLocalStore.getState()
-  const { setSessionId, setIsNewChatOpen, setProjectId, setTaskId } = useChatDataLocalStore.getState()
-  const { setFirstName, setCompanyName, setState, setFlow, setAcceptedTnC, setAccessToken, setProfileId } = useUserDataLocalStore.getState()
+  const { setFlow, setSessionId, setIsNewChatOpen, setProjectId, setTaskId } = useChatDataLocalStore.getState()
+  const { setFirstName, setCompanyName, setState, setAcceptedTnC, setAccessToken, setProfileId } = useUserDataLocalStore.getState()
 
   // useEffect(() => {
   //   clearFromStorage();
@@ -61,7 +61,7 @@ function SsoFlow() {
               }
             }
 
-            clearFromStorage(true)
+            clearFromStorage()
             setLanguage(LANGUAGE_ENUMS.ENGLISH)
             setChatLanguage(LANGUAGE_ENUMS.ENGLISH)
             if (sessionId && sessionId !== "" && sessionId !== "null") {
