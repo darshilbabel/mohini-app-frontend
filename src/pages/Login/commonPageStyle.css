@@ -1,0 +1,26 @@
+.speaker-off-button {
+    font-weight: 700 !important;
+}
+
+.speaker-div {
+    vertical-align: middle;
+    font-size: 1.2rem;
+}
+
+@media screen and (min-width: 992px) {
+    .flow-button-custom{
+        gap: 24px;
+    }
+}
+
+@media screen and (min-width: 769px) and (max-width: 991px) {
+    .flow-button-custom{
+        gap: 12px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .flow-button-custom{
+        gap: 8px;
+    }
+}

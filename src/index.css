@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.top-to-btm{
+    position: relative;
+  }
+  .icon-position{
+    position: fixed;
+    bottom: 150px;
+    right: 25px;
+    z-index: 20;
+  }
+  .btm-icon-position{
+    position: fixed;
+    top: 60px;
+    right: 25px;
+    z-index: 20;
+  }
+  .icon-style{
+    background-color: #551B54;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    height: 50px;
+    width: 50px;
+    color: #fff;
+    cursor: pointer;
+    animation: movebtn 3s ease-in-out infinite;
+    transition: all .5s ease-in-out;
+  }
+  .icon-style:hover{
+    animation: none;
+    background: #fff;
+    color: #551B54;
+    border: 2px solid #551B54;
+  }
+  
+  @keyframes movebtn {
+    0%{
+      transform: translateY(0px);
+    }
+    25%{
+      transform: translateY(20px);
+    }
+    50%{
+      transform: translateY(0px);
+    }
+    75%{
+      transform: translateY(-20px);
+    }
+    100%{
+      transform: translateY(0px);
+    }
+  }
+
+  :root {
+    --rt-color-white: #fff;
+    --rt-color-dark: #222;
+    --rt-color-success: #8dc572;
+    --rt-color-error: #be6464;
+    --rt-color-warning: #f0ad4e;
+    --rt-color-info: #337ab7;
+    --rt-opacity: 1;
+    --rt-transition-show-delay: 0.15s;
+    --rt-transition-closing-delay: 0.15s;
+  }
+
+  .rotate-loader {
+    animation: rotate 1s linear infinite;
+  }
+  
+  @keyframes rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+@media screen and (min-width: 992px) {
+  #scrollableDiv::-webkit-scrollbar {
+    width: 5px;
+    position: absolute;
+    left: 0;
+  }
+  
+  #scrollableDiv::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #scrollableDiv:hover::-webkit-scrollbar-track {
+    background: #b5b7b7;
+  }
+  
+  #scrollableDiv::-webkit-scrollbar-thumb {
+    background: transparent; 
+  }
+  
+  #scrollableDiv:hover::-webkit-scrollbar-thumb {
+    background: #4192a6;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 991px) {
+  #scrollableDiv::-webkit-scrollbar {
+    width: 5px;
+    position: absolute;
+    left: 0;
+  }
+  
+  #scrollableDiv::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #scrollableDiv:hover::-webkit-scrollbar-track {
+    background: #b5b7b7;
+  }
+  
+  #scrollableDiv::-webkit-scrollbar-thumb {
+    background: transparent; 
+  }
+  
+  #scrollableDiv:hover::-webkit-scrollbar-thumb {
+    background: #4192a6;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  #scrollableDiv::-webkit-scrollbar {
+    width: 10px;
+    position: absolute;
+    left: 0;
+  }
+  
+  #scrollableDiv::-webkit-scrollbar-track {
+    background: #b5b7b7;
+  }
+
+  #scrollableDiv::-webkit-scrollbar-thumb {
+    background: #4192a6;
+  }
+  
+}

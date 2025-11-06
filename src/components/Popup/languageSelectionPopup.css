@@ -1,0 +1,145 @@
+/* Base styles */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+    --primary-font-family: "Manrope", sans-serif;
+    --secondary-font-family: "Urbanist", sans-serif;
+}
+
+body {
+    margin: 0;
+    /* font-family: Arial, sans-serif; */
+}
+
+.language-select-container {
+    width: 100%;
+}
+
+.language-select-content {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    padding: 10px 10px 40px 10px;
+}
+
+.language-select-text {
+    font-size: 16px;
+    color: #333;
+    line-height: 1.5;
+    text-align: justify;
+}
+
+.language-select-buttons {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: #ffffff;
+    border-top: 1px solid #ddd;
+
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: #ffffff;
+    border-top: 1px solid #ddd;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+.language-select-button {
+    flex: 1;
+    margin: 0 5px;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+
+}
+
+.language-select-button.accept {
+    background-color: #28a798;
+    color: white;
+}
+
+.language-select-button.decline {
+    background-color: #dc3545;
+    color: white;
+}
+  
+@media (max-width: 768px) {
+    .language-select-container {
+        width: 100%;
+        position: fixed;
+        z-index: 1000;
+        overflow: hidden;
+        height: 100%;
+        background-color: #fffbfbdb;
+    }
+
+    .language-select-content {
+        flex: 1;
+        overflow-y: auto;
+        background-color: #ffffff00;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        height: 100%;
+        padding: 10px 10px 40px 10px;
+    }
+
+    .language-select-bg {
+        font-family: var(--secondary-font-family);
+    }
+
+    
+}
+  
+@media (min-width: 769px) {
+
+    .language-select-bg {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        position: absolute;
+        z-index: 1000;
+        font-family: var(--secondary-font-family);
+    }
+
+    .language-select-cover {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 999;
+        overflow: hidden;
+        background: rgba(255, 251, 251, 0);
+        backdrop-filter: blur(10px); 
+        -webkit-backdrop-filter: blur(10px); 
+    }
+
+    .language-select-container {
+        max-width: 551px;
+        width: 485px;
+        max-height: 100%;
+        border-radius: 7px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+    }
+  
+    .language-select-content {
+        max-height: calc(80vh - 60px);
+        overflow-y: auto;
+        height: 100%;
+        padding: 10px 10px 40px 10px;
+    }
+  
+    .language-select-buttons {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px;
+        background-color: #fff;
+        border-top: 1px solid #ddd;
+        position: sticky;
+        bottom: 0;
+    }
+}
