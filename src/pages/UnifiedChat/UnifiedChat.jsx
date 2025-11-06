@@ -4,22 +4,22 @@ import { languageList, sessionFlowName } from "../ShikshalokamVoiceChat/enum"
 import { useNavigate } from "react-router-dom"
 import { setLanguage } from "../../i18n"
 import { BiLoader } from "react-icons/bi"
+import { useSiteDataLocalStore } from "store"
 
 import UnifiedVoiceBasedChat from "./UnifiedVoiceBasedChat"
 import { getFlowConfig } from "../../config/flowConfig"
-import { useChatStorage, useStorage } from "hooks/useStorage"
-import { STORE_NAME_CONSTANTS } from "store/constants"
+import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 
 function UnifiedChat({ type }) {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const flowConfig = getFlowConfig(type)
 
-  const { setDeviceId, setProfileId, setHasAcceptedTnc } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState()
-  const { setSessionId, setFlow, setIsNewChatOpen } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState()
-  const chatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.chatLanguage)
-  const deviceId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.device_id)
-  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
+  const { setDeviceId, setProfileId, setHasAcceptedTnc } = useUserStorage().getState()
+  const { setSessionId, setFlow, setIsNewChatOpen } = useChatStorage().getState()
+  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const deviceId = useUserStorage()(state => state.device_id)
+  const storageFlow = useChatStorage()(state => state.flow)
   const sessionId = useChatStorage()(state => state.sessionId)
 
   function getUserFingerPrint() {

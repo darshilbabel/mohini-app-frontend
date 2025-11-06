@@ -9,34 +9,35 @@ import { clearFromStorage } from "../services/storage_service"
 import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat"
 import { loginApi } from "api/endpoints/auth"
 import { STORE_NAME_CONSTANTS } from "store/constants"
-import { useStorage } from "hooks/useStorage"
+import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import useUserDataLocalStore from "store/slices/userData/userDataLocal"
+import { useSiteDataLocalStore } from "store"
 
 function ShikshalokamChat({ type, variant }) {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
 
-  const { setFirstName } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState()
-  const chatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.chatLanguage)
-  const companyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.companyName)
-  const deviceId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.device_id)
-  const ipCity = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.ipCity)
-  const ipCountry = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.ipCountry)
-  const ipState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.ipState)
-  const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.sessionId)
-  const setCompanyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.setCompanyName)
-  const setDeviceId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.setDeviceId)
-  const setFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.setFlow)
-  const setHasAcceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.setHasAcceptedTnc)
-  const setIpCity = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.setIpCity)
-  const setIpCountry = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.setIpCountry)
-  const setIpState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.setIpState)
-  const setIsNewChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.setIsNewChatOpen)
-  const setProfileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.setProfileId)
-  const setSessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.setSessionId)
-  const setUserId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.setUserId)
-  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
-  const userId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.userId)
+  const { setFirstName } = useUserStorage().getState()
+  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const companyName = useUserStorage()(state => state.companyName)
+  const deviceId = useUserStorage()(state => state.device_id)
+  const ipCity = useUserStorage()(state => state.ipCity)
+  const ipCountry = useUserStorage()(state => state.ipCountry)
+  const ipState = useUserStorage()(state => state.ipState)
+  const sessionId = useChatStorage()(state => state.sessionId)
+  const setCompanyName = useUserStorage()(state => state.setCompanyName)
+  const setDeviceId = useUserStorage()(state => state.setDeviceId)
+  const setFlow = useChatStorage()(state => state.setFlow)
+  const setHasAcceptedTnc = useUserStorage()(state => state.setHasAcceptedTnc)
+  const setIpCity = useUserStorage()(state => state.setIpCity)
+  const setIpCountry = useUserStorage()(state => state.setIpCountry)
+  const setIpState = useUserStorage()(state => state.setIpState)
+  const setIsNewChatOpen = useChatStorage()(state => state.setIsNewChatOpen)
+  const setProfileId = useUserStorage()(state => state.setProfileId)
+  const setSessionId = useChatStorage()(state => state.setSessionId)
+  const setUserId = useUserStorage()(state => state.setUserId)
+  const storageFlow = useChatStorage()(state => state.flow)
+  const userId = useUserStorage()(state => state.userId)
 
   const accessToken = useUserDataLocalStore(state => state.access_token)
 

@@ -14,8 +14,9 @@ import Header from "../../components/Header"
 import FlowSelection from "../../components/FlowSelection"
 import LoadingSpinner from "../../components/LoadingSpinner"
 import ROUTES from "url"
-import { useStorage } from "hooks/useStorage"
+import { useChatStorage, useSiteStorage } from "hooks/useStorage"
 import { STORE_NAME_CONSTANTS } from "store/constants"
+import { useSiteDataLocalStore } from "store"
 
 // Styles
 import "../../components/custom-style.css"
@@ -27,17 +28,17 @@ function CommonHomePage({ usecaseType }) {
   const ylc_case = [SESSION_USECASE_TYPE.YLC].some(x => x === usecaseType)
 
   // Custom hooks
-  const chatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.chatLanguage)
-  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
-  const setFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.setFlow)
-  const hasSelectedLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.hasSelectedLanguage)
-  const setChatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.setChatLanguage)
+  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const storageFlow = useChatStorage()(state => state.flow)
+  const setFlow = useChatStorage()(state => state.setFlow)
+  const hasSelectedLanguage = useSiteDataLocalStore(state => state.hasSelectedLanguage)
+  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const { languageButtonSelect, handleLanguageChange } = useLanguage()
   const { audioRef, stopAudioTriggered, setStopAudioTriggered, stopAllAudio } = useAudio()
   const { isLoading, setIsLoading, handleFlowSelection } = useFlow(usecaseType)
 
   const navigate = useNavigate()
-  const setPreviousUrl = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.setPreviousUrl)
+  const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
 
   const [searchParams] = useSearchParams()
   const urlLanguage = useMemo(() => searchParams.get("language"), [searchParams])

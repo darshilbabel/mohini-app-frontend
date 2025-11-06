@@ -3,6 +3,7 @@ import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useNavigate } from "react-router-dom"
 import { useParams } from "react-router-dom"
 import { useState } from "react"
+import { useChatStorage } from "hooks/useStorage"
 import { useSiteStorage, useStorage } from "hooks/useStorage"
 import ROUTES from "../url"
 import useChatDataLocalStore from "store/slices/chatData/chatDataLocal"
@@ -12,12 +13,14 @@ export const useFlow = usecaseType => {
   const navigate = useNavigate()
   const { flow } = useParams()
   const [isLoading, setIsLoading] = useState(true)
-  const selectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
+  const selectedFlow = useChatStorage()(state => state.flow)
   const { setPreviousUrl } = useSiteStorage().getState()
 
   const handleFlowSelection = async stopAllAudio => {
     setIsLoading(true)
     await stopAllAudio()
+
+    // const flow = useChatDataSessionStore.getState().getFlow();
 
     let navigateUrl = undefined
     let replaceUrl = undefined

@@ -28,7 +28,7 @@ import Swal from "sweetalert2"
 import useCustomMediaQuery from "hooks/useCustomMediaQuery"
 import useSmartChatStorage from "hooks/useSmartChatStorage"
 import useVoiceRecord from "../interview-text-voice/useVoiceRecord"
-import { useStorage } from "hooks/useStorage"
+import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useChatDataLocalStore } from "store"
 import { useSiteDataLocalStore } from "store"
@@ -84,17 +84,17 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
 
   const accessToken = useChatDataLocalStore(state => state.accessToken)
 
-  const acceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.has_accepted_tnc)
-  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
-  const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.sessionId)
-  const profileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.profileId)
-  const previousUrl = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.previousUrl)
+  const acceptedTnc = useUserStorage()(state => state.has_accepted_tnc)
+  const storageFlow = useChatStorage()(state => state.flow)
+  const sessionId = useChatStorage()(state => state.sessionId)
+  const profileId = useUserStorage()(state => state.profileId)
+  const previousUrl = useSiteStorage()(state => state.previousUrl)
 
   const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
   const setLanguageToUse = useSiteDataLocalStore(state => state.setChatLanguage)
-  const { setIsNewChatOpen, setIsOldChatOpen, setSessionId, setChatBotClickedOn } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState()
+  const { setIsNewChatOpen, setIsOldChatOpen, setSessionId, setChatBotClickedOn } = useChatStorage().getState()
 
-  const { setAcceptedTnC } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState()
+  const { setAcceptedTnC } = useUserStorage().getState()
 
   // Other variable definitions
   // Get flow-specific configuration
@@ -105,6 +105,10 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const showCompletionPopup = flowConfig.showCompletionPopup !== false
   const botNameToDisplay = t("botName")
   let chatToAddLength = isMobile ? 10 : 10
+
+  const isReplying = !hasStartedListening && chatHistory[chatHistory?.length - 1]?.source === "user" && !(chatHistory[chatHistory.length - 1].sequence >= Object.keys(questions).length)
+
+  const allQuestionsCompleted = questionCounter.current === Object.keys(questions).length && chatHistory.length === Object.keys(questions).length * 2
 
   const formatTime = secs => {
     const minutes = Math.floor(secs / 60)
@@ -140,6 +144,10 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       window.removeEventListener("popstate", handleBack)
     }
   }, [])
+
+  useEffect(() => {
+    if (isReplying) handleScrollToView()
+  }, [isReplying])
 
   // Fetch story on mount to check if it already exists
   useEffect(() => {
@@ -844,10 +852,6 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const closeModal = () => {
     setIsModalOpen(false)
   }
-
-  const isReplying = !hasStartedListening && chatHistory[chatHistory?.length - 1]?.source === "user" && !(chatHistory[chatHistory.length - 1].sequence >= Object.keys(questions).length)
-
-  const allQuestionsCompleted = questionCounter.current === Object.keys(questions).length && chatHistory.length === Object.keys(questions).length * 2
 
   return (
     <>

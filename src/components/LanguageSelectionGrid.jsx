@@ -2,11 +2,12 @@
 import { useTranslation } from "react-i18next"
 import { languageList, sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { useLocation } from "react-router-dom"
-import { useStorage } from "hooks/useStorage"
+import { useChatStorage, useSiteStorage } from "hooks/useStorage"
 import { STORE_NAME_CONSTANTS } from "store/constants"
 import { SESSION_USECASE_TYPE } from "constants/session"
 import ROUTES from "../url"
 import { useNavigate } from "react-router-dom"
+import { useSiteDataLocalStore } from "store"
 
 const LanguageSelectionGrid = ({
   usecaseType,
@@ -17,9 +18,9 @@ const LanguageSelectionGrid = ({
   const location = useLocation()
   const navigate = useNavigate()
 
-  const setChatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.setChatLanguage)
-  const setHasSelectedLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.setHasSelectedLanguage)
-  const setFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.setFlow)
+  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
+  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
+  const setFlow = useChatStorage()(state => state.setFlow)
 
   const handleLanguageClick = langValue => {
     setChatLanguage(langValue)

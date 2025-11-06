@@ -1,27 +1,21 @@
 // components/FlowSelection.js
-import { FaArrowRightLong } from "react-icons/fa6";
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
-import { STORE_NAME_CONSTANTS } from "store/constants";
-import { useStorage } from "hooks/useStorage";
-import { useTranslation } from "react-i18next";
-import ShowPageButton from "./ShowPageButton";
+import { FaArrowRightLong } from "react-icons/fa6"
+import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
+import { STORE_NAME_CONSTANTS } from "store/constants"
+import { useChatStorage } from "hooks/useStorage"
+import { useTranslation } from "react-i18next"
+import ShowPageButton from "./ShowPageButton"
 
-const FlowSelection = ({
-  audioRef,
-  stopAudioTriggered,
-  setStopAudioTriggered,
-  onFlowContinue,
-  setIsLoading,
-}) => {
-  const { t } = useTranslation();
+const FlowSelection = ({ audioRef, stopAudioTriggered, setStopAudioTriggered, onFlowContinue, setIsLoading }) => {
+  const { t } = useTranslation()
 
-  const selectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow)
-  const setSelectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState().setFlow
+  const selectedFlow = useChatStorage()(state => state.flow)
+  const setSelectedFlow = useChatStorage().getState().setFlow
 
   const handleContinueClick = async () => {
-    setIsLoading(true);
-    await onFlowContinue();
-  };
+    setIsLoading(true)
+    await onFlowContinue()
+  }
 
   return (
     <>
@@ -59,22 +53,14 @@ const FlowSelection = ({
           </div>
 
           {/* Continue Button */}
-          <button
-            className={`mt-0 px-16 py-2 rounded-xl text-white text-lg font-medium flex items-center ${
-              selectedFlow
-                ? "bg-[#572E91] cursor-pointer"
-                : "bg-[#8d888857] cursor-not-allowed"
-            }`}
-            disabled={!selectedFlow}
-            onClick={handleContinueClick}
-          >
+          <button className={`mt-0 px-16 py-2 rounded-xl text-white text-lg font-medium flex items-center ${selectedFlow ? "bg-[#572E91] cursor-pointer" : "bg-[#8d888857] cursor-not-allowed"}`} disabled={!selectedFlow} onClick={handleContinueClick}>
             {t("continueBtnText")} <FaArrowRightLong className="ml-2 text-xl" />
           </button>
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
 // Individual Flow Option Component
 const FlowOption = ({
@@ -89,8 +75,8 @@ const FlowOption = ({
   setStopAudioTriggered,
   logo,
 }) => {
-  const selectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow)
-  const isSelected = selectedFlow === flowName;
+  const selectedFlow = useChatStorage()(state => state.flow)
+  const isSelected = selectedFlow === flowName
 
   return (
     <span
@@ -113,7 +99,7 @@ const FlowOption = ({
         />
       </span>
     </span>
-  );
-};
+  )
+}
 
-export default FlowSelection;
+export default FlowSelection
