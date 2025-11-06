@@ -7,7 +7,7 @@ const languageToUse =
   JSON.parse(sessionStorage.getItem("route")) || JSON.parse(localStorage.getItem("route")) || 
   JSON.parse(sessionStorage.getItem("local_route")) || JSON.parse(localStorage.getItem("local_route")) || 
   "en";
-  
+
 i18n
   .use(HttpApi)
   .use(initReactI18next)
@@ -18,7 +18,7 @@ i18n
       escapeValue: false,
     },
     backend: {
-      loadPath: '/mohini/locales/{{lng}}/{{ns}}.json',
+      loadPath: `${process.env.REACT_APP_ROOT_PATH ? `/${process.env.REACT_APP_ROOT_PATH}` : ''}/locales/{{lng}}/{{ns}}.json`,
     },
   });
 

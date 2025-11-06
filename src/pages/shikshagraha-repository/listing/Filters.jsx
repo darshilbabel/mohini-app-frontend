@@ -3,7 +3,6 @@ import { Search, X, XIcon } from "lucide-react";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
 import Select, { components } from "react-select";
 import { useDebounce } from "react-use";
-import { useRef } from "react";
 
 export default function Filters() {
   const globalSearchValue = useRepositoryStore((state) => state.q);
@@ -20,7 +19,6 @@ export default function Filters() {
   const setGlobalSearch = useRepositoryStore((state) => state.setSearch);
 
   const [search, setSearch] = useState("");
-  const ref = useRef(null);
 
   const [debouncedSearch] = useDebounce(
     () => {
@@ -97,7 +95,6 @@ export default function Filters() {
     </div>
   );
 
-  console.log("ref", ref.current);
   return (
     <div className="md:sticky top-0 z-50 flex flex-row items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
       <div className="flex flex-wrap items-center p-0 gap-3 w-full md:w-[75%]">
@@ -110,7 +107,6 @@ export default function Filters() {
                   options={options}
                   selected={filters[key] || "Select a " + label}
                   onChange={(value) => handleChange(key, value)}
-                  ref={ref}
                 />
               </React.Fragment>
             ))
@@ -208,10 +204,9 @@ const MenuList = (props) => {
 };
 
 
-const DropdownSelect = ({ label, options, selected, onChange, ref }) => (
+const DropdownSelect = ({ label, options, selected, onChange }) => (
   <div className="relative mr-4 p-1">
     <Select
-      ref={ref}
       options={options.map((x) => ({ value: x.value, label: x.display }))}
       value={selected}
       onChange={onChange}

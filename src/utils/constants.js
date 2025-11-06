@@ -1,19 +1,24 @@
 // utils/constants.js
 import { sessionUsecaseType, sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
 
+
+const rootPath = process.env.REACT_APP_ROOT_PATH
+  ? `/${process.env.REACT_APP_ROOT_PATH.replace(/^\/|\/$/g, '')}`
+  : '';
+
 // Flow configuration
 export const FLOW_CONFIG = {
   [sessionFlowName.GuestDiscussion]: {
     buttonText: 'commonPageButtonText2',
     buttonId: 'capture-discussion',
     logo: 'https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/discussion_capture_logo.png',
-    route: '/mohini/shikshalokam-guest-voice-chat'
+    route: `${rootPath}/shikshalokam-guest-voice-chat`
   },
   [sessionFlowName.GuestMiStory]: {
     buttonText: 'commonPageButtonText1',
     buttonId: 'capture-mi-story',
     logo: 'https://s3.ap-south-1.amazonaws.com/static-media.gritworks.ai/fe-images/PNG/Shikshalokam/mi_story_capture_logo.png',
-    route: '/mohini/shikshalokam-guest-mi-story'
+    route: `${rootPath}/shikshalokam-guest-mi-story`
   }
 };
 
