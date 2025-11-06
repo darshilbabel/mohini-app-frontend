@@ -106,6 +106,10 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const botNameToDisplay = t("botName")
   let chatToAddLength = isMobile ? 10 : 10
 
+  const isReplying = !hasStartedListening && chatHistory[chatHistory?.length - 1]?.source === "user" && !(chatHistory[chatHistory.length - 1].sequence >= Object.keys(questions).length)
+
+  const allQuestionsCompleted = questionCounter.current === Object.keys(questions).length && chatHistory.length === Object.keys(questions).length * 2
+
   const formatTime = secs => {
     const minutes = Math.floor(secs / 60)
     const seconds = secs % 60
@@ -140,6 +144,10 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       window.removeEventListener("popstate", handleBack)
     }
   }, [])
+
+  useEffect(() => {
+    if (isReplying) handleScrollToView()
+  }, [isReplying])
 
   // Fetch story on mount to check if it already exists
   useEffect(() => {
@@ -844,10 +852,6 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const closeModal = () => {
     setIsModalOpen(false)
   }
-
-  const isReplying = !hasStartedListening && chatHistory[chatHistory?.length - 1]?.source === "user" && !(chatHistory[chatHistory.length - 1].sequence >= Object.keys(questions).length)
-
-  const allQuestionsCompleted = questionCounter.current === Object.keys(questions).length && chatHistory.length === Object.keys(questions).length * 2
 
   return (
     <>

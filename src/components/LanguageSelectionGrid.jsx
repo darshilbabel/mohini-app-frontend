@@ -18,8 +18,8 @@ const LanguageSelectionGrid = ({
   const location = useLocation()
   const navigate = useNavigate()
 
-  const setChatLanguage = useSiteDataLocalStore()(state => state.setChatLanguage)
-  const setHasSelectedLanguage = useSiteDataLocalStore()(state => state.setHasSelectedLanguage)
+  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
+  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
   const setFlow = useChatStorage()(state => state.setFlow)
 
   const handleLanguageClick = langValue => {

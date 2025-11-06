@@ -70,7 +70,7 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
     }
   }, [fileErrorText])
 
-  const partialUpdateMedia = (partialUpdateId, include_in_story = false, access_token, setIsLoading) => {
+  const partialUpdateMedia = (partialUpdateId, include_in_story = false, access_token) => {
     try {
       const formData = {
         include_in_story: include_in_story,
@@ -78,19 +78,16 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
         access_token: access_token,
         session: sessionId,
       }
+      setIsLoading(true)
 
-      updateStoryMediaApi()
-      axiosInstance
-        .patch(`/api/storymedia/${partialUpdateId}/`, formData)
-        .then(() => {
-          window.location.reload()
-        })
-        .catch(error => {
-          console.error("Error updating media:", error)
-          setIsLoading(false)
-        })
+      updateStoryMediaApi({
+        mediaId: partialUpdateId,
+        data: formData,
+      })
     } catch (error) {
       console.error({ error })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -168,6 +165,8 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
         console.error({ error })
         setIsLoading(false)
         return null
+      } finally {
+        setIsLoading(false)
       }
     })
 
@@ -249,7 +248,7 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
               <li key={index} className="li-2">
                 {file.name.slice(0, 20)}
                 {file.name.length > 20 && "..."}
-                <button className="button-1" onClick={() => partialUpdateMedia(file?.id, false, access_token, setIsLoading)}>
+                <button className="button-1" onClick={() => partialUpdateMedia(file?.id, false, access_token)}>
                   <RxCross2 />
                 </button>
               </li>

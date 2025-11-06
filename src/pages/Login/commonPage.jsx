@@ -28,11 +28,11 @@ function CommonHomePage({ usecaseType }) {
   const ylc_case = [SESSION_USECASE_TYPE.YLC].some(x => x === usecaseType)
 
   // Custom hooks
-  const chatLanguage = useSiteDataLocalStore()(state => state.chatLanguage)
+  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
   const storageFlow = useChatStorage()(state => state.flow)
   const setFlow = useChatStorage()(state => state.setFlow)
-  const hasSelectedLanguage = useSiteDataLocalStore()(state => state.hasSelectedLanguage)
-  const setChatLanguage = useSiteDataLocalStore()(state => state.setChatLanguage)
+  const hasSelectedLanguage = useSiteDataLocalStore(state => state.hasSelectedLanguage)
+  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const { languageButtonSelect, handleLanguageChange } = useLanguage()
   const { audioRef, stopAudioTriggered, setStopAudioTriggered, stopAllAudio } = useAudio()
   const { isLoading, setIsLoading, handleFlowSelection } = useFlow(usecaseType)

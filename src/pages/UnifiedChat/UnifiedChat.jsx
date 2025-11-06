@@ -9,7 +9,6 @@ import { useSiteDataLocalStore } from "store"
 import UnifiedVoiceBasedChat from "./UnifiedVoiceBasedChat"
 import { getFlowConfig } from "../../config/flowConfig"
 import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
-import { STORE_NAME_CONSTANTS } from "store/constants"
 
 function UnifiedChat({ type }) {
   const navigate = useNavigate()
@@ -18,7 +17,7 @@ function UnifiedChat({ type }) {
 
   const { setDeviceId, setProfileId, setHasAcceptedTnc } = useUserStorage().getState()
   const { setSessionId, setFlow, setIsNewChatOpen } = useChatStorage().getState()
-  const chatLanguage = useSiteDataLocalStore()(state => state.chatLanguage)
+  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
   const deviceId = useUserStorage()(state => state.device_id)
   const storageFlow = useChatStorage()(state => state.flow)
   const sessionId = useChatStorage()(state => state.sessionId)

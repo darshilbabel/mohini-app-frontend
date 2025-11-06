@@ -63,8 +63,8 @@ import { useSiteDataLocalStore } from "store"
 const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
-const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-// const wss_protocol = "wss://"
+// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
+const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
@@ -949,12 +949,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         }
       }
     }
-    if (chatLanguage && storageFlow && !accessToken) {
+    if (chatLanguage && storageFlow) {
       setIsLoading(true)
       handleLanguageSelect(chatLanguage)
-      setChatLanguage(LANGUAGE_ENUMS.ENGLISH)
     }
-  }, [])
+  }, [chatLanguage, storageFlow])
 
   // ========================================================================
   // SECTION: User Profile & Authentication (Execution Order: 3 - On Token Available)
@@ -977,10 +976,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         if (response) {
           const data = response.profile_details
           const preferredLanguage = preferredLanguage || {}
-          const language = preferredLanguage.value || LANGUAGE_ENUMS.ENGLISH
+          let language = LANGUAGE_ENUMS.ENGLISH
+          if (preferredLanguage) {
+            language = preferredLanguage.value
+          } else if (languageToUse) {
+            language = languageToUse
+          }
           setStorageFlow(type)
-          setChatLanguage(language || LANGUAGE_ENUMS.ENGLISH)
-          setLanguage(language || LANGUAGE_ENUMS.ENGLISH)
+          setChatLanguage(language)
+          setLanguage(language)
           setProfileToUse(data?.id)
           if (!sessionId) {
             let session = await getSessionDetails()

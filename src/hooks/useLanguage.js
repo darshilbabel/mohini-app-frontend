@@ -10,9 +10,9 @@ export const useLanguage = () => {
   // Parse URL params
   const { language: urlLanguage } = useParams()
 
-  const setChatLanguage = useSiteDataLocalStore()(state => state.setChatLanguage)
-  const hasSelectedLanguage = useSiteDataLocalStore()(state => state.hasSelectedLanguage)
-  const { setHasSelectedLanguage } = useSiteDataLocalStore()(state => state.setHasSelectedLanguage)
+  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
+  const hasSelectedLanguage = useSiteDataLocalStore(state => state.hasSelectedLanguage)
+  const { setHasSelectedLanguage } = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
 
   // TODO: Can be deprecated
   /**
