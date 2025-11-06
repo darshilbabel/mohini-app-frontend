@@ -21,7 +21,7 @@ i18n
       escapeValue: false,
     },
     backend: {
-      loadPath: "/mohini/locales/{{lng}}/{{ns}}.json",
+      loadPath: `${process.env.REACT_APP_ROOT_PATH ? `/${process.env.REACT_APP_ROOT_PATH}` : ''}/locales/{{lng}}/{{ns}}.json`,
     },
   })
 

@@ -2,8 +2,8 @@ const ROUTES = {
   EXIT_ROUTE: "/exit",
   LOGOUT: "/logout",
   NOT_FOUND: "/shikshagraha-not-found",
-  SHIKSHAGRAHA_REPOSITORY_DETAIL: "/shikshagraha-commons/:id",
-  SHIKSHAGRAHA_REPOSITORY: "/shikshagraha-commons",
+  SHIKSHAGRAHA_REPOSITORY_DETAIL: "/:id",
+  SHIKSHAGRAHA_REPOSITORY: "/",
   SHIKSHALOKAM_GUEST_LISTENING_CHAT: "/guest-listen",
   SHIKSHALOKAM_GUEST_MI_STORY: "/guest-mi",
   SHIKSHALOKAM_GUEST_PAGE: "/flow",
@@ -17,6 +17,6 @@ const ROUTES = {
   SHIKSHALOKAM_YLC_HOME_PAGE: "/ylc/start",
   SSO_FLOW: "/sso",
   TERMS_AND_CONDITIONS: "/tnc",
-};
+}
 
-export default ROUTES;
+export default ROUTES

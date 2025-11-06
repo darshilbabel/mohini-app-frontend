@@ -61,7 +61,7 @@ function Footer() {
                 <br />
               </a>
               <a
-                href="https://mohini.shikshalokam.org/mohini/login"
+                href={process.env.REACT_APP_RECORD_STORY_URL}
                 target="_blank"
                 className="d"
               >
