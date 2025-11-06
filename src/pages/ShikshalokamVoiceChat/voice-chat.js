@@ -32,7 +32,7 @@ import { useChatDataSessionStore } from "store"
 import { useChatWebhook } from "hooks/useChatWebhook"
 import { useConfirmationPopup } from "hooks/useConfirmationPopup"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { useChatStorage, useStorage } from "hooks/useStorage"
+import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import { useTranslation } from "react-i18next"
 import axiosInstance from "../../utils/axios"
 import Cookies from "universal-cookie"
@@ -139,43 +139,43 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   const accessToken = useUserDataLocalStore(state => state.access_token)
 
-  // const defaultBotName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.defaultBotName);
-  // const isChatVisible = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isChatVisible);
-  // const showHomepage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.showHomepage);
-  const acceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.has_accepted_tnc)
+  // const defaultBotName = useChatStorage()((state) => state.defaultBotName);
+  // const isChatVisible = useChatStorage()((state) => state.isChatVisible);
+  // const showHomepage = useChatStorage()((state) => state.showHomepage);
+  const acceptedTnc = useUserStorage()(state => state.has_accepted_tnc)
   const botName = useChatStorage()(state => state.botName)
   const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
-  const companyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.companyName)
-  const firstName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.firstName)
-  const introMessage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.introMessage)
-  const isNewChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.isNewChatOpen)
-  const isOldChatOpen = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.isOldChatOpen)
-  const langProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.langProgress)
-  const languageToUse = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.chatLanguage)
-  const preferredLanguage = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.preferredLanguage)
-  const previousUrl = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.previousUrl)
-  const profileId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.profileId)
-  const profileToUse = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.profileId)
-  const projectIdStore = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.projectId)
-  const selectedType = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.selectedType)
-  const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.sessionId)
-  const setChatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.setChatLanguage)
-  const setLangProgress = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.setLangProgress)
-  const setStorageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.setFlow)
-  const ssoRerouteURL = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.ssoRerouteURL)
-  const stateMachineLength = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.stateMachineLength)
-  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
-  const taskId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.taskId)
-  const userState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.state)
-  const showHomepage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.showHomepage)
+  const companyName = useUserStorage()(state => state.companyName)
+  const firstName = useUserStorage()(state => state.firstName)
+  const introMessage = useChatStorage()(state => state.introMessage)
+  const isNewChatOpen = useChatStorage()(state => state.isNewChatOpen)
+  const isOldChatOpen = useChatStorage()(state => state.isOldChatOpen)
+  const langProgress = useChatStorage()(state => state.langProgress)
+  const languageToUse = useSiteStorage()(state => state.chatLanguage)
+  const preferredLanguage = useUserStorage()(state => state.preferredLanguage)
+  const previousUrl = useSiteStorage()(state => state.previousUrl)
+  const profileId = useUserStorage()(state => state.profileId)
+  const profileToUse = useUserStorage()(state => state.profileId)
+  const projectIdStore = useChatStorage()(state => state.projectId)
+  const selectedType = useChatStorage()(state => state.selectedType)
+  const sessionId = useChatStorage()(state => state.sessionId)
+  const setChatLanguage = useSiteStorage()(state => state.setChatLanguage)
+  const setLangProgress = useChatStorage()(state => state.setLangProgress)
+  const setStorageFlow = useChatStorage()(state => state.setFlow)
+  const ssoRerouteURL = useSiteStorage()(state => state.ssoRerouteURL)
+  const stateMachineLength = useChatStorage()(state => state.stateMachineLength)
+  const storageFlow = useChatStorage()(state => state.flow)
+  const taskId = useChatStorage()(state => state.taskId)
+  const userState = useUserStorage()(state => state.state)
+  const showHomepage = useChatStorage()(state => state.showHomepage)
 
   // chat data actions
-  const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState()
+  const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()
 
   // user data actions
-  const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState()
-  const { llmError, setLlmError } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState()
-  const { setProfileId: setProfileToUse } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState()
+  const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useUserStorage().getState()
+  const { llmError, setLlmError } = useChatStorage().getState()
+  const { setProfileId: setProfileToUse } = useUserStorage().getState()
 
   const { recordings, HiddenRecorder } = useVoiceRecord()
 
