@@ -117,9 +117,9 @@ export const getStoryAllMedia = async ({
   },
 }) => {
   try {
-    if (!token) {
-      throw new Error("Authorization token is required!")
-    }
+    // if (!token) {
+    //   throw new Error("Authorization token is required!")
+    // }
 
     const config = {
       headers: {
@@ -159,9 +159,9 @@ export const createStoryMedia = async ({
   },
 }) => {
   try {
-    if (!token) {
-      throw new Error("Authorization token is required!")
-    }
+    // if (!token) {
+    //   throw new Error("Authorization token is required!")
+    // }
 
     const config = {
       headers: {
@@ -203,9 +203,9 @@ export const partialUpdateStoryById = async ({
   },
 }) => {
   try {
-    if (!token) {
-      throw new Error("Authorization token is required!")
-    }
+    // if (!token) {
+    //   throw new Error("Authorization token is required!")
+    // }
 
     if (!data.id) {
       throw new Error("Story ID is required!")
@@ -251,9 +251,9 @@ export const partialUpdateStoryById = async ({
  */
 export const updateStoryMedia = async ({ token, data, mediaId }) => {
   try {
-    if (!token) {
-      throw new Error("Authorization token is required!")
-    }
+    // if (!token) {
+    //   throw new Error("Authorization token is required!")
+    // }
 
     if (!mediaId) {
       throw new Error("Media ID is required!")

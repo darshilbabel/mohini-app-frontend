@@ -287,19 +287,19 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
         const tempMediaArr = []
         setIsImageUploading(true)
 
-        await getStoryAllMedia({
-          setter: data => {
-            for (let item of Object.values(data?.results || [])) {
-              if (item.include_in_story) {
-                tempMediaArr.push(item)
-              }
-            }
-            setFiles(tempMediaArr)
-          },
+        const story_media = await getStoryAllMedia({
           data: {
             story: story_id,
           },
+          token: accessToken,
         })
+
+        for (let item of Object.values(story_media?.results || [])) {
+          if (item.include_in_story) {
+            tempMediaArr.push(item)
+          }
+        }
+        setFiles(tempMediaArr)
 
         setIsImageUploading(false)
       }
@@ -392,11 +392,6 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
     }
   }, [fileErrorText])
 
-  // Debug log for storageFlow
-  useEffect(() => {
-    console.log("storageFlow", storageFlow)
-  }, [storageFlow])
-
   const sendQuestionToUser = async () => {
     try {
       const flow = storageFlow
@@ -425,6 +420,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       setIsOldChatOpen(true)
       setSessionId(sessionId)
       setIsNewChatOpen(false)
+      handleScrollToView()
     } catch (error) {
       console.error("Error sending question to user:", error)
       showNotification({

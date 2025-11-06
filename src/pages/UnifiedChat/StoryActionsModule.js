@@ -14,8 +14,10 @@ import PdfDownloader from "../story/upload-content/pdfDownloader"
 import { getFromStorage, handleS3Upload } from "../../services/storage_service"
 import { createStoryMedia, partialUpdateStoryById } from "../../api/endpoints"
 import axiosInstance from "../../utils/axios"
-import { sessionFlowName } from "../ShikshalokamVoiceChat/enum"
+import { LANGUAGE_ENUMS, sessionFlowName } from "../ShikshalokamVoiceChat/enum"
 import { getStoryBySessionAPI } from "api/endpoints"
+import { useSiteDataLocalStore } from "store"
+import { useStorage } from "hooks/useStorage"
 
 // Reusable partialUpdateMedia function
 export const partialUpdateMedia = (partialUpdateId, include_in_story = false, access_token, setIsLoading) => {
@@ -661,6 +663,8 @@ export const StoryActionsContainer = ({
   showEdit = true, // Add this
   t,
 }) => {
+  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+
   return (
     <div className="div19">
       <ChatMessage
@@ -670,7 +674,7 @@ export const StoryActionsContainer = ({
         isTalking={false}
         handleOnStopSpeaking={() => handleOnStopSpeaking()}
         handleOnSpeaking={() => {
-          const lang = getFromStorage("local_route", true)
+          const lang = chatLanguage || LANGUAGE_ENUMS.ENGLISH
           console.log("lang", lang)
           const message_to_use = t("storyText")
           handleOnSpeaking(flowConfig?.storyTextAudio[lang].storyReportAudio, "download-story-id", {

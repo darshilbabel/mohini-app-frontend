@@ -32,7 +32,7 @@ import { useChatDataSessionStore } from "store"
 import { useChatWebhook } from "hooks/useChatWebhook"
 import { useConfirmationPopup } from "hooks/useConfirmationPopup"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { useStorage } from "hooks/useStorage"
+import { useChatStorage, useStorage } from "hooks/useStorage"
 import { useTranslation } from "react-i18next"
 import axiosInstance from "../../utils/axios"
 import Cookies from "universal-cookie"
@@ -58,6 +58,7 @@ import useSmartChatStorage from "hooks/useSmartChatStorage"
 import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord"
 import WaveSurferPlayer from "../interview-text-voice/voice-player"
+import { useSiteDataLocalStore } from "store"
 
 const cookies = new Cookies()
 
@@ -116,7 +117,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [companySlug, setCompanySlug] = useState("")
   const [error, setError] = useState({ response: "", status: 200 })
   const [visibleItemCount, setVisibleItemCount] = useState(10)
-  const [showHomepage, setShowHomepage] = useState(true)
+  // const [showHomepage, setShowHomepage] = useState(true)
   // const [isReconnectInProgress, setIsReconnectInProgress] = useState(false);
   // const [reconnectAttempts, setReconnectAttempts] = useState(0);
 
@@ -142,8 +143,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // const isChatVisible = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.isChatVisible);
   // const showHomepage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.showHomepage);
   const acceptedTnc = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.has_accepted_tnc)
-  const botName = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.botName)
-  const chatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.chatLanguage)
+  const botName = useChatStorage()(state => state.botName)
+  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
   const companyName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.companyName)
   const firstName = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.firstName)
   const introMessage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.introMessage)
@@ -166,9 +167,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
   const taskId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.taskId)
   const userState = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.state)
+  const showHomepage = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.showHomepage)
 
   // chat data actions
-  const { setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState()
+  const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA).getState()
 
   // user data actions
   const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useStorage(STORE_NAME_CONSTANTS.USER_DATA).getState()
@@ -749,6 +751,16 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     [chatHistory]
   )
 
+  useEffect(() => {
+    if (chatHistory.length > 1) {
+      setShowHomepage(false)
+      setIsOldChatOpen(true)
+      setIsNewChatOpen(false)
+    } else {
+      setShowHomepage(true)
+    }
+  }, [chatHistory])
+
   // ========================================================================
   // SECTION: Variable Definitions
   // ========================================================================
@@ -1183,11 +1195,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       callEndStory()
     }
   }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound])
-
-  useEffect(() => {
-    console.log(storyData, isModalOpen, isSpecialFlow, accessToken)
-    console.log("storyData, isModalOpen, isSpecialFlow, accessToken")
-  }, [storyData, isModalOpen, isSpecialFlow, accessToken])
 
   /**
    * Display chat session titles for guest users after delay

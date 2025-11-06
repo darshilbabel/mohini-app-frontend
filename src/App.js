@@ -40,6 +40,7 @@ const protected_routes = []
 const unprotected_old_routes = [
   { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN, element: <Shikshalokam type={"shikshalokam"} variant={"publicBot"} /> },
   { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={"shikshalokam"} variant={"publicBot"} /> },
+
   { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamChat type={sessionFlowName.GuestDiscussion} /> },
   { path: ROUTES.SHIKSHALOKAM_GUEST_LISTENING_CHAT, element: <ShikshalokamChat type={sessionFlowName.ListeningActivity} /> },
   { path: ROUTES.SHIKSHALOKAM_GUEST_MI_STORY, element: <ShikshalokamChat type={sessionFlowName.GuestMiStory} /> },
