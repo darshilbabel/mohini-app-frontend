@@ -1,4 +1,4 @@
-import API_ENDPOINTS from "constants/urls"
+import { API_ENDPOINTS } from "constants/urls"
 import { apiClient } from "../client"
 
 /**
@@ -249,7 +249,7 @@ export const partialUpdateStoryById = async ({
  * @param {string} params.data.media_type - Media type
  * @returns {Promise<Object>} Response data
  */
-export const updateStoryMedia = async ({ token, data, mediaId }) => {
+export const updateStoryMediaApi = async ({ token, data, mediaId }) => {
   try {
     // if (!token) {
     //   throw new Error("Authorization token is required!")

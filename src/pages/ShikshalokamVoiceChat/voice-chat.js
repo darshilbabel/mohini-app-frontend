@@ -13,7 +13,7 @@ import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
 import { FiDownload } from "react-icons/fi"
 import { getChatSessionApi } from "api/endpoints/chat"
 import { getCompanyBotApi } from "api/endpoints/chat"
-import { getSessionDetails, updateReflectionStatus } from "../../services/api.service"
+import { getSessionDetails } from "../../services/api.service"
 import { getStoryBySessionAPI } from "api/endpoints"
 import { GrGallery } from "react-icons/gr"
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
@@ -25,7 +25,7 @@ import { STORE_NAME_CONSTANTS } from "store/constants"
 import { TbReload } from "react-icons/tb"
 import { toast } from "react-toastify"
 import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi } from "api/endpoints"
-import { updateStoryMedia } from "api/endpoints"
+import { updateStoryMediaApi } from "api/endpoints"
 import { useAudio } from "hooks/useAudio"
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useChatDataSessionStore } from "store"
@@ -63,8 +63,8 @@ import { useSiteDataLocalStore } from "store"
 const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
-// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-const wss_protocol = "wss://"
+const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
+// const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
@@ -113,7 +113,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [ssoNavigationTriggered, setSsoNavigationTriggered] = useState(false)
   const [files, setFiles] = useState([])
   const [fileErrorText, setFileErrorText] = useState("")
-  // const [selectedType, setSelectedType] = useState(getFromStorageSlice("userPreference", "selected_type") || 'normal');
   const [companySlug, setCompanySlug] = useState("")
   const [error, setError] = useState({ response: "", status: 200 })
   const [visibleItemCount, setVisibleItemCount] = useState(10)
@@ -296,7 +295,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         access_token: accessToken,
         session: sessionId,
       }
-      await updateStoryMedia({ token: accessToken, data: formData, mediaId: updateId })
+      await updateStoryMediaApi({ token: accessToken, data: formData, mediaId: updateId })
     } catch (error) {
       console.error(error)
     } finally {
@@ -702,7 +701,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       key_num = parseInt(key?.split("-").pop())
       if (isNaN(key_num)) return
       currentSession = chatTitle[key_num]?.session
-      // removeFromStorage("llmError");
       setLlmError("")
       setIsOldChatOpen(true)
       setIsNewChatOpen(false)
@@ -934,8 +932,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         stopAllAudio()
         isIntroPlayed.current = false
         setIsLoading(true)
-        // removeFromStorage("chat-history")
-        // removeFromStorage("intro_message")
         setIntroMessage(null)
         setChatHistory([])
         setSentences([])
@@ -956,7 +952,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (chatLanguage && storageFlow && !accessToken) {
       setIsLoading(true)
       handleLanguageSelect(chatLanguage)
-      // removeFromStorage("chatLanguage")
       setChatLanguage(LANGUAGE_ENUMS.ENGLISH)
     }
   }, [])
@@ -1803,7 +1798,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         if (endStoryResponse?.data?.id) {
           setFiles([])
           setShowFileInput(true)
-          // removeFromStorage("llmError")
           setLlmError("")
           window.location.reload()
         } else {
@@ -1933,7 +1927,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                       })
                       if ([sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(storageFlow) && accessToken) {
                         setIsLoading(true)
-                        await updateReflectionStatus(projectId, "completed", sessionFlowName.SsoFlow, accessToken)
+                        await updateReflectionStatusApi(projectId, "completed", sessionFlowName.SsoFlow, accessToken)
                         clearFromStorage(false)
                         console.log("History length:", window.history.length)
                         console.log("Can go back 1?", window.history.length > 1)
@@ -2627,24 +2621,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && isSpecialFlow && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} useStaticText={false} />}
       <></>
       <div className={`div27 ${isOpen && " div70"}`}>
-        <div className={`div28 ${isOpen ? "div29" : ""}`}>
-          {isShikshalokamPublicType && storageFlow && !isSpecialFlow && (
-            <Sidebar
-              isOpen={isOpen}
-              toggle={setIsOpen}
-              isMobileFirst={true}
-              showScrollbarContent={accessToken && showScrollbarContent}
-              resetChat={ResetChat}
-              setIsResetCalled={setIsResetCalled}
-              languageToUse={languageToUse}
-              stopAllAudio={stopAllAudio}
-              // showGuestPopup={(isSpecialFlow && !accessToken) ? () => showGuestPopup(() => {
-              //   if (isSpecialFlow) removeFromStorage('botName');
-              //   ResetChat();
-              // }, stayOnPage): undefined}
-            />
-          )}
-        </div>
+        <div className={`div28 ${isOpen ? "div29" : ""}`}>{isShikshalokamPublicType && storageFlow && !isSpecialFlow && <Sidebar isOpen={isOpen} toggle={setIsOpen} isMobileFirst={true} showScrollbarContent={accessToken && showScrollbarContent} resetChat={ResetChat} setIsResetCalled={setIsResetCalled} languageToUse={languageToUse} stopAllAudio={stopAllAudio} />}</div>
         {isOpen && <div className="div7" onClick={() => setIsOpen(false)}></div>}
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
@@ -2946,7 +2923,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                       onClick={async () => {
                         if (projectId) {
                           setIsLoading(true)
-                          await updateReflectionStatusApi(projectId)
+                          await updateReflectionStatusApi(projectId, "completed", storageFlow, accessToken)
                         } else {
                           window.location.reload()
                         }

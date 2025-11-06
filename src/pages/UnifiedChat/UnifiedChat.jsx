@@ -4,10 +4,10 @@ import { languageList, sessionFlowName } from "../ShikshalokamVoiceChat/enum"
 import { useNavigate } from "react-router-dom"
 import { setLanguage } from "../../i18n"
 import { BiLoader } from "react-icons/bi"
-import { clearFromStorage, getFromStorage, removeFromStorage, setInStorage } from "../../services/storage_service"
+
 import UnifiedVoiceBasedChat from "./UnifiedVoiceBasedChat"
 import { getFlowConfig } from "../../config/flowConfig"
-import { useStorage } from "hooks/useStorage"
+import { useChatStorage, useStorage } from "hooks/useStorage"
 import { STORE_NAME_CONSTANTS } from "store/constants"
 
 function UnifiedChat({ type }) {
@@ -20,6 +20,7 @@ function UnifiedChat({ type }) {
   const chatLanguage = useStorage(STORE_NAME_CONSTANTS.SITE_DATA)(state => state.chatLanguage)
   const deviceId = useStorage(STORE_NAME_CONSTANTS.USER_DATA)(state => state.device_id)
   const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
+  const sessionId = useChatStorage()(state => state.sessionId)
 
   function getUserFingerPrint() {
     try {
@@ -58,7 +59,7 @@ function UnifiedChat({ type }) {
 
   useEffect(() => {
     const runSetup = async () => {
-      if (!!!getFromStorage("sessionid")) {
+      if (!sessionId) {
         const storedLanguage = chatLanguage || languageList[0].value
         setIsLoading(true)
         setHasAcceptedTnc("ONGOING")
@@ -70,7 +71,7 @@ function UnifiedChat({ type }) {
       }
     }
     runSetup()
-  }, [type, storageFlow])
+  }, [type, storageFlow, sessionId])
 
   return (
     <>

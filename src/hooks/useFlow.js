@@ -1,72 +1,64 @@
-import { getFromStorageSlice, setInStorageSlice } from "../services/storage_service";
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
-import { STORE_NAME_CONSTANTS } from "store/constants";
-import { useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useStorage } from "hooks/useStorage";
-import ROUTES from "../url";
-import useChatDataLocalStore from "store/slices/chatData/chatDataLocal";
-import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
+import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
+import { STORE_NAME_CONSTANTS } from "store/constants"
+import { useNavigate } from "react-router-dom"
+import { useParams } from "react-router-dom"
+import { useState } from "react"
+import { useSiteStorage, useStorage } from "hooks/useStorage"
+import ROUTES from "../url"
+import useChatDataLocalStore from "store/slices/chatData/chatDataLocal"
+import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal"
 
-export const useFlow = (usecaseType) => {
-  const navigate = useNavigate();
-  const { flow } = useParams();
-  const [isLoading, setIsLoading] = useState(true);
-  const selectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)((state) => state.flow)
+export const useFlow = usecaseType => {
+  const navigate = useNavigate()
+  const { flow } = useParams()
+  const [isLoading, setIsLoading] = useState(true)
+  const selectedFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
+  const { setPreviousUrl } = useSiteStorage().getState()
 
-  const handleFlowSelection = async (stopAllAudio) => {
-    setIsLoading(true);
-    await stopAllAudio();
-
-    // const flow = useChatDataSessionStore.getState().getFlow();
+  const handleFlowSelection = async stopAllAudio => {
+    setIsLoading(true)
+    await stopAllAudio()
 
     let navigateUrl = undefined
     let replaceUrl = undefined
 
-    setInStorageSlice("userPreference", window.location.href, "setPreviousUrl");
-    setInStorageSlice("userPreference", "xyz123", "setTempCode");
-    
-    const previousUrl = getFromStorageSlice("userPreference", "previousUrl");
-    if (!previousUrl) {
-      return;
-    }
+    setPreviousUrl(window.location.href)
 
-    const accessToken = useSiteDataLocalStore.getState().getAccessToken();
+    const accessToken = useSiteDataLocalStore.getState().getAccessToken()
     const flowRoutes = {
       [sessionFlowName.GuestDiscussion]: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT,
       [sessionFlowName.GuestMiStory]: ROUTES.SHIKSHALOKAM_GUEST_MI_STORY,
-    };
+    }
 
-    const route = flowRoutes[selectedFlow];
+    const route = flowRoutes[selectedFlow]
     if (!route) {
-      return;
+      return
     }
 
     if (accessToken) {
-      useChatDataLocalStore.getState().setFlow(flow);
-      replaceUrl = "/mohini" + route;
+      useChatDataLocalStore.getState().setFlow(flow)
+      replaceUrl = "/mohini" + route
     } else {
-      navigateUrl = route;
+      navigateUrl = route
     }
 
     if (!replaceUrl && !navigateUrl) {
-      return;
+      return
     }
 
     if (replaceUrl) {
-      return window.location.replace(replaceUrl);
+      return window.location.replace(replaceUrl)
     }
     if (navigateUrl) {
-      navigate(navigateUrl);
-      window.location.reload();
+      navigate(navigateUrl)
+      window.location.reload()
     }
-    setIsLoading(false);
-  };
+    setIsLoading(false)
+  }
 
   return {
     isLoading,
     setIsLoading,
     handleFlowSelection,
-  };
-};
+  }
+}

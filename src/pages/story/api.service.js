@@ -1,25 +1,15 @@
-import axiosInstance from "../../utils/axios";
+import axiosInstance from "../../utils/axios"
 
-const getStoryByIdUrl = (id) => `/api/story/${id}/`;
-const get_all_story_media_url = "/api/storymedia/";
-const create_story_media_url = "/api/storymedia/";
-const update_story_media_url = (id) => `/api/storymedia/${id}/`;
+const getStoryByIdUrl = id => `/api/story/${id}/`
+const get_all_story_media_url = "/api/storymedia/"
+const create_story_media_url = "/api/storymedia/"
 
-export async function createAuthRequest({
-  loader = () => {},
-  setter = () => {},
-  errorHandler = () => {},
-  token = "",
-  data = {},
-  method = "",
-  url = "",
-  params = {},
-}) {
+export async function createAuthRequest({ loader = () => {}, setter = () => {}, errorHandler = () => {}, token = "", data = {}, method = "", url = "", params = {} }) {
   try {
     if (!token && !url && !method) {
-      throw new Error("Insufficient data!");
+      throw new Error("Insufficient data!")
     }
-    loader(true);
+    loader(true)
     const response = await axiosInstance({
       url: `${url}`,
       method,
@@ -28,19 +18,18 @@ export async function createAuthRequest({
       headers: {
         Authorization: token,
       },
-    });
-    setter(response?.data || {});
-    loader(false);
+    })
+    setter(response?.data || {})
+    loader(false)
   } catch (error) {
-    console.error({ error });
+    console.error({ error })
     errorHandler({
-     response: error?.request?.response,
-     status: error?.request?.status
-    });
-    loader(false);
+      response: error?.request?.response,
+      status: error?.request?.status,
+    })
+    loader(false)
   }
 }
-
 
 export const getStoryById = async ({
   loader,
@@ -57,11 +46,11 @@ export const getStoryById = async ({
       token,
       method: "GET",
       url: getStoryByIdUrl(data.id),
-    });
+    })
   } catch (error) {
-    console.error(error);
+    console.error(error)
   }
-};
+}
 
 export const getStoryAllMedia = async ({
   loader,
@@ -79,11 +68,11 @@ export const getStoryAllMedia = async ({
       params: data,
       method: "GET",
       url: get_all_story_media_url,
-    });
+    })
   } catch (error) {
-    console.error(error);
+    console.error(error)
   }
-};
+}
 
 export const createStoryMedia = async ({
   loader,
@@ -95,7 +84,7 @@ export const createStoryMedia = async ({
     name: "",
     file: [],
     file_url: "",
-    media_type: ""
+    media_type: "",
   },
 }) => {
   try {
@@ -107,12 +96,11 @@ export const createStoryMedia = async ({
       data,
       method: "POST",
       url: create_story_media_url,
-    });
+    })
   } catch (error) {
-    console.error(error);
+    console.error(error)
   }
-};
-
+}
 
 export const partialUpdateStoryById = async ({
   loader,
@@ -120,12 +108,12 @@ export const partialUpdateStoryById = async ({
   errorHandler,
   token,
   data = {
-    id : "",
+    id: "",
     formatted_content: "",
     access_token: "",
     session: "",
     flow: "",
-    other_params: {}
+    other_params: {},
   },
 }) => {
   try {
@@ -139,51 +127,12 @@ export const partialUpdateStoryById = async ({
         access_token: data?.access_token,
         session: data?.session,
         flow: data?.flow,
-        other_params: data?.other_params
-
+        other_params: data?.other_params,
       },
       method: "PATCH",
       url: getStoryByIdUrl(data?.id),
-    });
+    })
   } catch (error) {
-    console.error(error);
+    console.error(error)
   }
-};
-
-export const updateStoryMedia = async ({
-  loader,
-  setter,
-  errorHandler,
-  token,
-  data = {
-    story: "",
-    name: "",
-    file: [],
-    id: "",
-    access_token: "",
-    session: "",
-    flow:""
-  },
-}) => {
-  try {
-    const formData = new FormData();
-    formData.append('story', data.story);
-    formData.append('name', data.name);
-    formData.append('file', data.file);
-    formData.append('media_type', data.media_type);
-    formData.append('access_token', data.access_token);
-    formData.append('flow', data.flow);
-    formData.append('session', data.session);
-    await createAuthRequest({
-      loader,
-      setter,
-      errorHandler,
-      token,
-      data: formData,
-      method: "PUT",
-      url: update_story_media_url(data?.id),
-    });
-  } catch (error) {
-    console.error(error);
-  }
-};
+}

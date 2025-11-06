@@ -1,4 +1,4 @@
-const API_ENDPOINTS = {
+export const API_ENDPOINTS = {
   LOGIN: "/api/login/",
   GET_LOCATION: "/api/get-location/",
   LOGOUT: "/api/logout/",
@@ -23,4 +23,12 @@ const API_ENDPOINTS = {
   GET_STORY: "/api/get-story",
 }
 
-export default API_ENDPOINTS
+export const URL_PARAMS = {
+  ACCESS_TOKEN: "accToken",
+  FLOW: "flow",
+  PROJECT_ID: "projectId",
+  TASK_ID: "taskId",
+  SESSION_ID: "sessionId",
+  LANGUAGE: "language",
+  RE_ROUTE_URL: "rerouteUrl",
+}

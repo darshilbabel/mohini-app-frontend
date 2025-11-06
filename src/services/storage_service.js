@@ -3,66 +3,6 @@ import { SLICES_STORE_MAP } from "../store"
 import { useUserPreferenceLocalStore, useUserPreferenceSessionStore } from "store"
 import axiosInstance from "../utils/axios"
 
-export const setInStorage = (key, value, currentFlow, storageName = "") => {
-  const { flow: flow_local } = useUserPreferenceLocalStore.getState()
-  const { flow: flow_session } = useUserPreferenceSessionStore.getState()
-  const { projectId: projectId_local } = useUserPreferenceLocalStore.getState()
-  const { projectId: projectId_session } = useUserPreferenceSessionStore.getState()
-
-  let storage
-  if (storageName && storageName !== "") {
-    const isTemporary = storageName === "sessionStorage"
-    storage = isTemporary ? sessionStorage : localStorage
-  } else {
-    const flow = currentFlow || flow_local || flow_session
-    const projectId = projectId_local || projectId_session
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity]
-    const isTemporary = flow && sessionFlows.includes(flow) && !projectId
-    storage = isTemporary ? sessionStorage : localStorage
-  }
-  storage.setItem(key, value)
-}
-
-/**
- * Sets a value in a storage slice
- * @param {string} sliceName - The name of the storage slice to update
- * @param {string} key - The key to set in the slice
- * @param {any} value - The value to set
- * @param {string} currentFlow - The current flow to determine storage type
- * @param {string|null} storageType - The type of storage ('sessionStorage' or 'localStorage'), or null for auto-detection
- */
-export function setInStorageSlice(sliceName, value, funcName, currentFlow, storageType = null) {
-  const SLICE_PATH = "store/slices"
-  const LOCAL_STORAGE_SLICES = "persistent"
-  const SESSION_STORAGE_SLICES = "session"
-
-  try {
-    let storage = null
-
-    const { flow: flow_local } = useUserPreferenceLocalStore.getState()
-    const { flow: flow_session } = useUserPreferenceSessionStore.getState()
-    const { projectId: projectId_local } = useUserPreferenceLocalStore.getState()
-    const { projectId: projectId_session } = useUserPreferenceSessionStore.getState()
-
-    if (typeof storageType == "string" && storageType !== "") {
-      storage = storageType === "sessionStorage" ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES
-    } else {
-      const flow = currentFlow || flow_local || flow_session
-      const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity]
-      const isTemporary = flow && sessionFlows.includes(flow) && !projectId_local && !projectId_session
-      storage = isTemporary ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES
-    }
-    const module = require(`../${SLICE_PATH}/${storage}/${sliceName}.js`)
-    const store = module.default.getState()
-    console.log(store)
-    console.log(funcName)
-    store[funcName](value)
-  } catch (error) {
-    console.error(`Error loading storage slice ${sliceName}:`, error)
-    throw error
-  }
-}
-
 /**
  * Gets a storage slice (Zustand store) based on the slice name and storage type
  * @param {string} sliceName - The name of the storage slice to retrieve (e.g., 'siteData', 'userPreference')
@@ -89,85 +29,6 @@ export const getStorageSlice = (sliceName, storageType = null, accessToken = und
 
   const slice = SLICES_STORE_MAP[storage][sliceName]
   return slice
-}
-
-export const getFromStorageSlice = (sliceName, key, parseValue = false, storageType = null) => {
-  const SLICE_PATH = "store/slices"
-  const LOCAL_STORAGE_SLICES = "persistent"
-  const SESSION_STORAGE_SLICES = "session"
-
-  const { flow: flow_local } = useUserPreferenceLocalStore.getState()
-  const { flow: flow_session } = useUserPreferenceSessionStore.getState()
-  const { projectId: projectId_local } = useUserPreferenceLocalStore.getState()
-  const { projectId: projectId_session } = useUserPreferenceSessionStore.getState()
-
-  let storage = null
-
-  if (typeof storageType == "string" && storageType !== "") {
-    storage = storageType === "sessionStorage" ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES
-  } else {
-    const flow = flow_local || flow_session
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity]
-    const isTemporary = flow && sessionFlows.includes(flow) && !projectId_local && !projectId_session
-    storage = isTemporary ? SESSION_STORAGE_SLICES : LOCAL_STORAGE_SLICES
-  }
-
-  const module = require(`../${SLICE_PATH}/${storage}/${sliceName}.js`)
-  const slice = module.default.getState()
-  const value = slice[key]
-  if (value && parseValue) {
-    return JSON.parse(value)
-  }
-  return value
-}
-
-export const getFromStorage = (key, parseValue = false, storageName = "") => {
-  const { flow: flow_local } = useUserPreferenceLocalStore.getState()
-  const { flow: flow_session } = useUserPreferenceSessionStore.getState()
-
-  let storage
-  if (storageName && storageName !== "") {
-    storage = storageName === "sessionStorage" ? sessionStorage : localStorage
-  } else {
-    const flow = flow_local || flow_session
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity]
-    const isTemporary = flow && sessionFlows.includes(flow) && !(localStorage.getItem("projectId") || sessionStorage.getItem("projectId"))
-    storage = isTemporary ? sessionStorage : localStorage
-  }
-  const value = storage.getItem(key)
-
-  if (value && parseValue) {
-    try {
-      return JSON.parse(value)
-    } catch (e) {
-      console.error(`Error parsing value for key "${key}":`, e)
-      return null
-    }
-  }
-
-  return value
-}
-
-export const removeFromStorage = (key, removeFromAll = false, storageName = "") => {
-  if (removeFromAll) {
-    sessionStorage.removeItem(key)
-    localStorage.removeItem(key)
-    return
-  }
-
-  const { flow: flow_local } = useUserPreferenceLocalStore.getState()
-  const { flow: flow_session } = useUserPreferenceSessionStore.getState()
-
-  let storage
-  if (storageName && storageName !== "") {
-    storage = storageName === "sessionStorage" ? sessionStorage : localStorage
-  } else {
-    const flow = flow_local || flow_session
-    const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity]
-    const isTemporary = flow && sessionFlows.includes(flow)
-    storage = isTemporary ? sessionStorage : localStorage
-  }
-  storage.removeItem(key)
 }
 
 // Helper for exponential backoff with jitter
@@ -244,7 +105,7 @@ export const handleS3Upload = async (file, fileName, folderStructure, storyData,
   return ""
 }
 
-export function clearFromStorage(removeFromAll = false, excludeKeys = []) {
+export function clearFromStorage() {
   try {
     // useChatDataLocalStore.getState().reset()
     // useChatDataSessionStore.getState().reset()
