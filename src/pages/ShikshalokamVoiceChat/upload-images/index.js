@@ -4,7 +4,7 @@ import { GoPlusCircle } from "react-icons/go"
 import { useTranslation } from "react-i18next"
 import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useUserDataLocalStore } from "store"
-import { useStorage } from "hooks/useStorage"
+import { useChatStorage } from "hooks/useStorage"
 import { updateStoryMedia } from "api/endpoints"
 
 const UploadImages = ({
@@ -24,8 +24,8 @@ const UploadImages = ({
   const fileExceedText = t("fileExceedText")
 
   const accessToken = useUserDataLocalStore(state => state.access_token)
-  const storageFlow = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.flow)
-  const sessionId = useStorage(STORE_NAME_CONSTANTS.CHAT_DATA)(state => state.sessionId)
+  const storageFlow = useChatStorage()(state => state.flow)
+  const sessionId = useChatStorage()(state => state.sessionId)
 
   async function partialMediaUpdate(updateId, include_in_story = false) {
     try {
