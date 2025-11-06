@@ -3,6 +3,7 @@ import { Heart, Star, Download } from "lucide-react";
 import SmallLogo from "./SmallLogo";
 import { useNavigate } from "react-router-dom";
 import { GrDocument } from "react-icons/gr";
+import ROUTES from "../../../url";
 const MEDIA_FILE_TYPE = {
   PDF: "PDF",
   DOCX: "DOCX",
@@ -55,7 +56,17 @@ export default function ResourceCard({ resource, index }) {
       className="bg-white rounded-[20px] border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow
                  flex flex-col justify-between gap-2.5 w-full min-w-[340px] h-full box-border "
       role="button"
-      onClick={() => window.open(`/mohini/shikshagraha-commons/${resource?.id}`, "_blank")}
+      onClick={() => {
+        const root = (process.env.REACT_APP_ROOT_PATH || '').replace(/^\/|\/$/g, '');
+        const repo = (ROUTES.SHIKSHAGRAHA_REPOSITORY || '').replace(/^\/|\/$/g, '');
+        const id = resource?.id ? `/${resource.id}` : '';
+
+        const pathParts = [root, repo].filter(Boolean).join('/');
+        const finalUrl = `${window.location.origin}${pathParts ? '/' + pathParts : ''}${id}`;
+
+        window.open(finalUrl, "_blank");
+      }}
+
     >
       <div className="flex flex-col gap-3.5 p-3.5">
         {/* Image container */}
