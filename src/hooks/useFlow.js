@@ -1,10 +1,10 @@
-import { getFromStorageSlice, setInStorageSlice } from "../services/storage_service"
 import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useNavigate } from "react-router-dom"
 import { useParams } from "react-router-dom"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useChatStorage } from "hooks/useStorage"
+import { useSiteStorage, useStorage } from "hooks/useStorage"
 import ROUTES from "../url"
 import useChatDataLocalStore from "store/slices/chatData/chatDataLocal"
 import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal"
@@ -14,6 +14,7 @@ export const useFlow = usecaseType => {
   const { flow } = useParams()
   const [isLoading, setIsLoading] = useState(true)
   const selectedFlow = useChatStorage()(state => state.flow)
+  const { setPreviousUrl } = useSiteStorage().getState()
 
   const handleFlowSelection = async stopAllAudio => {
     setIsLoading(true)
@@ -24,13 +25,7 @@ export const useFlow = usecaseType => {
     let navigateUrl = undefined
     let replaceUrl = undefined
 
-    setInStorageSlice("userPreference", window.location.href, "setPreviousUrl")
-    setInStorageSlice("userPreference", "xyz123", "setTempCode")
-
-    const previousUrl = getFromStorageSlice("userPreference", "previousUrl")
-    if (!previousUrl) {
-      return
-    }
+    setPreviousUrl(window.location.href)
 
     const accessToken = useSiteDataLocalStore.getState().getAccessToken()
     const flowRoutes = {

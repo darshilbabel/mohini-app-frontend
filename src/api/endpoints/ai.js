@@ -1,4 +1,4 @@
-import API_ENDPOINTS from "constants/urls";
+import { API_ENDPOINTS } from "constants/urls";
 import { apiClient } from "../client";
 import { bot_routes } from "../../configure";
 

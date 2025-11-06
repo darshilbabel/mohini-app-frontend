@@ -11,36 +11,16 @@ import { useTranslation } from "react-i18next"
 import { PrimaryButton } from "../../components/Buttons"
 import ChatMessage from "../ShikshalokamMegaPTM/ChatMessage"
 import PdfDownloader from "../story/upload-content/pdfDownloader"
-import { getFromStorage, handleS3Upload } from "../../services/storage_service"
-import { createStoryMedia, partialUpdateStoryById } from "../../api/endpoints"
+import { handleS3Upload } from "../../services/storage_service"
+import { createStoryMedia, partialUpdateStoryById, updateStoryMediaApi } from "api/endpoints"
 import axiosInstance from "../../utils/axios"
 import { LANGUAGE_ENUMS, sessionFlowName } from "../ShikshalokamVoiceChat/enum"
 import { getStoryBySessionAPI } from "api/endpoints"
 import { useSiteDataLocalStore } from "store"
-import { useStorage } from "hooks/useStorage"
+import { useChatStorage, useStorage } from "hooks/useStorage"
+import { useUserDataLocalStore } from "store"
 
 // Reusable partialUpdateMedia function
-export const partialUpdateMedia = (partialUpdateId, include_in_story = false, access_token, setIsLoading) => {
-  try {
-    const formData = new FormData()
-    formData.append("include_in_story", include_in_story)
-    formData.append("flow", getFromStorage("flow", false))
-    formData.append("access_token", access_token)
-    formData.append("session", getFromStorage("sessionid", true))
-
-    axiosInstance
-      .patch(`/api/storymedia/${partialUpdateId}/`, formData)
-      .then(() => {
-        window.location.reload()
-      })
-      .catch(error => {
-        console.error("Error updating media:", error)
-        setIsLoading(false)
-      })
-  } catch (error) {
-    console.error({ error })
-  }
-}
 
 // Reusable uploadImage function
 const uploadImage = (formData, setError, navigate, setIsLoading, access_token, setFiles) => {
@@ -73,6 +53,9 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
   const { t } = useTranslation()
   const [fileErrorText, setFileErrorText] = useState("")
   const [isImageUploading, setIsImageUploading] = useState(false)
+  const sessionId = useChatStorage()(state => state.sessionId)
+  const storageFlow = useChatStorage()(state => state.flow)
+  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
 
   const fileExceedText = t("fileExceedText")
   const fileSizeText = t("fileSizeText")
@@ -86,6 +69,30 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
       clearTimeout(textErrorTime)
     }
   }, [fileErrorText])
+
+  const partialUpdateMedia = (partialUpdateId, include_in_story = false, access_token, setIsLoading) => {
+    try {
+      const formData = {
+        include_in_story: include_in_story,
+        flow: storageFlow,
+        access_token: access_token,
+        session: sessionId,
+      }
+
+      updateStoryMediaApi()
+      axiosInstance
+        .patch(`/api/storymedia/${partialUpdateId}/`, formData)
+        .then(() => {
+          window.location.reload()
+        })
+        .catch(error => {
+          console.error("Error updating media:", error)
+          setIsLoading(false)
+        })
+    } catch (error) {
+      console.error({ error })
+    }
+  }
 
   const convertHeifToJpg = async file => {
     const formData = new FormData()
@@ -151,8 +158,8 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
           media_type: file.type,
           include_in_story: true,
           access_token,
-          flow: getFromStorage("flow", false),
-          session: getFromStorage("sessionid", true),
+          flow: storageFlow,
+          session: sessionId,
         }
 
         const uploadedFile = await uploadImage(formData, () => {}, navigate, setIsLoading, access_token, setFiles)
@@ -183,7 +190,7 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
         isTalking={false}
         handleOnStopSpeaking={() => handleOnStopSpeaking()}
         handleOnSpeaking={() => {
-          const lang = getFromStorage("local_route", true)
+          const lang = chatLanguage
           const message_to_use = flowConfig?.uploadPhotoKey
           handleOnSpeaking(flowConfig?.storyTextAudio?.[lang]?.uploadPhotoAudio, "upload-img-id", {
             msg: message_to_use,
@@ -265,6 +272,10 @@ export const EditStoryModal = ({ isModalOpen, closeModal, storyData, editorCopyC
   const [editor, setEditor] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
 
+  const sessionId = useChatStorage()(state => state.sessionId)
+  const storageFlow = useChatStorage()(state => state.flow)
+  const accessToken = useUserDataLocalStore(state => state.access_token)
+
   const handleSetIsLoading = value => {
     setIsLoading(value)
     if (parentSetIsLoading) {
@@ -274,7 +285,7 @@ export const EditStoryModal = ({ isModalOpen, closeModal, storyData, editorCopyC
 
   useEffect(() => {
     if (!!editorCopyChanges && isModalOpen && storyData) {
-      const flow = getFromStorage("flow", false)
+      const flow = storageFlow
       let parsed_content = []
 
       try {
@@ -469,12 +480,12 @@ export const EditStoryModal = ({ isModalOpen, closeModal, storyData, editorCopyC
               try {
                 handleSetIsLoading(true)
                 const outputData = await editor.save()
-                const flow = getFromStorage("flow", false)
+                const flow = storageFlow
 
                 let updatePayload = {
                   id: storyData?.id,
-                  access_token: getFromStorage("accessToken", true),
-                  session: getFromStorage("sessionid", true),
+                  access_token: accessToken,
+                  session: sessionId,
                   flow,
                 }
 

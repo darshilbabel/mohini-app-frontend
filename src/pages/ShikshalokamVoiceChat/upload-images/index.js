@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useUserDataLocalStore } from "store"
 import { useChatStorage } from "hooks/useStorage"
-import { updateStoryMedia } from "api/endpoints"
+import { updateStoryMediaApi } from "api/endpoints"
 
 const UploadImages = ({
   storyData,
@@ -35,7 +35,7 @@ const UploadImages = ({
         access_token: accessToken,
         session: sessionId,
       }
-      await updateStoryMedia({ token: accessToken, data: formData, mediaId: updateId })
+      await updateStoryMediaApi({ token: accessToken, data: formData, mediaId: updateId })
     } catch (error) {
       console.error(error)
     } finally {

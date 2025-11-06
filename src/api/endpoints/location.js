@@ -1,5 +1,5 @@
-import { apiClient } from "../client";
-import API_ENDPOINTS from "constants/urls";
+import { apiClient } from "../client"
+import { API_ENDPOINTS } from "constants/urls"
 
 /**
  * Get location data by parent ID
@@ -7,15 +7,15 @@ import API_ENDPOINTS from "constants/urls";
  * @returns {Promise<Object>} The location data
  */
 export const getLocationApi = async (parentId = null) => {
-  let params = undefined;
+  let params = undefined
 
   if (parentId) {
-    params = { parentId };
+    params = { parentId }
   }
 
-  const response = await apiClient.get(API_ENDPOINTS.GET_LOCATION, { params });
-  return response.data;
-};
+  const response = await apiClient.get(API_ENDPOINTS.GET_LOCATION, { params })
+  return response.data
+}
 
 /**
  * Get IP-based location data
@@ -27,9 +27,9 @@ export const getIpLocationApi = async () => {
       headers: {
         "Content-Type": "application/json",
       },
-    });
-    return response.data;
+    })
+    return response.data
   } catch (error) {
-    return error?.response?.data;
+    return error?.response?.data
   }
-};
+}

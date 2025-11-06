@@ -1,5 +1,5 @@
-import API_ENDPOINTS from "constants/urls";
-import { apiClient } from "../client";
+import { API_ENDPOINTS } from "constants/urls"
+import { apiClient } from "../client"
 
 /**
  * Get presigned URL for S3 upload
@@ -10,23 +10,19 @@ import { apiClient } from "../client";
  * @param {string} data.folder_structure - The folder structure in S3
  * @returns {Promise<Object>} Object containing uploadUrl and s3Url
  */
-export const getPresignedUrlApi = async (data) => {
+export const getPresignedUrlApi = async data => {
   try {
-    const response = await apiClient.post(
-      API_ENDPOINTS.GET_PRESIGNED_URL,
-      data,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data;
+    const response = await apiClient.post(API_ENDPOINTS.GET_PRESIGNED_URL, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    return response.data
   } catch (error) {
-    console.error("Error getting presigned URL:", error);
-    throw error;
+    console.error("Error getting presigned URL:", error)
+    throw error
   }
-};
+}
 
 /**
  * Upload file to S3 using presigned URL
@@ -43,10 +39,10 @@ export const uploadToS3Api = async (uploadUrl, file) => {
         "x-amz-acl": "public-read",
       },
       body: file,
-    });
-    return uploadResponse;
+    })
+    return uploadResponse
   } catch (error) {
-    console.error("Error uploading to S3:", error);
-    throw error;
+    console.error("Error uploading to S3:", error)
+    throw error
   }
-};
+}

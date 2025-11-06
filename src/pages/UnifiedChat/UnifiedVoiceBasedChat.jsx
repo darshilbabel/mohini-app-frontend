@@ -533,11 +533,6 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       setIsLoading(true)
       setIsEndStoryLoading(true)
 
-      // const sessionid = ;
-      // const profileId = getFromStorage("profileid", true);
-      // const access_token = getFromStorage("accessToken", true);
-      // const flow = getFromStorage("flow", false);
-
       const endStoryResponse = await axiosInstance({
         url: `/api/end-story/`,
         data: {
