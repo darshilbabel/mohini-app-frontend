@@ -2,7 +2,6 @@ import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { SLICES_STORE_MAP } from "../store"
 import { useUserPreferenceLocalStore, useUserPreferenceSessionStore } from "store"
 import axiosInstance from "../utils/axios"
-import { useUserDataSessionStore, useUserDataLocalStore, useChatDataLocalStore, useSiteDataSessionStore, useSiteDataLocalStore, useChatDataSessionStore } from "store"
 
 export const setInStorage = (key, value, currentFlow, storageName = "") => {
   const { flow: flow_local } = useUserPreferenceLocalStore.getState()

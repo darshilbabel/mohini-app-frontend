@@ -4,9 +4,9 @@ import { AiOutlineEye } from "react-icons/ai"
 import { BiLoader } from "react-icons/bi"
 import { bot_routes } from "../../configure"
 import { buildWebSocketUrl } from "utils/helpers"
-import { clearFromStorage, handleS3Upload, removeFromStorage, getStorageSlice } from "../../services/storage_service"
-import { createAuthRequest, createStoryMedia, getStoryAllMedia, partialUpdateStoryById } from "../story/api.service"
+import { clearFromStorage, handleS3Upload } from "../../services/storage_service"
 import { createMessage } from "../interview-voice"
+import { createStoryMedia, getStoryAllMedia, partialUpdateStoryById } from "../story/api.service"
 import { createUserProfileApi, getProfileUserApi } from "api/endpoints/user"
 import { FaCircle } from "react-icons/fa6"
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
@@ -14,6 +14,7 @@ import { FiDownload } from "react-icons/fi"
 import { getChatSessionApi } from "api/endpoints/chat"
 import { getCompanyBotApi } from "api/endpoints/chat"
 import { getSessionDetails, updateReflectionStatus } from "../../services/api.service"
+import { getStoryBySessionAPI } from "api/endpoints"
 import { GrGallery } from "react-icons/gr"
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
 import { LANGUAGE_ENUMS, languageList, sessionFlowName } from "./enum"
@@ -24,6 +25,7 @@ import { STORE_NAME_CONSTANTS } from "store/constants"
 import { TbReload } from "react-icons/tb"
 import { toast } from "react-toastify"
 import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi } from "api/endpoints"
+import { updateStoryMedia } from "api/endpoints"
 import { useAudio } from "hooks/useAudio"
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useChatDataSessionStore } from "store"
@@ -47,6 +49,7 @@ import PrivacyPolicyPopup from "../../components/TnC/privacyPolicyPopup"
 import ReactMarkdown from "react-markdown"
 import rehypeRaw from "rehype-raw"
 import remarkGfm from "remark-gfm"
+import ReportEditor from "components/ReportEditor"
 import ROUTES from "../../url"
 import Sidebar from "./shikshaChatSidebar"
 import UploadImages from "./upload-images"
@@ -55,14 +58,12 @@ import useSmartChatStorage from "hooks/useSmartChatStorage"
 import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord"
 import WaveSurferPlayer from "../interview-text-voice/voice-player"
-import ReportEditor from "components/ReportEditor"
-import { getStoryBySessionAPI } from "api/endpoints"
 
 const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
-const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-// const wss_protocol = "wss://"
+// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
+const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
@@ -115,7 +116,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [companySlug, setCompanySlug] = useState("")
   const [error, setError] = useState({ response: "", status: 200 })
   const [visibleItemCount, setVisibleItemCount] = useState(10)
-  const [showHomepage, setShowHomepage] = useState(false)
+  const [showHomepage, setShowHomepage] = useState(true)
   // const [isReconnectInProgress, setIsReconnectInProgress] = useState(false);
   // const [reconnectAttempts, setReconnectAttempts] = useState(0);
 
@@ -282,6 +283,23 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     setChatHistory(chat_history)
 
     return chat_history
+  }
+
+  async function partialMediaUpdate(updateId, include_in_story = false) {
+    try {
+      setIsLoading(true)
+      const formData = {
+        include_in_story: include_in_story,
+        flow: storageFlow,
+        access_token: accessToken,
+        session: sessionId,
+      }
+      await updateStoryMedia({ token: accessToken, data: formData, mediaId: updateId })
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   async function onEditorSave() {
@@ -542,94 +560,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       setIsLoading(false)
     }
   }
-
-  // ========================================================================
-  // SECTION: WebSocket Connection Management Callbacks
-  // These callbacks handle WebSocket lifecycle, connection, reconnection, and message handling
-  // ========================================================================
-
-  /**
-   * Builds WebSocket URL based on flow configuration and type
-   * @param {Object} config - Configuration object
-   * @param {URLSearchParams} config.searchParams - URL search parameters
-   * @param {string} config.storageFlow - Current storage flow
-   * @param {string} config.selectedType - Selected type (normal/oneshot)
-   * @param {string} config.wssProtocol - WebSocket protocol (wss:// or ws://)
-   * @returns {string|null} - WebSocket URL or null if invalid
-   */
-
-  /**
-   * Creates WebSocket message handler
-   * @param {Object} callbacks - Callback functions
-   * @returns {Function} - Message handler function
-   */
-  const createWebSocketMessageHandler = useCallback(
-    callbacks => {
-      const { onBotMessage, onStreamComplete, onStreamStart, onFinishMessage } = callbacks
-
-      return event => {
-        try {
-          const data = JSON.parse(event.data)
-          const message = data["text"]
-
-          if (message.source === "bot") {
-            onStreamStart()
-            onBotMessage(message)
-
-            if (isShikshalokamPublicType) {
-              handleScrollToView()
-            }
-          } else {
-            onStreamStart()
-          }
-
-          if (message.finish_reason === "stop" && message.source === "bot") {
-            onFinishMessage(message)
-          }
-        } catch (error) {
-          console.error("Error parsing WebSocket message:", error)
-        }
-      }
-    },
-    [isShikshalokamPublicType, handleScrollToView]
-  )
-
-  /**
-   * Creates WebSocket open handler
-   * @param {Object} callbacks - Callback functions
-   * @returns {Function} - Open handler function
-   */
-  const createWebSocketOpenHandler = useCallback(
-    callbacks => {
-      const { onConnectionReady, onAuthenticate } = callbacks
-
-      return () => {
-        onConnectionReady()
-
-        if (isShikshalokamPublicType && onAuthenticate) {
-          onAuthenticate()
-        }
-      }
-    },
-    [isShikshalokamPublicType]
-  )
-
-  /**
-   * Creates WebSocket close handler
-   * @param {Object} callbacks - Callback functions
-   * @returns {Function} - Close handler function
-   */
-  const createWebSocketCloseHandler = useCallback(callbacks => {
-    const { onReconnect, shouldRetry } = callbacks
-
-    return event => {
-      console.warn("WebSocket closed:", event)
-      if (event.code !== 1000 && shouldRetry()) {
-        console.error("Unexpected WebSocket closure. Retrying...")
-        onReconnect()
-      }
-    }
-  }, [])
 
   /**
    * Sends user message through WebSocket connection
@@ -1254,6 +1184,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
   }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound])
 
+  useEffect(() => {
+    console.log(storyData, isModalOpen, isSpecialFlow, accessToken)
+    console.log("storyData, isModalOpen, isSpecialFlow, accessToken")
+  }, [storyData, isModalOpen, isSpecialFlow, accessToken])
+
   /**
    * Display chat session titles for guest users after delay
    * Shows available chat sessions in sidebar with loading state
@@ -1814,7 +1749,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                   }
                 }
                 if (!fileFound) {
-                  partialUpdateMedia(storyFile?.id)
+                  partialMediaUpdate(storyFile?.id)
                 }
               }
             }
@@ -2752,7 +2687,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           </div>
         </div>
       )}
-      {storyData && isModalOpen && isSpecialFlow && accessToken ? defaultEditorClick(storyData?.title, firstName, storyData?.location) : <ReportEditor onClose={closeModal} onSave={onEditorSave} disabled={isLoading || isSaving} />}
+      {storyData && isModalOpen && (isSpecialFlow && accessToken ? defaultEditorClick(storyData?.title, firstName, storyData?.location) : <ReportEditor onClose={closeModal} onSave={onEditorSave} disabled={isLoading || isSaving} />)}
       <div className={`${accessToken ? "div72" : isOpen ? "div71" : ""}`}>
         {shouldFetchChatSession && (
           <>
@@ -2932,7 +2867,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                           <li key={index} className="li-2">
                             {file.name.slice(0, 20)}
                             {file.name.length > 20 && "..."}
-                            <button className="button-1" onClick={() => partialUpdateMedia(file?.id, false, setIsLoading)}>
+                            <button className="button-1" onClick={() => partialMediaUpdate(file?.id, false)}>
                               <RxCross2 />
                             </button>
                           </li>
@@ -3222,33 +3157,4 @@ const uploadImage = (formData, setError, navigate, setIsLoading, setFiles) => {
       reject(error)
     }
   })
-}
-
-export const partialUpdateMedia = (partialUpdateId, include_in_story = false, setIsLoading, setFiles) => {
-  try {
-    const formData = new FormData()
-    const accessToken = useUserDataLocalStore.getState().getAccessToken()
-    const sessionId = getStorageSlice(STORE_NAME_CONSTANTS.CHAT_DATA, null, accessToken).getState().getSessionId()
-    const storageFlow = getStorageSlice(STORE_NAME_CONSTANTS.CHAT_DATA, null, accessToken).getState().getFlow()
-
-    formData.append("include_in_story", include_in_story)
-    formData.append("flow", storageFlow)
-    formData.append("access_token", accessToken)
-    formData.append("session", sessionId)
-
-    createAuthRequest({
-      setter: () => {
-        window.location.reload()
-      },
-      loader: setIsLoading,
-      data: formData,
-      token: accessToken,
-      method: "PATCH",
-      url: `/api/storymedia/${partialUpdateId}/`,
-    })
-  } catch (error) {
-    console.error({
-      error,
-    })
-  }
 }

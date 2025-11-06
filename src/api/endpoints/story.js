@@ -249,37 +249,21 @@ export const partialUpdateStoryById = async ({
  * @param {string} params.data.media_type - Media type
  * @returns {Promise<Object>} Response data
  */
-export const updateStoryMedia = async ({
-  token,
-  data = {
-    story: "",
-    name: "",
-    file: [],
-    id: "",
-    access_token: "",
-    session: "",
-    flow: "",
-    media_type: "",
-    include_in_story: false,
-  },
-}) => {
+export const updateStoryMedia = async ({ token, data, mediaId }) => {
   try {
     if (!token) {
       throw new Error("Authorization token is required!")
     }
 
-    if (!data.id) {
+    if (!mediaId) {
       throw new Error("Media ID is required!")
     }
 
     const formData = new FormData()
-    formData.append("story", data.story)
-    formData.append("name", data.name)
-    formData.append("file", data.file)
-    formData.append("media_type", data.media_type)
-    formData.append("access_token", data.access_token)
-    formData.append("flow", data.flow)
-    formData.append("session", data.session)
+
+    for (const key of Object.keys(data)) {
+      formData.append(key, data[key])
+    }
 
     const config = {
       headers: {
@@ -287,7 +271,7 @@ export const updateStoryMedia = async ({
       },
     }
 
-    const response = await apiClient.put(`${API_ENDPOINTS.STORY_MEDIA}${data.id}/`, formData, config)
+    const response = await apiClient.put(`${API_ENDPOINTS.STORY_MEDIA}${mediaId}/`, formData, config)
 
     return response?.data || {}
   } catch (error) {
