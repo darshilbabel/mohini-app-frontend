@@ -33,16 +33,16 @@ function SsoFlow() {
   useEffect(() => {
     async function fetchProfileDetails() {
       const accessToken = searchParams.get(URL_PARAMS.ACCESS_TOKEN)
-      const flow_type = searchParams.get("flow")
-      const projectId = searchParams.get("projectId")
-      const taskId = searchParams.get("taskId")
-      const sessionId = searchParams.get("sessionId")
-      const languagePassed = searchParams.get("language")
-      let rerouteRaw = searchParams.get("rerouteUrl") || ""
+      const flow_type = searchParams.get(URL_PARAMS.FLOW)
+      const projectId = searchParams.get(URL_PARAMS.PROJECT_ID)
+      const taskId = searchParams.get(URL_PARAMS.TASK_ID)
+      const sessionId = searchParams.get(URL_PARAMS.SESSION_ID)
+      const languagePassed = searchParams.get(URL_PARAMS.LANGUAGE)
+      let rerouteRaw = searchParams.get(URL_PARAMS.RE_ROUTE_URL) || ""
       if (rerouteRaw.startsWith('"') && rerouteRaw.endsWith('"')) {
         rerouteRaw = rerouteRaw.slice(1, -1)
       }
-      console.log(rerouteRaw, "rerouteRaw")
+      console.log(rerouteRaw, URL_PARAMS.RE_ROUTE_URL)
       // const rerouteUrl = decodeURIComponent(rerouteRaw)
 
       if (!accessToken || accessToken === "") {
