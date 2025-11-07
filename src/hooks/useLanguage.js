@@ -1,69 +1,52 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { languageList } from "../pages/ShikshalokamVoiceChat/enum";
-import { setLanguage } from "../i18n";
-import { getFromStorage, setInStorage } from "../services/storage_service";
+import { useState, useEffect } from "react"
+import { useParams } from "react-router-dom"
+import { setLanguage } from "i18n"
+import { useSiteStorage } from "hooks/useStorage"
+import { STORE_NAME_CONSTANTS } from "store/constants"
+import { useSiteDataLocalStore } from "store"
 
 // Get default language based on usecase type
-function getDefaultLanguage(usecaseType) {
-  switch (usecaseType) {
-    default:
-      return languageList[0].value;
-  }
-}
-
-export const useLanguage = (usecaseType) => {
-  const location = useLocation();
-  
+export const useLanguage = () => {
   // Parse URL params
-  const urlParams = new URLSearchParams(location.search);
-  const urlLanguage = urlParams.get('language');
-  
-  const defaultLanguage = urlLanguage ||
-    getFromStorage("local_route", true, "localStorage") ||
-    getDefaultLanguage(usecaseType);
-  
-  const [userLanguage, setUserLanguage] = useState(defaultLanguage);
-  const [languageButtonSelect, setLanguageButtonSelect] = useState(
-    urlLanguage ? true : (getFromStorage("hasSelectedLanguage") || null)
-  );
+  const { language: urlLanguage } = useParams()
+
+  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
+  const hasSelectedLanguage = useSiteDataLocalStore(state => state.hasSelectedLanguage)
+  const { setHasSelectedLanguage } = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
+
+  // TODO: Can be deprecated
+  /**
+   * @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]}
+   */
+  const [languageButtonSelect, setLanguageButtonSelect] = useState(false)
+
+  useEffect(() => {
+    if (urlLanguage) {
+      setLanguageButtonSelect(false)
+    } else if (hasSelectedLanguage) {
+      setLanguageButtonSelect(true)
+    }
+  }, [urlLanguage, hasSelectedLanguage])
 
   // Auto-apply URL language on mount
   useEffect(() => {
     if (urlLanguage) {
-      setInStorage("hasSelectedLanguage", true);
-      setLanguage(urlLanguage);
-      localStorage.setItem("local_route", JSON.stringify(urlLanguage));
-      setInStorage("route", JSON.stringify(urlLanguage));
-      setLanguageButtonSelect(true);
+      setHasSelectedLanguage(true)
+      setLanguage(urlLanguage)
+      setChatLanguage(urlLanguage)
+      setLanguageButtonSelect(true)
     }
-  }, [urlLanguage]);
+  }, [urlLanguage])
 
   const handleLanguageChange = (newLanguage, audioRef, stopAllAudio, setStopAudioTriggered) => {
-    audioRef.current = null;
-    setUserLanguage(newLanguage);
-    setStopAudioTriggered(true);
-    stopAllAudio();
-    setLanguage(newLanguage);
-    localStorage.setItem("local_route", JSON.stringify(newLanguage));
-  };
-
-  const setSelectedLanguage = (language) => {
-    setInStorage("hasSelectedLanguage", true);
-    setUserLanguage(language);
-    setLanguage(language);
-    localStorage.setItem("local_route", JSON.stringify(language));
-    setInStorage("route", JSON.stringify(language));
-    setLanguageButtonSelect(true);
-  };
+    audioRef.current = null
+    setStopAudioTriggered(true)
+    stopAllAudio()
+    setLanguage(newLanguage)
+  }
 
   return {
-    userLanguage,
-    setUserLanguage,
     languageButtonSelect,
-    setLanguageButtonSelect,
     handleLanguageChange,
-    setSelectedLanguage,
-    getDefaultLanguage,
-  };
-};
+  }
+}

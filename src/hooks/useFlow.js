@@ -1,153 +1,67 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { getFromStorage, setInStorage } from "../services/storage_service";
-import ROUTES from "../url";
-import { sessionFlowName, sessionUsecaseType } from "../pages/ShikshalokamVoiceChat/enum";
+import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
+import { STORE_NAME_CONSTANTS } from "store/constants"
+import { useNavigate } from "react-router-dom"
+import { useParams } from "react-router-dom"
+import { useState } from "react"
+import { useChatStorage } from "hooks/useStorage"
+import { useSiteStorage, useStorage } from "hooks/useStorage"
+import ROUTES from "../url"
+import useChatDataLocalStore from "store/slices/chatData/chatDataLocal"
+import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal"
 
-export const useFlow = (usecaseType) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Parse URL params
-  const urlParams = new URLSearchParams(location.search);
-  const urlFlow = urlParams.get('flow');
-  
-  // Check if URL flow exists in our enum values
-  const validFlows = Object.values(sessionFlowName);
-  const mappedUrlFlow = validFlows.includes(urlFlow) ? urlFlow : null;
-  
-  const [selectedFlow, setSelectedFlow] = useState(
-    mappedUrlFlow || getFromStorage("flow", false) || null
-  );
-  const [isLoading, setIsLoading] = useState(true);
+export const useFlow = usecaseType => {
+  const navigate = useNavigate()
+  const { flow } = useParams()
+  const [isLoading, setIsLoading] = useState(true)
+  const selectedFlow = useChatStorage()(state => state.flow)
+  const { setPreviousUrl } = useSiteStorage().getState()
 
-  // Auto-apply URL flow on mount
-  useEffect(() => {
-    if (mappedUrlFlow) {
-      setInStorage('flow', mappedUrlFlow);
-      setSelectedFlow(mappedUrlFlow);
-    }
-  }, [mappedUrlFlow]);
+  const handleFlowSelection = async stopAllAudio => {
+    setIsLoading(true)
+    await stopAllAudio()
 
-  const ptm_case = [sessionUsecaseType.MEGA_PTM].some((x) => x === usecaseType);
-  const ylc_case = [sessionUsecaseType.YLC].some((x) => x === usecaseType);
+    // const flow = useChatDataSessionStore.getState().getFlow();
 
-  const processLanguageButtonClick = (langToUse, forceProcess = false) => {
-    console.log("Process button clicked");
-    
-    // Check URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlLanguage = urlParams.get('language');
-    const urlFlow = urlParams.get('flow');
-    const hasUrlParams = urlLanguage || urlFlow;
-    
-    // If both URL params exist, always process immediately
-    if (urlLanguage && urlFlow) {
-      forceProcess = true;
-    }
-    
-    // If URL flow exists but no language was provided, and user just selected language
-    if (urlFlow && !urlLanguage && forceProcess) {
-      forceProcess = true;
-    }
-    
-    if (!forceProcess && !hasUrlParams && (!getFromStorage("hasSelectedLanguage") || !selectedFlow || !langToUse)) {
-      setIsLoading(false);
-      return;
-    }
-    
-    console.log("Process button allowed");
-    setIsLoading(true);
-    setInStorage("hasSelectedLanguage", true);
-    setInStorage("route", JSON.stringify(langToUse));
+    let navigateUrl = undefined
+    let replaceUrl = undefined
 
-    // Case for PTM
-    if (ptm_case) {
-      console.log("Navigating to PTM chat");
-      return navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE);
-    } else if (ylc_case) {
-      console.log("Navigating to YLC chat");
-      return navigate(ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE);
-    }
-    
-    const currentFlow = selectedFlow || getFromStorage("flow");
-    const accessToken = getFromStorage("accessToken", true);
-    console.log("Current flow:", currentFlow, "Access token:", accessToken);
-    // Set common storage items
-    setInStorage("previousUrl", window.location.href);
-    setInStorage("tempCode", "xyz123");
-    setInStorage("flow", currentFlow);
-    // Navigate based on flow - handle both authenticated and guest users
-    if (currentFlow === sessionFlowName.GuestMiStory) {
-      if (accessToken) {
-        return window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-      } else {
-        navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-        return;
-      }
-    }
-    
-    if (currentFlow === sessionFlowName.GuestDiscussion) {
-      if (accessToken) {
-        return window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-      } else {
-        navigate(ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-        return;
-      }
+    setPreviousUrl(window.location.href)
+
+    const accessToken = useSiteDataLocalStore.getState().getAccessToken()
+    const flowRoutes = {
+      [sessionFlowName.GuestDiscussion]: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT,
+      [sessionFlowName.GuestMiStory]: ROUTES.SHIKSHALOKAM_GUEST_MI_STORY,
     }
 
-    if (currentFlow === sessionFlowName.ListeningActivity) {
-      if (accessToken) {
-        return window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_GUEST_LISTENING_CHAT);
-      } else {
-        navigate(ROUTES.SHIKSHALOKAM_GUEST_LISTENING_CHAT);
-        return;
-      }
+    const route = flowRoutes[selectedFlow]
+    if (!route) {
+      return
     }
-    
-    setIsLoading(false);
-  };
 
-  const handleFlowSelection = async (flow, stopAllAudio) => {
-    setIsLoading(true);
-    await stopAllAudio();
-    
-    if (flow === sessionFlowName.GuestDiscussion) {
-      setInStorage("previousUrl", window.location.href);
-      setInStorage("tempCode", "xyz123");
-      if (getFromStorage("previousUrl")) {
-        if (getFromStorage("accessToken", true)) {
-          setInStorage("flow", flow);
-          return window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-        } else {
-          navigate(ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT);
-          window.location.reload();
-        }
-      }
-    } else if (flow === sessionFlowName.GuestMiStory) {
-      setInStorage("previousUrl", window.location.href);
-      setInStorage("tempCode", "xyz123");
-      if (getFromStorage("previousUrl")) {
-        if (getFromStorage("accessToken", true)) {
-          setInStorage("flow", flow);
-          return window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-        } else {
-          navigate(ROUTES.SHIKSHALOKAM_GUEST_MI_STORY);
-          window.location.reload();
-        }
-      }
+    if (accessToken) {
+      useChatDataLocalStore.getState().setFlow(flow)
+      replaceUrl = "/mohini" + route
+    } else {
+      navigateUrl = route
     }
-    setIsLoading(false);
-  };
+
+    if (!replaceUrl && !navigateUrl) {
+      return
+    }
+
+    if (replaceUrl) {
+      return window.location.replace(replaceUrl)
+    }
+    if (navigateUrl) {
+      navigate(navigateUrl)
+      window.location.reload()
+    }
+    setIsLoading(false)
+  }
 
   return {
-    selectedFlow,
-    setSelectedFlow,
     isLoading,
     setIsLoading,
-    ptm_case,
-    processLanguageButtonClick,
     handleFlowSelection,
-  };
-};
+  }
+}

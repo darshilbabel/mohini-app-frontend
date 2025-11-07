@@ -1,10 +1,8 @@
 // components/ShowPageButton.js
 import { useEffect, useRef, useState } from "react";
 import { HiOutlineSpeakerWave, HiOutlineSpeakerXMark } from "react-icons/hi2";
-import {
-  handleOnSpeaking,
-  handleOnStopSpeaking,
-} from "../services/audio_service";
+import { handleOnSpeaking, handleOnStopSpeaking, } from "../services/audio_service";
+import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal";
 
 const ShowPageButton = ({
   text,
@@ -12,8 +10,7 @@ const ShowPageButton = ({
   audioRef,
   stopAudioTriggered,
   setStopAudioTriggered,
-  controllerRef,
-  userLanguage = "en",
+  // userLanguage = "en",
   selectedFlow,
   showSpeaker = false,
   forcePlayAudio = false,
@@ -21,8 +18,11 @@ const ShowPageButton = ({
 }) => {
   const [audioCache, setAudioCache] = useState({});
   const [isPlaying, setIsPlaying] = useState(false);
+
   const hasForcedPlay = useRef(1);
   const prevFlow = useRef(null);
+
+  const chatLanguage = useSiteDataLocalStore((state) => state.chatLanguage)
 
   // Reset audio cache and state when language changes
   useEffect(() => {
@@ -30,7 +30,7 @@ const ShowPageButton = ({
     audioRef.current = null;
     hasForcedPlay.current = 2;
     prevFlow.current = selectedFlow;
-  }, [userLanguage]);
+  }, [chatLanguage]);
 
   // Reset playing state when flow changes
   useEffect(() => {
@@ -50,7 +50,7 @@ const ShowPageButton = ({
       handleOnSpeaking(
         text,
         id,
-        userLanguage,
+        // chatLanguage,
         audioRef,
         audioCache,
         setAudioCache,
@@ -79,7 +79,6 @@ const ShowPageButton = ({
         handleOnSpeaking(
           text,
           id,
-          userLanguage,
           audioRef,
           audioCache,
           setAudioCache,

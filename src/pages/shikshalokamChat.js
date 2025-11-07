@@ -1,192 +1,169 @@
-import { useEffect, useState } from "react";
-import { getIpLocation, getProfileDetails, getSessionDetails } from "../services/api.service";
-import { languageList, sessionFlowName } from "./ShikshalokamVoiceChat/enum";
-import ROUTES from "../url";
-import { useNavigate } from "react-router-dom";
-import axiosInstance from "../utils/axios";
-import { setLanguage } from "../i18n";
-import { BiLoader } from "react-icons/bi";
-import { clearFromStorage, getFromStorage, removeFromStorage, setInStorage } from "../services/storage_service";
-import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat";
+import { useEffect, useState } from "react"
+import { getIpLocation, getProfileDetails, getSessionDetails } from "../services/api.service"
+import { languageList } from "./ShikshalokamVoiceChat/enum"
+import ROUTES from "../url"
+import { useNavigate } from "react-router-dom"
+import { setLanguage } from "../i18n"
+import { BiLoader } from "react-icons/bi"
+import { clearFromStorage } from "../services/storage_service"
+import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat"
+import { loginApi } from "api/endpoints/auth"
+import { STORE_NAME_CONSTANTS } from "store/constants"
+import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
+import useUserDataLocalStore from "store/slices/userData/userDataLocal"
+import { useSiteDataLocalStore } from "store"
 
+function ShikshalokamChat({ type, variant }) {
+  const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(false)
 
+  const { setFirstName } = useUserStorage().getState()
+  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const companyName = useUserStorage()(state => state.companyName)
+  const deviceId = useUserStorage()(state => state.device_id)
+  const ipCity = useUserStorage()(state => state.ipCity)
+  const ipCountry = useUserStorage()(state => state.ipCountry)
+  const ipState = useUserStorage()(state => state.ipState)
+  const sessionId = useChatStorage()(state => state.sessionId)
+  const setCompanyName = useUserStorage()(state => state.setCompanyName)
+  const setDeviceId = useUserStorage()(state => state.setDeviceId)
+  const setFlow = useChatStorage()(state => state.setFlow)
+  const setHasAcceptedTnc = useUserStorage()(state => state.setHasAcceptedTnc)
+  const setIpCity = useUserStorage()(state => state.setIpCity)
+  const setIpCountry = useUserStorage()(state => state.setIpCountry)
+  const setIpState = useUserStorage()(state => state.setIpState)
+  const setIsNewChatOpen = useChatStorage()(state => state.setIsNewChatOpen)
+  const setProfileId = useUserStorage()(state => state.setProfileId)
+  const setSessionId = useChatStorage()(state => state.setSessionId)
+  const setUserId = useUserStorage()(state => state.setUserId)
+  const storageFlow = useChatStorage()(state => state.flow)
+  const userId = useUserStorage()(state => state.userId)
 
-function ShikshalokamChat({type, variant}) {
-	const login_api_url = `/api/login/`;
+  const accessToken = useUserDataLocalStore(state => state.access_token)
 
-	const navigate = useNavigate();
-	const [isLoading, setIsLoading] = useState(false);
-	const [userId, setUserId] = useState(getFromStorage('device_id') || null);
-	const [companyName, setCompanyName] = useState(getFromStorage('company') || null);
-		  
-	useEffect(() => {
-		if(getFromStorage('accessToken', false, 'localStorage')) return;
-		const tnc=getFromStorage("has_accepted_tnc");
-		if (!tnc || tnc === "ONGOING") {
-			clearFromStorage(true, ['local_route']);
-		}
-		if (!getFromStorage("local_route")) {
-			setInStorage("local_route", JSON.stringify(languageList[0].value), type);
-		}
-		// if(!getFromStorage('tempCode')){
-		// 	removeFromStorage('previousUrl');
-		// }
-		if(getFromStorage('tempCode', false, 'localStorage')){
-			const previousUrl = getFromStorage('previousUrl', false, 'localStorage');
-			console.log('previousUrl chk', previousUrl);
-			console.log('currentUrl chk', window.location.href);
-			if(previousUrl && previousUrl !== '') {
-				console.log('type chk', type);
-				if(type && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(type)){
-					console.log("Setting previousUrl in sessionStorage");
-					setInStorage('previousUrl', previousUrl, type, 'sessionStorage');
-				}
-			}
-		}
-		removeFromStorage('tempCode', false, 'localStorage');
-		removeFromStorage('previousUrl', false, 'localStorage');
-		setInStorage("chatLanguage", JSON.stringify(getFromStorage("local_route", true, 'localStorage') || languageList[0].value), type);
+  useEffect(() => {
+    console.log("companyName chk", companyName)
+    console.log("isLoading chk", isLoading)
+  }, [companyName, isLoading])
 
-	}, []);
-	
-	function getUserFingerPrint() {
-		if(getFromStorage('accessToken', false, 'localStorage')) return;
+  function getUserFingerPrint() {
+    if (accessToken) return
 
-		try {
-			const fingerprint =
-			window.navigator.userAgent +
-			window.navigator.language +
-			window.screen.colorDepth +
-			window.screen.pixelDepth +
-			window.screen.width +
-			window.screen.height;
+    try {
+      const fingerprint = window.navigator.userAgent + window.navigator.language + window.screen.colorDepth + window.screen.pixelDepth + window.screen.width + window.screen.height
 
-			const storedUserId = getFromStorage('device_id');
-			const newUserId = storedUserId || btoa(fingerprint);
+      const newUserId = deviceId || btoa(fingerprint)
 
-			setInStorage('device_id', newUserId, type);
-			setUserId(newUserId);
-		} catch (error) {
-			console.error('Error handling user ID:', error);
-			setUserId('guest_' + Date.now());
-		}
-	}
+      if (!deviceId) setDeviceId(newUserId)
+      setUserId(newUserId)
+    } catch (error) {
+      console.error("Error handling user ID:", error)
+      setUserId("guest_" + Date.now())
+    }
+  }
 
-	async function initialSetup() {
-		if(getFromStorage('accessToken', false, 'localStorage')) return;
+  async function initialSetup() {
+    if (accessToken) return
 
-		try{
-		  const deviceId = getFromStorage('device_id')
-		  const customEmail = deviceId + "@shikshalokam.org"
-		  const currentFlow = getFromStorage('flow');
-		  const body = {
-			email: customEmail,
-			company: "shikshalokamstaging",
-			password: "grit@123",
-			latest_flow_used: currentFlow,
-			other_params: {
-			  device_id: deviceId,
-			  city: getFromStorage('ip_city') || "",
-			  state: getFromStorage('ip_state') || "",
-			  country: getFromStorage('ip_country') || "",
-			}
-		  }
-		  
-		  setIsLoading(true);
-		  const res = await getProfileDetails(body);
-		  
-		  if (res?.status === "error") {
-			setIsLoading(false);
-			return;
-		  }
-	  
-		  setInStorage('profileid', JSON.stringify(res.id), type);
-	  
-		  let session = await getSessionDetails();
-		  setInStorage('sessionid', JSON.stringify(session.sessionid), type);
-	  
-		  const response = await axiosInstance({
-			url: login_api_url,
-			method: "POST",
-			data: {
-			  email: customEmail,
-			  password: "grit@123",
-			},
-		  });
-	  
-		  if (!!response?.data?.access_token) {
-			setInStorage('company', JSON.stringify(response?.data?.company), type);
-			setInStorage('first_name', JSON.stringify(response?.data?.first_name), type);
-			setCompanyName(response?.data?.company);
-		  } else {
-			window.location.reload();
-		  }
-	  
-		  setIsLoading(false);
-		} catch (error) {
-		  console.error("Error during initial setup:", error);
-		  navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE);
-		  setIsLoading(false);
-		}
-		
-	}
+    try {
+      const customEmail = deviceId + "@shikshalokam.org"
+      const body = {
+        email: customEmail,
+        company: "shikshalokamstaging",
+        password: "grit@123",
+        latest_flow_used: storageFlow,
+        other_params: {
+          device_id: deviceId,
+          city: ipCity || "",
+          state: ipState || "",
+          country: ipCountry || "",
+        },
+      }
 
-	const setFinalLanguage = async () => {
-		if(getFromStorage('accessToken', false, 'localStorage')) return;
+      setIsLoading(true)
+      const res = await getProfileDetails(body)
 
-		const currentFlow = getFromStorage('flow');
-		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(currentFlow)){
-			await initialSetup();
-		}
-		if(currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(currentFlow)){
-			const storedLanguage = getFromStorage("local_route", true, 'localStorage') || languageList[0].value;
-			setLanguage(storedLanguage);
-		}
-	}
+      //   if (res?.status === "error") {
+      // 	setIsLoading(false);
+      // 	return;
+      //   }
 
-	useEffect(()=>{
-		const runSetup = async () => {
-			if(getFromStorage('accessToken', false, 'localStorage')) return;
+      setProfileId(res.id)
 
-			if(!getFromStorage('sessionid')){
-				clearFromStorage(false, ['local_route']);
-				setIsLoading(true);
-				setInStorage('has_accepted_tnc', 'ONGOING', type);
-				setInStorage('isNewChatOpen', JSON.stringify(true), type);
-				const locationData = await getIpLocation();
-				if (locationData && locationData?.location) {
-				setInStorage('ip_state', locationData?.location?.regionName, type);
-				setInStorage('ip_city', locationData?.location?.city, type);
-				setInStorage('ip_country', locationData?.location?.country, type);
-				}
-				setInStorage('flow', type, type);
-				await setFinalLanguage();
-				getUserFingerPrint();
-			}
-			else if (getFromStorage('flow') && !([sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.ListeningActivity].includes(getFromStorage('flow')))){
-				clearFromStorage(false, ['local_route']);
-				window.location.reload();
-			}
-		};
-		runSetup();
-	}, [])
+      let session = await getSessionDetails()
+      setSessionId(session.sessionid)
 
-	return (
-		<>
-			{(companyName && !isLoading)&&
-				<>
-					<ShikshalokamVoiceBasedChat type={'shikshalokam'} variant={'publicBot'}/>
-				</>
-			}
-			{(isLoading)&& 
-				<div className="loader-load-spinner">
-					<div className="div67">
-						<BiLoader className="loader-rotate-loader loader-icon" />
-					</div>
-				</div>
-			}
-		</>
-	);
+      const response = await loginApi({
+        email: customEmail,
+        password: "grit@123",
+      })
+
+      if (!!response?.access_token) {
+        setCompanyName(response?.company)
+        setFirstName(response?.first_name)
+      } else {
+        window.location.reload()
+      }
+
+      setIsLoading(false)
+    } catch (error) {
+      console.error("Error during initial setup:", error)
+      navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
+      setIsLoading(false)
+    }
+  }
+
+  const setFinalLanguage = async () => {
+    if (accessToken) return
+
+    await initialSetup()
+    const storedLanguage = chatLanguage || languageList[0].value
+    setLanguage(storedLanguage)
+  }
+
+  useEffect(() => {
+    const runSetup = async () => {
+      // if (accessToken) return
+
+      if (!sessionId) {
+        clearFromStorage(false, ["local_route"])
+        setIsLoading(true)
+        setHasAcceptedTnc("ONGOING")
+        setIsNewChatOpen(true)
+
+        const locationData = await getIpLocation()
+        if (locationData && locationData?.location) {
+          setIpState(locationData?.location?.regionName)
+          setIpCity(locationData?.location?.city)
+          setIpCountry(locationData?.location?.country)
+        }
+        setFlow(type)
+        getUserFingerPrint()
+        await setFinalLanguage()
+      }
+      // else if (storageFlow && !accessToken){
+      // 	window.location.reload();
+      // }
+    }
+    runSetup()
+  }, [accessToken, sessionId])
+
+  return (
+    <>
+      {companyName && !isLoading && (
+        <>
+          <ShikshalokamVoiceBasedChat type={"shikshalokam"} variant={"publicBot"} />
+        </>
+      )}
+      {isLoading && (
+        <div className="loader-load-spinner">
+          <div className="div67">
+            <BiLoader className="loader-rotate-loader loader-icon" />
+          </div>
+        </div>
+      )}
+    </>
+  )
 }
 
-export default ShikshalokamChat;
+export default ShikshalokamChat

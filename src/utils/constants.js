@@ -1,5 +1,6 @@
 // utils/constants.js
-import { sessionUsecaseType, sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
+import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
+import { SESSION_USECASE_TYPE } from "constants/session";
 
 
 const rootPath = process.env.REACT_APP_ROOT_PATH
@@ -23,7 +24,7 @@ export const FLOW_CONFIG = {
 };
 
 // PTM use cases
-export const PTM_USE_CASES = [sessionUsecaseType.MEGA_PTM, sessionFlowName.YLC];
+export const PTM_USE_CASES = [SESSION_USECASE_TYPE.MEGA_PTM, sessionFlowName.YLC];
 
 // Storage keys
 export const STORAGE_KEYS = {

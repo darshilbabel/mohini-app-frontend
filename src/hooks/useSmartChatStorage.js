@@ -1,29 +1,15 @@
-import { useLocalStorage, useSessionStorage } from "react-use";
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
+import { useChatStorage } from "./useStorage";
+import { STORE_NAME_CONSTANTS } from "store/constants";
 
 const useSmartChatStorage = () => {
-  const flow = sessionStorage.getItem('flow') || localStorage.getItem('flow');
-  const sessionFlows = [sessionFlowName.GuestDiscussion, sessionFlowName.GuestMiStory];
-  const isTemporary = flow && sessionFlows.includes(flow);
-
-  const [sessionValue, setSessionValue] = useSessionStorage("chat-history", []);
-  const [localValue, setLocalValue, removeLocalValue] = useLocalStorage("chat-history", []);
+  const chatHistory = useChatStorage()(state => state.chatHistory);
+  const setChatHistory = useChatStorage()(state => state.setChatHistory);
 
   const removeVal = () => {
-    if (isTemporary) {
-      sessionStorage.removeItem("chat-history");
-      setSessionValue([]); // Update state after removing
-    } else {
-      localStorage.removeItem("chat-history");
-      setLocalValue([]); // Update state after removing
-    }
+    setChatHistory([]);
   };
 
-  if (isTemporary) {
-    return [sessionValue, setSessionValue, removeVal];
-  } else {
-    return [localValue, setLocalValue, removeVal];
-  }
+  return [chatHistory, setChatHistory, removeVal];
 };
 
 export default useSmartChatStorage

@@ -1,122 +1,124 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect } from "react";
-import { getSessionDetails, readElevateProfile, updateReflectionStatus } from "../services/api.service";
-import { useLocation, useNavigate } from "react-router-dom";
-import ROUTES from "../url";
-import { BiLoader } from "react-icons/bi";
+import { useEffect } from "react"
+import { getSessionDetailsApi } from "../api/endpoints/chat"
+import { readElevateProfileApi } from "../api/endpoints/user"
+import { updateReflectionStatusApi } from "../api/endpoints/project"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
+import ROUTES from "../url"
+import { BiLoader } from "react-icons/bi"
 import "../components/custom-style.css"
 import "../index.css"
-import { clearFromStorage, setInStorage } from "../services/storage_service";
-import { setLanguage } from "../i18n";
-import { languageList, sessionFlowName } from "./ShikshalokamVoiceChat/enum";
-
-
+import { clearFromStorage, setInStorage } from "../services/storage_service"
+import { setLanguage } from "../i18n"
+import { LANGUAGE_ENUMS, languageList, sessionFlowName } from "./ShikshalokamVoiceChat/enum"
+import { useChatDataLocalStore } from "store"
+import { useSiteDataLocalStore } from "store"
+import { useUserDataLocalStore } from "store"
 
 function SsoFlow() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const { sessionId } = useChatDataLocalStore()
+  const { setChatLanguage, setHasSelectedLanguage, setSsoRerouteURL } = useSiteDataLocalStore.getState()
+  const { setFlow, setSessionId, setIsNewChatOpen, setProjectId, setTaskId } = useChatDataLocalStore.getState()
+  const { setFirstName, setCompanyName, setState, setAcceptedTnC, setAccessToken, setProfileId } = useUserDataLocalStore.getState()
 
   // useEffect(() => {
   //   clearFromStorage();
   // }, []);
 
   useEffect(() => {
-    setLanguage('en');
-    setInStorage('local_route', JSON.stringify(languageList[0].value));
-    async function fetchProfileDetails(){
-      const urlParams = new URLSearchParams(location.search);
-      const accessToken = urlParams.get("accToken");
-      const flow_type = urlParams.get("flow");
-      const projectId = urlParams.get("projectId");
-      const taskId = urlParams.get("taskId");
-      const sessionId = urlParams.get("sessionId");
-      const languagePassed = urlParams.get("language");
-      let rerouteRaw = urlParams.get("rerouteUrl") || "";
+    async function fetchProfileDetails() {
+      const accessToken = searchParams.get("accToken")
+      const flow_type = searchParams.get("flow")
+      const projectId = searchParams.get("projectId")
+      const taskId = searchParams.get("taskId")
+      const sessionId = searchParams.get("sessionId")
+      const languagePassed = searchParams.get("language")
+      let rerouteRaw = searchParams.get("rerouteUrl") || ""
       if (rerouteRaw.startsWith('"') && rerouteRaw.endsWith('"')) {
-        rerouteRaw = rerouteRaw.slice(1, -1);
+        rerouteRaw = rerouteRaw.slice(1, -1)
       }
-      const rerouteUrl = decodeURIComponent(rerouteRaw);
+      console.log(rerouteRaw, "rerouteRaw")
+      // const rerouteUrl = decodeURIComponent(rerouteRaw)
 
-      if(!accessToken || accessToken === '') {
-        navigate(-1);
-        window.location.reload();
+      if (!accessToken || accessToken === "") {
+        navigate(-1)
+        window.location.reload()
       }
       try {
-        const data = await readElevateProfile(accessToken);
-        if (data && data?.status.toLowerCase() === 'ok') {
-          const profile_details = data?.profile_details;
-          if(profile_details) {
+        const data = await readElevateProfileApi(accessToken)
+        if (data && data?.status.toLowerCase() === "ok") {
+          const profile_details = data?.profile_details
+          if (profile_details) {
             if (!!projectId) {
-              const statusRes = await updateReflectionStatus(
-                projectId,
-                "started",
-                sessionFlowName.SsoFlow,
-                accessToken
-              );
+              const statusRes = await updateReflectionStatusApi(projectId, "started", sessionFlowName.SsoFlow, accessToken)
               if (!!projectId && statusRes?.status !== 200) {
-                  clearFromStorage();
-                  navigate(-1);
+                clearFromStorage()
+                navigate(-1)
               }
             }
 
-            clearFromStorage(true);
-            if(sessionId && sessionId!=='' && sessionId!=='null'){
-              setInStorage('sessionid', JSON.stringify(sessionId), flow_type, localStorage);
+            clearFromStorage()
+            setLanguage(LANGUAGE_ENUMS.ENGLISH)
+            setChatLanguage(LANGUAGE_ENUMS.ENGLISH)
+            if (sessionId && sessionId !== "" && sessionId !== "null") {
+              setSessionId(sessionId)
             } else {
-              let session = await getSessionDetails();
-              setInStorage('sessionid', JSON.stringify(session.sessionid), flow_type, localStorage);
+              let session = await getSessionDetailsApi()
+              setSessionId(session.sessionid)
             }
-            if(languagePassed && languagePassed!=='' && languagePassed!=='null'){
-              setInStorage('route', JSON.stringify(languagePassed), flow_type, localStorage);
-              setInStorage('local_route', JSON.stringify(languagePassed));
-              setInStorage('hasSelectedLanguage', true);
-              setLanguage(languagePassed);
+            if (languagePassed && languagePassed !== "" && languagePassed !== "null" && Object.values(LANGUAGE_ENUMS).includes(languagePassed)) {
+              setHasSelectedLanguage(true)
+              setChatLanguage(languagePassed)
+              setLanguage(languagePassed)
             } else {
-              setInStorage('route', JSON.stringify(profile_details.route), flow_type, localStorage);
-              setLanguage(profile_details.route);
+              setChatLanguage(profile_details.route)
+              setLanguage(profile_details.route)
             }
 
-            setInStorage('ssoRerouteURL', rerouteUrl, flow_type, localStorage);
-            setInStorage('first_name', JSON.stringify(profile_details.first_name), flow_type, localStorage);
-            setInStorage('company', JSON.stringify(profile_details.company), flow_type, localStorage);
-            setInStorage('state', JSON.stringify(profile_details.state), flow_type, localStorage);
-            setInStorage('flow', flow_type, flow_type, localStorage);
-            const hasAcc = profile_details.has_accepted_tnc;
-            setInStorage('has_accepted_tnc', typeof hasAcc === 'string' ? hasAcc : JSON.stringify(hasAcc), flow_type, localStorage);
-            setInStorage('accessToken', JSON.stringify(accessToken), flow_type, localStorage);
-            setInStorage('profileid', JSON.stringify(profile_details.profileid), flow_type, localStorage);
-            setInStorage('isNewChatOpen', JSON.stringify(true), flow_type, localStorage);
-            setInStorage('projectId', JSON.stringify(projectId), flow_type, localStorage);
-            setInStorage('taskId', JSON.stringify(taskId), flow_type, localStorage);
+            setSsoRerouteURL(rerouteRaw)
+            setFirstName(profile_details.first_name)
+            setCompanyName(profile_details.company)
+            setState(profile_details.state)
+            setFlow(flow_type)
+            const hasAcc = profile_details.has_accepted_tnc
+            setAcceptedTnC(typeof hasAcc === "string" ? hasAcc : "ONGOING")
+            setAccessToken(accessToken)
+            setProfileId(profile_details.profileid)
+            setIsNewChatOpen(true)
+            setProjectId(projectId)
+            setTaskId(taskId)
             // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE, {replace: true});
-            window.location.replace("/mohini"+ROUTES.SHIKSHALOKAM_HOME_PAGE);
+            window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
           } else {
-            navigate(-1);
+            navigate(-1)
           }
         } else {
-          navigate(-1);
+          navigate(-1)
         }
       } catch (err) {
-        console.error("Error fetching profile:", err);
-        navigate(-1);
+        console.error("Error fetching profile:", err)
+        navigate(-1)
       }
     }
 
-    fetchProfileDetails();
-  }, []);
+    fetchProfileDetails()
+  }, [searchParams])
 
   return (
     <div className="container max-w-full md mt-0 mx-auto grid md:grid-cols-2 justify-center h-screen">
-        <div className="login-load-spinner">
-          <div className="login-div67">
-            <BiLoader className="login-rotate-loader login-loader-icon" />
-          </div>
-        </div> 
+      <div className="login-load-spinner">
+        <div className="login-div67">
+          <BiLoader className="login-rotate-loader login-loader-icon" />
+        </div>
+      </div>
     </div>
-  );
+  )
 }
 
-export default SsoFlow;
+export default SsoFlow
 
 /* eslint-disable react-hooks/exhaustive-deps */

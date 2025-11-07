@@ -7,6 +7,7 @@ import axiosInstance from "../../utils/axios";
 import getConfiguration, { company_list } from "../../configure";
 import { Link } from "react-router-dom";
 import ROUTES from "../../url";
+import { logoutApi } from "api/endpoints/auth";
 
 const logout_api_url = `/api/logout/`;
 const company_config = getConfiguration();
@@ -23,13 +24,7 @@ const Logout = () => {
   useEffect(() => {
     async function logout() {
       try {
-        const response = await axiosInstance({
-          url: logout_api_url,
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localUserData?.access_token}`,
-          },
-        });
+        await logoutApi();
         removeUserLocalData();
         userDispatcher({
           type: USER_ACTIONS.RESET,
