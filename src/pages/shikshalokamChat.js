@@ -123,7 +123,7 @@ function ShikshalokamChat({ type, variant }) {
 
   useEffect(() => {
     const runSetup = async () => {
-      if (accessToken) return
+      // if (accessToken) return
 
       if (!sessionId) {
         clearFromStorage(false, ["local_route"])
