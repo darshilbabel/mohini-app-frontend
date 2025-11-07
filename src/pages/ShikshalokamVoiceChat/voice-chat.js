@@ -161,12 +161,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const setLangProgress = useChatStorage()(state => state.setLangProgress)
   const setStorageFlow = useChatStorage()(state => state.setFlow)
+  const showHomepage = useChatStorage()(state => state.showHomepage)
   const ssoRerouteURL = useSiteStorage()(state => state.ssoRerouteURL)
   const stateMachineLength = useChatStorage()(state => state.stateMachineLength)
   const storageFlow = useChatStorage()(state => state.flow)
   const taskId = useChatStorage()(state => state.taskId)
   const userState = useUserStorage()(state => state.state)
-  const showHomepage = useChatStorage()(state => state.showHomepage)
 
   // chat data actions
   const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()

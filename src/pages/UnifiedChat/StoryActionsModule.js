@@ -12,7 +12,7 @@ import { PrimaryButton } from "../../components/Buttons"
 import ChatMessage from "../ShikshalokamMegaPTM/ChatMessage"
 import PdfDownloader from "../story/upload-content/pdfDownloader"
 import { handleS3Upload } from "../../services/storage_service"
-import { createStoryMedia, partialUpdateStoryById, updateStoryMediaApi } from "api/endpoints"
+import { createStoryMediaApi, partialUpdateStoryById, updateStoryMediaApi } from "api/endpoints"
 import axiosInstance from "../../utils/axios"
 import { LANGUAGE_ENUMS, sessionFlowName } from "../ShikshalokamVoiceChat/enum"
 import { getStoryBySessionAPI } from "api/endpoints"
@@ -23,31 +23,6 @@ import { useUserDataLocalStore } from "store"
 // Reusable partialUpdateMedia function
 
 // Reusable uploadImage function
-const uploadImage = (formData, setError, navigate, setIsLoading, access_token, setFiles) => {
-  return new Promise((resolve, reject) => {
-    try {
-      createStoryMedia({
-        setter: uploadedFile => {
-          setFiles(prevFiles => [...prevFiles, uploadedFile])
-          resolve(uploadedFile)
-        },
-        errorHandler: err => {
-          setError(err)
-          setIsLoading(false)
-          reject(err)
-        },
-        data: formData,
-        loader: setIsLoading,
-        token: access_token,
-      })
-    } catch (error) {
-      console.error({ error })
-      setIsLoading(false)
-      reject(error)
-    }
-  })
-}
-
 // Photo Upload Component
 export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setIsLoading, access_token, botNameToDisplay, handleOnSpeaking, handleOnStopSpeaking, hasOverRideId, isTalking, isStreamingComplete, setNotMute, navigate, flowConfig }) => {
   const { t } = useTranslation()
@@ -59,6 +34,30 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
 
   const fileExceedText = t("fileExceedText")
   const fileSizeText = t("fileSizeText")
+
+  const uploadImage = async (formData, setError, navigate, setIsLoading, access_token, setFiles) => {
+    try {
+      const uploadedFile = await createStoryMediaApi({
+        // setter: uploadedFile => {
+        //   setFiles(prevFiles => [...prevFiles, uploadedFile])
+        //   resolve(uploadedFile)
+        // },
+        // errorHandler: err => {
+        //   setError(err)
+        //   setIsLoading(false)
+        //   reject(err)
+        // },
+        // data: formData,
+        // loader: setIsLoading,
+        // token: access_token,
+      })
+
+      setFiles(prevFiles => [...prevFiles, uploadedFile])
+    } catch (error) {
+      console.error({ error })
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
     const textErrorTime = setTimeout(() => {

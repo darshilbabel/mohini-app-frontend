@@ -14,6 +14,7 @@ import { LANGUAGE_ENUMS, languageList, sessionFlowName } from "./ShikshalokamVoi
 import { useChatDataLocalStore } from "store"
 import { useSiteDataLocalStore } from "store"
 import { useUserDataLocalStore } from "store"
+import { URL_PARAMS } from "constants/urls"
 
 function SsoFlow() {
   const navigate = useNavigate()
@@ -31,7 +32,7 @@ function SsoFlow() {
 
   useEffect(() => {
     async function fetchProfileDetails() {
-      const accessToken = searchParams.get("accToken")
+      const accessToken = searchParams.get(URL_PARAMS.ACCESS_TOKEN)
       const flow_type = searchParams.get("flow")
       const projectId = searchParams.get("projectId")
       const taskId = searchParams.get("taskId")

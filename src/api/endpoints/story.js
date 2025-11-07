@@ -148,7 +148,7 @@ export const getStoryAllMedia = async ({
  * @param {string} params.data.media_type - Media type
  * @returns {Promise<Object>} Response data
  */
-export const createStoryMedia = async ({
+export const createStoryMediaApi = async ({
   token,
   data = {
     story: "",
