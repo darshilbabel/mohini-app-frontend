@@ -473,11 +473,9 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
           if (wantToNavigateBack) {
             stopAllAudio()
             clearFromStorage()
-            setLanguage(languageList[0].value)
-            setLanguageToUse(languageList[0].value)
+            setLanguage(LANGUAGE_ENUMS.ENGLISH)
+            setLanguageToUse(LANGUAGE_ENUMS.ENGLISH)
             setHasSelectedLanguage(false)
-
-            console.log("previousUrl", previousUrl)
 
             if (previousUrl && previousUrl !== null && previousUrl !== undefined && previousUrl !== "") {
               window.location.href = previousUrl

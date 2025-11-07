@@ -932,7 +932,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       if (chatHistory && chatHistory.length <= 1) {
         stopAllAudio()
         isIntroPlayed.current = false
-        setIsLoading(true)
+        // setIsLoading(true)
         setIntroMessage(null)
         setChatHistory([])
         setSentences([])
@@ -946,12 +946,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           setAcceptedTnC(true)
           setShouldFetchIntro(true)
         } else {
-          setIsLoading(false)
+          // setIsLoading(false)
         }
       }
     }
     if (chatLanguage && storageFlow) {
-      setIsLoading(true)
+      // setIsLoading(true)
       handleLanguageSelect(chatLanguage)
     }
   }, [chatLanguage, storageFlow])
@@ -2015,6 +2015,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     setIsChatVisible(false)
     setChatbotClickedOn("")
     setShowHomepage(true)
+    // setIsLoading(false)
 
     window.location.reload()
   }
