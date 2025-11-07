@@ -21,6 +21,7 @@ const LanguageSelectionGrid = ({
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
   const setFlow = useChatStorage()(state => state.setFlow)
+  const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
 
   const handleLanguageClick = langValue => {
     setChatLanguage(langValue)
@@ -36,6 +37,7 @@ const LanguageSelectionGrid = ({
       [SESSION_USECASE_TYPE.YLC]: sessionFlowName.YLC,
     }
 
+    setPreviousUrl(window.location.href)
     if (ROUTE_MAP[usecaseType]) {
       setFlow(FLOW_MAP[usecaseType])
       navigate(ROUTE_MAP[usecaseType])

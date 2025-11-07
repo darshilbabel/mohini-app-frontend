@@ -62,7 +62,7 @@ export const readElevateProfileApi = async accessToken => {
         "X-auth-token": accessToken,
       },
     })
-    return response.data
+    return response?.data
   } catch (error) {
     return error?.response?.data
   }

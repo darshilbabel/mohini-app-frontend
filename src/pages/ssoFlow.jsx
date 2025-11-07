@@ -8,9 +8,9 @@ import ROUTES from "../url"
 import { BiLoader } from "react-icons/bi"
 import "../components/custom-style.css"
 import "../index.css"
-import { clearFromStorage, setInStorage } from "../services/storage_service"
+import { clearFromStorage } from "../services/storage_service"
 import { setLanguage } from "../i18n"
-import { LANGUAGE_ENUMS, languageList, sessionFlowName } from "./ShikshalokamVoiceChat/enum"
+import { LANGUAGE_ENUMS, sessionFlowName } from "./ShikshalokamVoiceChat/enum"
 import { useChatDataLocalStore } from "store"
 import { useSiteDataLocalStore } from "store"
 import { useUserDataLocalStore } from "store"
@@ -51,7 +51,7 @@ function SsoFlow() {
       }
       try {
         const data = await readElevateProfileApi(accessToken)
-        if (data && data?.status.toLowerCase() === "ok") {
+        if (data) {
           const profile_details = data?.profile_details
           if (profile_details) {
             if (!!projectId) {

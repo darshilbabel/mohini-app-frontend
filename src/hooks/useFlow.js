@@ -1,6 +1,6 @@
 import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { STORE_NAME_CONSTANTS } from "store/constants"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { useParams } from "react-router-dom"
 import { useState } from "react"
 import { useChatStorage } from "hooks/useStorage"
@@ -11,7 +11,7 @@ import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal"
 
 export const useFlow = usecaseType => {
   const navigate = useNavigate()
-  const { flow } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
   const selectedFlow = useChatStorage()(state => state.flow)
   const { setPreviousUrl } = useSiteStorage().getState()
@@ -38,24 +38,29 @@ export const useFlow = usecaseType => {
       return
     }
 
-    if (accessToken) {
-      useChatDataLocalStore.getState().setFlow(flow)
-      replaceUrl = "/mohini" + route
-    } else {
-      navigateUrl = route
+    if (searchParams.get("flow")) {
+      useChatDataLocalStore.getState().setFlow(searchParams.get("flow"))
     }
 
-    if (!replaceUrl && !navigateUrl) {
-      return
-    }
+    // if (accessToken) {
+    //   useChatDataLocalStore.getState().setFlow(flow)
+    //   replaceUrl = "/mohini" + route
+    // } else {
+    navigateUrl = route
+    // }
+    if (!navigateUrl) return
 
-    if (replaceUrl) {
-      return window.location.replace(replaceUrl)
-    }
-    if (navigateUrl) {
-      navigate(navigateUrl)
-      window.location.reload()
-    }
+    // if (!replaceUrl && !navigateUrl) {
+    //   return
+    // }
+
+    // if (replaceUrl) {
+    //   return window.location.replace(replaceUrl)
+    // }
+    // if (navigateUrl) {
+    navigate(navigateUrl)
+    // window.location.reload()
+    // }
     setIsLoading(false)
   }
 

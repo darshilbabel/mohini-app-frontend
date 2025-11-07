@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 import { getStorageSlice } from "services/storage_service"
-import { useChatDataLocalStore } from "store"
+import { useUserDataLocalStore } from "store"
 import { STORE_NAME_CONSTANTS } from "store/constants"
 
 /**
@@ -9,7 +9,7 @@ import { STORE_NAME_CONSTANTS } from "store/constants"
  * @returns {Object} The storage slice object
  */
 export const useStorage = sliceName => {
-  const accessToken = useChatDataLocalStore(state => state.accessToken)
+  const accessToken = useUserDataLocalStore(state => state.access_token)
 
   return useMemo(() => {
     let slice = getStorageSlice(sliceName, null, accessToken)

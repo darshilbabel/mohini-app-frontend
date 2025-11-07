@@ -15,7 +15,6 @@ import FlowSelection from "../../components/FlowSelection"
 import LoadingSpinner from "../../components/LoadingSpinner"
 import ROUTES from "url"
 import { useChatStorage, useSiteStorage } from "hooks/useStorage"
-import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useSiteDataLocalStore } from "store"
 
 // Styles
@@ -91,6 +90,7 @@ function CommonHomePage({ usecaseType }) {
     }
 
     setPreviousUrl(window.location.href)
+    console.log("previousUrl", window.location.href)
 
     if (ptm_case) {
       console.log("Navigating to PTM chat")
@@ -108,7 +108,6 @@ function CommonHomePage({ usecaseType }) {
 
     const route = flowRoutes[urlFlow]
     if (route) {
-      // setFlow(sessionFlowName)
       return navigate(route)
     }
   }, [chatLanguage, urlLanguage, urlFlow, hasSelectedLanguage])

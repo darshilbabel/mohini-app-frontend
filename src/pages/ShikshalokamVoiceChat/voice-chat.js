@@ -63,8 +63,8 @@ import { useSiteDataLocalStore } from "store"
 const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
-const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-// const wss_protocol = "wss://"
+// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
+const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
@@ -93,7 +93,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [shouldFetchIntro, setShouldFetchIntro] = useState(false)
   const [hasFetchIntro, setHasFetchIntro] = useState(false)
   const [chatTitle, setChatTitle] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [isImageUploading, setIsImageUploading] = useState(false)
   const [isIntroLoading, setIsIntroLoading] = useState(false)
   const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false)
@@ -141,6 +141,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // const defaultBotName = useChatStorage()((state) => state.defaultBotName);
   // const isChatVisible = useChatStorage()((state) => state.isChatVisible);
   // const showHomepage = useChatStorage()((state) => state.showHomepage);
+  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
   const acceptedTnc = useUserStorage()(state => state.has_accepted_tnc)
   const botName = useChatStorage()(state => state.botName)
   const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
@@ -1078,6 +1079,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
   }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences])
 
+  useEffect(() => {
+    console.log({ isLoading, isIntroLoading, isEndStoryLoading, isFetchingOldIntro }, "state_tracker")
+    // console.log("isLoading", "isIntroLoading", "isEndStoryLoading", "isFetchingOldIntro")
+  }, [isLoading, isIntroLoading, isEndStoryLoading, isFetchingOldIntro])
+
   // ========================================================================
   // SECTION: Language & Bot Setup (Execution Order: 5 - When Profile Ready)
   // These effects fetch bot information and set up language-specific configuration
@@ -1090,6 +1096,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   useEffect(() => {
     if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow)) {
       setIsIntroLoading(true)
+      console.log("state_tracker", "fetching bot info")
       fetchBotInfo()
         .then(() => {
           if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
@@ -1824,13 +1831,16 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     let rerouteUrl = previousUrl
     stopAllAudio()
     if (accessToken) {
-      clearFromStorage(true)
+      console.log("clearing storage")
+      clearFromStorage()
       navigateSsoFlow(ssoRerouteURL)
       return
     }
+    console.log("clearing storage")
     clearFromStorage()
-    setLanguage(languageList[0].value)
-    setChatLanguage(languageList[0].value)
+    setLanguage(LANGUAGE_ENUMS.ENGLISH)
+    setChatLanguage(LANGUAGE_ENUMS.ENGLISH)
+    setHasSelectedLanguage(false)
     // navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
     // navigate("/", { replace: true });
     if (rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== "") {
@@ -1929,10 +1939,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                         loader: setIsLoading,
                         data: updatePayload,
                       })
-                      if ([sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(storageFlow) && accessToken) {
+                      if (isSpecialFlow && accessToken) {
                         setIsLoading(true)
                         await updateReflectionStatusApi(projectId, "completed", sessionFlowName.SsoFlow, accessToken)
-                        clearFromStorage(false)
+                        console.log("clearing storage")
+                        clearFromStorage()
                         console.log("History length:", window.history.length)
                         console.log("Can go back 1?", window.history.length > 1)
                         console.log("Can go back 3?", window.history.length > 3)
@@ -1953,6 +1964,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                     } catch (error) {
                       console.error("Saving failed: ", error)
                       if (accessToken) {
+                        console.log("clearing storage")
                         clearFromStorage()
                         navigate(-1)
                       }
@@ -2590,10 +2602,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       } catch (error) {
         console.error({ error })
         if (accessToken) {
+          console.log("clearing storage")
           clearFromStorage()
           navigate(-1)
         } else if ([sessionFlowName.SsoFlow].includes(storageFlow) && accessToken) {
-          clearFromStorage(true)
+          clearFromStorage()
           navigateSsoFlow(ssoRerouteURL)
         }
         setIsLoading(false)
@@ -3138,6 +3151,7 @@ const uploadImage = (formData, setError, navigate, setIsLoading, setFiles) => {
     } catch (error) {
       console.error({ error })
       if (accessToken) {
+        console.log("clearing storage")
         clearFromStorage()
         navigate(-1)
       }
