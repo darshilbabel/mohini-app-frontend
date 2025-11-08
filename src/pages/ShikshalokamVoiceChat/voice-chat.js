@@ -6,7 +6,7 @@ import { bot_routes } from "../../configure"
 import { buildWebSocketUrl } from "utils/helpers"
 import { clearFromStorage, handleS3Upload } from "../../services/storage_service"
 import { createMessage } from "../interview-voice"
-import { createStoryMedia, getStoryAllMedia, partialUpdateStoryById } from "../story/api.service"
+import { createStoryMediaApi, getStoryAllMedia, partialUpdateStoryById } from "api/endpoints/story"
 import { createUserProfileApi, getProfileUserApi } from "api/endpoints/user"
 import { FaCircle } from "react-icons/fa6"
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
@@ -307,6 +307,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   async function onEditorSave() {
     try {
       setIsLoading(true)
+      setIsSaving(true)
       const outputData = await editor.save()
       const flow = storageFlow
 
@@ -352,14 +353,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         }
       }
 
-      await partialUpdateStoryById({
-        setter: setStoryData,
-        loader: setIsSaving,
-        data: updatePayload,
+      const result = await partialUpdateStoryById({
         token: accessToken,
+        data: updatePayload,
       })
+      setStoryData(result)
+      setIsSaving(false)
     } catch (error) {
       setIsLoading(false)
+      setIsSaving(false)
       console.error("Saving failed: ", error)
       if (accessToken) {
         clearFromStorage()
@@ -1171,22 +1173,24 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         const tempMediaArr = []
         setIsImageUploading(true)
 
-        // TODO: This part needs to be optimized
-        await getStoryAllMedia({
-          setter: data => {
-            for (let item of Object.values(data?.results || [])) {
-              if (item.include_in_story) {
-                tempMediaArr.push(item)
-              }
-            }
-            setFiles(tempMediaArr)
-          },
-          data: {
-            story: story_id,
-          },
-        })
+        try {
+          const data = await getStoryAllMedia({
+            data: {
+              story: story_id,
+            },
+          })
 
-        setIsImageUploading(false)
+          for (let item of Object.values(data?.results || [])) {
+            if (item.include_in_story) {
+              tempMediaArr.push(item)
+            }
+          }
+          setFiles(tempMediaArr)
+          setIsImageUploading(false)
+        } catch (error) {
+          console.error("Error fetching story media:", error)
+          setIsImageUploading(false)
+        }
       }
     }
 
@@ -1938,11 +1942,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                         flow: storageFlow,
                         formatted_content: outputData?.blocks,
                       }
-                      await partialUpdateStoryById({
-                        setter: setStoryData,
-                        loader: setIsLoading,
+
+                      setIsLoading(true)
+                      const result = await partialUpdateStoryById({
+                        token: accessToken,
                         data: updatePayload,
                       })
+                      setStoryData(result)
+                      setIsLoading(false)
+
                       if (isSpecialFlow && accessToken) {
                         setIsLoading(true)
                         await updateReflectionStatusApi(projectId, "completed", sessionFlowName.SsoFlow, accessToken)
@@ -3142,25 +3150,16 @@ function ChatMessage({ userType, message, name, recording, handleOnSpeaking, han
 
 const uploadImage = (formData, setError, navigate, setIsLoading, setFiles) => {
   const accessToken = useUserDataLocalStore.getState().getAccessToken()
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
-      createStoryMedia({
-        setter: uploadedFile => {
-          setFiles(prevFiles => [...prevFiles, uploadedFile])
-        },
-        errorHandler: err => {
-          if (accessToken) {
-            clearFromStorage()
-            navigate(-1)
-          }
-          setError(err)
-          setIsLoading(false)
-          reject(err)
-        },
-        data: formData,
-        loader: setIsLoading,
+      setIsLoading(true)
+      const uploadedFile = await createStoryMediaApi({
         token: accessToken,
+        data: formData,
       })
+      setFiles(prevFiles => [...prevFiles, uploadedFile])
+      setIsLoading(false)
+      resolve(uploadedFile)
     } catch (error) {
       console.error({ error })
       if (accessToken) {
@@ -3168,6 +3167,10 @@ const uploadImage = (formData, setError, navigate, setIsLoading, setFiles) => {
         clearFromStorage()
         navigate(-1)
       }
+      setError({
+        response: error?.request?.response || error?.message,
+        status: error?.request?.status || 500,
+      })
       setIsLoading(false)
       reject(error)
     }
