@@ -296,7 +296,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         access_token: accessToken,
         session: sessionId,
       }
-      await updateStoryMediaApi({ token: accessToken, data: formData, mediaId: updateId })
+      await updateStoryMediaApi({ token: accessToken, data: formData, mediaId: updateId, partialUpdate: true })
     } catch (error) {
       console.error(error)
     } finally {
@@ -615,7 +615,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       }
 
       console.log("handleCompanyChatCall")
-      setIsFetchingOldIntro(true)
+      // setIsFetchingOldIntro(true)
 
       try {
         const resp = await getCompanyChatApi(sessionId)
@@ -674,7 +674,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       } catch (error) {
         console.error("Error fetching company chat data:", error)
       } finally {
-        setIsFetchingOldIntro(false)
+        // setIsFetchingOldIntro(false)
         if (accessToken) {
           setIsLoading(false)
         }
@@ -682,7 +682,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     } catch (error) {
       console.error("Error fetching company chat data:", error)
     } finally {
-      setIsFetchingOldIntro(false)
+      // setIsFetchingOldIntro(false)
       if (accessToken) {
         setIsLoading(false)
       }
@@ -693,32 +693,35 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Handles chat session button clicks from sidebar
    * Loads selected chat session or fetches intro for new session
    */
-  const handleChatSessionButtonClick = useCallback(async ({ key }) => {
-    lastBotMessageIndex.current = -1
-    let key_num
-    let currentSession
-    if (key) {
-      /** String representation of array index that can be converted to number */
-      key_num = parseInt(key?.split("-").pop())
-      if (isNaN(key_num)) return
-      currentSession = chatTitle[key_num]?.session
-      setLlmError("")
-      setIsOldChatOpen(true)
-      setIsNewChatOpen(false)
-      setSessionId(currentSession)
-      setChatHistory([])
-      window.location.reload()
-    } else {
-      currentSession = sessionId
-      try {
-        await fetchBotInfo()
-        await handleCompanyChatCall()
-      } finally {
-        setIsIntroLoading(false)
+  const handleChatSessionButtonClick = useCallback(
+    async ({ key }) => {
+      lastBotMessageIndex.current = -1
+      let key_num
+      let currentSession
+      if (key) {
+        /** String representation of array index that can be converted to number */
+        key_num = parseInt(key?.split("-").pop())
+        if (isNaN(key_num)) return
+        currentSession = chatTitle[key_num]?.session
+        setLlmError("")
+        setIsOldChatOpen(true)
+        setIsNewChatOpen(false)
+        setSessionId(currentSession)
+        setChatHistory([])
+        window.location.reload()
+      } else {
+        currentSession = sessionId
+        try {
+          await fetchBotInfo()
+          await handleCompanyChatCall()
+        } catch (error) {
+          console.error(error)
+          // setIsIntroLoading(false)
+        }
       }
-      setIsIntroLoading(false)
-    }
-  }, [])
+    },
+    [sessionId]
+  )
 
   /**
    * Adds bot messages to chat history during streaming
@@ -864,7 +867,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setChatLanguage(languageList[0].value)
         stopAllAudio()
         if (accessToken) {
-          clearFromStorage(true)
+          clearFromStorage()
           navigateSsoFlow(ssoRerouteURL)
         } else {
           navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN)
@@ -1209,6 +1212,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   useEffect(() => {
     const currentFlow = storageFlow
     if (profileToUse && !accessToken && !isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+      console.log("setting loading to true", "state_tracker")
       setIsLoading(true)
       const titleTime = setTimeout(() => {
         if (shouldShowChatHistoryFeature) showChatTitle()
@@ -2004,6 +2008,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       e.preventDefault()
     }
     setIsLoading(true)
+    setIsIntroLoading(true)
     removeChatHistory()
     setIsOldChatOpen(false)
     setIsNewChatOpen(true)
@@ -2015,7 +2020,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     setIsChatVisible(false)
     setChatbotClickedOn("")
     setShowHomepage(true)
-    // setIsLoading(false)
+    setIsLoading(false)
 
     window.location.reload()
   }
@@ -2869,7 +2874,13 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                           <li key={index} className="li-2">
                             {file.name.slice(0, 20)}
                             {file.name.length > 20 && "..."}
-                            <button className="button-1" onClick={() => partialMediaUpdate(file?.id, false)}>
+                            <button
+                              className="button-1"
+                              onClick={() => {
+                                setFiles(files.filter(f => f.id !== file.id))
+                                partialMediaUpdate(file?.id, false)
+                              }}
+                            >
                               <RxCross2 />
                             </button>
                           </li>
@@ -2892,7 +2903,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                   isTalking={false}
                   handleOnStopSpeaking={() => handleOnStopSpeaking()}
                   handleOnSpeaking={(message, updatedAt, staticMessage) => {
-                    const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && !accessToken ? t("reportFeedbackText") : t("storyText")
+                    const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")
+                    console.log("message_to_use", message_to_use)
                     handleOnSpeaking(message_to_use, "download-story-id", { msg: message_to_use, updated_at: "download-story-id", source: "bot" })
                   }}
                   isAnyPlaying={!!hasOverRideId || isTalking}
