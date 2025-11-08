@@ -15,6 +15,7 @@ import { getChatSessionApi } from "api/endpoints/chat"
 import { getCompanyBotApi } from "api/endpoints/chat"
 import { getSessionDetails } from "../../services/api.service"
 import { getStoryBySessionAPI } from "api/endpoints"
+import { getTranslatedIntroMessageApi } from "api/endpoints/ai"
 import { GrGallery } from "react-icons/gr"
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
 import { LANGUAGE_ENUMS, languageList, sessionFlowName } from "./enum"
@@ -29,10 +30,11 @@ import { updateStoryMediaApi } from "api/endpoints"
 import { useAudio } from "hooks/useAudio"
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useChatDataSessionStore } from "store"
+import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import { useChatWebhook } from "hooks/useChatWebhook"
 import { useConfirmationPopup } from "hooks/useConfirmationPopup"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
+import { useSiteDataLocalStore } from "store"
 import { useTranslation } from "react-i18next"
 import axiosInstance from "../../utils/axios"
 import Cookies from "universal-cookie"
@@ -58,7 +60,6 @@ import useSmartChatStorage from "hooks/useSmartChatStorage"
 import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord"
 import WaveSurferPlayer from "../interview-text-voice/voice-player"
-import { useSiteDataLocalStore } from "store"
 
 const cookies = new Cookies()
 
@@ -138,9 +139,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   const accessToken = useUserDataLocalStore(state => state.access_token)
 
-  // const defaultBotName = useChatStorage()((state) => state.defaultBotName);
-  // const isChatVisible = useChatStorage()((state) => state.isChatVisible);
-  // const showHomepage = useChatStorage()((state) => state.showHomepage);
   const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
   const acceptedTnc = useUserStorage()(state => state.has_accepted_tnc)
   const botName = useChatStorage()(state => state.botName)
@@ -264,6 +262,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const shouldFetchChatSession = useMemo(() => {
     return storageFlow && [sessionFlowName.Reflection].includes(storageFlow)
   }, [storageFlow])
+
+  const isInitialising = useMemo(() => {
+    console.log("state_tracker", "sessionId", sessionId, "chatHistory", chatHistory)
+    return !sessionId || chatHistory?.length === 0
+  }, [sessionId, chatHistory])
 
   // ========================================================================
   // SECTION: Helper Functions (Must be defined before callbacks that use them)
@@ -396,7 +399,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Fetches translated message and personalizes with user's first name
    */
   const handleIntroMessage = async () => {
-    let data = await getTranslatedIntroMessage()
+    let data = await getTranslatedIntroMessageApi({
+      language: languageToUse,
+      company_bot__route: getSessionRoute(),
+    })
+    console.log("handleIntroMessage", data)
     let message = data[0]?.introductory_message
     if (data && data[0]) {
       if (profileToUse && firstName && firstName !== "null" && firstName !== "") {
@@ -2022,6 +2029,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     setIsNewChatOpen(true)
     setShowFileInput(false)
     setLlmError("")
+    setSessionId(null)
 
     const session = await getSessionDetails()
     setSessionId(session.sessionid)
@@ -2038,18 +2046,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     const blocks = JSON.parse(formattedContent)
     if (!blocks || blocks?.length === 0) return []
     return blocks.filter(block => block.type === "paragraph")
-  }
-
-  async function getTranslatedIntroMessage() {
-    let storedRoute = getSessionRoute()
-    let translate_api_url = `api/bot_vernacular/?language=${languageToUse}&company_bot__route=${storedRoute}`
-    try {
-      const response = await axiosInstance.get(translate_api_url)
-      return response?.data?.results
-    } catch (error) {
-      console.error("Error fetching AI4Bharat audio:", error)
-      throw error
-    }
   }
 
   async function getSessionInfo() {
@@ -2645,12 +2641,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
   }
 
+  useEffect(() => {
+    console.log(acceptedTnc, "acceptedTnc")
+  }, [acceptedTnc])
+
   return (
     <>
       {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} />}
 
       {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && isSpecialFlow && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} useStaticText={false} />}
-      <></>
       <div className={`div27 ${isOpen && " div70"}`}>
         <div className={`div28 ${isOpen ? "div29" : ""}`}>{isShikshalokamPublicType && storageFlow && !isSpecialFlow && <Sidebar isOpen={isOpen} toggle={setIsOpen} isMobileFirst={true} showScrollbarContent={accessToken && showScrollbarContent} resetChat={ResetChat} setIsResetCalled={setIsResetCalled} languageToUse={languageToUse} stopAllAudio={stopAllAudio} />}</div>
         {isOpen && <div className="div7" onClick={() => setIsOpen(false)}></div>}
@@ -2682,7 +2681,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           />
         </div>
       </div>
-      {(isLoading || isIntroLoading || isEndStoryLoading || isFetchingOldIntro) && (
+      {(isInitialising || isLoading || isIntroLoading || isEndStoryLoading || isFetchingOldIntro) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />

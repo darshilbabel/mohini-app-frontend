@@ -126,7 +126,7 @@ function ShikshalokamChat({ type, variant }) {
       if (!sessionId) {
         // clearFromStorage(false, ["local_route"])
         setIsLoading(true)
-        setHasAcceptedTnc("ONGOING")
+        // setHasAcceptedTnc("ONGOING")
         setIsNewChatOpen(true)
 
         const locationData = await getIpLocation()
