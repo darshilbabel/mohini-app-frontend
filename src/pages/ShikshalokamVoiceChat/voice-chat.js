@@ -22,7 +22,6 @@ import { LANGUAGE_ENUMS, languageList, sessionFlowName } from "./enum"
 import { MdAccountCircle, MdEdit, MdSend } from "react-icons/md"
 import { RxCross2 } from "react-icons/rx"
 import { setLanguage } from "../../i18n"
-import { STORE_NAME_CONSTANTS } from "store/constants"
 import { TbReload } from "react-icons/tb"
 import { toast } from "react-toastify"
 import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi } from "api/endpoints"
@@ -64,8 +63,8 @@ import WaveSurferPlayer from "../interview-text-voice/voice-player"
 const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
-// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-const wss_protocol = "wss://"
+const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
+// const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========

@@ -92,8 +92,16 @@ function SsoFlow() {
             setIsNewChatOpen(true)
             setProjectId(projectId)
             setTaskId(taskId)
-            // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE, {replace: true});
-            window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
+
+            const params = new URLSearchParams()
+            if (flow_type) params.append("flow", flow_type)
+            if (languagePassed && languagePassed !== "" && languagePassed !== "null" && Object.values(LANGUAGE_ENUMS).includes(languagePassed)) {
+              params.append("language", languagePassed)
+            }
+            const queryString = params.toString()
+            const navigationPath = queryString ? `${ROUTES.SHIKSHALOKAM_HOME_PAGE}?${queryString}` : ROUTES.SHIKSHALOKAM_HOME_PAGE
+            navigate(navigationPath, { replace: true })
+            // window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
           } else {
             navigate(-1)
           }
