@@ -12,7 +12,7 @@ import { PrimaryButton } from "../../components/Buttons"
 import ChatMessage from "../ShikshalokamMegaPTM/ChatMessage"
 import PdfDownloader from "../story/upload-content/pdfDownloader"
 import { handleS3Upload } from "../../services/storage_service"
-import { createStoryMedia, partialUpdateStoryById, updateStoryMediaApi } from "api/endpoints"
+import { createStoryMediaApi, partialUpdateStoryById, updateStoryMediaApi } from "api/endpoints"
 import axiosInstance from "../../utils/axios"
 import { LANGUAGE_ENUMS, sessionFlowName } from "../ShikshalokamVoiceChat/enum"
 import { getStoryBySessionAPI } from "api/endpoints"
@@ -23,42 +23,34 @@ import { useUserDataLocalStore } from "store"
 // Reusable partialUpdateMedia function
 
 // Reusable uploadImage function
-const uploadImage = (formData, setError, navigate, setIsLoading, access_token, setFiles) => {
-  return new Promise((resolve, reject) => {
-    try {
-      createStoryMedia({
-        setter: uploadedFile => {
-          setFiles(prevFiles => [...prevFiles, uploadedFile])
-          resolve(uploadedFile)
-        },
-        errorHandler: err => {
-          setError(err)
-          setIsLoading(false)
-          reject(err)
-        },
-        data: formData,
-        loader: setIsLoading,
-        token: access_token,
-      })
-    } catch (error) {
-      console.error({ error })
-      setIsLoading(false)
-      reject(error)
-    }
-  })
-}
-
 // Photo Upload Component
-export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setIsLoading, access_token, botNameToDisplay, handleOnSpeaking, handleOnStopSpeaking, hasOverRideId, isTalking, isStreamingComplete, setNotMute, navigate, flowConfig }) => {
+export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setIsLoading, botNameToDisplay, handleOnSpeaking, handleOnStopSpeaking, hasOverRideId, isTalking, isStreamingComplete, setNotMute, navigate, flowConfig }) => {
   const { t } = useTranslation()
   const [fileErrorText, setFileErrorText] = useState("")
   const [isImageUploading, setIsImageUploading] = useState(false)
   const sessionId = useChatStorage()(state => state.sessionId)
   const storageFlow = useChatStorage()(state => state.flow)
   const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const accessToken = useUserDataLocalStore(state => state.access_token)
 
   const fileExceedText = t("fileExceedText")
   const fileSizeText = t("fileSizeText")
+
+  const uploadImage = async (formData, setFiles) => {
+    try {
+      const uploadedFile = await createStoryMediaApi({
+        data: formData,
+        token: accessToken,
+      })
+
+      setFiles(prevFiles => [...prevFiles, uploadedFile])
+
+      return uploadedFile
+    } catch (error) {
+      console.error({ error })
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
     const textErrorTime = setTimeout(() => {
@@ -75,7 +67,7 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
       const formData = {
         include_in_story: include_in_story,
         flow: storageFlow,
-        access_token: access_token,
+        access_token: accessToken,
         session: sessionId,
       }
       setIsLoading(true)
@@ -154,12 +146,12 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
           name: fileName,
           media_type: file.type,
           include_in_story: true,
-          access_token,
+          access_token: accessToken,
           flow: storageFlow,
           session: sessionId,
         }
 
-        const uploadedFile = await uploadImage(formData, () => {}, navigate, setIsLoading, access_token, setFiles)
+        const uploadedFile = await uploadImage(formData, setFiles)
         return uploadedFile
       } catch (error) {
         console.error({ error })
@@ -248,7 +240,7 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
               <li key={index} className="li-2">
                 {file.name.slice(0, 20)}
                 {file.name.length > 20 && "..."}
-                <button className="button-1" onClick={() => partialUpdateMedia(file?.id, false, access_token)}>
+                <button className="button-1" onClick={() => partialUpdateMedia(file?.id, false, accessToken)}>
                   <RxCross2 />
                 </button>
               </li>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react"
-import { createStoryMedia, getStoryAllMedia, updateStoryMediaApi, getProfileUserApi } from "api/endpoints"
+import { createStoryMediaApi, getStoryAllMedia, updateStoryMediaApi, getProfileUserApi } from "api/endpoints"
 import html2pdf from "html2pdf.js"
 import StorySecondPage from "./StorySecondPage"
 import StoryThirdPage from "./StoryThirdPage"
@@ -260,7 +260,7 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
 
     if (story_media.length === 0) {
       setIsLoading(true)
-      const story_media = await createStoryMedia({
+      const story_media = await createStoryMediaApi({
         data: formData,
         token: access_token,
       })

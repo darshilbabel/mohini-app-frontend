@@ -8,12 +8,13 @@ import ROUTES from "../url"
 import { BiLoader } from "react-icons/bi"
 import "../components/custom-style.css"
 import "../index.css"
-import { clearFromStorage, setInStorage } from "../services/storage_service"
+import { clearFromStorage } from "../services/storage_service"
 import { setLanguage } from "../i18n"
-import { LANGUAGE_ENUMS, languageList, sessionFlowName } from "./ShikshalokamVoiceChat/enum"
+import { LANGUAGE_ENUMS, sessionFlowName } from "./ShikshalokamVoiceChat/enum"
 import { useChatDataLocalStore } from "store"
 import { useSiteDataLocalStore } from "store"
 import { useUserDataLocalStore } from "store"
+import { URL_PARAMS } from "constants/urls"
 
 function SsoFlow() {
   const navigate = useNavigate()
@@ -31,17 +32,17 @@ function SsoFlow() {
 
   useEffect(() => {
     async function fetchProfileDetails() {
-      const accessToken = searchParams.get("accToken")
-      const flow_type = searchParams.get("flow")
-      const projectId = searchParams.get("projectId")
-      const taskId = searchParams.get("taskId")
-      const sessionId = searchParams.get("sessionId")
-      const languagePassed = searchParams.get("language")
-      let rerouteRaw = searchParams.get("rerouteUrl") || ""
+      const accessToken = searchParams.get(URL_PARAMS.ACCESS_TOKEN)
+      const flow_type = searchParams.get(URL_PARAMS.FLOW)
+      const projectId = searchParams.get(URL_PARAMS.PROJECT_ID)
+      const taskId = searchParams.get(URL_PARAMS.TASK_ID)
+      const sessionId = searchParams.get(URL_PARAMS.SESSION_ID)
+      const languagePassed = searchParams.get(URL_PARAMS.LANGUAGE)
+      let rerouteRaw = searchParams.get(URL_PARAMS.RE_ROUTE_URL) || ""
       if (rerouteRaw.startsWith('"') && rerouteRaw.endsWith('"')) {
         rerouteRaw = rerouteRaw.slice(1, -1)
       }
-      console.log(rerouteRaw, "rerouteRaw")
+      console.log(rerouteRaw, URL_PARAMS.RE_ROUTE_URL)
       // const rerouteUrl = decodeURIComponent(rerouteRaw)
 
       if (!accessToken || accessToken === "") {
@@ -50,7 +51,7 @@ function SsoFlow() {
       }
       try {
         const data = await readElevateProfileApi(accessToken)
-        if (data && data?.status.toLowerCase() === "ok") {
+        if (data) {
           const profile_details = data?.profile_details
           if (profile_details) {
             if (!!projectId) {
@@ -91,8 +92,16 @@ function SsoFlow() {
             setIsNewChatOpen(true)
             setProjectId(projectId)
             setTaskId(taskId)
-            // navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE, {replace: true});
-            window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
+
+            const params = new URLSearchParams()
+            if (flow_type) params.append("flow", flow_type)
+            if (languagePassed && languagePassed !== "" && languagePassed !== "null" && Object.values(LANGUAGE_ENUMS).includes(languagePassed)) {
+              params.append("language", languagePassed)
+            }
+            const queryString = params.toString()
+            const navigationPath = queryString ? `${ROUTES.SHIKSHALOKAM_HOME_PAGE}?${queryString}` : ROUTES.SHIKSHALOKAM_HOME_PAGE
+            navigate(navigationPath, { replace: true })
+            // window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
           } else {
             navigate(-1)
           }

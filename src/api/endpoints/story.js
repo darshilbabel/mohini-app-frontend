@@ -148,7 +148,7 @@ export const getStoryAllMedia = async ({
  * @param {string} params.data.media_type - Media type
  * @returns {Promise<Object>} Response data
  */
-export const createStoryMedia = async ({
+export const createStoryMediaApi = async ({
   token,
   data = {
     story: "",
@@ -249,7 +249,7 @@ export const partialUpdateStoryById = async ({
  * @param {string} params.data.media_type - Media type
  * @returns {Promise<Object>} Response data
  */
-export const updateStoryMediaApi = async ({ token, data, mediaId }) => {
+export const updateStoryMediaApi = async ({ token, data, mediaId, partialUpdate = false }) => {
   try {
     // if (!token) {
     //   throw new Error("Authorization token is required!")
@@ -271,7 +271,13 @@ export const updateStoryMediaApi = async ({ token, data, mediaId }) => {
       },
     }
 
-    const response = await apiClient.put(`${API_ENDPOINTS.STORY_MEDIA}${mediaId}/`, formData, config)
+    let response = null
+
+    if (partialUpdate) {
+      response = await apiClient.patch(`${API_ENDPOINTS.STORY_MEDIA}${mediaId}/`, formData, config)
+    } else {
+      response = await apiClient.put(`${API_ENDPOINTS.STORY_MEDIA}${mediaId}/`, formData, config)
+    }
 
     return response?.data || {}
   } catch (error) {

@@ -1,7 +1,5 @@
 import { STORE_NAME_CONSTANTS } from "./constants"
 
-import useUserPreferenceLocalStore from "./slices/persistent/userPreference"
-import useUserPreferenceSessionStore from "./slices/session/userPreference"
 import useChatDataSessionStore from "./slices/chatData/chatDataSession"
 import useChatDataLocalStore from "./slices/chatData/chatDataLocal"
 import useSiteDataLocalStore from "./slices/siteData/siteDataLocal"
@@ -23,8 +21,6 @@ const SLICES_STORE_MAP = {
 }
 
 export {
-  useUserPreferenceLocalStore,
-  useUserPreferenceSessionStore,
   useChatDataLocalStore,
   useChatDataSessionStore,
   useSiteDataLocalStore,

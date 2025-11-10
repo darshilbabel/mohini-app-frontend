@@ -10,30 +10,30 @@ import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
 import { getFlowConfig } from "../../config/flowConfig"
 import { getSessionDetailsApi } from "../../api/endpoints/chat"
 import { getStoryAllMedia } from "api/endpoints"
-import { languageList, PTM_CONVERSATION_STATUS_TYPE } from "../ShikshalokamVoiceChat/enum"
+import { getStoryBySessionAPI } from "api/endpoints"
+import { LANGUAGE_ENUMS, languageList, PTM_CONVERSATION_STATUS_TYPE } from "../ShikshalokamVoiceChat/enum"
 import { MdSend } from "react-icons/md"
 import { savePTMQuestionApi } from "../../api/endpoints/ptm"
+import { sessionFlowName } from "../ShikshalokamVoiceChat/enum"
 import { setLanguage } from "../../i18n"
 import { showNotification } from "components/ToastMessage/TotastMessage"
 import { TbReload } from "react-icons/tb"
+import { useChatDataLocalStore } from "store"
+import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useSiteDataLocalStore } from "store"
 import { useTranslation } from "react-i18next"
 import axiosInstance from "utils/axios"
 import ChatMessage from "../ShikshalokamMegaPTM/ChatMessage"
 import Header from "../ShikshalokamVoiceChat/shikshaChatHeader"
 import PrivacyPolicyPopup from "components/TnC/privacyPolicyPopup"
+import ROUTES from "../../url"
 import SpeedNotification from "../ShikshalokamMegaPTM/SpeedNotification"
 import Swal from "sweetalert2"
 import useCustomMediaQuery from "hooks/useCustomMediaQuery"
 import useSmartChatStorage from "hooks/useSmartChatStorage"
 import useVoiceRecord from "../interview-text-voice/useVoiceRecord"
-import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
-import { STORE_NAME_CONSTANTS } from "store/constants"
-import { useChatDataLocalStore } from "store"
-import { useSiteDataLocalStore } from "store"
-import ROUTES from "../../url"
-import { getStoryBySessionAPI } from "api/endpoints"
 
 const UnifiedVoiceBasedChat = ({ flowType }) => {
   // useState hooks
@@ -92,6 +92,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
 
   const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
   const setLanguageToUse = useSiteDataLocalStore(state => state.setChatLanguage)
+  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
   const { setIsNewChatOpen, setIsOldChatOpen, setSessionId, setChatBotClickedOn } = useChatStorage().getState()
 
   const { setAcceptedTnC } = useUserStorage().getState()
@@ -472,8 +473,9 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
           if (wantToNavigateBack) {
             stopAllAudio()
             clearFromStorage()
-            setLanguage(languageList[0].value)
-            setLanguageToUse(languageList[0].value)
+            setLanguage(LANGUAGE_ENUMS.ENGLISH)
+            setLanguageToUse(LANGUAGE_ENUMS.ENGLISH)
+            setHasSelectedLanguage(false)
 
             if (previousUrl && previousUrl !== null && previousUrl !== undefined && previousUrl !== "") {
               window.location.href = previousUrl
@@ -506,10 +508,19 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
     }).then(result => {
       if (result.isConfirmed) {
         clearFromStorage()
-        setLanguageToUse(languageList[0].value)
-        setLanguage(languageList[0].value)
+        window.location.reload()
+        setLanguageToUse(LANGUAGE_ENUMS.ENGLISH)
+        setLanguage(LANGUAGE_ENUMS.ENGLISH)
+        setHasSelectedLanguage(false)
+        console.log("flowType", flowType)
         stopAllAudio()
-        window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
+        if (flowType === sessionFlowName.megaPTM) {
+          window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE)
+        } else if (flowType === sessionFlowName.YLC) {
+          window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE)
+        } else {
+          window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
+        }
       }
     })
   }

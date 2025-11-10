@@ -6,7 +6,7 @@ import { bot_routes } from "../../configure"
 import { buildWebSocketUrl } from "utils/helpers"
 import { clearFromStorage, handleS3Upload } from "../../services/storage_service"
 import { createMessage } from "../interview-voice"
-import { createStoryMedia, getStoryAllMedia, partialUpdateStoryById } from "../story/api.service"
+import { createStoryMediaApi, getStoryAllMedia, partialUpdateStoryById } from "api/endpoints/story"
 import { createUserProfileApi, getProfileUserApi } from "api/endpoints/user"
 import { FaCircle } from "react-icons/fa6"
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
@@ -15,13 +15,13 @@ import { getChatSessionApi } from "api/endpoints/chat"
 import { getCompanyBotApi } from "api/endpoints/chat"
 import { getSessionDetails } from "../../services/api.service"
 import { getStoryBySessionAPI } from "api/endpoints"
+import { getTranslatedIntroMessageApi } from "api/endpoints/ai"
 import { GrGallery } from "react-icons/gr"
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
 import { LANGUAGE_ENUMS, languageList, sessionFlowName } from "./enum"
 import { MdAccountCircle, MdEdit, MdSend } from "react-icons/md"
 import { RxCross2 } from "react-icons/rx"
 import { setLanguage } from "../../i18n"
-import { STORE_NAME_CONSTANTS } from "store/constants"
 import { TbReload } from "react-icons/tb"
 import { toast } from "react-toastify"
 import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi } from "api/endpoints"
@@ -29,10 +29,11 @@ import { updateStoryMediaApi } from "api/endpoints"
 import { useAudio } from "hooks/useAudio"
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useChatDataSessionStore } from "store"
+import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import { useChatWebhook } from "hooks/useChatWebhook"
 import { useConfirmationPopup } from "hooks/useConfirmationPopup"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
+import { useSiteDataLocalStore } from "store"
 import { useTranslation } from "react-i18next"
 import axiosInstance from "../../utils/axios"
 import Cookies from "universal-cookie"
@@ -58,7 +59,6 @@ import useSmartChatStorage from "hooks/useSmartChatStorage"
 import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord"
 import WaveSurferPlayer from "../interview-text-voice/voice-player"
-import { useSiteDataLocalStore } from "store"
 
 const cookies = new Cookies()
 
@@ -93,7 +93,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [shouldFetchIntro, setShouldFetchIntro] = useState(false)
   const [hasFetchIntro, setHasFetchIntro] = useState(false)
   const [chatTitle, setChatTitle] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [isImageUploading, setIsImageUploading] = useState(false)
   const [isIntroLoading, setIsIntroLoading] = useState(false)
   const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false)
@@ -138,9 +138,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   const accessToken = useUserDataLocalStore(state => state.access_token)
 
-  // const defaultBotName = useChatStorage()((state) => state.defaultBotName);
-  // const isChatVisible = useChatStorage()((state) => state.isChatVisible);
-  // const showHomepage = useChatStorage()((state) => state.showHomepage);
+  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
   const acceptedTnc = useUserStorage()(state => state.has_accepted_tnc)
   const botName = useChatStorage()(state => state.botName)
   const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
@@ -161,12 +159,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const setLangProgress = useChatStorage()(state => state.setLangProgress)
   const setStorageFlow = useChatStorage()(state => state.setFlow)
+  const showHomepage = useChatStorage()(state => state.showHomepage)
   const ssoRerouteURL = useSiteStorage()(state => state.ssoRerouteURL)
   const stateMachineLength = useChatStorage()(state => state.stateMachineLength)
   const storageFlow = useChatStorage()(state => state.flow)
   const taskId = useChatStorage()(state => state.taskId)
   const userState = useUserStorage()(state => state.state)
-  const showHomepage = useChatStorage()(state => state.showHomepage)
 
   // chat data actions
   const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()
@@ -264,6 +262,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     return storageFlow && [sessionFlowName.Reflection].includes(storageFlow)
   }, [storageFlow])
 
+  const isInitialising = useMemo(() => {
+    console.log("state_tracker", "sessionId", sessionId, "chatHistory", chatHistory)
+    return !sessionId || chatHistory?.length === 0
+  }, [sessionId, chatHistory])
+
   // ========================================================================
   // SECTION: Helper Functions (Must be defined before callbacks that use them)
   // These helper functions are used by callbacks and must be defined first
@@ -295,7 +298,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         access_token: accessToken,
         session: sessionId,
       }
-      await updateStoryMediaApi({ token: accessToken, data: formData, mediaId: updateId })
+      await updateStoryMediaApi({ token: accessToken, data: formData, mediaId: updateId, partialUpdate: true })
     } catch (error) {
       console.error(error)
     } finally {
@@ -306,6 +309,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   async function onEditorSave() {
     try {
       setIsLoading(true)
+      setIsSaving(true)
       const outputData = await editor.save()
       const flow = storageFlow
 
@@ -351,14 +355,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         }
       }
 
-      await partialUpdateStoryById({
-        setter: setStoryData,
-        loader: setIsSaving,
-        data: updatePayload,
+      const result = await partialUpdateStoryById({
         token: accessToken,
+        data: updatePayload,
       })
+      setStoryData(result)
+      setIsSaving(false)
     } catch (error) {
       setIsLoading(false)
+      setIsSaving(false)
       console.error("Saving failed: ", error)
       if (accessToken) {
         clearFromStorage()
@@ -393,7 +398,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Fetches translated message and personalizes with user's first name
    */
   const handleIntroMessage = async () => {
-    let data = await getTranslatedIntroMessage()
+    let data = await getTranslatedIntroMessageApi({
+      language: languageToUse,
+      company_bot__route: getSessionRoute(),
+    })
+    console.log("handleIntroMessage", data)
     let message = data[0]?.introductory_message
     if (data && data[0]) {
       if (profileToUse && firstName && firstName !== "null" && firstName !== "") {
@@ -614,7 +623,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       }
 
       console.log("handleCompanyChatCall")
-      setIsFetchingOldIntro(true)
+      // setIsFetchingOldIntro(true)
 
       try {
         const resp = await getCompanyChatApi(sessionId)
@@ -673,7 +682,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       } catch (error) {
         console.error("Error fetching company chat data:", error)
       } finally {
-        setIsFetchingOldIntro(false)
+        // setIsFetchingOldIntro(false)
         if (accessToken) {
           setIsLoading(false)
         }
@@ -681,7 +690,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     } catch (error) {
       console.error("Error fetching company chat data:", error)
     } finally {
-      setIsFetchingOldIntro(false)
+      // setIsFetchingOldIntro(false)
       if (accessToken) {
         setIsLoading(false)
       }
@@ -692,32 +701,35 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Handles chat session button clicks from sidebar
    * Loads selected chat session or fetches intro for new session
    */
-  const handleChatSessionButtonClick = useCallback(async ({ key }) => {
-    lastBotMessageIndex.current = -1
-    let key_num
-    let currentSession
-    if (key) {
-      /** String representation of array index that can be converted to number */
-      key_num = parseInt(key?.split("-").pop())
-      if (isNaN(key_num)) return
-      currentSession = chatTitle[key_num]?.session
-      setLlmError("")
-      setIsOldChatOpen(true)
-      setIsNewChatOpen(false)
-      setSessionId(currentSession)
-      setChatHistory([])
-      window.location.reload()
-    } else {
-      currentSession = sessionId
-      try {
-        await fetchBotInfo()
-        await handleCompanyChatCall()
-      } finally {
-        setIsIntroLoading(false)
+  const handleChatSessionButtonClick = useCallback(
+    async ({ key }) => {
+      lastBotMessageIndex.current = -1
+      let key_num
+      let currentSession
+      if (key) {
+        /** String representation of array index that can be converted to number */
+        key_num = parseInt(key?.split("-").pop())
+        if (isNaN(key_num)) return
+        currentSession = chatTitle[key_num]?.session
+        setLlmError("")
+        setIsOldChatOpen(true)
+        setIsNewChatOpen(false)
+        setSessionId(currentSession)
+        setChatHistory([])
+        window.location.reload()
+      } else {
+        currentSession = sessionId
+        try {
+          await fetchBotInfo()
+          await handleCompanyChatCall()
+        } catch (error) {
+          console.error(error)
+          // setIsIntroLoading(false)
+        }
       }
-      setIsIntroLoading(false)
-    }
-  }, [])
+    },
+    [sessionId]
+  )
 
   /**
    * Adds bot messages to chat history during streaming
@@ -863,7 +875,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setChatLanguage(languageList[0].value)
         stopAllAudio()
         if (accessToken) {
-          clearFromStorage(true)
+          clearFromStorage()
           navigateSsoFlow(ssoRerouteURL)
         } else {
           navigate(ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN)
@@ -931,7 +943,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       if (chatHistory && chatHistory.length <= 1) {
         stopAllAudio()
         isIntroPlayed.current = false
-        setIsLoading(true)
+        // setIsLoading(true)
         setIntroMessage(null)
         setChatHistory([])
         setSentences([])
@@ -945,12 +957,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           setAcceptedTnC(true)
           setShouldFetchIntro(true)
         } else {
-          setIsLoading(false)
+          // setIsLoading(false)
         }
       }
     }
     if (chatLanguage && storageFlow) {
-      setIsLoading(true)
+      // setIsLoading(true)
       handleLanguageSelect(chatLanguage)
     }
   }, [chatLanguage, storageFlow])
@@ -1078,6 +1090,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
   }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences])
 
+  useEffect(() => {
+    console.log({ isLoading, isIntroLoading, isEndStoryLoading, isFetchingOldIntro }, "state_tracker")
+    // console.log("isLoading", "isIntroLoading", "isEndStoryLoading", "isFetchingOldIntro")
+  }, [isLoading, isIntroLoading, isEndStoryLoading, isFetchingOldIntro])
+
   // ========================================================================
   // SECTION: Language & Bot Setup (Execution Order: 5 - When Profile Ready)
   // These effects fetch bot information and set up language-specific configuration
@@ -1090,6 +1107,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   useEffect(() => {
     if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow)) {
       setIsIntroLoading(true)
+      console.log("state_tracker", "fetching bot info")
       fetchBotInfo()
         .then(() => {
           if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
@@ -1161,22 +1179,24 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         const tempMediaArr = []
         setIsImageUploading(true)
 
-        // TODO: This part needs to be optimized
-        await getStoryAllMedia({
-          setter: data => {
-            for (let item of Object.values(data?.results || [])) {
-              if (item.include_in_story) {
-                tempMediaArr.push(item)
-              }
-            }
-            setFiles(tempMediaArr)
-          },
-          data: {
-            story: story_id,
-          },
-        })
+        try {
+          const data = await getStoryAllMedia({
+            data: {
+              story: story_id,
+            },
+          })
 
-        setIsImageUploading(false)
+          for (let item of Object.values(data?.results || [])) {
+            if (item.include_in_story) {
+              tempMediaArr.push(item)
+            }
+          }
+          setFiles(tempMediaArr)
+          setIsImageUploading(false)
+        } catch (error) {
+          console.error("Error fetching story media:", error)
+          setIsImageUploading(false)
+        }
       }
     }
 
@@ -1202,6 +1222,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   useEffect(() => {
     const currentFlow = storageFlow
     if (profileToUse && !accessToken && !isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+      console.log("setting loading to true", "state_tracker")
       setIsLoading(true)
       const titleTime = setTimeout(() => {
         if (shouldShowChatHistoryFeature) showChatTitle()
@@ -1824,13 +1845,16 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     let rerouteUrl = previousUrl
     stopAllAudio()
     if (accessToken) {
-      clearFromStorage(true)
+      console.log("clearing storage")
+      clearFromStorage()
       navigateSsoFlow(ssoRerouteURL)
       return
     }
+    console.log("clearing storage")
     clearFromStorage()
-    setLanguage(languageList[0].value)
-    setChatLanguage(languageList[0].value)
+    setLanguage(LANGUAGE_ENUMS.ENGLISH)
+    setChatLanguage(LANGUAGE_ENUMS.ENGLISH)
+    setHasSelectedLanguage(false)
     // navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
     // navigate("/", { replace: true });
     if (rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== "") {
@@ -1924,15 +1948,20 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                         flow: storageFlow,
                         formatted_content: outputData?.blocks,
                       }
-                      await partialUpdateStoryById({
-                        setter: setStoryData,
-                        loader: setIsLoading,
+
+                      setIsLoading(true)
+                      const result = await partialUpdateStoryById({
+                        token: accessToken,
                         data: updatePayload,
                       })
-                      if ([sessionFlowName.GuestMiStory, sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity].includes(storageFlow) && accessToken) {
+                      setStoryData(result)
+                      setIsLoading(false)
+
+                      if (isSpecialFlow && accessToken) {
                         setIsLoading(true)
                         await updateReflectionStatusApi(projectId, "completed", sessionFlowName.SsoFlow, accessToken)
-                        clearFromStorage(false)
+                        console.log("clearing storage")
+                        clearFromStorage()
                         console.log("History length:", window.history.length)
                         console.log("Can go back 1?", window.history.length > 1)
                         console.log("Can go back 3?", window.history.length > 3)
@@ -1953,6 +1982,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                     } catch (error) {
                       console.error("Saving failed: ", error)
                       if (accessToken) {
+                        console.log("clearing storage")
                         clearFromStorage()
                         navigate(-1)
                       }
@@ -1992,17 +2022,20 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       e.preventDefault()
     }
     setIsLoading(true)
+    setIsIntroLoading(true)
     removeChatHistory()
     setIsOldChatOpen(false)
     setIsNewChatOpen(true)
     setShowFileInput(false)
     setLlmError("")
+    setSessionId(null)
 
     const session = await getSessionDetails()
     setSessionId(session.sessionid)
     setIsChatVisible(false)
     setChatbotClickedOn("")
     setShowHomepage(true)
+    setIsLoading(false)
 
     window.location.reload()
   }
@@ -2012,18 +2045,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     const blocks = JSON.parse(formattedContent)
     if (!blocks || blocks?.length === 0) return []
     return blocks.filter(block => block.type === "paragraph")
-  }
-
-  async function getTranslatedIntroMessage() {
-    let storedRoute = getSessionRoute()
-    let translate_api_url = `api/bot_vernacular/?language=${languageToUse}&company_bot__route=${storedRoute}`
-    try {
-      const response = await axiosInstance.get(translate_api_url)
-      return response?.data?.results
-    } catch (error) {
-      console.error("Error fetching AI4Bharat audio:", error)
-      throw error
-    }
   }
 
   async function getSessionInfo() {
@@ -2590,10 +2611,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       } catch (error) {
         console.error({ error })
         if (accessToken) {
+          console.log("clearing storage")
           clearFromStorage()
           navigate(-1)
         } else if ([sessionFlowName.SsoFlow].includes(storageFlow) && accessToken) {
-          clearFromStorage(true)
+          clearFromStorage()
           navigateSsoFlow(ssoRerouteURL)
         }
         setIsLoading(false)
@@ -2618,12 +2640,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
   }
 
+  useEffect(() => {
+    console.log(acceptedTnc, "acceptedTnc")
+  }, [acceptedTnc])
+
   return (
     <>
       {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} />}
 
       {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && isSpecialFlow && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} useStaticText={false} />}
-      <></>
       <div className={`div27 ${isOpen && " div70"}`}>
         <div className={`div28 ${isOpen ? "div29" : ""}`}>{isShikshalokamPublicType && storageFlow && !isSpecialFlow && <Sidebar isOpen={isOpen} toggle={setIsOpen} isMobileFirst={true} showScrollbarContent={accessToken && showScrollbarContent} resetChat={ResetChat} setIsResetCalled={setIsResetCalled} languageToUse={languageToUse} stopAllAudio={stopAllAudio} />}</div>
         {isOpen && <div className="div7" onClick={() => setIsOpen(false)}></div>}
@@ -2655,7 +2680,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           />
         </div>
       </div>
-      {(isLoading || isIntroLoading || isEndStoryLoading || isFetchingOldIntro) && (
+      {(isInitialising || isLoading || isIntroLoading || isEndStoryLoading || isFetchingOldIntro) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />
@@ -2855,7 +2880,13 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                           <li key={index} className="li-2">
                             {file.name.slice(0, 20)}
                             {file.name.length > 20 && "..."}
-                            <button className="button-1" onClick={() => partialMediaUpdate(file?.id, false)}>
+                            <button
+                              className="button-1"
+                              onClick={() => {
+                                setFiles(files.filter(f => f.id !== file.id))
+                                partialMediaUpdate(file?.id, false)
+                              }}
+                            >
                               <RxCross2 />
                             </button>
                           </li>
@@ -2878,7 +2909,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                   isTalking={false}
                   handleOnStopSpeaking={() => handleOnStopSpeaking()}
                   handleOnSpeaking={(message, updatedAt, staticMessage) => {
-                    const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && !accessToken ? t("reportFeedbackText") : t("storyText")
+                    const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")
+                    console.log("message_to_use", message_to_use)
                     handleOnSpeaking(message_to_use, "download-story-id", { msg: message_to_use, updated_at: "download-story-id", source: "bot" })
                   }}
                   isAnyPlaying={!!hasOverRideId || isTalking}
@@ -3116,31 +3148,27 @@ function ChatMessage({ userType, message, name, recording, handleOnSpeaking, han
 
 const uploadImage = (formData, setError, navigate, setIsLoading, setFiles) => {
   const accessToken = useUserDataLocalStore.getState().getAccessToken()
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
-      createStoryMedia({
-        setter: uploadedFile => {
-          setFiles(prevFiles => [...prevFiles, uploadedFile])
-        },
-        errorHandler: err => {
-          if (accessToken) {
-            clearFromStorage()
-            navigate(-1)
-          }
-          setError(err)
-          setIsLoading(false)
-          reject(err)
-        },
-        data: formData,
-        loader: setIsLoading,
+      setIsLoading(true)
+      const uploadedFile = await createStoryMediaApi({
         token: accessToken,
+        data: formData,
       })
+      setFiles(prevFiles => [...prevFiles, uploadedFile])
+      setIsLoading(false)
+      resolve(uploadedFile)
     } catch (error) {
       console.error({ error })
       if (accessToken) {
+        console.log("clearing storage")
         clearFromStorage()
         navigate(-1)
       }
+      setError({
+        response: error?.request?.response || error?.message,
+        status: error?.request?.status || 500,
+      })
       setIsLoading(false)
       reject(error)
     }

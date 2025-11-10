@@ -5,10 +5,8 @@ import ROUTES from "../url"
 import { useNavigate } from "react-router-dom"
 import { setLanguage } from "../i18n"
 import { BiLoader } from "react-icons/bi"
-import { clearFromStorage } from "../services/storage_service"
 import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat"
 import { loginApi } from "api/endpoints/auth"
-import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import { useSiteDataLocalStore } from "store"
@@ -126,9 +124,9 @@ function ShikshalokamChat({ type, variant }) {
       // if (accessToken) return
 
       if (!sessionId) {
-        clearFromStorage(false, ["local_route"])
+        // clearFromStorage(false, ["local_route"])
         setIsLoading(true)
-        setHasAcceptedTnc("ONGOING")
+        // setHasAcceptedTnc("ONGOING")
         setIsNewChatOpen(true)
 
         const locationData = await getIpLocation()
@@ -140,6 +138,8 @@ function ShikshalokamChat({ type, variant }) {
         setFlow(type)
         getUserFingerPrint()
         await setFinalLanguage()
+
+        setIsLoading(false)
       }
       // else if (storageFlow && !accessToken){
       // 	window.location.reload();

@@ -1,7 +1,7 @@
 import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { SLICES_STORE_MAP } from "../store"
-import { useUserPreferenceLocalStore, useUserPreferenceSessionStore } from "store"
 import axiosInstance from "../utils/axios"
+import { useChatDataLocalStore, useChatDataSessionStore, useSiteDataLocalStore, useSiteDataSessionStore, useUserDataLocalStore, useUserDataSessionStore } from "../store"
 
 /**
  * Gets a storage slice (Zustand store) based on the slice name and storage type
@@ -107,16 +107,14 @@ export const handleS3Upload = async (file, fileName, folderStructure, storyData,
 
 export function clearFromStorage() {
   try {
-    // useChatDataLocalStore.getState().reset()
-    // useChatDataSessionStore.getState().reset()
+    useChatDataLocalStore.setState(useChatDataLocalStore.getInitialState(), true)
+    useChatDataSessionStore.setState(useChatDataSessionStore.getInitialState(), true)
 
-    // useSiteDataLocalStore.getState().reset()
-    // useSiteDataSessionStore.getState().reset()
+    useSiteDataLocalStore.setState(useSiteDataLocalStore.getInitialState(), true)
+    useSiteDataSessionStore.setState(useSiteDataSessionStore.getInitialState(), true)
 
-    // useUserDataLocalStore.getState().reset()
-    // useUserDataSessionStore.getState().reset()
-    localStorage.clear()
-    sessionStorage.clear()
+    useUserDataLocalStore.setState(useUserDataLocalStore.getInitialState(), true)
+    useUserDataSessionStore.setState(useUserDataSessionStore.getInitialState(), true)
   } catch (error) {
     console.error("Error while clearing: ", error)
   }
