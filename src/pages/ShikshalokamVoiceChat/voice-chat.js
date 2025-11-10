@@ -63,8 +63,8 @@ import WaveSurferPlayer from "../interview-text-voice/voice-player"
 const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
-// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-const wss_protocol = "wss://"
+const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
+// const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
