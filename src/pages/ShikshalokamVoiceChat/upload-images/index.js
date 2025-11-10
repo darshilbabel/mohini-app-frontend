@@ -35,7 +35,7 @@ const UploadImages = ({
         access_token: accessToken,
         session: sessionId,
       }
-      await updateStoryMediaApi({ token: accessToken, data: formData, mediaId: updateId })
+      await updateStoryMediaApi({ token: accessToken, data: formData, mediaId: updateId, partialUpdate: true })
     } catch (error) {
       console.error(error)
     } finally {

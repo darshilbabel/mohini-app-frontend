@@ -75,6 +75,7 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
       updateStoryMediaApi({
         mediaId: partialUpdateId,
         data: formData,
+        partialUpdate: true,
       })
     } catch (error) {
       console.error({ error })
@@ -520,6 +521,7 @@ export const EditStoryModal = ({ isModalOpen, closeModal, storyData, editorCopyC
                   loader: setIsSaving,
                   data: updatePayload,
                   token: access_token,
+                  storyId: updatePayload.id,
                 })
 
                 window.location.reload()
