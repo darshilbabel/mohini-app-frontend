@@ -192,7 +192,7 @@ export const createStoryMediaApi = async ({
  * @param {boolean} params.partialUpdate - Whether to use PATCH (true) or PUT (false)
  * @returns {Promise<Object>} Response data
  */
-export const partialUpdateStoryById = async ({ token, data, storyId, partialUpdate = false }) => {
+export const partialUpdateStoryById = async ({ token, data, storyId, partialUpdate = true }) => {
   try {
     // if (!token) {
     //   throw new Error("Authorization token is required!")
