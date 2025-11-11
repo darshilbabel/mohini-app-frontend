@@ -4,15 +4,17 @@ import { setLanguage } from "i18n"
 import { useSiteStorage } from "hooks/useStorage"
 import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useSiteDataLocalStore } from "store"
+import { useSearchParams } from "react-router-dom"
 
 // Get default language based on usecase type
 export const useLanguage = () => {
   // Parse URL params
-  const { language: urlLanguage } = useParams()
+  // const { language: urlLanguage } = useParams()
+  const [searchParams] = useSearchParams()
 
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const hasSelectedLanguage = useSiteDataLocalStore(state => state.hasSelectedLanguage)
-  const { setHasSelectedLanguage } = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
+  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
 
   // TODO: Can be deprecated
   /**
@@ -21,22 +23,24 @@ export const useLanguage = () => {
   const [languageButtonSelect, setLanguageButtonSelect] = useState(false)
 
   useEffect(() => {
+    const urlLanguage = searchParams.get("language")
     if (urlLanguage) {
       setLanguageButtonSelect(false)
     } else if (hasSelectedLanguage) {
       setLanguageButtonSelect(true)
     }
-  }, [urlLanguage, hasSelectedLanguage])
+  }, [searchParams, hasSelectedLanguage])
 
   // Auto-apply URL language on mount
   useEffect(() => {
+    const urlLanguage = searchParams.get("language")
     if (urlLanguage) {
       setHasSelectedLanguage(true)
       setLanguage(urlLanguage)
       setChatLanguage(urlLanguage)
-      setLanguageButtonSelect(true)
+      setLanguageButtonSelect(false)
     }
-  }, [urlLanguage])
+  }, [searchParams])
 
   const handleLanguageChange = (newLanguage, audioRef, stopAllAudio, setStopAudioTriggered) => {
     audioRef.current = null
