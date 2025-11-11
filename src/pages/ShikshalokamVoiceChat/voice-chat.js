@@ -63,8 +63,8 @@ import WaveSurferPlayer from "../interview-text-voice/voice-player"
 const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
-const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-// const wss_protocol = "wss://"
+// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
+const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
@@ -358,6 +358,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       const result = await partialUpdateStoryById({
         token: accessToken,
         data: updatePayload,
+        storyId: updatePayload.id,
       })
       setStoryData(result)
       setIsSaving(false)
@@ -434,17 +435,16 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       message = words.join(" ")
     }
     if (message && !!message?.trim() && chatHistory[chatHistory?.length - 1]?.msg !== message && !sentences.some(msg => msg.message === message)) {
-      const isGuestFlow = !accessToken
       setIntroMessage(message)
       setSentences(prev => [
         ...prev,
         {
           message: message,
-          isNarrated: isGuestFlow ? false : false,
+          isNarrated: false,
           id: "intro_msg_id",
         },
       ])
-      if (isGuestFlow) {
+      if (isSpecialFlow) {
         setHasOverRideId("intro_msg_id")
         setNotMute(false)
         setIsNextAllowed(true)
@@ -1089,11 +1089,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       handleChatSessionButtonClick({ key: null })
     }
   }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences])
-
-  useEffect(() => {
-    console.log({ isLoading, isIntroLoading, isEndStoryLoading, isFetchingOldIntro }, "state_tracker")
-    // console.log("isLoading", "isIntroLoading", "isEndStoryLoading", "isFetchingOldIntro")
-  }, [isLoading, isIntroLoading, isEndStoryLoading, isFetchingOldIntro])
 
   // ========================================================================
   // SECTION: Language & Bot Setup (Execution Order: 5 - When Profile Ready)
@@ -1865,9 +1860,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }
 
   function navigateSsoFlow(rerouteURL) {
-    navigate(-2)
+    // navigate(-2)
     if (rerouteURL) {
     } else {
+      console.log("navigating -2")
       navigate(-2)
     }
   }
@@ -1953,6 +1949,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                       const result = await partialUpdateStoryById({
                         token: accessToken,
                         data: updatePayload,
+                        storyId: updatePayload.id,
                       })
                       setStoryData(result)
                       setIsLoading(false)

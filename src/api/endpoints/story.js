@@ -183,31 +183,22 @@ export const createStoryMediaApi = async ({
  * @param {Object} params - Request parameters
  * @param {string} params.token - Authorization token
  * @param {Object} params.data - Update data
- * @param {string} params.data.id - Story ID
  * @param {Object} params.data.formatted_content - Formatted content object
  * @param {string} params.data.access_token - Access token
  * @param {string} params.data.session - Session ID
  * @param {string} params.data.flow - Flow type
  * @param {Object} params.data.other_params - Additional parameters
+ * @param {string} params.storyId - Story ID
+ * @param {boolean} params.partialUpdate - Whether to use PATCH (true) or PUT (false)
  * @returns {Promise<Object>} Response data
  */
-export const partialUpdateStoryById = async ({
-  token,
-  data = {
-    id: "",
-    formatted_content: "",
-    access_token: "",
-    session: "",
-    flow: "",
-    other_params: {},
-  },
-}) => {
+export const partialUpdateStoryById = async ({ token, data, storyId, partialUpdate = false }) => {
   try {
     // if (!token) {
     //   throw new Error("Authorization token is required!")
     // }
 
-    if (!data.id) {
+    if (!storyId) {
       throw new Error("Story ID is required!")
     }
 
@@ -225,7 +216,13 @@ export const partialUpdateStoryById = async ({
       other_params: data?.other_params,
     }
 
-    const response = await apiClient.patch(`${API_ENDPOINTS.STORY}${data.id}/`, requestData, config)
+    let response = null
+
+    if (partialUpdate) {
+      response = await apiClient.patch(`${API_ENDPOINTS.STORY}${storyId}/`, requestData, config)
+    } else {
+      response = await apiClient.put(`${API_ENDPOINTS.STORY}${storyId}/`, requestData, config)
+    }
 
     return response?.data || {}
   } catch (error) {
