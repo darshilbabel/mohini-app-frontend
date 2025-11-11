@@ -62,7 +62,7 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
     }
   }, [fileErrorText])
 
-  const partialUpdateMedia = (partialUpdateId, include_in_story = false, access_token) => {
+  const partialUpdateMedia = async (partialUpdateId, include_in_story = false) => {
     try {
       const formData = {
         include_in_story: include_in_story,
@@ -72,9 +72,10 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
       }
       setIsLoading(true)
 
-      updateStoryMediaApi({
+      await updateStoryMediaApi({
         mediaId: partialUpdateId,
         data: formData,
+        partialUpdate: true,
       })
     } catch (error) {
       console.error({ error })
@@ -103,6 +104,8 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
   const handleMultipleUploads = async (e, storyData) => {
     const filesArray = Array.from(e.target.files)
     const currentFiles = [...files]
+    console.log("currentFiles", currentFiles)
+    console.log("filesArray", filesArray)
 
     if (currentFiles?.length + filesArray.length > 10) {
       setFileErrorText(fileExceedText)
@@ -169,8 +172,14 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
       setFiles([...currentFiles, ...validFiles])
     } catch (e) {
       console.error("Upload handling error", e)
+    } finally {
+      setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    console.log("isLoading", isLoading)
+  }, [isLoading])
 
   return (
     <div className="div13">
@@ -205,6 +214,7 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
             type="file"
             accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic"
             onChange={e => {
+              console.log("e", e)
               setIsLoading(true)
               handleMultipleUploads(e, storyData)
             }}
@@ -240,7 +250,14 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
               <li key={index} className="li-2">
                 {file.name.slice(0, 20)}
                 {file.name.length > 20 && "..."}
-                <button className="button-1" onClick={() => partialUpdateMedia(file?.id, false, accessToken)}>
+                <button
+                  className="button-1"
+                  onClick={() => {
+                    setIsLoading(true)
+                    setFiles(prev => prev.filter(f => f.id !== file.id))
+                    partialUpdateMedia(file?.id, false)
+                  }}
+                >
                   <RxCross2 />
                 </button>
               </li>
@@ -520,6 +537,7 @@ export const EditStoryModal = ({ isModalOpen, closeModal, storyData, editorCopyC
                   loader: setIsSaving,
                   data: updatePayload,
                   token: access_token,
+                  storyId: updatePayload.id,
                 })
 
                 window.location.reload()

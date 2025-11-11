@@ -17,6 +17,7 @@ const UploadImages = ({
   handleMultipleUploads, // Pass this function from parent
   fileErrorText,
   setFileErrorText,
+  setFiles,
 }) => {
   // const [fileErrorText, setFileErrorText] = useState('');
   // const navigate = useNavigate()
@@ -29,13 +30,14 @@ const UploadImages = ({
 
   async function partialMediaUpdate(updateId, include_in_story = false) {
     try {
+      setFiles(prev => prev.filter(f => f.id !== updateId))
       const formData = {
         include_in_story: include_in_story,
         flow: storageFlow,
         access_token: accessToken,
         session: sessionId,
       }
-      await updateStoryMediaApi({ token: accessToken, data: formData, mediaId: updateId })
+      await updateStoryMediaApi({ token: accessToken, data: formData, mediaId: updateId, partialUpdate: true })
     } catch (error) {
       console.error(error)
     } finally {
