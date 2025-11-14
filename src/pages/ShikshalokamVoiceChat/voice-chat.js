@@ -1099,6 +1099,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Fetch bot information and intro message for new chat sessions
    * Initializes bot name, intro message, and calls company chat API
    */
+  /**
+   * ! The useEffect is deprecated as LoginMiStory is not being used anymore.
+   */
   useEffect(() => {
     if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow)) {
       setIsIntroLoading(true)
@@ -1861,7 +1864,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   function navigateSsoFlow(rerouteURL) {
     // navigate(-2)
+    console.log("rerouteURL", rerouteURL)
     if (rerouteURL) {
+      clearFromStorage()
+      window.location.href = rerouteURL
     } else {
       console.log("navigating -2")
       navigate(-2)
