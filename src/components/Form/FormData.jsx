@@ -98,6 +98,9 @@ function FormData({
     )
   }
 
+  /**
+   * * Only layout 2 is used on all the active flows. Layout 1 can be considered as deprecated.
+   */
   if (layOut === 1) {
     return (
       <>
