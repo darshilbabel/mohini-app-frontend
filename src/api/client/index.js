@@ -1,4 +1,5 @@
 import axios from "axios";
+import env from "@/utils/env";
 
 class ApiClient {
   constructor(httpClient) {
@@ -28,7 +29,7 @@ class ApiClient {
 
 const axiosInstance = axios.create({
   withCredentials: false,
-  baseURL: process.env.REACT_APP_LOCAL_PROXY,
+  baseURL: env.LOCAL_PROXY(),
   params: {}, 
 });
 
