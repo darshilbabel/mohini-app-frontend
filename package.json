@@ -55,6 +55,7 @@
     "dev": "env-cmd -e dev react-scripts start",
     "demo": "env-cmd -e demo react-scripts start",
     "prod": "env-cmd -e prod react-scripts start",
+    "build-docker": "env-cmd -e docker react-scripts build",
     "build-prod": "env-cmd -e prod react-scripts build",
     "build-dev": "env-cmd -e dev react-scripts build",
     "test": "react-scripts test",
