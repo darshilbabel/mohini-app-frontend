@@ -1,6 +1,7 @@
-import { TextConversionType } from "../../../pages/ShikshalokamVoiceChat/enum";
+import { TextConversionType } from "../../../pages/ShikshalokamVoiceChat/enum"
+import env from "../../../utils/env"
 
-const base_path = process.env.REACT_APP_ADUIO_PATH ?? "";
+const base_path = env.AUDIO_PATH()
 const questions = {
   1: {
     question_id: "q1",
@@ -382,17 +383,17 @@ const questions = {
       },
     ],
   },
-};
+}
 
-export default questions;
+export default questions
 
 export const ylcStoryTextAudio = {
   en: {
-    "uploadPhotoAudio": `${base_path}/audio/ylc/en/q20v1_en.b64`,
-    "storyReportAudio": `${base_path}/audio/ylc/en/q21v1_en.b64`,
+    uploadPhotoAudio: `${base_path}/audio/ylc/en/q20v1_en.b64`,
+    storyReportAudio: `${base_path}/audio/ylc/en/q21v1_en.b64`,
   },
   kn: {
-    "uploadPhotoAudio": `${base_path}/audio/ylc/kn/q20v1_kn.b64`,
-    "storyReportAudio": `${base_path}/audio/ylc/kn/q21v1_kn.b64`,
-  }
+    uploadPhotoAudio: `${base_path}/audio/ylc/kn/q20v1_kn.b64`,
+    storyReportAudio: `${base_path}/audio/ylc/kn/q21v1_kn.b64`,
+  },
 }

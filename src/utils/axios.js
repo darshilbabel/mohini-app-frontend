@@ -1,9 +1,10 @@
-import axios from "axios";
+import axios from "axios"
+import env from "./env"
 
 const axiosInstance = axios.create({
   withCredentials: false,
-  baseURL: process.env.REACT_APP_LOCAL_PROXY,
-  params: {}, 
+  baseURL: env.LOCAL_PROXY(),
+  params: {},
 });
 
 export default axiosInstance;

@@ -1,7 +1,8 @@
 // repository-api.js
-import axios from "axios";
+import axios from "axios"
+import env from "../../../utils/env"
 
-const API_BASE_URL = `${process.env.REACT_APP_LOCAL_PROXY}/api/v1/media`;
+const API_BASE_URL = `${env.LOCAL_PROXY()}/api/v1/media`
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -31,9 +32,9 @@ const apiClient = axios.create({
  * @returns {Promise<Object>} Response with { count, next, previous, results }.
  */
 const listMedia = async (params = {}) => {
-  const response = await apiClient.get("/", { params });
-  return response.data;
-};
+  const response = await apiClient.get("/", { params })
+  return response.data
+}
 
 /**
  * Retrieve detailed information about a single media document by ID.
