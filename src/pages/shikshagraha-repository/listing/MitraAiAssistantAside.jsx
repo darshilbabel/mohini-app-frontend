@@ -5,8 +5,8 @@ import ROUTES from "../../../url";
 export default function MitraAiAssistantAside() {
   const handleClick = () => {
     // Open Mitra AI assistant page in a new tab
-    const fullUrl = `${process.env.REACT_APP_LOCAL_PROXY}${ROUTES.SHIKSHAGRAHA_REPOSITORY_MITRA_AI_ASSISTANT}`;
-    window.open(fullUrl, '_blank');
+    const fullUrl = `${window.location.origin}${ROUTES.SHIKSHAGRAHA_REPOSITORY_MITRA_AI_ASSISTANT}`;
+    window.open(fullUrl, "_blank");
   };
 
   return (
