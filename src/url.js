@@ -17,6 +17,7 @@ const ROUTES = {
   SHIKSHALOKAM_YLC_HOME_PAGE: "/ylc/start",
   SSO_FLOW: "/sso",
   TERMS_AND_CONDITIONS: "/tnc",
+  SHIKSHAGRAHA_REPOSITORY_MITRA_AI_ASSISTANT: "create-profile/mitra-chat",
 }
 
 export default ROUTES
