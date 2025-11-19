@@ -138,10 +138,10 @@ export default function ResourceCard({ resource, index }) {
           </div>
           {/* Tags row */}
           <div
-            className="flex flex-row flex-wrap gap-2.5 w-full  overflow-hidden"
+            className="flex flex-row flex-wrap gap-2.5 w-full overflow-hidden"
             aria-label="Resource tags"
           >
-            {[resource?.tag_names[0], resource?.tag_names[1]]?.map((tag, i) =>
+            {[resource?.tag_names?.[0], resource?.tag_names?.[1]]?.map((tag, i) =>
               tag ? (
                 <span
                   key={i}
