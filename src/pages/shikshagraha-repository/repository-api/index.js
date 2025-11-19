@@ -1,10 +1,18 @@
 // repository-api.js
 import axios from "axios";
 
-const API_BASE_URL = `${process.env.REACT_APP_LOCAL_PROXY}/api/v2/media`;
+const API_BASE_URL = `${process.env.REACT_APP_LOCAL_PROXY}/api/v1/media`;
+
+const API_BASE_URL_V2 = `${process.env.REACT_APP_LOCAL_PROXY}/api/v2/media`;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: { "Content-Type": "application/json" },
+});
+
+const apiClientV2 = axios.create({
+  baseURL: API_BASE_URL_V2,
   timeout: 10000,
   headers: { "Content-Type": "application/json" },
 });
@@ -31,7 +39,7 @@ const apiClient = axios.create({
  * @returns {Promise<Object>} Response with { count, next, previous, results }.
  */
 const listMedia = async (params = {}) => {
-  const response = await apiClient.get("/", { params });
+  const response = await apiClientV2.get("/", { params });
   return response.data;
 };
 
