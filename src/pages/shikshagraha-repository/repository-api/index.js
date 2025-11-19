@@ -1,7 +1,7 @@
 // repository-api.js
 import axios from "axios";
 
-const API_BASE_URL = `${process.env.REACT_APP_LOCAL_PROXY}/api/v1/media`;
+const API_BASE_URL = `${process.env.REACT_APP_LOCAL_PROXY}/api/v2/media`;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
