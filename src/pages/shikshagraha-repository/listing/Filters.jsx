@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import Select, { components } from "react-select"
 import { Search, X } from "lucide-react"
@@ -18,7 +18,8 @@ import Notification, { showNotification } from "../../../components/ToastMessage
 /** Services and Utilities */
 import { handleS3Upload } from "../../../services/storage_service"
 import { ai4BharatASRApi } from "api/endpoints"
-import { getSessionRoute, formatTime, isSilentAudio } from "pages/ShikshalokamVoiceChat/voiceToText"
+import { formatTime, isSilentAudio } from "pages/ShikshalokamVoiceChat/voiceToText"
+import { bot_routes } from "configure"
 
 export default function Filters() {
   const globalSearchValue = useRepositoryStore(state => state.q)
@@ -33,19 +34,21 @@ export default function Filters() {
 
   const setFilters = useRepositoryStore(state => state.setFilters)
   const setGlobalSearch = useRepositoryStore(state => state.setSearch)
-  const storageFlow = useChatStorage()(state => state.flow)
-  const selectedType = useChatStorage()(state => state.selectedType)
+
   const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
   const sessionId = useChatStorage()(state => state.sessionId)
 
   const [search, setSearch] = useState("")
   const [mediaRecorder, setMediaRecorder] = useState(null)
   const [hasStartedRecording, setHasStartedRecording] = useState(false)
-
+  // const [isConvertingVoiceToText, setIsFetchingData] = useState(false)
   const [isConvertingVoiceToText, setIsConvertingVoiceToText] = useState(false)
 
   const [seconds, setSeconds] = useState(0)
   const [intervalId, setIntervalId] = useState(null)
+  const [hasStartedListening, setHasStartedListening] = useState(false)
+
+  const textAreaRef = useRef(null)
 
   const { recordings, HiddenRecorder } = useVoiceRecord()
 
@@ -63,7 +66,19 @@ export default function Filters() {
   //   [search]
   // )
 
-  const handleSendClick = () => {
+  function handleSendMessage(event) {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+
+    if (!search.trim()) return
+
     if (!!search && search?.length > 3) {
       setGlobalSearch(search)
     }
@@ -141,8 +156,8 @@ export default function Filters() {
               if (!s3Url || s3Url === "") {
                 transcriptResult = t("asrError")
               }
-              let storedRoute = getSessionRoute(storageFlow, selectedType)
-              console.log("storedRoute", storedRoute)
+              let storedRoute = bot_routes.search_bot
+
               transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
               if (!transcriptResult || transcriptResult === "") {
                 showNotification({
@@ -173,6 +188,19 @@ export default function Filters() {
       console.warn("getUserMedia not supported on your browser!")
     }
   }
+  const handleOnInputText = e => {
+    e.preventDefault()
+    setSearch(e.target.value)
+
+    if (e.target.value.trim() === "") {
+      // setIsRecognizing(false)
+      setHasStartedListening(false)
+    }
+
+    if (e.target.value.trim() === "" && search.trim() !== "") {
+      setGlobalSearch("")
+    }
+  }
 
   useEffect(() => {
     if (hasStartedRecording) {
@@ -200,51 +228,102 @@ export default function Filters() {
   useEffect(() => {
     fetchMasterList()
     const searched_param = new URLSearchParams(window.location.search)?.get("q")
-    setSearch(searched_param ?? "");
-    setGlobalSearch(searched_param ?? "");
+    setSearch(searched_param ?? "")
+    setGlobalSearch(searched_param ?? "")
   }, [])
 
-  const disableSendButton = search?.trim()?.length === 0 || isConvertingVoiceToText || hasStartedRecording;
+  const disableSendButton = search?.trim()?.length === 0 || isConvertingVoiceToText || hasStartedRecording
+  const isTyping = !!search?.trim()
 
   const searchInput = (
-    <div className="relative flex flex-row items-center w-full h-full">
-      <div className="flex items-center justify-center absolute left-0 top-0 h-full pl-[12px] pointer-events-none">
+    <form
+      className="relative flex flex-row items-center justify-center w-full h-[53px] px-3 py-2 rounded-[12px] border border-gray-300"
+      onSubmit={event => {
+        if (!hasStartedListening && !isConvertingVoiceToText) {
+          handleSendMessage(event)
+        }
+      }}
+      autoComplete="off"
+    >
+      <div className="flex items-center justify-center relative h-full pointer-events-none">
         <Search className="w-4 h-4 text-gray-300" />
       </div>
-      <input
-        type="text"
-        placeholder="Search with AI"
-        className="pl-[41px] pr-[17px] py-[12px] max-w-[331px] w-full h-[53px] bg-white border border-gray-300 rounded-[12px] text-[14px] leading-[19px] font-manrope text-gray-700 placeholder-[#9CA3AF] focus:outline-none"
-        value={search}
-        onChange={e => {
-          e.preventDefault()
-          setSearch(e.target.value)
-          if (!e.target.value) {
-            setGlobalSearch("")
-          }
-          // console.log("debouce ready", debouncedSearch(e.target.value))
-        }}
-      />
-      {hasStartedRecording && (
-        <div className="flex items-center justify-center absolute right-[4.5rem] space-x-1 text-red-600 text-sm font-medium pointer-events-none">
-          <FaCircle className="text-red-500 animate-pulse w-[10px] h-[10px] text-xs" />
-          <span>{formatTime(seconds)}</span>
-        </div>
-      )}
-      <button className={`flex items-center justify-center absolute right-10 top-0 h-full pl-[12px] ${hasStartedRecording ? "text-red-500" : "text-black"} disabled:text-[#64748b] disabled:cursor-not-allowed cursor-pointer`} onClick={hasStartedRecording ? stopRecording : startRecording}>
-        {hasStartedRecording ? <FaRegStopCircle className="w-[16px] h-[16px] md:w-[20px] md:h-[20px] lg:w-[24px] lg:h-[24px]" /> : <IoMicOutline className="w-[20px] h-[20px] md:w-[24px] md:h-[24px] lg:w-[28px] lg:h-[28px]" />}
+      <div className="relative w-full flex items-center justify-center">
+        <textarea
+          // id="textBoxID"
+          className={`${isConvertingVoiceToText ? "min-h-[29px] sm:min-h-0" : "h-[29px]"} pl-3 py-[5px] max-w-[331px] w-full border-0 focus:outline-none focus:bg-transparent bg-transparent resize-none rounded-[12px] text-[14px] leading-[19px] font-manrope text-gray-700 placeholder-[#9CA3AF]`}
+          style={{ backgroundColor: "transparent" }}
+          onChange={handleOnInputText}
+          placeholder={hasStartedRecording ? t("placeholder1") : isConvertingVoiceToText ? t("placeholder2") : t("placeholder3")}
+          name="message-box"
+          value={search}
+          autoFocus={false}
+          disabled={hasStartedRecording || isConvertingVoiceToText}
+          ref={textAreaRef}
+          onInput={e => {
+            e.target.style.height = "auto"
+            const maxHeight = 29
+            if (e.target.scrollHeight > maxHeight) {
+              e.target.style.height = `${maxHeight}px`
+              e.target.style.overflowY = "auto"
+            } else {
+              e.target.style.height = `${e.target.scrollHeight}px`
+              e.target.style.overflowY = "hidden"
+            }
+          }}
+          onKeyDown={e => {
+            if (e.key === "Enter" && e.shiftKey) {
+              e.preventDefault()
+              e.target.form.requestSubmit()
+            }
+          }}
+        />
+        {hasStartedRecording && (
+          <div className="absolute top-1/2 -translate-y-1/2 right-2 flex items-center space-x-1 text-red-600 text-sm font-medium pointer-events-none">
+            <FaCircle className="text-red-500 animate-pulse text-xs" />
+            <span>{formatTime(seconds)}</span>
+          </div>
+        )}
+      </div>
+      <button className={`flex items-center justify-center relative ${hasStartedRecording ? "text-red-500" : "text-black"} disabled:text-[#64748b] disabled:cursor-not-allowed cursor-pointer`} onClick={hasStartedRecording ? stopRecording : startRecording}>
+        {hasStartedRecording ? <FaRegStopCircle className="w-[18px] h-[18px] md:w-[20px] md:h-[20px] lg:w-[24px] lg:h-[24px]" /> : <IoMicOutline className="w-[18px] h-[18px] md:w-[20px] md:h-[20px] lg:w-[24px] lg:h-[24px]" />}
       </button>
-      <button disabled={disableSendButton} className={`flex items-center justify-center absolute right-3 top-0 h-full pl-[12px] disabled:cursor-not-allowed disabled:text-[#64748b] cursor-pointer ${!disableSendButton ? "text-[#007BFF]" : ""}`} onClick={handleSendClick}>
-        <TbSend2 className="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" />
+      <button type="submit" disabled={hasStartedRecording || isConvertingVoiceToText} className={`flex items-center justify-center relative md:pl-[6px] pl-[12px] disabled:cursor-not-allowed disabled:text-[#64748b] cursor-pointer ${!disableSendButton ? "text-[#007BFF]" : ""}`}>
+        <TbSend2 className="md:w-[18px] md:h-[18px] lg:w-[24px] lg:h-[24px]" />
       </button>
-    </div>
+    </form>
   )
 
   return (
     <>
+      <style>{`
+        textarea[name="message-box"]:focus::placeholder {
+          background-color: transparent !important;
+        }
+        textarea[name="message-box"]::placeholder {
+          background-color: transparent !important;
+        }
+        textarea[name="message-box"] {
+          scrollbar-width: thin;
+          scrollbar-color: #9CA3AF transparent;
+        }
+        textarea[name="message-box"]::-webkit-scrollbar {
+          width: 4px;
+        }
+        textarea[name="message-box"]::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        textarea[name="message-box"]::-webkit-scrollbar-thumb {
+          background-color: #9CA3AF;
+          border-radius: 2px;
+        }
+        textarea[name="message-box"]::-webkit-scrollbar-thumb:hover {
+          background-color: #6B7280;
+        }
+      `}</style>
       <HiddenRecorder />
       <Notification />
-      <div className="md:sticky top-0 z-50 flex flex-row items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
+      <div id="filters-boundary" className="md:sticky top-0 z-50 flex flex-row items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
         <div className="flex flex-wrap items-center p-0 gap-3 w-full md:w-[75%]">
           {!!dropdown_meta?.length
             ? dropdown_meta?.map(({ label, options, key }, index) => (
