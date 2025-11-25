@@ -1858,7 +1858,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== "") {
       window.location.href = rerouteUrl
     } else {
-      window.location.href = "https://www.google.com"
+      window.location.replace("https://www.google.com")
     }
   }
 
@@ -1867,7 +1867,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     console.log("rerouteURL", rerouteURL)
     if (rerouteURL) {
       clearFromStorage()
-      window.location.href = rerouteURL
+      window.location.replace(rerouteURL)
     } else {
       console.log("navigating -2")
       navigate(-2)
