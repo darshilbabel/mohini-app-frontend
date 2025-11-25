@@ -8,6 +8,7 @@ import React, {
 import { Grid, List, ChevronDown, Check } from "lucide-react";
 import ResourceCard from "./ResourceCard";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
+import MitraAiAssistantAside from "./MitraAiAssistantAside.jsx";
 
 // Custom hook for dropdown functionality
 const useDropdown = () => {
@@ -141,11 +142,7 @@ const DefaultDropdownItem = ({ option, isSelected, onSelect }) => {
   );
 };
 
-export default function BrowseResources({
-  resources,
-  viewMode,
-  setViewMode,
-}) {
+export default function BrowseResources({ resources, viewMode, setViewMode }) {
   const pagination = useRepositoryStore((state) => state.pagination);
   const setPagination = useRepositoryStore((state) => state.setPagination);
   const mediaCount = useRepositoryStore((state) => state.mediaCount);
@@ -243,18 +240,27 @@ export default function BrowseResources({
           />
         </div>
       </div>
-      <div
-        className={`grid gap-6 ${
-          viewMode === "grid"
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 sm:grid-cols-1"
-            : "grid-cols-1"
-        }`}
-      >
-        {resources.map((resource, index) => (
-          <React.Fragment key={`resource-${resource.id}-${index}`}>
-            <ResourceCard key={resource.id} resource={resource} index={index} />
-          </React.Fragment>
-        ))}
+      <div className="flex gap-6 items-stretch">
+        <div
+          className={`grid gap-6 w-[calc(80%-1.5rem)] ${
+            viewMode === "grid"
+              ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 sm:grid-cols-1"
+              : "grid-cols-1"
+          }`}
+        >
+          {resources.map((resource, index) => (
+            <React.Fragment key={`resource-${resource.id}-${index}`}>
+              <ResourceCard
+                key={resource.id}
+                resource={resource}
+                index={index}
+              />
+            </React.Fragment>
+          ))}
+        </div>
+        <div className="w-[20%] self-stretch">
+          <MitraAiAssistantAside />
+        </div>
       </div>
     </section>
   );
