@@ -118,30 +118,30 @@ export const useRepositoryStore = create((set, get) => ({
         {
           key: "organizations",
           label: "Organization",
-          options: master.organizations.map((x) => ({ value: x, display: x })),
+          options: master?.organizations?.map((x) => ({ value: x?.slug, display: x?.name })),
         },
         {
           key: "tags",
           label: "Categories",
-          options: master.tags.map((x) => ({
-            value: x.name,
-            display: x.name,
+          options: master?.tags?.map((x) => ({
+            value: x?.name,
+            display: x?.name,
           })),
         },
         {
           key: "resource_types",
           label: "Resource Type",
-          options: master.resource_types.map((x) => ({
-            value: x.value,
-            display: x.display,
+          options: master?.resource_types?.map((x) => ({
+            value: x?.value,
+            display: x?.display,
           })),
         },
         {
           key: "media_types",
           label: "File Type",
-          options: master.media_types.map((x) => ({
-            value: x.value,
-            display: x.display,
+          options: master?.media_types?.map((x) => ({
+            value: x?.value,
+            display: x?.display,
           })),
         },
       ];
