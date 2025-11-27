@@ -1,6 +1,6 @@
 - hosts: elevate
   vars:
-    project_path: /opt/frontend/mohini-app
+    project_path: /opt/frontend/mohini-app/mohini-app-frontend
     root_path: /opt/frontend
 
   tasks:
