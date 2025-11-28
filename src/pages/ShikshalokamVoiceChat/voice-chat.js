@@ -1858,20 +1858,20 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== "") {
       window.location.href = rerouteUrl
     } else {
-      window.location.href = "https://www.google.com"
+      window.location.replace("https://www.google.com")
     }
   }
 
   function navigateSsoFlow(rerouteURL) {
     // navigate(-2)
-    console.log("rerouteURL", rerouteURL)
-    if (rerouteURL) {
-      clearFromStorage()
-      window.location.href = rerouteURL
-    } else {
-      console.log("navigating -2")
-      navigate(-2)
-    }
+    // console.log("rerouteURL", rerouteURL)
+    // if (rerouteURL) {
+    //   clearFromStorage()
+    //   window.location.replace(rerouteURL)
+    // } else {
+    console.log("navigating -2")
+    navigate(-2)
+    // }
   }
 
   function stayOnPage() {
