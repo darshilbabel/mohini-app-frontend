@@ -49,6 +49,7 @@ export default function Filters() {
   const [hasStartedListening, setHasStartedListening] = useState(false)
 
   const textAreaRef = useRef(null)
+  const [isMaxLengthReached, setIsMaxLengthReached] = useState(false)
 
   const { recordings, HiddenRecorder } = useVoiceRecord()
 
@@ -188,16 +189,15 @@ export default function Filters() {
       console.warn("getUserMedia not supported on your browser!")
     }
   }
-  const handleOnInputText = e => {
-    e.preventDefault()
-    setSearch(e.target.value)
+  const handleOnInputText = inpText => {
+    setSearch(inpText)
 
-    if (e.target.value.trim() === "") {
+    if (inpText.trim() === "") {
       // setIsRecognizing(false)
       setHasStartedListening(false)
     }
 
-    if (e.target.value.trim() === "" && search.trim() !== "") {
+    if (inpText.trim() === "" && search.trim() !== "") {
       setGlobalSearch("")
     }
   }
@@ -230,14 +230,41 @@ export default function Filters() {
     const searched_param = new URLSearchParams(window.location.search)?.get("q")
     setSearch(searched_param ?? "")
     setGlobalSearch(searched_param ?? "")
+
+    return () => {
+      setIsMaxLengthReached(false)
+    }
   }, [])
 
+  useEffect(() => {
+    if (!textAreaRef.current) return
+    const textarea = textAreaRef.current
+    const minHeight = 29
+    const maxHeight = 50
+
+    // Reset height to auto to get accurate scrollHeight
+    textarea.style.height = "auto"
+    const scrollHeight = textarea.scrollHeight
+    const hasNewline = textarea.value.includes("\n")
+
+    // If empty or single line (no newline), always set to minHeight to prevent shifting
+    if (!textarea.value || !hasNewline) {
+      textarea.style.height = `${minHeight}px`
+      textarea.style.overflowY = "hidden"
+    } else if (scrollHeight > maxHeight) {
+      textarea.style.height = `${maxHeight}px`
+      textarea.style.overflowY = "auto"
+    } else {
+      textarea.style.height = `${scrollHeight}px`
+      textarea.style.overflowY = "hidden"
+    }
+  }, [search])
+
   const disableSendButton = search?.trim()?.length === 0 || isConvertingVoiceToText || hasStartedRecording
-  const isTyping = !!search?.trim()
 
   const searchInput = (
     <form
-      className="relative flex flex-row items-center justify-center w-full h-[53px] px-3 py-2 rounded-[12px] border border-gray-300"
+      className="relative flex flex-row items-center justify-center w-full h-full px-3 py-2 rounded-[12px] border border-gray-300"
       onSubmit={event => {
         if (!hasStartedListening && !isConvertingVoiceToText) {
           handleSendMessage(event)
@@ -250,27 +277,66 @@ export default function Filters() {
       </div>
       <div className="relative w-full flex items-center justify-center">
         <textarea
-          // id="textBoxID"
-          className={`${isConvertingVoiceToText ? "min-h-[29px] sm:min-h-0" : "h-[29px]"} pl-3 py-[5px] max-w-[331px] w-full border-0 focus:outline-none focus:bg-transparent bg-transparent resize-none rounded-[12px] text-[14px] leading-[19px] font-manrope text-gray-700 placeholder-[#9CA3AF]`}
-          style={{ backgroundColor: "transparent" }}
-          onChange={handleOnInputText}
+          className={`${isConvertingVoiceToText ? "min-h-[29px] sm:min-h-0" : ""} pl-3 max-w-[331px] w-full border-0 focus:outline-none focus:bg-transparent bg-transparent rounded-[12px] text-[14px] font-manrope text-gray-700 placeholder-[#9CA3AF] resize-none`}
+          style={{
+            backgroundColor: "transparent",
+            height: "29px",
+            minHeight: "29px",
+            maxHeight: "50px",
+            resize: "none",
+          }}
+          onInput={e => {
+            const textarea = e.target
+            const minHeight = 29
+            const maxHeight = 50
+
+            // Reset height to auto to get accurate scrollHeight
+            textarea.style.height = "auto"
+            const scrollHeight = textarea.scrollHeight
+            const hasNewline = textarea.value.includes("\n")
+
+            // If empty or single line (no newline), always set to minHeight to prevent shifting
+            if (!textarea.value || !hasNewline) {
+              textarea.style.height = `${minHeight}px`
+              textarea.style.overflowY = "hidden"
+            } else if (scrollHeight > maxHeight) {
+              textarea.style.height = `${maxHeight}px`
+              textarea.style.overflowY = "auto"
+            } else {
+              textarea.style.height = `${scrollHeight}px`
+              textarea.style.overflowY = "hidden"
+            }
+          }}
+          onChange={e => {
+            e.preventDefault()
+            const inpText = e.target.value
+            if (inpText?.length > 250) {
+              e.target.value = inpText.slice(0, 250)
+              if (!isMaxLengthReached) {
+                showNotification({
+                  message: t("maxInputCharacters"),
+                  type: "error",
+                  options: {
+                    position: "top-center",
+                    autoClose: 6000,
+                    style: { fontWeight: "bold" },
+                  },
+                })
+                setIsMaxLengthReached(true)
+              }
+            } else {
+              handleOnInputText(inpText)
+              if (isMaxLengthReached) {
+                setIsMaxLengthReached(false)
+              }
+            }
+          }}
           placeholder={hasStartedRecording ? t("placeholder1") : isConvertingVoiceToText ? t("placeholder2") : t("placeholder3")}
           name="message-box"
           value={search}
           autoFocus={false}
           disabled={hasStartedRecording || isConvertingVoiceToText}
           ref={textAreaRef}
-          onInput={e => {
-            e.target.style.height = "auto"
-            const maxHeight = 29
-            if (e.target.scrollHeight > maxHeight) {
-              e.target.style.height = `${maxHeight}px`
-              e.target.style.overflowY = "auto"
-            } else {
-              e.target.style.height = `${e.target.scrollHeight}px`
-              e.target.style.overflowY = "hidden"
-            }
-          }}
           onKeyDown={e => {
             if (e.key === "Enter" && e.shiftKey) {
               e.preventDefault()
@@ -306,6 +372,9 @@ export default function Filters() {
         textarea[name="message-box"] {
           scrollbar-width: thin;
           scrollbar-color: #9CA3AF transparent;
+          line-height: 19px;
+          padding-top: 5px;
+          padding-bottom: 5px;
         }
         textarea[name="message-box"]::-webkit-scrollbar {
           width: 4px;

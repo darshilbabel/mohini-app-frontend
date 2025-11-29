@@ -1,21 +1,22 @@
 // repository-api.js
-import axios from "axios";
+import axios from "axios"
+import env from "../../../utils/env"
 
-const API_BASE_URL = `${process.env.REACT_APP_LOCAL_PROXY}/api/v1/media`;
+const API_BASE_URL = `${env.LOCAL_PROXY()}/api/v1/media`
 
-const API_BASE_URL_V2 = `${process.env.REACT_APP_LOCAL_PROXY}/api/v2/media`;
+const API_BASE_URL_V2 = `${env.LOCAL_PROXY()}/api/v2/media`
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: { "Content-Type": "application/json" },
-});
+})
 
 const apiClientV2 = axios.create({
   baseURL: API_BASE_URL_V2,
   timeout: 10000,
   headers: { "Content-Type": "application/json" },
-});
+})
 
 /**
  * Fetch paginated list of media documents with optional filtering and sorting.
@@ -39,9 +40,9 @@ const apiClientV2 = axios.create({
  * @returns {Promise<Object>} Response with { count, next, previous, results }.
  */
 const listMedia = async (params = {}) => {
-  const response = await apiClientV2.get("/", { params });
-  return response.data;
-};
+  const response = await apiClientV2.get("/", { params })
+  return response.data
+}
 
 /**
  * Retrieve detailed information about a single media document by ID.
@@ -50,11 +51,11 @@ const listMedia = async (params = {}) => {
  * @returns {Promise<Object>} Media detail object.
  * @throws {Error} Throws if ID is not provided.
  */
-const getMediaById = async (id) => {
-  if (!id) throw new Error("Media ID is required");
-  const response = await apiClient.get(`/${id}/`);
-  return response.data;
-};
+const getMediaById = async id => {
+  if (!id) throw new Error("Media ID is required")
+  const response = await apiClient.get(`/${id}/`)
+  return response.data
+}
 
 /**
  * Search for media documents similar to the given text with filters.
@@ -71,9 +72,9 @@ const getMediaById = async (id) => {
  * @returns {Promise<Object>} Search results with similarity scores.
  */
 const searchSimilarMedia = async (params = {}) => {
-  const response = await apiClient.get("/search_similar/", { params });
-  return response.data;
-};
+  const response = await apiClient.get("/search_similar/", { params })
+  return response.data
+}
 
 /**
  * Get master data for filter dropdown options with counts.
@@ -81,14 +82,8 @@ const searchSimilarMedia = async (params = {}) => {
  * @returns {Promise<Object>} Master list including organizations, media_types, priorities, tags, etc.
  */
 const getMasterList = async () => {
-  const response = await apiClient.get("/master_list/");
-  return response.data;
-};
+  const response = await apiClient.get("/master_list/")
+  return response.data
+}
 
-
-export {
-  listMedia,
-  getMediaById,
-  searchSimilarMedia,
-  getMasterList,
-};
+export { listMedia, getMediaById, searchSimilarMedia, getMasterList }

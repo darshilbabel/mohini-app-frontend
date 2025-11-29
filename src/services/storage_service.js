@@ -2,6 +2,7 @@ import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { SLICES_STORE_MAP } from "../store"
 import axiosInstance from "../utils/axios"
 import { useChatDataLocalStore, useChatDataSessionStore, useSiteDataLocalStore, useSiteDataSessionStore, useUserDataLocalStore, useUserDataSessionStore } from "../store"
+import env from "../utils/env"
 
 /**
  * Gets a storage slice (Zustand store) based on the slice name and storage type
@@ -46,7 +47,7 @@ function exponentialBackoff(attempt, baseDelay = 1000, maxDelay = 30000) {
 // This function uploads a file to S3 using a presigned URL, with retry logic for handling rate limiting (SlowDown) and network errors.
 // On each failure, it waits for an exponentially increasing delay (with jitter) before retrying, up to maxRetries times.
 // If the upload is successful, it returns the S3 URL. If all retries fail, it returns an empty string.
-export const handleS3Upload = async (file, fileName, folderStructure, storyData, maxRetries = process.env.REACT_APP_S3_UPLOAD_RETRY_NUM) => {
+export const handleS3Upload = async (file, fileName, folderStructure, storyData, maxRetries = env.S3_UPLOAD_RETRY_NUM()) => {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       // Get a new presigned URL for each attempt

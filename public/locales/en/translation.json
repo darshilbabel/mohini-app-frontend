@@ -108,6 +108,9 @@
     "ptmIntroductionDescriptionLine1": "Start chatting with MItra",
     "ptmIntroductionDescriptionLine2": "Share your thoughts in your language.",
     "ptmIntroductionDescriptionLine3": "Submit your feedback",
-    "filesUploadedMessage": "files uploaded"
-
+    "filesUploadedMessage": "files uploaded",
+    "maxInputCharacters": "Maximum 250 characters allowed",
+    "mitraAiAssistant": "Mitra AI Assistant",
+    "generateMicroImprovementProjects": "Generate Micro Improvement Projects (MIPs)",
+    "generateMicroImprovementProjectsDescription": "MItra AI asks questions to understand your challenges, objectives, tasks, along with observations and surveys to generate tailored solutions..."
 }

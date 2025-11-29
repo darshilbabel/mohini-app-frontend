@@ -8,6 +8,7 @@ import { clearFromStorage, handleS3Upload } from "../../services/storage_service
 import { createMessage } from "../interview-voice"
 import { createStoryMediaApi, getStoryAllMedia, partialUpdateStoryById } from "api/endpoints/story"
 import { createUserProfileApi, getProfileUserApi } from "api/endpoints/user"
+import env from "../../utils/env"
 import { FaCircle } from "react-icons/fa6"
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
 import { FiDownload } from "react-icons/fi"
@@ -248,7 +249,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   const isShikshalokamPublicType = true
   const shouldShowChatHistoryFeature = true
-  const maxReconnectAttempts = process.env.REACT_APP_WEBSOCKET_RETRY_NUM || 3
+  const maxReconnectAttempts = env.WEBSOCKET_RETRY_NUM()
 
   // ========== useMemo Hooks ==========
 
@@ -1895,20 +1896,20 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== "") {
       window.location.href = rerouteUrl
     } else {
-      window.location.href = "https://www.google.com"
+      window.location.replace("https://www.google.com")
     }
   }
 
   function navigateSsoFlow(rerouteURL) {
     // navigate(-2)
-    console.log("rerouteURL", rerouteURL)
-    if (rerouteURL) {
-      clearFromStorage()
-      window.location.href = rerouteURL
-    } else {
-      console.log("navigating -2")
-      navigate(-2)
-    }
+    // console.log("rerouteURL", rerouteURL)
+    // if (rerouteURL) {
+    //   clearFromStorage()
+    //   window.location.replace(rerouteURL)
+    // } else {
+    console.log("navigating -2")
+    navigate(-2)
+    // }
   }
 
   function stayOnPage() {

@@ -3,6 +3,7 @@ import { LANGUAGE_ENUMS } from "pages/ShikshalokamVoiceChat/enum"
 import { initReactI18next } from "react-i18next"
 import HttpApi from "i18next-http-backend"
 import { useSiteDataLocalStore } from "store"
+import env from "./utils/env"
 
 // const preferredLanguage = JSON.parse(localStorage.getItem('preferred_language'))?.value;
 
@@ -21,7 +22,7 @@ i18n
       escapeValue: false,
     },
     backend: {
-      loadPath: `${process.env.REACT_APP_ROOT_PATH ? `/${process.env.REACT_APP_ROOT_PATH}` : ''}/locales/{{lng}}/{{ns}}.json`,
+      loadPath: `${env.ROOT_PATH() ? `/${env.ROOT_PATH()}` : ""}/locales/{{lng}}/{{ns}}.json`,
     },
   })
 

@@ -58,8 +58,11 @@
     "build-docker": "env-cmd -e docker react-scripts build",
     "build-prod": "env-cmd -e prod react-scripts build",
     "build-dev": "env-cmd -e dev react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:chrome": "playwright test --project=chromium"
   },
   "eslintConfig": {
     "extends": [
@@ -80,8 +83,14 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@svgr/webpack": "^8.0.1",
-    "tailwindcss": "^3.3.2"
+    "@types/node": "^24.10.1",
+    "dotenv": "^17.2.3",
+    "eslint": "^8.57.1",
+    "eslint-config-react-app": "^7.0.1",
+    "tailwindcss": "^3.3.2",
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "react-scripts": {
