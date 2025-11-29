@@ -95,7 +95,7 @@ export default function ResourceCard({ resource, index }) {
           </div>
           {/* Tags row */}
           <div className="flex flex-row flex-wrap gap-2.5 w-full  overflow-hidden" aria-label="Resource tags">
-            {[resource?.tag_names[0], resource?.tag_names[1]]?.map((tag, i) =>
+            {[resource?.tag_names?.[0], resource?.tag_names?.[1]]?.map((tag, i) =>
               tag ? (
                 <span key={i} className="bg-[#E5E7EB] rounded-full py-[2px] px-[10px] font-inter font-medium text-[12px] leading-[16px] text-[#374151]">
                   {tag}
