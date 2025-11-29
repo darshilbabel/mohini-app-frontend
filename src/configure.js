@@ -27,7 +27,8 @@ export const bot_routes = {
   guest_oneshot: "/oneshot_guest",
   shikshalokam_chaupal: "/shikshalokam_chaupal",
   listening_activity: "/listening_activity",
-  search_bot: "/sg_search_bot"
+  search_bot: "/sg_search_bot",
+  parent_perception_survey: "/pppi_bot"
 };
 
 export const bot_websocket = {
@@ -38,6 +39,7 @@ export const bot_websocket = {
   guest_oneshot: "/ws/oneshot_guest/",
   shikshalokam_chaupal: "/ws/shikshalokam_chaupal/",
   listening_activity: "/ws/common/",
+  parent_perception_survey: "/ws/common/"
 };
 
 
