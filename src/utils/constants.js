@@ -1,11 +1,9 @@
 // utils/constants.js
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
-import { SESSION_USECASE_TYPE } from "constants/session";
+import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
+import { SESSION_USECASE_TYPE } from "constants/session"
+import env from "./env"
 
-
-const rootPath = process.env.REACT_APP_ROOT_PATH
-  ? `/${process.env.REACT_APP_ROOT_PATH.replace(/^\/|\/$/g, '')}`
-  : '';
+const rootPath = env.ROOT_PATH() ? `/${env.ROOT_PATH().replace(/^\/|\/$/g, "")}` : ""
 
 // Flow configuration
 export const FLOW_CONFIG = {

@@ -3,6 +3,7 @@ import { languageList } from "../pages/ShikshalokamVoiceChat/enum"
 import { STORAGE_KEYS } from "./constants"
 import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { bot_websocket } from "configure"
+import env from "./env"
 
 /**
  * Get default language based on use case type
@@ -58,10 +59,10 @@ export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wss
   if (searchParams.get("code")) {
     // NOTE: revert this code after testing
     // return `${wssProtocol}${window.location.host}/ws/chat/company/`;
-    return `${wssProtocol}${process.env.REACT_APP_WEBSOCKET_HOST}/ws/chat/company/`
+    return `${wssProtocol}${env.WEBSOCKET_HOST()}/ws/chat/company/`
   }
 
-  const baseUrl = `${wssProtocol}${process.env.REACT_APP_WEBSOCKET_HOST}`
+  const baseUrl = `${wssProtocol}${env.WEBSOCKET_HOST()}`
   const currentFlow = storageFlow
 
   // Direct flow to websocket mapping
