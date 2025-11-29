@@ -59,6 +59,7 @@ import useSmartChatStorage from "hooks/useSmartChatStorage"
 import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord"
 import WaveSurferPlayer from "../interview-text-voice/voice-player"
+import Swal from "sweetalert2"
 
 const cookies = new Cookies()
 
@@ -255,7 +256,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   const isSpecialFlow = useMemo(() => {
     if (!storageFlow) return false
-    return [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(storageFlow)
+    return [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(storageFlow)
   }, [storageFlow])
 
   const shouldFetchChatSession = useMemo(() => {
@@ -863,7 +864,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       console.log("History length:", window.history.length)
       console.log("Can go back 1?", window.history.length > 1)
       console.log("Can go back 3?", window.history.length > 3)
-      if ((acceptedTnc || acceptedTnc === "ONGOING") && currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow].includes(currentFlow)) {
+      if ((acceptedTnc || acceptedTnc === "ONGOING") && currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
         if (ssoNavigationTriggered && accessToken) {
           console.log("isnide navigate happens")
           navigate(-2)
@@ -1208,10 +1209,46 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Calls end-story API when all state machine steps complete
    */
   useEffect(() => {
+    if (storageFlow && [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow)) {
+      return;
+    }
     if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
     }
-  }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound])
+  }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow])
+
+  useEffect(() => {
+    const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot";
+    console.log("Is last message from bot:", isLastMessageFromBot);
+    if (
+      storageFlow && 
+      [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) &&
+      isStreamingComplete && 
+      stateMachineLength && 
+      strandStep >= stateMachineLength &&
+      isLastMessageFromBot
+    ) {
+      Swal.fire({
+        title: t("ptmCompletionMessage"),
+        showCancelButton: false,
+        confirmButtonText: t("ptmCompletionCTA"),
+        showCloseButton: false,
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+        imageUrl: "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/check-mark.png",
+        imageHeight: "100",
+      }).then(result => {
+        if (result.isConfirmed) {
+          clearFromStorage();
+          setLanguage(LANGUAGE_ENUMS.ENGLISH);
+          setChatLanguage(LANGUAGE_ENUMS.ENGLISH);
+          setHasSelectedLanguage(false);
+          stopAllAudio();
+          navigate(-2);
+        }
+      });
+    }
+  }, [isStreamingComplete, strandStep, stateMachineLength, storageFlow, chatHistory]);
 
   /**
    * Display chat session titles for guest users after delay
@@ -1219,7 +1256,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    */
   useEffect(() => {
     const currentFlow = storageFlow
-    if (profileToUse && !accessToken && !isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+    if (profileToUse && !accessToken && !isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
       console.log("setting loading to true", "state_tracker")
       setIsLoading(true)
       const titleTime = setTimeout(() => {
@@ -1232,7 +1269,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         }
         clearTimeout(titleTime)
       }
-    } else if (!isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+    } else if (!isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
       setIsLoading(false)
     }
   }, [profileToUse, accessToken, isEndStoryLoading, noStoryFound])
@@ -1402,7 +1439,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !isEndStoryLoading) {
       const currentFlow = storageFlow
 
-      if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory].includes(currentFlow)) {
+      if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
         if (chatHistory.length > 0) {
           if (isStreamingComplete && chatHistory[chatHistory.length - 1]?.source === "bot") {
             shouldPlay = true
@@ -2071,6 +2108,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       [sessionFlowName.GuestDiscussion]: bot_routes.shikshalokam_chaupal,
       [sessionFlowName.LoginDiscussion]: bot_routes.shikshalokam_chaupal,
       [sessionFlowName.ListeningActivity]: bot_routes.listening_activity,
+      [sessionFlowName.ParentPerceptionSurvey]: bot_routes.parent_perception_survey,
     }
 
     const typeBasedRouteMap = {
@@ -2815,7 +2853,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           )}
           {isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading && !isLoading && !isPdfDownloading && storyData?.id !== "" && !([sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken) && (
             <>
-              {![sessionFlowName.ListeningActivity].includes(storageFlow) && (
+              {![sessionFlowName.ListeningActivity, sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) && (
                 <div className="div13">
                   <ChatMessage
                     botNameToDisplay={botNameToDisplay}
@@ -2904,81 +2942,83 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                 </div>
               )}
 
-              <div className="div19">
-                <ChatMessage
-                  botNameToDisplay={botNameToDisplay}
-                  userType="bot"
-                  message={storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")}
-                  isTalking={false}
-                  handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                  handleOnSpeaking={(message, updatedAt, staticMessage) => {
-                    const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")
-                    console.log("message_to_use", message_to_use)
-                    handleOnSpeaking(message_to_use, "download-story-id", { msg: message_to_use, updated_at: "download-story-id", source: "bot" })
-                  }}
-                  isAnyPlaying={!!hasOverRideId || isTalking}
-                  isPlaying={hasOverRideId === "download-story-id"}
-                  isStreamingComplete={isStreamingComplete}
-                  setNotMute={setNotMute}
-                  chatId={"download-story-id"}
-                  isStaticMessage={true}
-                />
-                {!projectId && (
-                  <div className="div20">
-                    <button
-                      className="clickable-button"
-                      onClick={() => {
-                        if (sessionId) {
-                          pdfDownloadSidebar(sessionId)
-                        }
-                      }}
-                      disabled={isLoading || isPdfDownloading}
-                    >
-                      <div className="download-story-div">
-                        <FiDownload className="icon-1" />
-                        <span className="div16" ref={endPageToScrollRef}>
-                          {storageFlow && !accessToken ? t("downloadReportText") : t("downloadStoryText")}
-                        </span>
-                      </div>
-                    </button>
+              {![sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) && (
+                <div className="div19">
+                  <ChatMessage
+                    botNameToDisplay={botNameToDisplay}
+                    userType="bot"
+                    message={storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")}
+                    isTalking={false}
+                    handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                    handleOnSpeaking={(message, updatedAt, staticMessage) => {
+                      const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")
+                      console.log("message_to_use", message_to_use)
+                      handleOnSpeaking(message_to_use, "download-story-id", { msg: message_to_use, updated_at: "download-story-id", source: "bot" })
+                    }}
+                    isAnyPlaying={!!hasOverRideId || isTalking}
+                    isPlaying={hasOverRideId === "download-story-id"}
+                    isStreamingComplete={isStreamingComplete}
+                    setNotMute={setNotMute}
+                    chatId={"download-story-id"}
+                    isStaticMessage={true}
+                  />
+                  {!projectId && (
+                    <div className="div20">
+                      <button
+                        className="clickable-button"
+                        onClick={() => {
+                          if (sessionId) {
+                            pdfDownloadSidebar(sessionId)
+                          }
+                        }}
+                        disabled={isLoading || isPdfDownloading}
+                      >
+                        <div className="download-story-div">
+                          <FiDownload className="icon-1" />
+                          <span className="div16" ref={endPageToScrollRef}>
+                            {storageFlow && !accessToken ? t("downloadReportText") : t("downloadStoryText")}
+                          </span>
+                        </div>
+                      </button>
 
-                    {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
-                  </div>
-                )}
-                <div className="div20">
-                  <button className="clickable-button" onClick={openModal} disabled={isLoading || isPdfDownloading}>
-                    <div className="download-story-div">
-                      <MdEdit className="icon-1" />
-                      <span className="div16" ref={endPageToScrollRef}>
-                        {storageFlow && !accessToken ? t("editReportText") : t("editStoryText")}
-                      </span>
+                      {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
                     </div>
-                  </button>
-                </div>
-                {projectId && (
+                  )}
                   <div className="div20">
-                    <button
-                      className="clickable-button"
-                      onClick={async () => {
-                        if (projectId) {
-                          setIsLoading(true)
-                          await updateReflectionStatusApi(projectId, "completed", storageFlow, accessToken)
-                        } else {
-                          window.location.reload()
-                        }
-                      }}
-                      disabled={isLoading || isPdfDownloading}
-                    >
+                    <button className="clickable-button" onClick={openModal} disabled={isLoading || isPdfDownloading}>
                       <div className="download-story-div">
-                        <AiOutlineEye className="icon-1" />
+                        <MdEdit className="icon-1" />
                         <span className="div16" ref={endPageToScrollRef}>
-                          {t("viewStoryText")}
+                          {storageFlow && !accessToken ? t("editReportText") : t("editStoryText")}
                         </span>
                       </div>
                     </button>
                   </div>
-                )}
-              </div>
+                  {projectId && (
+                    <div className="div20">
+                      <button
+                        className="clickable-button"
+                        onClick={async () => {
+                          if (projectId) {
+                            setIsLoading(true)
+                            await updateReflectionStatusApi(projectId, "completed", storageFlow, accessToken)
+                          } else {
+                            window.location.reload()
+                          }
+                        }}
+                        disabled={isLoading || isPdfDownloading}
+                      >
+                        <div className="download-story-div">
+                          <AiOutlineEye className="icon-1" />
+                          <span className="div16" ref={endPageToScrollRef}>
+                            {t("viewStoryText")}
+                          </span>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
           {llmError && llmError !== "" && (
