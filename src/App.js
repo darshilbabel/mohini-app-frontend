@@ -14,6 +14,8 @@ import ShikshalokamChat from "./pages/shikshalokamChat"
 import ShikshalokamVoiceBasedChat from "./pages/ShikshalokamVoiceChat/voice-chat"
 import SsoFlow from "./pages/ssoFlow"
 import UnifiedChat from "./pages/UnifiedChat/UnifiedChat"
+import MainPage from "pages/ai-creation/pages/shikshalokam-mitra/MainPage"
+import ImprovementPlan from "pages/ai-creation/pages/improvement-plan"
 
 function App() {
   const elements = useRoutes([...clean_routes(protected_routes_config), ...clean_routes(unprotected_routes_config), ...clean_routes(unprotected_old_routes)])
@@ -38,6 +40,11 @@ const ProtectedComponent = ({ component, isAccessible }) => {
 const protected_routes = []
 
 const unprotected_old_routes = [
+
+  // mitra chat routes
+  { path: ROUTES.MITRA_CHAT, element: <MainPage /> },
+  { path: ROUTES.IMPROVEMENT_PLAN, element: <ImprovementPlan /> },
+
   // { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN, element: <Shikshalokam type={"shikshalokam"} variant={"publicBot"} /> },
   // { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={"shikshalokam"} variant={"publicBot"} /> },
 

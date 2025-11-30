@@ -1,0 +1,1 @@
+export const FIRST_BOT_MESSAGE = "Hello! I'm MItra, your SG-Commons AI assistant. I'm here to help you turn your challenge in the Public School and Education ecosystem into a focused, actionable plan. To get started, please define your challenge statement as clearly as you can.";
