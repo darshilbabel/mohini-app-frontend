@@ -102,7 +102,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [sessionTitleDetail, setSessionTitleDetail] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
   const [isResetCalled, setIsResetCalled] = useState(false)
-  const [strandStep, setStrandStep] = useState(null)
+  const strandStep = useChatDataSessionStore(state => state.strandStep)
+  const setStrandStep = useChatDataSessionStore(state => state.setStrandStep)
   const [isEndStoryLoading, setIsEndStoryLoading] = useState(false)
   const [storyData, setStoryData] = useState(null)
   const [noStoryFound, setNoStoryFound] = useState(false)
@@ -1220,7 +1221,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   useEffect(() => {
     const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot";
-    console.log("Is last message from bot:", isLastMessageFromBot);
     if (
       storageFlow && 
       [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) &&
@@ -2070,7 +2070,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     setShowFileInput(false)
     setLlmError("")
     setSessionId(null)
-
+    setStrandStep(null)
     const session = await getSessionDetails()
     setSessionId(session.sessionid)
     setIsChatVisible(false)

@@ -102,7 +102,7 @@
     "commonPageButtonText1": "सुधार कहानी दर्ज करें",
     "commonPageButtonText2": "चर्चा दर्ज करें",
     "botName": "मित्रा",
-    "ptmCompletionMessage": "<div class='text-class'>धन्यवाद! आपका जवाब सफलतापूर्वक सबमिट कर दिया गया है।</div>",
+    "ptmCompletionMessage": "<div class='text-class'>धन्यवाद! आपका जवाब सफलतापूर्वक दर्ज कर दिया गया है।</div>",
     "ptmCompletionCTA": "एक और प्रतिक्रिया भेजें",
     "ptmIntroductionHeading": "मित्रा के साथ अपनी प्रतिक्रिया साझा करें!",
     "ptmIntroductionDescriptionLine1": "मित्रा के साथ चैटिंग शुरू करें",
