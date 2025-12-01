@@ -27,7 +27,8 @@ export const bot_routes = {
   guest_oneshot: "/oneshot_guest",
   shikshalokam_chaupal: "/shikshalokam_chaupal",
   listening_activity: "/listening_activity",
-  search_bot: "/sg_search_bot"
+  search_bot: "/sg_search_bot",
+  mitra_create: "/mitra-create"
 };
 
 export const bot_websocket = {

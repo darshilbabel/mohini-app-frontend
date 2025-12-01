@@ -15,9 +15,9 @@ import {
   getEncodedSessionStorage,
   setEncodedSessionStorage,
 } from "../../../utils/storage_utils";
-import { getAI4BharatAudio } from "../../../apiServices/ai4bharat_services";
+import { getAI4BharatAudioApi } from "api/endpoints/ai";
 import { handleS3Upload } from "../../../../../services/storage_service";
-import { ai4BharatASRApi } from "api/endpoints";
+import { ai4BharatASRApi } from "api/endpoints/ai";
 
 /* components */
 import ChatBox from "./components/ChatBox";
@@ -31,6 +31,7 @@ import Notification, {
 import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 import { FIRST_BOT_MESSAGE } from "../../../constants/mitra-chat";
 import "../stylesheet/shikshaChatStyle.css";
+import { bot_routes } from "configure";
 
 const sessionRoute = "/guided_guest";
 
@@ -937,7 +938,7 @@ const DefineChallenge = ({
       }
 
       if (!cachedAudioUrl) {
-        audio_result = await getAI4BharatAudio(text, sourceLanguage);
+        audio_result = await getAI4BharatAudioApi(text, sourceLanguage, bot_routes.mitra_create);
         if (audio_result?.length) {
           cachedAudioUrl = `data:audio/wav;base64,${audio_result}`;
           setAudioCache((prevCache) => ({

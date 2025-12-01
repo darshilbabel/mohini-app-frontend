@@ -1,21 +1,5 @@
-import { apiClient as axiosInstance } from "../../../api/client/index";
-
-
-export async function getAI4BharatAudio(text, language = 'en', gender = 'female') {
-    try {
-        const response = await axiosInstance.post('api/text_to_speech/', {
-            text: text,
-            source_language: language,
-            gender: gender,
-            route: '/mitra-create'
-        });
-
-        return response.data.audio;
-    } catch (error) {
-        console.error('Error fetching AI4Bharat audio:', error);
-        throw error;
-    }
-}
+import { getAI4BharatAudioApi } from "api/endpoints/ai";
+import { bot_routes } from "configure";
 
 export const handleAI4BharatTTSRequest = async (text, id, language, audioCache, setAudioCache, audioRef, setIsBotTalking) => {
 
@@ -25,7 +9,7 @@ export const handleAI4BharatTTSRequest = async (text, id, language, audioCache, 
         let audio;
 
         if (!cachedAudioUrl) {
-            audio_result = await getAI4BharatAudio(text, language);
+            audio_result = await getAI4BharatAudioApi(text, language, bot_routes.mitra_create);
             if (audio_result?.length) {
                 cachedAudioUrl = `data:audio/wav;base64,${audio_result}`;
                 setAudioCache((prevCache) => ({
@@ -44,7 +28,7 @@ export const handleAI4BharatTTSRequest = async (text, id, language, audioCache, 
                 setIsBotTalking(false);
             };
         } else {
-            audio_result = await getAI4BharatAudio(text, language);
+            audio_result = await getAI4BharatAudioApi(text, language, bot_routes.mitra_create);
             if (audio_result?.length) {
                 cachedAudioUrl = `data:audio/wav;base64,${audio_result}`;
                 setAudioCache((prevCache) => ({
@@ -65,21 +49,3 @@ export const handleAI4BharatTTSRequest = async (text, id, language, audioCache, 
         setIsBotTalking(false);
     }
 };
-
-export async function ai4BharatASR(base64, language, gender = 'female') {
-
-    try {
-        const response = await axiosInstance.post('api/asr/', {
-            base_64: base64,
-            source_language: language,
-            gender: gender,
-            route: '/mitra-create'
-        });
-
-        return response.data.transcript;
-    } catch (error) {
-        console.error('Error fetching AI4Bharat audio:', error);
-        return '';
-    }
-}
-

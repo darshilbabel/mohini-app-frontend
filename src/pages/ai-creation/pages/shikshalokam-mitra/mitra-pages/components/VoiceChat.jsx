@@ -4,7 +4,7 @@ import Notification, {
 } from "../../../../../../components/ToastMessage/TotastMessage";
 import { handleS3Upload } from "../../../../../../services/storage_service";
 import { useAudio } from "../../../../../../hooks/useAudio";
-import { ai4BharatASRApi } from "../../../../apiServices/ai";
+import { ai4BharatASRApi } from "api/endpoints/ai"
 import { getEncodedSessionStorage } from "../../../../utils/storage_utils";
 
 // const sessionFlowName = {
