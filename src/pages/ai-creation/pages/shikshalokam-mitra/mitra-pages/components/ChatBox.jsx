@@ -31,7 +31,7 @@ function ChatBox({
   isFetchingData = false,
   seconds,
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   const [isFocused, setIsFocused] = useState(false);
 
   const {

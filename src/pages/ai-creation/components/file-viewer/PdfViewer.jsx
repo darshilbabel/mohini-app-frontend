@@ -25,7 +25,7 @@ function PdfViewer({
   fileType,
   visibilityConfig = {},
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   const {
     isShareVisible = true,
     isDownloadVisible = true,

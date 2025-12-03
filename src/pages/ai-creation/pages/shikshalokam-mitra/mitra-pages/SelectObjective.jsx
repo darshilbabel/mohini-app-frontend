@@ -46,7 +46,7 @@ function SelectObjective({
   handleLoaderState,
   getLoaderState,
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   const [objectiveList, setObjectiveList] = useState([]);
 
   const [hasClickedOnAddmore, setHasClickedOnAddmore] = useState(false);

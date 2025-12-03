@@ -11,8 +11,8 @@ import { setLanguage } from "../../../../i18n";
 import DefineChallenge from "./mitra-pages/DefineChallenge";
 import Sidebar from "./mitra-pages/components/Sidebar";
 import ConversationWrapperCard from "./mitra-pages/components/ConversationWrapperCard";
-import Footer from "../../components/layout/Footer";
-import Header from "../../components/layout/Header";
+import Footer from "../../../shikshagraha-repository/common/Footer";
+import Header from "../../../shikshagraha-repository/listing/Header";
 import ActionItems from "./mitra-pages/ActionItems";
 import WeeksSelection from "./mitra-pages/WeeksSelection";
 import TitleGeneration from "./mitra-pages/TitleGeneration";
@@ -23,7 +23,7 @@ import { ACTIVE_TABS } from "../../constants/mitra.constants";
 import { LOADER_KEYS } from "../../constants/common";
 
 function MainPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   const [activeTab, setActiveTab] = useState(ACTIVE_TABS.CONVERSATION);
   const [audioCache, setAudioCache] = useState({});
   const [isBotTalking, setIsBotTalking] = useState(false);
@@ -416,7 +416,7 @@ function MainPage() {
 export default MainPage;
 
 export function ShowLoader({ showFirstLoader = true, loadingText = "" }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   return (
     <>
       <div className="login-load-spinner">

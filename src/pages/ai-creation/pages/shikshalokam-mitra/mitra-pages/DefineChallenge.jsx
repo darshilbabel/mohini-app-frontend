@@ -55,7 +55,7 @@ const DefineChallenge = ({
   handleScrollIntoView,
   scrollRef,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   const [profileToUse, setProfileToUse] = useState(
     getEncodedSessionStorage("profileid") || null
   );

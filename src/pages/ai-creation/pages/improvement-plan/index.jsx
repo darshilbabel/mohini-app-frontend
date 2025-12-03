@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Header from "../../components/layout/Header";
-import Footer from "../../components/layout/Footer";
+import Header from "../../../shikshagraha-repository/listing/Header";
+import Footer from "../../../shikshagraha-repository/common/Footer";
 import FileViewer from "../../components/file-viewer";
 import { getEncodedSessionStorage } from "../../utils/storage_utils";
 import { useParams } from "react-router-dom";

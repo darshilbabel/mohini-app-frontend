@@ -50,7 +50,7 @@ function ActionItems({
   handleLoaderState,
   getLoaderState,
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   const [actionList, setActionList] = useState([]);
 
   const [visibleCount, setVisibleCount] = useState(false);
@@ -394,7 +394,7 @@ export function FinalActionPage({
   hasClickedOnAddmore,
   isSelectActionItems,
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   const [actionList, setActionList] = useState(actionListArray || []);
   const handleDragEnd = (result) => {
     if (!result.destination) return;

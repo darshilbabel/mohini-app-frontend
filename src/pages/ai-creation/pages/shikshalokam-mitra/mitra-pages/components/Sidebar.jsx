@@ -25,7 +25,7 @@ export default function Sidebar({
   isMobile = false,
   handleNewMIPClick,
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   const handleTabClick = (tab) => {
     setActiveTab(tab);
     if (tab === ACTIVE_TABS.WELCOME) {

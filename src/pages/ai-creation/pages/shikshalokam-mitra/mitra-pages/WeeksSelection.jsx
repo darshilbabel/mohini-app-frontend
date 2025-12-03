@@ -36,7 +36,7 @@ function WeeksSelection({
   handleLoaderState,
   getLoaderState,
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   const [selectedWeek, setSelectedWeek] = useState(
     getEncodedSessionStorage("selected_week") || 1
   );

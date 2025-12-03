@@ -27,7 +27,8 @@ i18n
   })
 
 export const setLanguage = languageProp => {
-  const route = JSON.parse(sessionStorage.getItem("route")) || JSON.parse(localStorage.getItem("route"))
+  // const route = JSON.parse(sessionStorage.getItem("route")) || JSON.parse(localStorage.getItem("route"))
+  const route = ""
   const languageToUse = languageProp || route || "en"
   console.log("Language set to: ", languageToUse)
   i18n.changeLanguage(languageToUse)
