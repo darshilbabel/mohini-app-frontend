@@ -331,7 +331,7 @@ export default function Filters() {
               }
             }
           }}
-          placeholder={hasStartedRecording ? t("placeholder1") : isConvertingVoiceToText ? t("placeholder2") : t("placeholder3")}
+          placeholder={hasStartedRecording ? t("placeholder1") : isConvertingVoiceToText ? t("placeholder2") : t("search_placeholder")}
           name="message-box"
           value={search}
           autoFocus={false}
