@@ -18,6 +18,7 @@ export const INITIAL_STATE = (set, get, store) => ({
   projectId: null,
   taskId: null,
   chatBotClickedOn: null,
+  strandStep: null,
 
   setShowFileInput: showFileInput => set({ showFileInput }),
 
@@ -64,6 +65,8 @@ export const INITIAL_STATE = (set, get, store) => ({
   setTaskId: taskId => set({ taskId }),
 
   setChatBotClickedOn: chatBotClickedOn => set({ chatBotClickedOn }),
+
+  setStrandStep: strandStep => set({ strandStep }),
 
   reset: () => {
     set(store.getInitialState())

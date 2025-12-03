@@ -70,6 +70,7 @@ export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wss
     [sessionFlowName.GuestDiscussion]: bot_websocket.shikshalokam_chaupal,
     [sessionFlowName.LoginDiscussion]: bot_websocket.shikshalokam_chaupal,
     [sessionFlowName.ListeningActivity]: bot_websocket.listening_activity,
+    [sessionFlowName.ParentPerceptionSurvey]: bot_websocket.parent_perception_survey,
   }
 
   // Type-based flow to websocket mapping
