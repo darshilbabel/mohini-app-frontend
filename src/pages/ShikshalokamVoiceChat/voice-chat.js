@@ -8,7 +8,6 @@ import { clearFromStorage, handleS3Upload } from "../../services/storage_service
 import { createMessage } from "../interview-voice"
 import { createStoryMediaApi, getStoryAllMedia, partialUpdateStoryById } from "api/endpoints/story"
 import { createUserProfileApi, getProfileUserApi } from "api/endpoints/user"
-import env from "../../utils/env"
 import { FaCircle } from "react-icons/fa6"
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
 import { FiDownload } from "react-icons/fi"
@@ -41,6 +40,7 @@ import Cookies from "universal-cookie"
 import CustomFormData from "../../components/Form/FormData"
 import DOMPurify from "dompurify"
 import EditorJS from "@editorjs/editorjs"
+import env from "../../utils/env"
 import Header from "@editorjs/header"
 import InfiniteScroll from "react-infinite-scroll-component"
 import List from "@editorjs/list"
@@ -54,13 +54,13 @@ import remarkGfm from "remark-gfm"
 import ReportEditor from "components/ReportEditor"
 import ROUTES from "../../url"
 import Sidebar from "./shikshaChatSidebar"
+import Swal from "sweetalert2"
 import UploadImages from "./upload-images"
 import useCustomMediaQuery from "hooks/useCustomMediaQuery"
 import useSmartChatStorage from "hooks/useSmartChatStorage"
 import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord"
 import WaveSurferPlayer from "../interview-text-voice/voice-player"
-import Swal from "sweetalert2"
 
 const cookies = new Cookies()
 
@@ -70,54 +70,52 @@ const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
-  const [storyMediaIdArray] = useState(null)
-  const [textMessage, setTextMessage] = useState("")
-  const [asrAudio, setAsrAudio] = useState(null)
-  const [isFetchingData, setIsFetchingData] = useState(false)
-  const [reconText, setReconText] = useState("")
-  const [isStreamingComplete, setIsStreamingComplete] = useState(true)
-  const [audioCache, setAudioCache] = useState({})
-  const [isPdfDownloading, setIsPdfDownloading] = useState(false)
-  const [editor, setEditor] = useState(null)
-  const [isSaving, setIsSaving] = useState(false)
-  const [editorCopyChanges, setEditorCopyChanges] = useState(null)
-  const [hasStartedListening, setHasStartedListening] = useState(false)
-  const [trigger, setTrigger] = useState(false)
-  const [botNameToDisplay, setBotNameToDisplay] = useState("Bot")
-  const [hasStartedRecording, setHasStartedRecording] = useState(false)
-  const [mediaRecorder, setMediaRecorder] = useState(null)
-  const [sentences, setSentences] = useState([])
-  const [isNextAllowed, setIsNextAllowed] = useState(true)
-  const [isMute, setNotMute] = useState(true)
-  const [isTalking, setTalking] = useState(0)
   const [appendix, setAppendix] = useState([])
-  const [hasOverRideId, setHasOverRideId] = useState(null)
-  const [shouldFetchIntro, setShouldFetchIntro] = useState(false)
-  const [hasFetchIntro, setHasFetchIntro] = useState(false)
+  const [asrAudio, setAsrAudio] = useState(null)
+  const [audioCache, setAudioCache] = useState({})
+  const [botNameToDisplay, setBotNameToDisplay] = useState("Bot")
   const [chatTitle, setChatTitle] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [companySlug, setCompanySlug] = useState("")
+  const [editor, setEditor] = useState(null)
+  const [editorCopyChanges, setEditorCopyChanges] = useState(null)
+  const [error, setError] = useState({ response: "", status: 200 })
+  const [fileErrorText, setFileErrorText] = useState("")
+  const [files, setFiles] = useState([])
+  const [hasFetchIntro, setHasFetchIntro] = useState(false)
+  const [hasOverRideId, setHasOverRideId] = useState(null)
+  const [hasStartedListening, setHasStartedListening] = useState(false)
+  const [hasStartedRecording, setHasStartedRecording] = useState(false)
+  const [intervalId, setIntervalId] = useState(null)
+  const [isEndStoryLoading, setIsEndStoryLoading] = useState(false)
+  const [isFetchingData, setIsFetchingData] = useState(false)
+  const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false)
   const [isImageUploading, setIsImageUploading] = useState(false)
   const [isIntroLoading, setIsIntroLoading] = useState(false)
-  const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false)
-  const [sessionTitleDetail, setSessionTitleDetail] = useState(null)
-  const [isOpen, setIsOpen] = useState(false)
-  const [isResetCalled, setIsResetCalled] = useState(false)
-  const strandStep = useChatDataSessionStore(state => state.strandStep)
-  const setStrandStep = useChatDataSessionStore(state => state.setStrandStep)
-  const [isEndStoryLoading, setIsEndStoryLoading] = useState(false)
-  const [storyData, setStoryData] = useState(null)
-  const [noStoryFound, setNoStoryFound] = useState(false)
-  const [triggerDownload, setTriggerDownload] = useState(false)
-  const [isRecognizing, setIsRecognizing] = useState(false)
-  const [shouldSendMessage] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isMute, setNotMute] = useState(true)
+  const [isNextAllowed, setIsNextAllowed] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
+  const [isPdfDownloading, setIsPdfDownloading] = useState(false)
+  const [isRecognizing, setIsRecognizing] = useState(false)
+  const [isResetCalled, setIsResetCalled] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isStreamingComplete, setIsStreamingComplete] = useState(true)
+  const [isTalking, setTalking] = useState(0)
+  const [mediaRecorder, setMediaRecorder] = useState(null)
+  const [noStoryFound, setNoStoryFound] = useState(false)
+  const [reconText, setReconText] = useState("")
   const [seconds, setSeconds] = useState(0)
-  const [intervalId, setIntervalId] = useState(null)
+  const [sentences, setSentences] = useState([])
+  const [sessionTitleDetail, setSessionTitleDetail] = useState(null)
+  const [shouldFetchIntro, setShouldFetchIntro] = useState(false)
+  const [shouldSendMessage] = useState(true)
   const [ssoNavigationTriggered, setSsoNavigationTriggered] = useState(false)
-  const [files, setFiles] = useState([])
-  const [fileErrorText, setFileErrorText] = useState("")
-  const [companySlug, setCompanySlug] = useState("")
-  const [error, setError] = useState({ response: "", status: 200 })
+  const [storyData, setStoryData] = useState(null)
+  const [storyMediaIdArray] = useState(null)
+  const [textMessage, setTextMessage] = useState("")
+  const [trigger, setTrigger] = useState(false)
+  const [triggerDownload, setTriggerDownload] = useState(false)
   const [visibleItemCount, setVisibleItemCount] = useState(10)
   // const [showHomepage, setShowHomepage] = useState(true)
   // const [isReconnectInProgress, setIsReconnectInProgress] = useState(false);
@@ -141,7 +139,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   const accessToken = useUserDataLocalStore(state => state.access_token)
 
-  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
   const acceptedTnc = useUserStorage()(state => state.has_accepted_tnc)
   const botName = useChatStorage()(state => state.botName)
   const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
@@ -160,14 +157,20 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const selectedType = useChatStorage()(state => state.selectedType)
   const sessionId = useChatStorage()(state => state.sessionId)
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
+  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
   const setLangProgress = useChatStorage()(state => state.setLangProgress)
   const setStorageFlow = useChatStorage()(state => state.setFlow)
+  const setStrandStep = useChatDataSessionStore(state => state.setStrandStep)
   const showHomepage = useChatStorage()(state => state.showHomepage)
   const ssoRerouteURL = useSiteStorage()(state => state.ssoRerouteURL)
   const stateMachineLength = useChatStorage()(state => state.stateMachineLength)
   const storageFlow = useChatStorage()(state => state.flow)
+  const strandStep = useChatDataSessionStore(state => state.strandStep)
   const taskId = useChatStorage()(state => state.taskId)
   const userState = useUserStorage()(state => state.state)
+  const ipCity = useUserStorage()(state => state.ipCity)
+  const ipState = useUserStorage()(state => state.ipState)
+  const ipZipCode = useUserStorage()(state => state.ipZipCode)
 
   // chat data actions
   const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()
@@ -185,6 +188,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const { stopAllAudio, audioRef } = useAudio()
 
   const onWebSocketOpen = useCallback(() => {
+    if (!ipCity || !ipState || !ipZipCode) return
     sendSocketMessage({
       type: "authenticate",
       sessionid: sessionId,
@@ -195,8 +199,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       route: chatLanguage,
       bot_route: getSessionRoute(),
       flow_name: storageFlow,
+      address: `${ipCity}, ${ipState}, ${ipZipCode}`,
     })
-  }, [sessionId, profileToUse, projectIdStore, searchParams, taskId, accessToken, chatLanguage, storageFlow])
+  }, [sessionId, profileToUse, projectIdStore, searchParams, taskId, accessToken, chatLanguage, storageFlow, ipCity, ipState, ipZipCode])
 
   const onWebSocketMessage = useCallback(event => {
     const data = JSON.parse(event.data)
@@ -1212,7 +1217,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    */
   useEffect(() => {
     if (storageFlow && [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow)) {
-      return;
+      return
     }
     if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
@@ -1220,15 +1225,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow])
 
   useEffect(() => {
-    const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot";
-    if (
-      storageFlow && 
-      [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) &&
-      isStreamingComplete && 
-      stateMachineLength && 
-      strandStep >= stateMachineLength &&
-      isLastMessageFromBot
-    ) {
+    const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot"
+    if (storageFlow && [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && isLastMessageFromBot) {
       Swal.fire({
         title: t("PPsCompletionMessage"),
         showCancelButton: false,
@@ -1240,16 +1238,16 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         imageHeight: "100",
       }).then(result => {
         if (result.isConfirmed) {
-          clearFromStorage();
-          setLanguage(LANGUAGE_ENUMS.ENGLISH);
-          setChatLanguage(LANGUAGE_ENUMS.ENGLISH);
-          setHasSelectedLanguage(false);
-          stopAllAudio();
-          navigate(-2);
+          clearFromStorage()
+          setLanguage(LANGUAGE_ENUMS.ENGLISH)
+          setChatLanguage(LANGUAGE_ENUMS.ENGLISH)
+          setHasSelectedLanguage(false)
+          stopAllAudio()
+          navigate(-2)
         }
-      });
+      })
     }
-  }, [isStreamingComplete, strandStep, stateMachineLength, storageFlow, chatHistory]);
+  }, [isStreamingComplete, strandStep, stateMachineLength, storageFlow, chatHistory])
 
   /**
    * Display chat session titles for guest users after delay
