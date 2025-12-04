@@ -1230,9 +1230,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       isLastMessageFromBot
     ) {
       Swal.fire({
-        title: t("ptmCompletionMessage"),
+        title: t("PPsCompletionMessage"),
         showCancelButton: false,
-        confirmButtonText: t("ptmCompletionCTA"),
+        confirmButtonText: t("PPsCompletionCTA"),
         showCloseButton: false,
         allowEscapeKey: false,
         allowOutsideClick: false,
@@ -2804,9 +2804,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             <>
               {storageFlow &&
                 (() => {
-                  const isListening = [sessionFlowName.ListeningActivity].includes(storageFlow)
-                  const prefix = isListening ? "la_" : ""
+                  const prefixMap = {
+                    [sessionFlowName.ListeningActivity]: "la_",
+                    [sessionFlowName.ParentPerceptionSurvey]: "pppi_",
+                  }
 
+                  const prefix = prefixMap[storageFlow] || ""
                   return (
                     <>
                       <div className="div10">

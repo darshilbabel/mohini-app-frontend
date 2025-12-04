@@ -108,5 +108,12 @@
     "ptmIntroductionDescriptionLine1": "मित्रा के साथ चैटिंग शुरू करें",
     "ptmIntroductionDescriptionLine2": "अपनी भाषा में अपने विचार साझा करें।",
     "ptmIntroductionDescriptionLine3": "अपनी प्रतिक्रिया सबमिट करें",
-    "filesUploadedMessage": "फ़ाइलें अपलोड की गईं"
+    "filesUploadedMessage": "फ़ाइलें अपलोड की गईं",
+    "PPsCompletionMessage": "<div class='text-class'>धन्यवाद! आपका उत्तर सफलतापूर्वक दर्ज कर दिया गया है।</div>",
+    "PPsCompletionCTA": "एक और प्रतिक्रिया भेजें",
+    "pppi_homepageHeading": "हम आपकी बात सुनने के लिए यहाँ हैं",
+    "pppi_homepageHeading1": "मित्रा के साथ!",
+    "pppi_homepageList": "मित्रा के साथ चैट शुरू करें",
+    "pppi_homepageList1": "मित्रा के साथ अपने अनुभव और विचार साझा करें",
+    "pppi_homepageList2": "अपना फ़ीडबैक सबमिट करें"
 }
