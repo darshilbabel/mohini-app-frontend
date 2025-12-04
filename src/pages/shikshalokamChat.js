@@ -30,7 +30,7 @@ function ShikshalokamChat({ type, variant }) {
   const setIpCity = useUserStorage()(state => state.setIpCity)
   const setIpCountry = useUserStorage()(state => state.setIpCountry)
   const setIpState = useUserStorage()(state => state.setIpState)
-  const { setIpZipCode } = useUserStorage().getState()
+  const setIpZipCode = useUserStorage()(state => state.setIpZipCode)
   const setIsNewChatOpen = useChatStorage()(state => state.setIsNewChatOpen)
   const setProfileId = useUserStorage()(state => state.setProfileId)
   const setSessionId = useChatStorage()(state => state.setSessionId)
