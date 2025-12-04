@@ -7,11 +7,14 @@ export const INITIAL_STATE = (set, get, store) => ({
   has_accepted_tnc: "ONGOING",
   ipCity: null,
   ipCountry: null,
+  ipZipCode: null,
   ipState: null,
   preferredLanguage: null,
   profileId: null,
   state: null,
   userId: null,
+
+  setIpZipCode: ipZipCode => set({ ipZipCode }),
 
   setPrefferedLanguage: preferredLanguage => set({ preferredLanguage }),
 
