@@ -7,10 +7,7 @@ import { TbTrashOff } from "react-icons/tb";
 import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
 import { IoArrowForward } from "react-icons/io5";
 /* utils and api services */
-import {
-  getEncodedSessionStorage,
-  setEncodedSessionStorage,
-} from "../../../utils/storage_utils";
+
 import {
   getActionList,
   saveUserChatsInDB,
@@ -30,6 +27,7 @@ import { LOADER_KEYS } from "../../../constants/common";
 import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 /* styles */
 import "../stylesheet/chatStyle.css";
+import { useAICreationSessionStore } from "store";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -62,14 +60,14 @@ function ActionItems({
   const [actionItemSource, setActionItemSource] = useState({});
   useEffect(() => {
     const storedActionItemSource =
-      getEncodedSessionStorage("action_item_source");
+      useAICreationSessionStore.getState().getActionItemSource()
     if (storedActionItemSource) {
       setActionItemSource(JSON.parse(storedActionItemSource));
     }
     if (isSelectActionItems) handleScrollIntoView();
   }, []);
   const [isInReadOnlyMode, setIsInReadOnlyMode] = useState(() => {
-    const storedActionList = getEncodedSessionStorage("selected_action");
+    const storedActionList = useAICreationSessionStore.getState().getSelectedAction();
     if (storedActionList) {
       if (storedActionList.length === 1) {
         return true;
@@ -78,9 +76,8 @@ function ActionItems({
     return false;
   });
 
-  const preferredLanguage = JSON.parse(
-    getEncodedSessionStorage("preferred_language") || "{}"
-  );
+  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore } = useAICreationSessionStore.getState()
+  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {}
   const language = preferredLanguage.value || "en";
 
   const defaultActionList = [
@@ -120,11 +117,9 @@ function ActionItems({
         handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, true);
         if (!actionList || actionList?.length === 0) {
           // setIsLoading(true);
-          const userProblemStatement = getEncodedSessionStorage(
-            "user_problem_statement"
-          );
-          const objective = getEncodedSessionStorage("selected_objective");
-          const profile_id = getEncodedSessionStorage("profileid");
+          const userProblemStatement = useAICreationSessionStore.getState().getUserProblemStatement()
+          const objective = useAICreationSessionStore.getState().getSelectedObjective()
+          const profile_id = useAICreationSessionStore.getState().getProfileId()
           const fetchedActionList = await getActionList(
             userProblemStatement,
             objective,
@@ -135,23 +130,20 @@ function ActionItems({
           const { message = "", action_list = [] } = fetchedActionList || {};
           if (action_list?.length > 0) {
             setActionList(action_list);
-            setEncodedSessionStorage("actionList", action_list);
+            setActionListStore(action_list)
             const transformedSource = transformSource(action_list);
             setActionItemSource(transformedSource);
-            setEncodedSessionStorage(
-              "action_item_source",
-              JSON.stringify(transformedSource)
-            );
+            setActionItemSourceStore(transformSource)
             if (isSelectActionItems) handleScrollIntoView();
           } else {
-            const errorMessage = message?.length > 0 ? message : (getEncodedSessionStorage("system_error") || t("common.pleaseTryAgainLater"));
+            const errorMessage = message?.length > 0 ? message : (useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater"));
             setFetchError(errorMessage);
             // window.location.reload();
           }
         }
       } catch (error) {
         setFetchError(
-          getEncodedSessionStorage("system_error") ||
+          useAICreationSessionStore.getState().getSystemError() ||
             t("common.pleaseTryAgainLater")
         );
         console.error(error);
@@ -159,7 +151,7 @@ function ActionItems({
         handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, false);
       }
     }
-    const storedActions = getEncodedSessionStorage("actionList");
+    const storedActions = useAICreationSessionStore.getState().getActionList()
     if (Array.isArray(storedActions)) {
       setActionList(storedActions);
     } else {
@@ -183,9 +175,7 @@ function ActionItems({
 
   const getActionListArray = () => {
     if (!isSelectActionItems || isInReadOnlyMode) {
-      let stored_action = getEncodedSessionStorage(
-        "selected_action"
-      )?.[0]?.actionSteps?.map((action, index) => ({
+      let stored_action = useAICreationSessionStore.getState().getSelectedAction()?.[0]?.actionSteps?.map((action, index) => ({
         id: index.toString(),
         content: action,
       }));
@@ -233,12 +223,10 @@ function ActionItems({
           actionSteps: action_to_store.map((action) => action.content),
         },
       ];
-      const userProblemStatement = getEncodedSessionStorage(
-        "user_problem_statement"
-      );
-      const objective = getEncodedSessionStorage("selected_objective");
+      const userProblemStatement = useAICreationSessionStore.getState().getUserProblemStatement()
+      const objective = useAICreationSessionStore.getState().getSelectedObjective()
       // setIsLoading(true);
-      const profile_id = getEncodedSessionStorage("profileid");
+      const profile_id = useAICreationSessionStore.getState().getProfileId()
       const validate_response = await validateActionList(
         action_to_store.map((action) => action.content),
         objective,
@@ -256,8 +244,8 @@ function ActionItems({
       if (actionList) {
         // setIsLoading(true);
         handleLoaderState(LOADER_KEYS.LOAD_WEEKS_SELECTION, true);
-        setEncodedSessionStorage("selected_action", actionListToStore);
-        const currentSession = getEncodedSessionStorage("session");
+        setSelectedActionStore(actionListToStore)
+        const currentSession = useAICreationSessionStore.getState().getSession()
         const botMessage = {
           role: BOT,
           message:
@@ -267,7 +255,7 @@ function ActionItems({
               ? t("actionItems.addEachStep")
               : t("actionItems.editReorderDeleteActions") +
                 "\n" +
-                JSON.stringify(getEncodedSessionStorage("actionList")),
+                JSON.stringify(useAICreationSessionStore.getState().getActionList()),
           messageId: "7_1",
         };
 
@@ -287,7 +275,7 @@ function ActionItems({
       }
     } catch (error) {
       const errorMessage =
-        getEncodedSessionStorage("system_error") ||
+        useAICreationSessionStore.getState().getSystemError() ||
         t("common.pleaseTryAgainLater");
       setErrorText(errorMessage);
       // setIsLoading(false);

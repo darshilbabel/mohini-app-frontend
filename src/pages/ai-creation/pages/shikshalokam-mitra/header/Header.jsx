@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 import Popup from "../../../../../components/Popup/index";
-import { getEncodedSessionStorage } from "../../../utils/storage_utils";
 
 import "../stylesheet/chatStyle.css";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +13,7 @@ import {
   getHeaderText,
 } from "../question script/header_translation";
 import ROUTES from "../../../../../url";
+import { useAICreationSessionStore } from "store";
 
 function Header({
   shouldEnableGoBack = false,
@@ -25,9 +25,7 @@ function Header({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const preferredLanguage = JSON.parse(
-    getEncodedSessionStorage("preferred_language") || "{}"
-  );
+  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {}
   const language = preferredLanguage.value || "en";
 
   const handleClosing = () => {

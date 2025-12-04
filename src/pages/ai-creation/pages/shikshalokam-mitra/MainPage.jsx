@@ -2,10 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 /* api services and utils */
 import { handleAI4BharatTTSRequest } from "../../apiServices/ai4bharat_services";
-import {
-  getEncodedSessionStorage,
-  setEncodedSessionStorage,
-} from "../../utils/storage_utils";
+
 import { setLanguage } from "../../../../i18n";
 /* components */
 import DefineChallenge from "./mitra-pages/DefineChallenge";
@@ -21,6 +18,7 @@ import Popup from "../../../../components/Popup/index";
 /* constants */
 import { ACTIVE_TABS } from "../../constants/mitra.constants";
 import { LOADER_KEYS } from "../../constants/common";
+import { useAICreationSessionStore } from "store";
 
 function MainPage() {
   const { t } = useTranslation("ai_creation_translation");
@@ -28,7 +26,7 @@ function MainPage() {
   const [audioCache, setAudioCache] = useState({});
   const [isBotTalking, setIsBotTalking] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(
-    getEncodedSessionStorage("isReadOnly") || false
+    useAICreationSessionStore.getState().getIsReadOnly() || false
   );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -45,11 +43,11 @@ function MainPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
   const [userInput, setUserInput] = useState(
-    getEncodedSessionStorage("user_text") || []
+    useAICreationSessionStore.getState().getUserText() || []
   );
 
   const [chatHistory, setChatHistory] = useState(
-    getEncodedSessionStorage("chatHistory") || []
+    useAICreationSessionStore.getState().getChatHistory() || []
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState({
@@ -68,11 +66,11 @@ function MainPage() {
     email: sessionStorage.getItem("email"),
   });
   const [errorText, setErrorText] = useState(
-    getEncodedSessionStorage("errorText") || ""
+    useAICreationSessionStore.getState().getErrorText() || ""
   );
 
   const [currentPage, setCurrentPage] = useState(
-    getEncodedSessionStorage("currentPage") || {
+    useAICreationSessionStore.getState().getCurrentPage() || {
       1: true,
       2: false,
       3: false,
@@ -84,6 +82,8 @@ function MainPage() {
   const audioRef = useRef();
   const scrollContainerRef = useRef(null);
 
+  const { setIsReadOnly: setIsReadOnlyStore, setUserText: setUserTextStore, setCurrentPage: setCurrentPageStore } = useAICreationSessionStore.getState()
+
   useEffect(() => {
     setUserDetail({
       name: sessionStorage.getItem("name"),
@@ -93,23 +93,21 @@ function MainPage() {
   }, []);
 
   useEffect(() => {
-    setEncodedSessionStorage("isReadOnly", isReadOnly);
+    setIsReadOnlyStore(isReadOnly)
   }, [isReadOnly]);
 
   useEffect(() => {
-    setEncodedSessionStorage("user_text", userInput);
+    setUserTextStore(userInput)
   }, [userInput]);
 
   useEffect(() => {
-    setEncodedSessionStorage("currentPage", currentPage);
+    setCurrentPageStore(currentPage)
   }, [currentPage]);
 
   function handleSpeakerOn(messageToUse, audioId) {
     if (!messageToUse || !audioId) return;
     setIsBotTalking(true);
-    const preferredLanguage = JSON.parse(
-      getEncodedSessionStorage("preferred_language") || "{}"
-    );
+    const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage()
     const language = preferredLanguage.value || "en";
 
     handleAI4BharatTTSRequest(
@@ -219,8 +217,7 @@ function MainPage() {
   };
 
   useEffect(() => {
-    const language =
-      JSON.parse(getEncodedSessionStorage("preferred_language")) || {};
+    const language = useAICreationSessionStore.getState().getPreferredLanguage() || {};
     setLanguage(language.value);
   }, []);
 

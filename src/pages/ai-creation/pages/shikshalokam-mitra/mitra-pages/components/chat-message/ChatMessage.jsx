@@ -3,7 +3,6 @@ import DOMPurify from "dompurify";
 import { CONVERSATION_USER_TYPES } from "../../../../../constants/mitra.constants";
 import BotMessage from "./BotMessage";
 import UserMessage from "./UserMessage";
-import { getEncodedSessionStorage } from "../../../../../utils/storage_utils";
 
 const { USER, BOT } = CONVERSATION_USER_TYPES;
 
@@ -24,7 +23,6 @@ function ChatMessage({
   isShowBotSpeaker = false,
 }) {
   let sanitizedContent = DOMPurify.sanitize(message);
-  const languageToUse = JSON.parse(getEncodedSessionStorage("route")) || "en";
 
   const isBotConversation = userType && userType === BOT;
   const isUserConversation = userType && userType === USER;

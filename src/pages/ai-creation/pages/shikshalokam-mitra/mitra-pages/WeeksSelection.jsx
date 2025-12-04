@@ -3,10 +3,6 @@ import { useTranslation } from "react-i18next";
 /* icons */
 import { IoArrowForward } from "react-icons/io5";
 /* utils and api services */
-import {
-  getEncodedSessionStorage,
-  setEncodedSessionStorage,
-} from "../../../utils/storage_utils";
 import { saveUserChatsInDB } from "../../../../../api/endpoints/chat_flow";
 /* components */
 import UserMessage from "./components/chat-message/UserMessage";
@@ -18,6 +14,7 @@ import { LOADER_KEYS } from "../../../constants/common";
 import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 /* styles */
 import "../stylesheet/chatStyle.css";
+import { useAICreationSessionStore } from "store";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -38,11 +35,13 @@ function WeeksSelection({
 }) {
   const { t } = useTranslation("ai_creation_translation");
   const [selectedWeek, setSelectedWeek] = useState(
-    getEncodedSessionStorage("selected_week") || 1
+    useAICreationSessionStore.getState().getSelectedWeek() || 1
   );
   const [isInReadOnlyMode, setIsInReadOnlyMode] = useState(
-    getEncodedSessionStorage("selected_week") ? true : false
+    useAICreationSessionStore.getState().getSelectedWeek() ? true : false
   );
+
+  const { setSelectedWeek: setSelectedWeekStore } = useAICreationSessionStore.getState();
 
   useEffect(() => {
     if (isWeeksSelectionSection) handleScrollIntoView();
@@ -62,12 +61,12 @@ function WeeksSelection({
   const handleContinueClick = async () => {
     if (selectedWeek) {
       // setIsLoading(true);
-      setEncodedSessionStorage("selected_week", selectedWeek);
+      setSelectedWeekStore(selectedWeek)
       const botMessage =
         t("weeksSelection.howManyWeeks") +
         " " +
         t("weeksSelection.slideToSelect");
-      const currentSession = getEncodedSessionStorage("session");
+      const currentSession = useAICreationSessionStore.getState().getSession();
 
       saveUserChatsInDB(botMessage, currentSession, BOT)
         .then(() => {

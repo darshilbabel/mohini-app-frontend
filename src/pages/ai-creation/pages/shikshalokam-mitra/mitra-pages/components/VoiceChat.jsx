@@ -5,7 +5,7 @@ import Notification, {
 import { handleS3Upload } from "../../../../../../services/storage_service";
 import { useAudio } from "../../../../../../hooks/useAudio";
 import { ai4BharatASRApi } from "api/endpoints/ai"
-import { getEncodedSessionStorage } from "../../../../utils/storage_utils";
+import { useAICreationSessionStore } from "store";
 
 // const sessionFlowName = {
 //   GuestDiscussion: "guest-discussion",
@@ -118,7 +118,7 @@ const VoiceChat = () => {
 
               setIsFetchingData(true);
               let transcriptResult = "";
-              const sessionId = getEncodedSessionStorage("session");
+              const sessionId = useAICreationSessionStore.getState().getSession();
               
               let s3Url = await handleS3Upload(
                 audioBlob,

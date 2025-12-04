@@ -4,10 +4,7 @@ import { useTranslation } from "react-i18next";
 import { IoArrowForward } from "react-icons/io5";
 import { RxCrossCircled } from "react-icons/rx";
 /* utils and api services */
-import {
-  getEncodedSessionStorage,
-  setEncodedSessionStorage,
-} from "../../../utils/storage_utils";
+
 import {
   getObjectiveList,
   saveUserChatsInDB,
@@ -26,6 +23,7 @@ import { LOADER_KEYS } from "../../../constants/common";
 import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 /* styles */
 import "../stylesheet/chatStyle.css";
+import { useAICreationSessionStore } from "store";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -54,7 +52,7 @@ function SelectObjective({
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [inputText, setInputText] = useState("");
   const [isInReadOnlyMode, setIsInReadOnlyMode] = useState(() => {
-    const storedObjective = getEncodedSessionStorage("selected_objective");
+    const storedObjective = useAICreationSessionStore.getState().getSelectedObjective();
     if (storedObjective) {
       return typeof storedObjective === "string" ? true : false;
     }
@@ -66,8 +64,8 @@ function SelectObjective({
     if (!isInReadOnlyMode) {
       return defaultValueToShow;
     } else {
-      const objectiveList = getEncodedSessionStorage("objective") || [];
-      const selectedObjective = getEncodedSessionStorage("selected_objective");
+      const objectiveList = useAICreationSessionStore.getState().getObjective() || [];
+      const selectedObjective = useAICreationSessionStore.getState().getSelectedObjective();
 
       const selectedIndex = Array.isArray(objectiveList)
         ? objectiveList.indexOf(selectedObjective)
@@ -79,61 +77,52 @@ function SelectObjective({
         : defaultValueToShow;
     }
   });
-  const preferredLanguage = JSON.parse(
-    getEncodedSessionStorage("preferred_language") || "{}"
-  );
+  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {};
   const language = preferredLanguage.value || "en";
+  const { setObjective: setObjectiveStore, setObjectiveSource: setObjectiveSourceStore, setChunks: setChunksStore, setSelectedObjective: setSelectedObjectiveStore, setHasClickedObjAddMore } = useAICreationSessionStore.getState()
 
   useEffect(() => {
     async function fetchObjectiveList() {
+
       try {
         if (!objectiveList || objectiveList?.length === 0) {
           // setIsLoading(true);
           handleLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST, true);
-          const userProblemStatement = getEncodedSessionStorage(
-            "user_problem_statement"
-          );
-          const profile_id = getEncodedSessionStorage("profileid");
+          const userProblemStatement = useAICreationSessionStore.getState().getUserProblemStatement() || null;
+          const profile_id = useAICreationSessionStore.getState().getProfileId() || null;
           const fetched_objectiveList = await getObjectiveList(
             userProblemStatement,
             language,
             profile_id
           );
           const { message = "", objective_list = [] } = fetched_objectiveList || {};
+
           if (
             objective_list?.length > 0
           ) {
             setObjectiveList(objective_list);
-            setEncodedSessionStorage(
-              "objective",
-              objective_list
-            );
+            setObjectiveStore(objective_list)
+
 
             const transformedSource = transformSource(
               objective_list
             );
 
-            setEncodedSessionStorage(
-              "objective_source",
-              JSON.stringify(transformedSource)
-            );
+            setObjectiveSourceStore(transformedSource)
             setObjectiveSource(transformedSource);
 
-            setEncodedSessionStorage(
-              "chunks",
-              JSON.stringify(objective_list?.chunks)
-            );
+            setChunksStore(objective_list?.chunks)
             // setIsLoading(false);
             if (isSelectObjectiveSection) handleScrollIntoView();
           } else {
-            const errorMessage = message?.length > 0 ? message : (getEncodedSessionStorage("system_error") || t("common.pleaseTryAgainLater"));
+            const errorMessage = message?.length > 0 ? message : (useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater"));
             setFetchError(errorMessage);
             // window.location.reload();
           }
         }
       } catch (error) {
         setFetchError(
-          getEncodedSessionStorage("system_error") || t("common.pleaseTryAgainLater")
+          useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater")
         );
         // setIsLoading(false);
         handleLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST, false);
@@ -142,7 +131,8 @@ function SelectObjective({
         handleLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST, false);
       }
     }
-    const storedObjective = getEncodedSessionStorage("objective");
+    const storedObjective = useAICreationSessionStore.getState().getObjective();
+
 
     if (storedObjective) {
       setObjectiveList(
@@ -154,7 +144,7 @@ function SelectObjective({
       fetchObjectiveList();
     }
 
-    const storedObjectiveSource = getEncodedSessionStorage("objective_source");
+    const storedObjectiveSource = useAICreationSessionStore.getState().getObjectiveSource() || null;
     if (storedObjectiveSource) {
       setObjectiveSource(JSON.parse(storedObjectiveSource));
     }
@@ -174,8 +164,8 @@ function SelectObjective({
       // setIsLoading(true);
       localStorage.removeItem("actionList");
       localStorage.removeItem("selected_action");
-      setInputText(getEncodedSessionStorage("selected_objective") || "");
-      setHasClickedOnAddmore(getEncodedSessionStorage("hasClickedObjAddMore"));
+      setInputText(useAICreationSessionStore.getState().getSelectedObjective() || "");
+      setHasClickedOnAddmore(useAICreationSessionStore.getState().getHasClickedObjAddMore());
       // setIsLoading(false);
     }
   }, [isInReadOnlyMode]);
@@ -191,8 +181,8 @@ function SelectObjective({
       setErrorText("");
       // setIsLoading(true);
       setObjectiveList(userSelectedObjective);
-      setEncodedSessionStorage("selected_objective", userSelectedObjective);
-      const currentSession = getEncodedSessionStorage("session");
+      setSelectedObjectiveStore(userSelectedObjective)
+      const currentSession = useAICreationSessionStore.getState().getSession();
       const botMessage = hasClickedOnAddmore
         ? t("selectObjective.enterObjective")
         : {
@@ -202,11 +192,11 @@ function SelectObjective({
               " " +
               t("selectObjective.selectObjective") +
               " " +
-              JSON.stringify(getEncodedSessionStorage("objective")),
+              JSON.stringify(useAICreationSessionStore.getState().getObjective()),
             messageId: "4_0",
           };
 
-      const chunks = JSON.parse(getEncodedSessionStorage("chunks"));
+      const chunks = JSON.parse(useAICreationSessionStore.getState().getChunks());
 
       saveUserChatsInDB(
         botMessage?.message,
@@ -239,7 +229,7 @@ function SelectObjective({
         }, 3000);
       } else {
         // setIsLoading(true);
-        const profile_id = getEncodedSessionStorage("profileid");
+        const profile_id = useAICreationSessionStore.getState().getProfileId();
         const validate_response = await validateObjective(
           inputText,
           language,
@@ -247,7 +237,7 @@ function SelectObjective({
         );
         // setIsLoading(false);
         if (validate_response?.result) {
-          setEncodedSessionStorage("hasClickedObjAddMore", true);
+          setHasClickedObjAddMore(true)
           handleNextClick();
         } else {
           setErrorText(validate_response?.error_message);
@@ -255,7 +245,7 @@ function SelectObjective({
       }
     } catch (error) {
       const errorMessage =
-        getEncodedSessionStorage("system_error") || t("common.pleaseTryAgainLater");
+        useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater");
 
       setErrorText(errorMessage);
       setTimeout(() => {
@@ -270,18 +260,19 @@ function SelectObjective({
     if (isInReadOnlyMode && hasClickedOnAddmore) {
       setHasClickedOnAddmore(false);
       setErrorText("");
-      setEncodedSessionStorage("hasClickedObjAddMore", false);
+      setHasClickedObjAddMore(false)
     } else {
       handleGoBack(index);
     }
   }
 
-  const selectedObjective = getEncodedSessionStorage("selected_objective");
+  const selectedObjective = useAICreationSessionStore.getState().getSelectedObjective() || null;
 
   if (getLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST)) {
     return <LoadingChat />;
   }
 
+ 
   return (
     <>
       <div>

@@ -1,6 +1,6 @@
 import React from "react";
-import { getEncodedSessionStorage } from "../../../../../utils/storage_utils";
 import Source from "../Source";
+import { useAICreationSessionStore } from "store";
 
 const ObjectivesCard = ({
   objectiveList = [],
@@ -15,7 +15,7 @@ const ObjectivesCard = ({
   const getObjectiveCardClass = (objIndex, obj) => {
     // If no index is selected, check if this objective matches the stored one
     if (selectedIndex === null || selectedIndex === undefined) {
-      const storedObjective = getEncodedSessionStorage("selected_objective");
+      const storedObjective = useAICreationSessionStore.getState().getSelectedObjective();
       return storedObjective === obj
         ? "secondpage-obj-selected-button-div"
         : "secondpage-obj-bttn-div";

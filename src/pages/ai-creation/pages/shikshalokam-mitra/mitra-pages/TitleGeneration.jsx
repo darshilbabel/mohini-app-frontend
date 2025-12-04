@@ -2,10 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 /* utils and api services */
 import { clearMitraLocalStorage } from "../MainPage";
-import {
-  getEncodedSessionStorage,
-  setEncodedSessionStorage,
-} from "../../../utils/storage_utils";
+
 import {
   createProject,
   getTitle,
@@ -25,6 +22,7 @@ import ROUTES from "../../../../../url";
 /* styles */
 import "../stylesheet/chatStyle.css";
 import { useNavigate } from "react-router-dom";
+import { useAICreationSessionStore } from "store";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 function TitleGeneration({
@@ -42,7 +40,7 @@ function TitleGeneration({
   const { t } = useTranslation("ai_creation_translation");
   const navigate = useNavigate();
   const [inputText, setInputText] = useState(() => {
-    let title = getEncodedSessionStorage("project_title") || "";
+    let title = useAICreationSessionStore.getState().getProjectTitle() || "";
     return title;
   });
 
@@ -53,26 +51,24 @@ function TitleGeneration({
   const [media, setMedia] = useState([]);
   const [isApiCalling, setIsApiCalling] = useState(false);
 
-  const preferredLanguage = JSON.parse(
-    getEncodedSessionStorage("preferred_language") || "{}"
-  );
+  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {};
   const language = preferredLanguage.value || "en";
   const [fetchError, setFetchError] = useState("");
 
   const [localErrorText, setLocalErrorText] = useState("");
 
+  const { setProjectTitle: setProjectTitleStore, setMedia: setMediaStore } = useAICreationSessionStore.getState();
+
   useEffect(() => {
     async function fetchTitle() {
       try {
         handleLoaderState(LOADER_KEYS.LOAD_TITLE_GENERATION, true);
-        let title = getEncodedSessionStorage("project_title");
+        let title = useAICreationSessionStore.getState().getProjectTitle();
         if (!title) {
-          const user_problem_statement = getEncodedSessionStorage(
-            "user_problem_statement"
-          );
-          const user_objective = getEncodedSessionStorage("selected_objective");
-          const user_action_list = getEncodedSessionStorage("selected_action");
-          const profile_id = getEncodedSessionStorage("profileid");
+          const user_problem_statement = useAICreationSessionStore.getState().getUserProblemStatement();
+          const user_objective = useAICreationSessionStore.getState().getSelectedObjective();
+          const user_action_list = useAICreationSessionStore.getState().getSelectedAction();
+          const profile_id = useAICreationSessionStore.getState().getProfileId();
           title = await getTitle(
             user_problem_statement,
             user_objective,
@@ -82,7 +78,7 @@ function TitleGeneration({
           );
           if (title) {
             setInputText(title);
-            setEncodedSessionStorage("project_title", title);
+            setProjectTitleStore(title)
             if (isTitleGenerationSection) handleScrollIntoView();
           } else {
             window.location.reload();
@@ -92,7 +88,7 @@ function TitleGeneration({
         }
       } catch (error) {
         setFetchError(
-          getEncodedSessionStorage("system_error") || t("common.pleaseTryAgainLater")
+          useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater")
         );
         handleLoaderState(LOADER_KEYS.LOAD_TITLE_GENERATION, false);
         console.error(error);
@@ -148,12 +144,10 @@ function TitleGeneration({
     ) {
       // setIsLoading(true);
       setIsApiCalling(true);
-      const user_problem_statement = getEncodedSessionStorage(
-        "user_problem_statement"
-      );
-      const user_objective = getEncodedSessionStorage("selected_objective");
-      const user_action_list = getEncodedSessionStorage("selected_action");
-      const profile_id = getEncodedSessionStorage("profileid");
+      const user_problem_statement = useAICreationSessionStore.getState().getUserProblemStatement();
+      const user_objective = useAICreationSessionStore.getState().getSelectedObjective();
+      const user_action_list = useAICreationSessionStore.getState().getSelectedAction();
+      const profile_id = useAICreationSessionStore.getState().getProfileId();
       const validate_response = await validateTitle(
         inputText,
         user_problem_statement,
@@ -169,8 +163,9 @@ function TitleGeneration({
         return;
       }
       setIsLocalLoading(true);
-      setEncodedSessionStorage("project_title", inputText);
-      const session = getEncodedSessionStorage("session");
+      setProjectTitleStore(inputText)
+
+      const session = useAICreationSessionStore.getState().getSession() || null;
       const field_to_update = {
         title: inputText,
         session_status: "COMPLETED",
@@ -189,17 +184,16 @@ function TitleGeneration({
       try {
         const response = await updateChatSession(session, field_to_update);
         if (response) {
-          const user_problem_statement = getEncodedSessionStorage(
-            "user_problem_statement"
-          );
-          const project_duration = getEncodedSessionStorage("selected_week");
-          const user_objective = getEncodedSessionStorage("selected_objective");
+          const user_problem_statement = useAICreationSessionStore.getState().getUserProblemStatement() || null;
+          const project_duration = useAICreationSessionStore.getState().getSelectedWeek() || null;
+          const user_objective = useAICreationSessionStore.getState().getSelectedObjective() || null;
           const user_action_list =
-            getEncodedSessionStorage("selected_action")[0]?.actionSteps;
-          const access_token = getEncodedSessionStorage(
-            process.env.REACT_APP_ACCESS_TOKEN_KEY
-          );
-          const chunks = JSON.parse(getEncodedSessionStorage("chunks"));
+            useAICreationSessionStore.getState().getSelectedAction() || null;
+          // const access_token = getEncodedSessionStorage(
+          //   process.env.REACT_APP_ACCESS_TOKEN_KEY
+          // );
+          const access_token = sessionStorage.getItem(process.env.REACT_APP_ACCESS_TOKEN_KEY)
+          const chunks = JSON.parse(useAICreationSessionStore.getState().getChunks() || []);
 
           const project_response = await createProject(
             access_token,
@@ -226,7 +220,7 @@ function TitleGeneration({
 
           if (status?.toLowerCase() === "ok") {
             clearMitraLocalStorage();
-            setEncodedSessionStorage("media", media);
+            setMediaStore(media)
             // window.location.replace(
             //   `/${ROUTES.IMPROVEMENT_PLAN}`
             // );

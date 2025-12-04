@@ -8,8 +8,8 @@ import {
   getExploreTranslation,
 } from "./question script/firstpage_translation";
 import { clearMitraLocalStorage } from "./MainPage";
-import { getEncodedSessionStorage } from "../../utils/storage_utils";
 import ROUTES from "../../../../url";
+import { useAICreationSessionStore } from "store";
 
 export function BotMessage({
   botMessage,
@@ -34,9 +34,8 @@ export function BotMessage({
 }) {
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
 
-  const preferredLanguage = JSON.parse(
-    getEncodedSessionStorage("preferred_language") || "{}"
-  );
+  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage()
+
   const language = preferredLanguage.value || "en";
 
   useEffect(() => {
