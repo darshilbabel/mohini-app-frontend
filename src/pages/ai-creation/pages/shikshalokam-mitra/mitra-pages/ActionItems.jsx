@@ -152,6 +152,8 @@ function ActionItems({
       }
     }
     const storedActions = useAICreationSessionStore.getState().getActionList()
+
+    console.log({storedActions})
     if (Array.isArray(storedActions)) {
       setActionList(storedActions);
     } else {

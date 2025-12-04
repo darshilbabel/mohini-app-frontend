@@ -17,6 +17,8 @@ const ActionItemsList = ({
   finalActionList = [],
 }) => {
 
+  console.log({actionList})
+
   return (
     <div>
       <p className="secondpage-obj-text">

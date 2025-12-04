@@ -184,16 +184,16 @@ function TitleGeneration({
       try {
         const response = await updateChatSession(session, field_to_update);
         if (response) {
-          const user_problem_statement = useAICreationSessionStore.getState().getUserProblemStatement() || null;
-          const project_duration = useAICreationSessionStore.getState().getSelectedWeek() || null;
-          const user_objective = useAICreationSessionStore.getState().getSelectedObjective() || null;
+          const user_problem_statement = useAICreationSessionStore.getState().getUserProblemStatement();
+          const project_duration = useAICreationSessionStore.getState().getSelectedWeek();
+          const user_objective = useAICreationSessionStore.getState().getSelectedObjective();
           const user_action_list =
-            useAICreationSessionStore.getState().getSelectedAction() || null;
+            useAICreationSessionStore.getState().getSelectedAction()[0]?.actionSteps;
           // const access_token = getEncodedSessionStorage(
           //   process.env.REACT_APP_ACCESS_TOKEN_KEY
           // );
           const access_token = sessionStorage.getItem(process.env.REACT_APP_ACCESS_TOKEN_KEY)
-          const chunks = JSON.parse(useAICreationSessionStore.getState().getChunks() || []);
+          const chunks = JSON.parse(useAICreationSessionStore.getState().getChunks());
 
           const project_response = await createProject(
             access_token,

@@ -15,6 +15,8 @@ const ImprovementPlan = () => {
     setMedia(mediaItems);
   }, [projectId]);
 
+  console.log({items})
+
   return (
     <>
       <Header isBackButton={true} isHeroSection={false} />

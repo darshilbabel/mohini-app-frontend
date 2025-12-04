@@ -97,6 +97,8 @@ function SelectObjective({
           );
           const { message = "", objective_list = [] } = fetched_objectiveList || {};
 
+          console.log({objective_list})
+
           if (
             objective_list?.length > 0
           ) {
@@ -110,6 +112,8 @@ function SelectObjective({
 
             setObjectiveSourceStore(transformedSource)
             setObjectiveSource(transformedSource);
+
+            console.log({objective_list})
 
             setChunksStore(objective_list?.chunks)
             // setIsLoading(false);
@@ -144,9 +148,10 @@ function SelectObjective({
       fetchObjectiveList();
     }
 
-    const storedObjectiveSource = useAICreationSessionStore.getState().getObjectiveSource() || null;
+    const storedObjectiveSource = useAICreationSessionStore.getState().getObjectiveSource();
+    console.log({storedObjective})
     if (storedObjectiveSource) {
-      setObjectiveSource(JSON.parse(storedObjectiveSource));
+      setObjectiveSource(storedObjectiveSource);
     }
     if (isSelectObjectiveSection) handleScrollIntoView();
   }, []);
@@ -195,6 +200,8 @@ function SelectObjective({
               JSON.stringify(useAICreationSessionStore.getState().getObjective()),
             messageId: "4_0",
           };
+
+      console.log("cccc", useAICreationSessionStore.getState().getChunks())
 
       const chunks = JSON.parse(useAICreationSessionStore.getState().getChunks());
 
