@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import useVoiceRecord from "../../text-voice/useVoiceRecord";
 import { useAudio } from "../../../../../hooks/useAudio";
 /* utils and api services */
-import { apiClient as axiosInstance } from "../../../../../api/client/index";
 import { clearMitraLocalStorage, ShowLoader } from "../MainPage";
 import {
   getNewSessionID,
@@ -31,10 +30,11 @@ import { FIRST_BOT_MESSAGE } from "../../../constants/mitra-chat";
 import { bot_routes } from "configure";
 import { useAICreationSessionStore } from "store";
 import { useSiteDataLocalStore } from "store";
+import { API_ENDPOINTS } from "constants/urls";
+import { apiClient } from "api/client";
 
 const sessionRoute = "/guided_guest";
 
-const company_bot_list_url = `/api/companybot/`;
 
 const wss_protocol =
   window.location.protocol === "https:" ? "wss://" : "wss://";
@@ -286,9 +286,7 @@ const DefineChallenge = ({
   }
 
   async function getCompanyChatApi(currentSession) {
-    const resp = await axiosInstance({
-      url: `/api/companychat/?session=${currentSession}`,
-    });
+    const resp = await apiClient.get(`/${API_ENDPOINTS.GET_COMPANY_CHAT}?session=${currentSession}`, {});
     return resp;
   }
 
@@ -384,8 +382,7 @@ const DefineChallenge = ({
           access_token: access_token,
         };
 
-        const response = await axiosInstance.post(
-          `/api/create-profile/`,
+        const response = await apiClient.post(API_ENDPOINTS.CREATE_USER_PROFILE,
           body,
           { headers }
         );
@@ -677,17 +674,15 @@ const DefineChallenge = ({
 
   async function getCompanyDetail() {
     if (!profileToUse) return "shikshalokamstaging";
-    const res = await axiosInstance({
-      url: `/api/profileuser/${profileToUse}/`,
-    });
+    const res = await apiClient.get(`${API_ENDPOINTS.PROFILE_USER}${profileToUse}/`, {});
 
     return res?.data?.company?.slug;
   }
 
   async function getTranslatedIntroMessage(storedRoute) {
-    let translate_api_url = `api/bot_vernacular/?language=${languageToUse}&company_bot__route=${storedRoute}`;
+    let translate_api_url = `${API_ENDPOINTS.BOT_VERNACULAR}?language=${languageToUse}&company_bot__route=${storedRoute}`;
     try {
-      const response = await axiosInstance.get(translate_api_url);
+      const response = await apiClient.get(translate_api_url, {});
       return response?.data?.results;
     } catch (error) {
       console.error("Error fetching AI4Bharat audio:", error);
@@ -707,8 +702,7 @@ const DefineChallenge = ({
       setIsIntroLoading(true);
       let companyName = await getCompanyDetail();
       try {
-        const response = await axiosInstance({
-          url: company_bot_list_url,
+        const response = await apiClient.get(API_ENDPOINTS.GET_COMPANY_BOT, {
           params: {
             company__slug: companyName,
           },

@@ -25,6 +25,33 @@ const ObjectivesCard = ({
       ? "secondpage-obj-selected-button-div"
       : "secondpage-obj-bttn-div";
   };
+
+
+// 1️⃣ Collect all unique source IDs in order of appearance
+const uniqueSources = [...new Set(objectiveList?.map(obj => obj?.sources?.map(source => source.source_id))?.flat())];
+
+// 2️⃣ Map each objective to include the index (source_key)
+const mappedObjectives = objectiveList.map(obj => {
+
+  const source_keys = [];
+
+  obj.sources.forEach(source => {
+    const idx = uniqueSources.indexOf(source.source_id); // index in unique set
+
+    source_keys.push(idx+1);
+
+  })
+
+
+  return {
+    ...obj,
+    source_keys
+  };
+});
+
+console.log({objectiveSource})
+
+
   return (
     <div className="objective-list-div">
       {!!(!isSelectObjectiveSection && selectedObjective?.length > 0) ? (
@@ -37,7 +64,7 @@ const ObjectivesCard = ({
         </div>
       ) : (
         <>
-          {(Array.isArray(objectiveList) ? objectiveList : [])
+          {(Array.isArray(mappedObjectives) ? mappedObjectives : [])
             .slice(0, visibleCount)
             .map((obj, objIndex) => (
               <div
@@ -46,8 +73,13 @@ const ObjectivesCard = ({
                 onClick={() => handleObjectiveClick(objIndex)}
               >
                 <div className="secondpage-obj-line"></div>
+                
                 <button className="secondpage-obj-bttn">
-                  {obj?.text || ""} <sup>{objIndex + 1}</sup>
+                  {obj?.text || ""} {obj?.source_keys?.map((key, index) => (
+                  <sup key={index}>
+                    [{key}]{" "}
+                  </sup>
+                ))}
                 </button>
               </div>
             ))}

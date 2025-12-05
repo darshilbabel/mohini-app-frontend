@@ -32,7 +32,7 @@ export default function Header({ isHeroSection = true }) {
               data-doc-height={1}
               role="banner"
               className="navbar-2 w-nav"
-              style={{ zIndex: 90 }}
+              style={{ zIndex: 40 }}
             >
               <div className="header-container">
                 <a

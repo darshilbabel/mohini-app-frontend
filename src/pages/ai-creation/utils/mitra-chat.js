@@ -4,6 +4,7 @@
  * @returns {Object} Object with organization names as keys and arrays of objectives as values
  */
 export const transformSource = (objectivesArray = []) => {
+  console.log("******", objectivesArray)
   if (!Array.isArray(objectivesArray) || objectivesArray.length === 0) {
     return {};
   }
@@ -12,25 +13,38 @@ export const transformSource = (objectivesArray = []) => {
 
   objectivesArray.forEach((item, index) => {
     // Get organization from source, default to empty string if not present
-    const organization = item?.source?.organization?.name || "";
+    const organizationList = item?.sources?.map(source => source.organization?.name);
 
     // Skip if organization is missing or empty
-    if (!organization) {
+    if (!organizationList || organizationList?.length === 0) {
       return;
     }
 
-    // Initialize array for this organization if it doesn't exist
-    if (!result[organization]) {
-      result[organization] = [];
-    }
+    organizationList.forEach(organization => {
+      if (!result[organization]) {
+        result[organization] = [];
+      }
 
-    // Add the item with organization property at the top level
-    result[organization].push({
-      ...item,
-      reference: `Reference ${index + 1}`,
-      organization: organization,
+      result[organization].push({
+        ...item,
+        reference: `Reference ${index + 1}`,
+        organization: organization,
+      });
     });
+    // // Initialize array for this organization if it doesn't exist
+    // if (!result[organization]) {
+    //   result[organization] = [];
+    // }
+
+    // // Add the item with organization property at the top level
+    // result[organization].push({
+    //   ...item,
+    //   reference: `Reference ${index + 1}`,
+    //   organization: organization,
+    // });
   });
+
+  console.log({result})
 
   return result;
 };
