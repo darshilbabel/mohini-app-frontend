@@ -9,7 +9,7 @@ import DefineChallenge from "./mitra-pages/DefineChallenge";
 import Sidebar from "./mitra-pages/components/Sidebar";
 import ConversationWrapperCard from "./mitra-pages/components/ConversationWrapperCard";
 import Footer from "../../../shikshagraha-repository/common/Footer";
-import Header from "../../../shikshagraha-repository/listing/Header";
+import Header from "../../components/layout/Header";
 import ActionItems from "./mitra-pages/ActionItems";
 import WeeksSelection from "./mitra-pages/WeeksSelection";
 import TitleGeneration from "./mitra-pages/TitleGeneration";
