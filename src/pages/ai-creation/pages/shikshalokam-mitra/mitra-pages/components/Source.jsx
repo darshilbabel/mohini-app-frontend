@@ -31,13 +31,14 @@ const Source = ({ source = {}, customClassNames = {} }) => {
 
           console.log({item})
           const sources = item?.sources || [];
+          const sourceUrls = sources?.map(source => source?.url)
           return (
             <Card
               key={`${item?.text}-${index}`}
               label={item?.reference || ""}
               title={item?.text || ""}
               description={source?.description || ""}
-              sourceUrl={source?.url || ""}
+              sourceUrls={sourceUrls || []}
               show={source?.chunk}
               showSourcePopup={() => {
                 setSourcePopupData({
