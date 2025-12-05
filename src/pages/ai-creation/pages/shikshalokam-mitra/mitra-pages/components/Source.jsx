@@ -5,24 +5,32 @@ import Tabs from "../../../../../../components/Tabs/Tabs";
 import SourcePopup from "./SourcePopup";
 
 const Source = ({ source = {}, customClassNames = {} }) => {
+
+  console.log("SOURCE", source)
   const [isOpenSourcePopup, setIsOpenSourcePopup] = useState(false);
   const [sourcePopupData, setSourcePopupData] = useState({});
   const showSourceTabs = useMemo(() => {
     return Object.keys(source || []).length > 0;
   }, [source]);
 
+  console.log({source})
+
   const tabTitles = useMemo(() => {
     return Object.keys(source || []);
   }, [source]);
 
   const TabBody = (sourceData) => {
+
+    console.log({sourceData})
     if (!Array.isArray(sourceData) || sourceData.length === 0) {
       return <div>No sources available</div>;
     }
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:gap-4 mt-[10px] lg:mt-0">
         {sourceData.map((item, index) => {
-          const source = item?.source || {};
+
+          console.log({item})
+          const sources = item?.sources || [];
           return (
             <Card
               key={`${item?.text}-${index}`}
@@ -33,7 +41,7 @@ const Source = ({ source = {}, customClassNames = {} }) => {
               show={source?.chunk}
               showSourcePopup={() => {
                 setSourcePopupData({
-                  ...source,
+                  sourcesList: sources,
                   label: item?.reference || "",
                 });
                 setIsOpenSourcePopup(true);
@@ -62,6 +70,9 @@ const Source = ({ source = {}, customClassNames = {} }) => {
 
   if (!showSourceTabs) return null;
 
+  console.log({sourcePopupData})
+
+
   return (
     <>
       <Collapse
@@ -74,10 +85,11 @@ const Source = ({ source = {}, customClassNames = {} }) => {
       <SourcePopup
         isOpen={isOpenSourcePopup}
         onClose={() => {
+          console.log("going here")
           setIsOpenSourcePopup(false);
           setSourcePopupData({});
         }}
-        source={sourcePopupData}
+        sourcesData={sourcePopupData}
       />
     </>
   );

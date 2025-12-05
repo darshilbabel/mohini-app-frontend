@@ -57,7 +57,7 @@ function SelectObjective({
       return typeof storedObjective === "string" ? true : false;
     }
   });
-  const [objectiveSource, setObjectiveSource] = useState({});
+  const [objectiveSource, setObjectiveSource] = useState([]);
 
   const [visibleCount, setVisibleCount] = useState(() => {
     const defaultValueToShow = 3;
@@ -97,8 +97,6 @@ function SelectObjective({
           );
           const { message = "", objective_list = [] } = fetched_objectiveList || {};
 
-          console.log({objective_list})
-
           if (
             objective_list?.length > 0
           ) {
@@ -106,9 +104,11 @@ function SelectObjective({
             setObjectiveStore(objective_list)
 
 
+
             const transformedSource = transformSource(
               objective_list
             );
+
 
             setObjectiveSourceStore(transformedSource)
             setObjectiveSource(transformedSource);

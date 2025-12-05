@@ -9,6 +9,7 @@ const Tabs = ({ tabs = [], defaultActiveTab = 0 }) => {
 
   const activeTabContent = tabs[activeTab]?.content || null;
 
+
   return (
     <div className="flex flex-col md:flex-row w-full h-full">
       {/* Mobile: Top - Tabs | Desktop: Left side - Tabs (20%) */}

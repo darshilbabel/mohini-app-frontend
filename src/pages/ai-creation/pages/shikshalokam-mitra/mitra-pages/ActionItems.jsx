@@ -128,6 +128,8 @@ function ActionItems({
           );
 
           const { message = "", action_list = [] } = fetchedActionList || {};
+
+          console.log({fetchedActionList})
           if (action_list?.length > 0) {
             setActionList(action_list);
             setActionListStore(action_list)
@@ -294,6 +296,7 @@ function ActionItems({
   if (getLoaderState(LOADER_KEYS.FETCH_ACTION_LIST)) {
     return <LoadingChat />;
   }
+
 
   return (
     <>
