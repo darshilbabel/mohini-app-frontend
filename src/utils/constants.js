@@ -3,7 +3,7 @@ import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { SESSION_USECASE_TYPE } from "constants/session"
 import env from "./env"
 
-const rootPath = env.ROOT_PATH() ? `/${env.ROOT_PATH().replace(/^\/|\/$/g, "")}` : ""
+export const rootPath = env.ROOT_PATH() ? `/${env.ROOT_PATH().replace(/^\/|\/$/g, "")}` : ""
 
 // Flow configuration
 export const FLOW_CONFIG = {

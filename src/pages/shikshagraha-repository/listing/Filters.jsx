@@ -17,7 +17,7 @@ import useVoiceRecord from "../../interview-text-voice/useVoiceRecord"
 import Notification, { showNotification } from "../../../components/ToastMessage/TotastMessage"
 /** Services and Utilities */
 import { handleS3Upload } from "../../../services/storage_service"
-import { ai4BharatASRApi } from "api/endpoints"
+import { ai4BharatASRApi } from "api/endpoints/ai"
 import { formatTime, isSilentAudio } from "pages/ShikshalokamVoiceChat/voiceToText"
 import { bot_routes } from "configure"
 

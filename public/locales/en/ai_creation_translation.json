@@ -1,0 +1,94 @@
+{
+    "common": {
+        "loadingText": "Please wait...",
+        "cancel": "Cancel",
+        "failedToCaptureSpeech": "Oops! We couldn't capture your speech. Try again.",
+        "pleaseTryAgainLater": "Please try again later!",
+        "next": "Next",
+        "continue": "Continue",
+        "select": "Select",
+        "previous": "Previous",
+        "share": "Share",
+        "download": "Download"
+    },
+    "sidebar": {
+        "newMIP": "New MIP",
+        "faq": "FAQ"
+    },
+    "header": {
+        "movementText": "A people's movement towards education equity",
+        "home": "Home",
+        "aboutUs": "About Us",
+        "initiatives": "Initiatives",
+        "shikshagrahaAwards": "Shikshagraha Awards",
+        "knowledgeHub": "Knowledge Hub",
+        "storiesOfImpact": "Stories of Impact",
+        "joinTheMovement": "Join The Movement",
+        "systemicLeadershipCollective": "Systemic Leadership Collective",
+        "youthLeadershipCollective": "Youth Leadership Collective",
+        "womenLeadershipCollective": "Women Leadership Collective",
+        "heroSectionTitle": "Shikshagraha Commons",
+        "heroSectionDescription": "A compendium of solutions shared for public use by the Shikshagraha movement partners under the Creative Commons Attribution Share-Alike license."
+    },
+    "footer": {
+        "systemicLeadershipCollective": "Systemic Leadership Collective",
+        "youthLeadershipCollective": "Youth Leadership Collective",
+        "womenLeadershipCollective": "Women Leadership Collective",
+        "aboutUs": "About Us",
+        "shikshagrahaAwards": "Shikshagraha Awards",
+        "recordYourStory": "Record Your Story",
+        "knowledgeHub": "Knowledge Hub",
+        "joinTheMovement": "Join The Movement",
+        "joinShikshagrahaDescription": "Join Shikshagraha for every step towards education",
+        "joinUs": "Join Us",
+        "shikshalokamLogoAlt": "ShikshaLokam Logo"
+    },
+    "startMipPopup": {
+        "headerText": "Start New MIP",
+        "bodyText": "Are you sure you want to start a new MIP? This will clear all your current progress.",
+        "confirmButtonText": "Yes, Start New"
+    },
+    "defineChallenge": {
+        "welcomeCardTitle": "Generate Micro Improvement Project",
+        "welcomeCardDescription": "This guided conversation will help MItra AI understand your challenges, objective and stakeholders. Based on your responses, it will suggest tasks, surveys, and observations to build your complete solution — ready to download as a Word file.",
+        "welcomeMessage": " Hello! I'm MItra, your SG-Commons AI assistant. I'm here to help you turn your challenge in the Public School and Education ecosystem into a focused, actionable plan. To get started, please define your challenge statement as clearly as you can.",
+        "placeholderDefine": "Describe your challenge here...",
+        "placeholderProcessing": "Processing... Please wait",
+        "placeholderListening": "Listening... Speak now"
+    },
+    "selectObjective": {
+        "title": "Objectives",
+        "enterObjective": "Enter your objective",
+        "selectObjective": "Select one to get started.",
+        "theseAreSomeObjectives":  "These are some objectives that could help address your challenge.",
+        "emptyObjective": "Please enter an objective!",
+        "enterObjectivePlaceholder": "Enter objectives"
+    },
+    "actionItems": {
+        "title": "Action List",
+        "takeActionItems": "Great choice! To achieve your objective, here are some actions you can take.",
+        "craftYourOwnActionPlan": "Craft your own action plan",
+        "finalizeActionList": "Finalize Action List",
+        "addEachStep": "Add each step you'd like to take.",
+        "editReorderDeleteActions": "You can edit, reorder, delete actions, or add your own to create the perfect plan!",
+        "selectOneToGetStarted": "Select one to get started.",
+        "pleaseAddAtLeastOneAction": "Please add at least one action before proceeding.",
+        "writeActionHere": "Write action here...",
+        "addAction": "Add Action",
+        "action1": "Action 1",
+        "action2": "Action 2"
+    },
+    "weeksSelection": {
+        "howManyWeeks": "How many weeks would you like to dedicate to this improvement?",
+        "slideToSelect": "Slide to select."
+    },
+    "titleGeneration": {
+        "shouldNotContainNumbers": "Title should not contain numbers or special characters.",
+        "shouldNotExceed100Characters": "The title should not exceed the 100-character limit.",
+        "titleCannotBeEmpty": "Title cannot be empty.",
+        "hereIsTheTitle": "Here is the title for your improvement journey.",
+        "youCanEditIt": "You can edit it if you'd like.",
+        "aiGeneratedTitle": "[AI-generated title]",
+        "createMicroImprovementPlan": "Create Micro-Improvement Plan"
+    }
+}
