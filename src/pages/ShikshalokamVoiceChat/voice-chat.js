@@ -171,6 +171,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const ipCity = useUserStorage()(state => state.ipCity)
   const ipState = useUserStorage()(state => state.ipState)
   const ipZipCode = useUserStorage()(state => state.ipZipCode)
+  const ipFetched = useUserStorage()(state => state.ipFetched)
 
   // chat data actions
   const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()
@@ -188,7 +189,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const { stopAllAudio, audioRef } = useAudio()
 
   const onWebSocketOpen = useCallback(() => {
-    if (!ipCity || !ipState || !ipZipCode) return
+    if (!ipFetched) return
+
     sendSocketMessage({
       type: "authenticate",
       sessionid: sessionId,
@@ -199,9 +201,13 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       route: chatLanguage,
       bot_route: getSessionRoute(),
       flow_name: storageFlow,
-      address: `${ipCity}, ${ipState}, ${ipZipCode}`,
+      address: {
+        ipCity,
+        ipState,
+        ipZipCode,
+      },
     })
-  }, [sessionId, profileToUse, projectIdStore, searchParams, taskId, accessToken, chatLanguage, storageFlow, ipCity, ipState, ipZipCode])
+  }, [sessionId, profileToUse, projectIdStore, searchParams, taskId, accessToken, chatLanguage, storageFlow, ipFetched])
 
   const onWebSocketMessage = useCallback(event => {
     const data = JSON.parse(event.data)

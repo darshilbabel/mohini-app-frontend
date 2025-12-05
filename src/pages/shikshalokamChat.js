@@ -7,7 +7,7 @@ import { setLanguage } from "../i18n"
 import { BiLoader } from "react-icons/bi"
 import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat"
 import { loginApi } from "api/endpoints/auth"
-import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
+import { useChatStorage, useUserStorage } from "hooks/useStorage"
 import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import { useSiteDataLocalStore } from "store"
 
@@ -31,11 +31,13 @@ function ShikshalokamChat({ type, variant }) {
   const setIpCountry = useUserStorage()(state => state.setIpCountry)
   const setIpState = useUserStorage()(state => state.setIpState)
   const setIpZipCode = useUserStorage()(state => state.setIpZipCode)
+  const setIpFetched = useUserStorage()(state => state.setIpFetched)
   const setIsNewChatOpen = useChatStorage()(state => state.setIsNewChatOpen)
   const setProfileId = useUserStorage()(state => state.setProfileId)
   const setSessionId = useChatStorage()(state => state.setSessionId)
   const setUserId = useUserStorage()(state => state.setUserId)
   const storageFlow = useChatStorage()(state => state.flow)
+  const ipFetched = useUserStorage()(state => state.ipFetched)
   const userId = useUserStorage()(state => state.userId)
 
   const accessToken = useUserDataLocalStore(state => state.access_token)
@@ -122,31 +124,36 @@ function ShikshalokamChat({ type, variant }) {
 
   useEffect(() => {
     const runSetup = async () => {
-      // if (accessToken) return
+      try {
+        // if (accessToken) return
 
-      if (!sessionId) {
-        // clearFromStorage(false, ["local_route"])
-        setIsLoading(true)
-        // setHasAcceptedTnc("ONGOING")
-        setIsNewChatOpen(true)
+        if (!sessionId) {
+          // clearFromStorage(false, ["local_route"])
+          setIsLoading(true)
+          // setHasAcceptedTnc("ONGOING")
+          setIsNewChatOpen(true)
 
-        const locationData = await getIpLocation()
-        if (locationData && locationData?.location) {
-          setIpState(locationData?.location?.regionName)
-          setIpCity(locationData?.location?.city)
-          setIpCountry(locationData?.location?.country)
-          setIpZipCode(locationData?.location?.zip)
+          const locationData = await getIpLocation()
+          if (locationData && locationData?.location) {
+            setIpState(locationData?.location?.regionName)
+            setIpCity(locationData?.location?.city)
+            setIpCountry(locationData?.location?.country)
+            setIpZipCode(locationData?.location?.zip)
+          }
+          setFlow(type)
+          getUserFingerPrint()
+          await setFinalLanguage()
+
+          setIsLoading(false)
         }
-        setFlow(type)
-        getUserFingerPrint()
-        await setFinalLanguage()
-
-        setIsLoading(false)
+        // else if (storageFlow && !accessToken){
+        // 	window.location.reload();
+        // }
+      } finally {
+        setIpFetched(true)
       }
-      // else if (storageFlow && !accessToken){
-      // 	window.location.reload();
-      // }
     }
+    setIpFetched(false)
     runSetup()
   }, [accessToken, sessionId])
 
@@ -157,7 +164,7 @@ function ShikshalokamChat({ type, variant }) {
           <ShikshalokamVoiceBasedChat type={"shikshalokam"} variant={"publicBot"} />
         </>
       )}
-      {isLoading && (
+      {(isLoading || !ipFetched) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />
