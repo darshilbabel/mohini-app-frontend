@@ -1,9 +1,11 @@
 import React from "react";
 import { showNotification } from "../ToastMessage/TotastMessage";
 
-const Card = ({ className = "", label, title, description, sourceUrl, show = "", showSourcePopup }) => {
-  const handleCopySourceUrl = async () => {
-    if (!sourceUrl) {
+const Card = ({ className = "", label, title, description, sourceUrls, show = "", showSourcePopup }) => {
+
+  console.log({sourceUrls})
+  const handleCopySourceUrl = async (url) => {
+    if (!url) {
       showNotification({
         message: "No source URL available to copy.",
         type: "error",
@@ -17,7 +19,7 @@ const Card = ({ className = "", label, title, description, sourceUrl, show = "",
     }
 
     try {
-      await navigator.clipboard.writeText(sourceUrl);
+      await navigator.clipboard.writeText(url);
       showNotification({
         message: "Source URL copied to clipboard!",
         type: "success",
@@ -54,10 +56,11 @@ const Card = ({ className = "", label, title, description, sourceUrl, show = "",
         <button onClick={showSourcePopup} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
           Show
         </button>
-        {!!(sourceUrl && sourceUrl?.length > 0) && (
-          <button onClick={handleCopySourceUrl} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
-            Source URL
-          </button>
+        {sourceUrls?.length > 0 && (
+          sourceUrls?.map(url => <button onClick={() => handleCopySourceUrl(url)} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
+            Source URL  
+          </button>)
+          
         )}
       </div>
     </div>

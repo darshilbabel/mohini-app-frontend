@@ -14,7 +14,7 @@ const Tabs = ({ tabs = [], defaultActiveTab = 0 }) => {
     <div className="flex flex-col md:flex-row w-full h-full">
       {/* Mobile: Top - Tabs | Desktop: Left side - Tabs (20%) */}
       <div className="w-full md:w-[20%]">
-        <div className="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-x-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex flex-row md:!flex-col lg:!flex-col gap-1 overflow-x-auto md:overflow-x-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {tabs.map((tab, index) => (
             <button
               key={index}
