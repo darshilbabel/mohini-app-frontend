@@ -13,7 +13,7 @@ import {
   saveUserChatsInDB,
   validateActionList,
 } from "../../../../../api/endpoints/chat_flow";
-import { transformSource } from "../../../utils/mitra-chat";
+import { transformActionListSources } from "../../../utils/mitra-chat";
 /* components */
 import ActionItemsList from "./components/action-items/ActionItemsList";
 import UserMessage from "./components/chat-message/UserMessage";
@@ -62,7 +62,7 @@ function ActionItems({
     const storedActionItemSource =
       useAICreationSessionStore.getState().getActionItemSource()
     if (storedActionItemSource) {
-      setActionItemSource(JSON.parse(storedActionItemSource));
+      setActionItemSource(storedActionItemSource);
     }
     if (isSelectActionItems) handleScrollIntoView();
   }, []);
@@ -129,13 +129,14 @@ function ActionItems({
 
           const { message = "", action_list = [] } = fetchedActionList || {};
 
-          console.log({fetchedActionList})
           if (action_list?.length > 0) {
             setActionList(action_list);
             setActionListStore(action_list)
-            const transformedSource = transformSource(action_list);
+
+            const transformedSource = transformActionListSources(action_list);
+
             setActionItemSource(transformedSource);
-            setActionItemSourceStore(transformSource)
+            setActionItemSourceStore(transformedSource)
             if (isSelectActionItems) handleScrollIntoView();
           } else {
             const errorMessage = message?.length > 0 ? message : (useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater"));
@@ -155,7 +156,6 @@ function ActionItems({
     }
     const storedActions = useAICreationSessionStore.getState().getActionList()
 
-    console.log({storedActions})
     if (Array.isArray(storedActions)) {
       setActionList(storedActions);
     } else {
@@ -184,6 +184,7 @@ function ActionItems({
         content: action,
       }));
 
+
       return stored_action;
     } else {
       let arrayValue = defaultActionList;
@@ -202,15 +203,17 @@ function ActionItems({
   };
 
   const isActionEmptyOrDefault = (action_to_store) => {
+
     if (!action_to_store || action_to_store.length === 0) {
       return true;
     }
 
+
     return action_to_store.some((action) => {
       return (
-        !action.content.trim() ||
+        !action.content?.step?.trim() ||
         defaultActionList.some(
-          (defaultAction) => defaultAction.content === action.content.trim()
+          (defaultAction) => defaultAction.content?.step === action.content?.step?.trim()
         )
       );
     });
@@ -218,6 +221,7 @@ function ActionItems({
 
   const handleContinueClick = async (action_to_store) => {
     try {
+
       if (isActionEmptyOrDefault(action_to_store)) {
         return;
       }
@@ -296,6 +300,7 @@ function ActionItems({
   if (getLoaderState(LOADER_KEYS.FETCH_ACTION_LIST)) {
     return <LoadingChat />;
   }
+
 
 
   return (
@@ -402,7 +407,7 @@ export function FinalActionPage({
 
   const handleInputChange = (id, value) => {
     setActionList((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, content: value } : item))
+      prev.map((item) => (item.id === id ? { ...item, content: {...item?.content, step: value} } : item))
     );
   };
 
@@ -417,6 +422,7 @@ export function FinalActionPage({
       { id: Date.now().toString(), content: "" },
     ]);
   };
+
 
   return (
     <div className="final-action-page">
@@ -465,7 +471,7 @@ export function FinalActionPage({
                             type="text"
                             placeholder={t("actionItems.writeActionHere")}
                             disabled={!isSelectActionItems}
-                            value={action?.content}
+                            value={action?.content?.step}
                             className="final-action-input"
                             onChange={(e) =>
                               handleInputChange(action.id, e.target.value)

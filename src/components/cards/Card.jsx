@@ -1,9 +1,7 @@
 import React from "react";
 import { showNotification } from "../ToastMessage/TotastMessage";
 
-const Card = ({ className = "", label, title, description, sourceUrls, show = "", showSourcePopup }) => {
-
-  console.log({sourceUrls})
+const Card = ({ className = "", label, title, description, sourceUrl, show = "", showSourcePopup }) => {
   const handleCopySourceUrl = async (url) => {
     if (!url) {
       showNotification({
@@ -56,12 +54,9 @@ const Card = ({ className = "", label, title, description, sourceUrls, show = ""
         <button onClick={showSourcePopup} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
           Show
         </button>
-        {sourceUrls?.length > 0 && (
-          sourceUrls?.map(url => <button onClick={() => handleCopySourceUrl(url)} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
+        <button onClick={() => handleCopySourceUrl(sourceUrl)} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
             Source URL  
-          </button>)
-          
-        )}
+          </button>
       </div>
     </div>
   );

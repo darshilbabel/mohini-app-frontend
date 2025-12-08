@@ -6,14 +6,13 @@ import SourcePopup from "./SourcePopup";
 
 const Source = ({ source = {}, customClassNames = {} }) => {
 
-  console.log("SOURCE", source)
+
   const [isOpenSourcePopup, setIsOpenSourcePopup] = useState(false);
   const [sourcePopupData, setSourcePopupData] = useState({});
   const showSourceTabs = useMemo(() => {
     return Object.keys(source || []).length > 0;
   }, [source]);
 
-  console.log({source})
 
   const tabTitles = useMemo(() => {
     return Object.keys(source || []);
@@ -21,7 +20,6 @@ const Source = ({ source = {}, customClassNames = {} }) => {
 
   const TabBody = (sourceData) => {
 
-    console.log({sourceData})
     if (!Array.isArray(sourceData) || sourceData.length === 0) {
       return <div>No sources available</div>;
     }
@@ -29,21 +27,22 @@ const Source = ({ source = {}, customClassNames = {} }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:gap-4 mt-[10px] lg:mt-0">
         {sourceData.map((item, index) => {
 
-          console.log({item})
-          const sources = item?.sources || [];
-          const sourceUrls = sources?.map(source => source?.url)
+
+          const sourceUrl = item?.currentSource?.url;
+
           return (
             <Card
               key={`${item?.text}-${index}`}
               label={item?.reference || ""}
-              title={item?.text || ""}
+              title={item?.currentSource?.title || item?.text || ""}
               description={source?.description || ""}
-              sourceUrls={sourceUrls || []}
+              sourceUrl={sourceUrl || ""}
               show={source?.chunk}
               showSourcePopup={() => {
                 setSourcePopupData({
-                  sourcesList: sources,
                   label: item?.reference || "",
+                  chunksList: item?.chunks,
+                  currentSource: item?.currentSource
                 });
                 setIsOpenSourcePopup(true);
               }}
@@ -63,6 +62,7 @@ const Source = ({ source = {}, customClassNames = {} }) => {
     ) {
       return [];
     }
+
     return tabTitles?.map((organizationKey) => ({
       label: organizationKey,
       content: TabBody(source[organizationKey] || []),
@@ -71,7 +71,6 @@ const Source = ({ source = {}, customClassNames = {} }) => {
 
   if (!showSourceTabs) return null;
 
-  console.log({sourcePopupData})
 
 
   return (
@@ -86,7 +85,6 @@ const Source = ({ source = {}, customClassNames = {} }) => {
       <SourcePopup
         isOpen={isOpenSourcePopup}
         onClose={() => {
-          console.log("going here")
           setIsOpenSourcePopup(false);
           setSourcePopupData({});
         }}

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FiArrowLeft } from "react-icons/fi";
 import { HiMenu, HiX } from "react-icons/hi";
+import { rootPath } from "utils/constants";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL || "https://shikshagraha.org";
 
@@ -30,7 +31,7 @@ export default function Header({
   onSidebarToggle,
   isSidebarOpen = false,
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai_creation_translation");
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -75,7 +76,7 @@ export default function Header({
                 data-doc-height={1}
                 role="banner"
                 className="navbar-2 w-nav"
-                style={{ zIndex: 90 }}
+                style={{ zIndex: 40 }}
               >
                 <div className="header-container">
                   <a
@@ -126,7 +127,7 @@ export default function Header({
           >
             <button
               className="bg-transparent w-fit p-0 border-0 cursor-pointer inline-flex items-center justify-center"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/`)}
             >
               <FiArrowLeft className="w-8 h-8 text-[#1E1E1E]" />
             </button>
