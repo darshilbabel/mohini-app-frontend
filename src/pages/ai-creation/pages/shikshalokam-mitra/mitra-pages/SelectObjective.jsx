@@ -113,7 +113,6 @@ function SelectObjective({
             setObjectiveSourceStore(transformedSource)
             setObjectiveSource(transformedSource);
 
-            console.log({objective_list})
 
             setChunksStore(objective_list?.chunks)
             // setIsLoading(false);
@@ -149,7 +148,6 @@ function SelectObjective({
     }
 
     const storedObjectiveSource = useAICreationSessionStore.getState().getObjectiveSource();
-    console.log({storedObjective})
     if (storedObjectiveSource) {
       setObjectiveSource(storedObjectiveSource);
     }
@@ -185,7 +183,7 @@ function SelectObjective({
     if (userSelectedObjective?.trim()?.length > 0) {
       setErrorText("");
       // setIsLoading(true);
-      setObjectiveList(userSelectedObjective);
+      // setObjectiveList([userSelectedObjective]);
       setSelectedObjectiveStore(userSelectedObjective)
       const currentSession = useAICreationSessionStore.getState().getSession();
       const botMessage = hasClickedOnAddmore
@@ -201,7 +199,6 @@ function SelectObjective({
             messageId: "4_0",
           };
 
-      console.log("cccc", useAICreationSessionStore.getState().getChunks())
 
       const chunks = JSON.parse(useAICreationSessionStore.getState().getChunks());
 

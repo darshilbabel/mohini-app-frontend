@@ -49,8 +49,6 @@ const mappedObjectives = objectiveList.map(obj => {
   };
 });
 
-console.log({objectiveSource})
-
 
   return (
     <div className="objective-list-div">

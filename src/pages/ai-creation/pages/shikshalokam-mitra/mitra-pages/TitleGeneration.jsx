@@ -188,7 +188,7 @@ function TitleGeneration({
           const project_duration = useAICreationSessionStore.getState().getSelectedWeek();
           const user_objective = useAICreationSessionStore.getState().getSelectedObjective();
           const user_action_list =
-            useAICreationSessionStore.getState().getSelectedAction()[0]?.actionSteps;
+            useAICreationSessionStore.getState().getSelectedAction()[0]?.actionSteps?.map(step => step?.step);
           // const access_token = getEncodedSessionStorage(
           //   process.env.REACT_APP_ACCESS_TOKEN_KEY
           // );
