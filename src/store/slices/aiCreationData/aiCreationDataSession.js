@@ -7,7 +7,7 @@ const initialState = INITIAL_STATE;
 
 const useAICreationSessionStore = create(
     createSessionStore(
-        STORE_NAME_CONSTANTS.CHAT_DATA,
+        STORE_NAME_CONSTANTS.AI_CREATION_DATA,
         initialState 
     )
 )
