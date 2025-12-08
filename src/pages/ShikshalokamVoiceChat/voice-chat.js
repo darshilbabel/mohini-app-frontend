@@ -133,7 +133,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // const introMessageRef = useRef(null);
 
   // ========== Other Hooks ==========
-  const [chatHistory, setChatHistory, removeChatHistory] = useSmartChatStorage()
+  const [chatHistory, setChatHistory, removeChatHistory, getChatHistory] = useSmartChatStorage()
   const [searchParams] = useSearchParams()
   const { t } = useTranslation()
 
@@ -188,8 +188,31 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const { showGuestPopup, showConfirmationPopup } = useConfirmationPopup()
   const { stopAllAudio, audioRef } = useAudio()
 
+  const onFinalReconnectAttempt = useCallback(() => {
+    showConfirmationPopup(() => {
+      if (accessToken) {
+        clearFromStorage()
+        navigate(-1)
+      } else {
+        ResetChat()
+      }
+    })
+  }, [])
+
+  const onWebSocketClose = useCallback(event => {
+    console.log("closed", event)
+  }, [])
+
+  const onWebSocketError = useCallback(error => {
+    console.log("error", error)
+  }, [])
+
   const onWebSocketOpen = useCallback(() => {
     if (!ipFetched) return
+    const chat_history = getChatHistory()
+
+    if (chat_history.filter(chat => chat.source === "user").length < 1) return
+    // if (!isFreshConnection) return
 
     sendSocketMessage({
       type: "authenticate",
@@ -246,7 +269,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
   }, [])
 
-  const { sendMessage: sendSocketMessage } = useChatWebhook(
+  const {
+    sendMessage: sendSocketMessage,
+    connect: connectToWebSocket,
+    isFreshConnection,
+  } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
       storageFlow,
@@ -256,6 +283,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     {
       onOpen: onWebSocketOpen,
       onMessage: onWebSocketMessage,
+      onClose: onWebSocketClose,
+      onError: onWebSocketError,
+      onFinalReconnectAttempt,
+      autoConnect: false,
     }
   )
 
@@ -608,7 +639,26 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
     if (!textMessage.trim()) return
 
-    handleMessagesForUser(textMessage)
+    const chat_history = handleMessagesForUser(textMessage)
+    if (chat_history.filter(chat => chat.source === "user").length == 1) {
+      connectToWebSocket()
+      sendSocketMessage({
+        type: "authenticate",
+        sessionid: sessionId,
+        profileid: profileToUse,
+        projectid: projectIdStore || searchParams.get("projectId") || "",
+        taskid: searchParams.get("taskId") || taskId,
+        access_token: accessToken,
+        route: chatLanguage,
+        bot_route: getSessionRoute(),
+        flow_name: storageFlow,
+        address: {
+          ipCity,
+          ipState,
+          ipZipCode,
+        },
+      })
+    }
     sendSocketMessage({
       text: textMessage,
       context: "",
@@ -774,6 +824,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     },
     [chatHistory]
   )
+
+  // useEffect(() => {
+  //   const chat_history = chatHistory.filter(chat => chat.source === "user").length > 1
+  // }, [isFreshConnection, chatHistory])
 
   useEffect(() => {
     if (chatHistory.length > 1) {
