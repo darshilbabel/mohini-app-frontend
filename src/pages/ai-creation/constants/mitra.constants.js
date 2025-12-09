@@ -12,4 +12,4 @@ export const CONVERSATION_USER_TYPES = {
 export const DEFAULT_BOT_IMAGE_URL =
     "https://static-media.gritworks.ai/fe-images/GIF/Shikshalokam/bot_profile_image.gif";
 
-export const DEFAULT_USER_IMAGE_URL = "/create-project/images/defaultImage.png";
+export const DEFAULT_USER_IMAGE_URL = "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/defaultImage.png";
