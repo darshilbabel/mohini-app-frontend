@@ -26,6 +26,8 @@ export const INITIAL_STATE = (set, get, store) => ({
 
   setChatHistory: chatHistory => set({ chatHistory }),
 
+  getChatHistory: () => get().chatHistory,
+
   setIntroMessage: introMessage => set({ introMessage }),
 
   getIntroMessage: () => get().introMessage,

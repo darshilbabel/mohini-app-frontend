@@ -23,3 +23,8 @@ yarn-debug.log*
 yarn-error.log*
 .env-cmdrc
 .env
+
+# playwright reports
+downloads/
+test-results/
+playwright-report/

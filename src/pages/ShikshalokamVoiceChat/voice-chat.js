@@ -133,7 +133,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // const introMessageRef = useRef(null);
 
   // ========== Other Hooks ==========
-  const [chatHistory, setChatHistory, removeChatHistory] = useSmartChatStorage()
+  const [chatHistory, setChatHistory, removeChatHistory, getChatHistory] = useSmartChatStorage()
   const [searchParams] = useSearchParams()
   const { t } = useTranslation()
 
@@ -188,8 +188,29 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const { showGuestPopup, showConfirmationPopup } = useConfirmationPopup()
   const { stopAllAudio, audioRef } = useAudio()
 
+  const onFinalReconnectAttempt = useCallback(() => {
+    showConfirmationPopup(() => {
+      if (accessToken) {
+        clearFromStorage()
+        navigate(-1)
+      } else {
+        resetChat()
+      }
+    })
+  }, [])
+
+  const onWebSocketClose = useCallback(event => {
+    console.log("closed", event)
+  }, [])
+
+  const onWebSocketError = useCallback(error => {
+    console.log("error", error)
+  }, [])
+
   const onWebSocketOpen = useCallback(() => {
-    if (!ipFetched) return
+    const chat_history = getChatHistory()
+
+    if (chat_history.filter(chat => chat.source === "user").length < 1) return
 
     sendSocketMessage({
       type: "authenticate",
@@ -246,7 +267,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
   }, [])
 
-  const { sendMessage: sendSocketMessage } = useChatWebhook(
+  const {
+    sendMessage: sendSocketMessage,
+    connect: connectToWebSocket,
+    isFreshConnection,
+  } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
       storageFlow,
@@ -256,6 +281,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     {
       onOpen: onWebSocketOpen,
       onMessage: onWebSocketMessage,
+      onClose: onWebSocketClose,
+      onError: onWebSocketError,
+      onFinalReconnectAttempt,
+      autoConnect: false,
     }
   )
 
@@ -608,7 +637,26 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
     if (!textMessage.trim()) return
 
-    handleMessagesForUser(textMessage)
+    const chat_history = handleMessagesForUser(textMessage)
+    if (chat_history.filter(chat => chat.source === "user").length == 1) {
+      connectToWebSocket()
+      sendSocketMessage({
+        type: "authenticate",
+        sessionid: sessionId,
+        profileid: profileToUse,
+        projectid: projectIdStore || searchParams.get("projectId") || "",
+        taskid: searchParams.get("taskId") || taskId,
+        access_token: accessToken,
+        route: chatLanguage,
+        bot_route: getSessionRoute(),
+        flow_name: storageFlow,
+        address: {
+          ipCity,
+          ipState,
+          ipZipCode,
+        },
+      })
+    }
     sendSocketMessage({
       text: textMessage,
       context: "",
@@ -1225,10 +1273,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (storageFlow && [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow)) {
       return
     }
+    // if (sentences.filter(sent => !sent.isNarrated).length > 0) return
     if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
     }
-  }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow])
+  }, [isStreamingComplete, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow, sentences])
 
   useEffect(() => {
     const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot"
@@ -2062,7 +2111,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     window.location.reload()
   }
 
-  async function ResetChat(e) {
+  async function resetChat(e) {
     if (e) {
       e.preventDefault()
     }
@@ -2570,7 +2619,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     function changeSelectedValue(value, e) {
       if (value === "") value = selectedLabel?.types[0]?.value
       setSelectedType(value)
-      ResetChat(e)
+      resetChat(e)
     }
     if ([sessionFlowName.GuestMiStory].includes(storageFlow)) {
       showGuestPopup(() => changeSelectedValue(value, e), stayOnPage)
@@ -2696,7 +2745,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
       {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && isSpecialFlow && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={`div27 ${isOpen && " div70"}`}>
-        <div className={`div28 ${isOpen ? "div29" : ""}`}>{isShikshalokamPublicType && storageFlow && !isSpecialFlow && <Sidebar isOpen={isOpen} toggle={setIsOpen} isMobileFirst={true} showScrollbarContent={accessToken && showScrollbarContent} resetChat={ResetChat} setIsResetCalled={setIsResetCalled} languageToUse={languageToUse} stopAllAudio={stopAllAudio} />}</div>
+        <div className={`div28 ${isOpen ? "div29" : ""}`}>{isShikshalokamPublicType && storageFlow && !isSpecialFlow && <Sidebar isOpen={isOpen} toggle={setIsOpen} isMobileFirst={true} showScrollbarContent={accessToken && showScrollbarContent} resetChat={resetChat} setIsResetCalled={setIsResetCalled} languageToUse={languageToUse} stopAllAudio={stopAllAudio} />}</div>
         {isOpen && <div className="div7" onClick={() => setIsOpen(false)}></div>}
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
@@ -2710,11 +2759,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                     if (isSpecialFlow) {
                       showGuestPopup(() => {
                         if (isSpecialFlow) setBotName(null)
-                        ResetChat()
+                        resetChat()
                       }, stayOnPage)
                     } else {
                       setIsResetCalled(true)
-                      await ResetChat(e)
+                      await resetChat(e)
                     }
                   }}
                   className="div32"
@@ -2984,7 +3033,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                         <div className="download-story-div">
                           <FiDownload className="icon-1" />
                           <span className="div16" ref={endPageToScrollRef}>
-                            {storageFlow && !accessToken ? t("downloadReportText") : t("downloadStoryText")}
+                            {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("downloadReportText") : t("downloadStoryText")}
                           </span>
                         </div>
                       </button>
@@ -2997,7 +3046,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                       <div className="download-story-div">
                         <MdEdit className="icon-1" />
                         <span className="div16" ref={endPageToScrollRef}>
-                          {storageFlow && !accessToken ? t("editReportText") : t("editStoryText")}
+                          {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("editReportText") : t("editStoryText")}
                         </span>
                       </div>
                     </button>
@@ -3045,7 +3094,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                   <div className="download-story-div">
                     <TbReload className="icon-1" />
                     <span className="div16" ref={endPageToScrollRef}>
-                      {storageFlow && !accessToken ? t("reDownloadReportText") : t("reDownloadStoryText")}
+                      {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reDownloadReportText") : t("reDownloadStoryText")}
                     </span>
                   </div>
                 </button>
