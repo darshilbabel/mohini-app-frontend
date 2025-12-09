@@ -194,7 +194,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         clearFromStorage()
         navigate(-1)
       } else {
-        ResetChat()
+        resetChat()
       }
     })
   }, [])
@@ -208,11 +208,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }, [])
 
   const onWebSocketOpen = useCallback(() => {
-    if (!ipFetched) return
     const chat_history = getChatHistory()
 
     if (chat_history.filter(chat => chat.source === "user").length < 1) return
-    // if (!isFreshConnection) return
 
     sendSocketMessage({
       type: "authenticate",
@@ -825,10 +823,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     [chatHistory]
   )
 
-  // useEffect(() => {
-  //   const chat_history = chatHistory.filter(chat => chat.source === "user").length > 1
-  // }, [isFreshConnection, chatHistory])
-
   useEffect(() => {
     if (chatHistory.length > 1) {
       setShowHomepage(false)
@@ -1279,12 +1273,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (storageFlow && [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow)) {
       return
     }
-    console.log(
-      "unnarated messages",
-      sentences.filter(sent => !sent.isNarrated)
-    )
-    console.log({ strandStep, stateMachineLength })
-    if (sentences.filter(sent => !sent.isNarrated).length > 0) return
+    // if (sentences.filter(sent => !sent.isNarrated).length > 0) return
     if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
     }
@@ -2122,7 +2111,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     window.location.reload()
   }
 
-  async function ResetChat(e) {
+  async function resetChat(e) {
     if (e) {
       e.preventDefault()
     }
@@ -2630,7 +2619,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     function changeSelectedValue(value, e) {
       if (value === "") value = selectedLabel?.types[0]?.value
       setSelectedType(value)
-      ResetChat(e)
+      resetChat(e)
     }
     if ([sessionFlowName.GuestMiStory].includes(storageFlow)) {
       showGuestPopup(() => changeSelectedValue(value, e), stayOnPage)
@@ -2756,7 +2745,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
       {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && isSpecialFlow && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={`div27 ${isOpen && " div70"}`}>
-        <div className={`div28 ${isOpen ? "div29" : ""}`}>{isShikshalokamPublicType && storageFlow && !isSpecialFlow && <Sidebar isOpen={isOpen} toggle={setIsOpen} isMobileFirst={true} showScrollbarContent={accessToken && showScrollbarContent} resetChat={ResetChat} setIsResetCalled={setIsResetCalled} languageToUse={languageToUse} stopAllAudio={stopAllAudio} />}</div>
+        <div className={`div28 ${isOpen ? "div29" : ""}`}>{isShikshalokamPublicType && storageFlow && !isSpecialFlow && <Sidebar isOpen={isOpen} toggle={setIsOpen} isMobileFirst={true} showScrollbarContent={accessToken && showScrollbarContent} resetChat={resetChat} setIsResetCalled={setIsResetCalled} languageToUse={languageToUse} stopAllAudio={stopAllAudio} />}</div>
         {isOpen && <div className="div7" onClick={() => setIsOpen(false)}></div>}
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
@@ -2770,11 +2759,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                     if (isSpecialFlow) {
                       showGuestPopup(() => {
                         if (isSpecialFlow) setBotName(null)
-                        ResetChat()
+                        resetChat()
                       }, stayOnPage)
                     } else {
                       setIsResetCalled(true)
-                      await ResetChat(e)
+                      await resetChat(e)
                     }
                   }}
                   className="div32"
@@ -3044,7 +3033,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                         <div className="download-story-div">
                           <FiDownload className="icon-1" />
                           <span className="div16" ref={endPageToScrollRef}>
-                            {storageFlow && !accessToken ? t("downloadReportText") : t("downloadStoryText")}
+                            {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("downloadReportText") : t("downloadStoryText")}
                           </span>
                         </div>
                       </button>
@@ -3057,7 +3046,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                       <div className="download-story-div">
                         <MdEdit className="icon-1" />
                         <span className="div16" ref={endPageToScrollRef}>
-                          {storageFlow && !accessToken ? t("editReportText") : t("editStoryText")}
+                          {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("editReportText") : t("editStoryText")}
                         </span>
                       </div>
                     </button>
@@ -3105,7 +3094,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                   <div className="download-story-div">
                     <TbReload className="icon-1" />
                     <span className="div16" ref={endPageToScrollRef}>
-                      {storageFlow && !accessToken ? t("reDownloadReportText") : t("reDownloadStoryText")}
+                      {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reDownloadReportText") : t("reDownloadStoryText")}
                     </span>
                   </div>
                 </button>

@@ -22,7 +22,7 @@ export const useChatWebhook = (url, options = {}) => {
 
       ws.current.onopen = event => {
         setIsConnected(true)
-        if (socketQueue.current.length > 0) {
+        if (socketQueue.current.length) {
           socketQueue.current.forEach(message => {
             ws.current.send(typeof message === "string" ? message : JSON.stringify(message))
           })
@@ -47,10 +47,7 @@ export const useChatWebhook = (url, options = {}) => {
 
         // Reconnect logic
         if (reconnect && reconnectCount.current < reconnectAttempts) {
-          console.log(reconnectCount.current, "reconnectCount.current")
           reconnectCount.current = reconnectCount.current + 1
-          console.log(reconnectCount.current, "reconnectCount.current")
-          console.log(reconnectAttempts, "reconnectAttempts")
           reconnectTimeout.current = setTimeout(() => {
             connect()
           }, reconnectInterval)
