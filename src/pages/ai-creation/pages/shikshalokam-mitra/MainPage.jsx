@@ -471,39 +471,6 @@ function clearExcept(keepKeys = ["accToken", "name", "image", "email"]) {
   });
 }
 
-export function clearMitraLocalStorage(avoidLogout = false) {
-  sessionStorage.removeItem("actionList");
-  sessionStorage.removeItem("currentPage");
-  sessionStorage.removeItem("isReadOnly");
-  sessionStorage.removeItem("objective");
-  sessionStorage.removeItem("project_title");
-  sessionStorage.removeItem("selected_week");
-  sessionStorage.removeItem("session");
-  sessionStorage.removeItem("user_problem_statement");
-  sessionStorage.removeItem("paraphrased_problem");
-  sessionStorage.removeItem("user_text");
-  sessionStorage.removeItem("selected_action");
-  sessionStorage.removeItem("savedMessages");
-  sessionStorage.removeItem("selected_objective");
-  sessionStorage.removeItem("savedMessages");
-  sessionStorage.removeItem("profile_id");
-  sessionStorage.removeItem("chunks");
-  sessionStorage.removeItem("errorText");
-  sessionStorage.removeItem("hasClickedObjAddMore");
-  sessionStorage.removeItem("botName");
-  sessionStorage.removeItem("chat_history");
-  sessionStorage.removeItem("company");
-  sessionStorage.removeItem("first_name");
-  sessionStorage.removeItem("intro_message");
-  sessionStorage.removeItem("isChatVisible");
-  sessionStorage.removeItem("isNewChatOpen");
-  sessionStorage.removeItem("profileid");
-  sessionStorage.removeItem("route");
-  sessionStorage.removeItem("state");
-  sessionStorage.removeItem("intro_end_context");
-  sessionStorage.removeItem("end_context");
-  sessionStorage.removeItem("system_error");
-  sessionStorage.removeItem("objective_source");
-  sessionStorage.removeItem("action_item_source");
-  sessionStorage.removeItem("media");
+export function clearMitraSessionStorage(avoidLogout = false) {
+  sessionStorage.removeItem("aiCreationData");
 }

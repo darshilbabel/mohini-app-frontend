@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import useVoiceRecord from "../../text-voice/useVoiceRecord";
 import { useAudio } from "../../../../../hooks/useAudio";
 /* utils and api services */
-import { clearMitraLocalStorage, ShowLoader } from "../MainPage";
+import { clearMitraSessionStorage, ShowLoader } from "../MainPage";
 import {
   getNewSessionID,
   saveUserChatsInDB,
@@ -396,12 +396,12 @@ const DefineChallenge = ({
           setCompanyStore(data?.company?.slug)
           setUserName(JSON.stringify(data?.first_name));
         } else {
-          clearMitraLocalStorage();
+          clearMitraSessionStorage();
           navigate(-1);
         }
       } catch (error) {
         console.error(error?.response?.data || error);
-        clearMitraLocalStorage();
+        clearMitraSessionStorage();
       } finally {
         setIsLocalLoading(false);
       }

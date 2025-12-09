@@ -5,7 +5,7 @@ import Popup from "../../../../../components/Popup/index";
 
 import "../stylesheet/chatStyle.css";
 import { useNavigate } from "react-router-dom";
-import { clearMitraLocalStorage } from "../MainPage";
+import { clearMitraSessionStorage } from "../MainPage";
 import {
   getBodyText,
   getConfirmText,
@@ -29,7 +29,7 @@ function Header({
   const language = preferredLanguage.value || "en";
 
   const handleClosing = () => {
-    clearMitraLocalStorage();
+    clearMitraSessionStorage();
     window.location.href = ROUTES.LOGIN;
   };
 

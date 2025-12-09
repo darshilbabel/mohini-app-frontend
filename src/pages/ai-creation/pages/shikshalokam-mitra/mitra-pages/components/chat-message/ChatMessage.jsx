@@ -87,7 +87,7 @@ export default ChatMessage;
                   <button
                     className="firstpage-confirm-button"
                     onClick={() => {
-                      clearMitraLocalStorage();
+                      clearMitraSessionStorage();
                       window.location.href =
                         process.env.REACT_APP_ROUTE_EXPLORE;
                     }}

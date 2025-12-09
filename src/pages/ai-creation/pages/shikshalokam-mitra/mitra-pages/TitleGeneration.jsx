@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 /* utils and api services */
-import { clearMitraLocalStorage } from "../MainPage";
+import { clearMitraSessionStorage } from "../MainPage";
 
 import {
   createProject,
@@ -23,6 +23,7 @@ import ROUTES from "../../../../../url";
 import "../stylesheet/chatStyle.css";
 import { useNavigate } from "react-router-dom";
 import { useAICreationSessionStore } from "store";
+import { rootPath } from "utils/constants";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 function TitleGeneration({
@@ -219,11 +220,13 @@ function TitleGeneration({
             mitra_result || {};
 
           if (status?.toLowerCase() === "ok") {
-            clearMitraLocalStorage();
+              // Clear the Zustand store and its persisted storage
+            useAICreationSessionStore.persist.clearStorage();
+            useAICreationSessionStore.getState().reset();
+
+            clearMitraSessionStorage();
             setMediaStore(media)
-            // window.location.replace(
-            //   `/${ROUTES.IMPROVEMENT_PLAN}`
-            // );
+
             navigate(ROUTES.IMPROVEMENT_PLAN)
 
           }

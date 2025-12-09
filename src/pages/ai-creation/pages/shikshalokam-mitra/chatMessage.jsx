@@ -7,7 +7,7 @@ import {
   getDenyButtonTranslation,
   getExploreTranslation,
 } from "./question script/firstpage_translation";
-import { clearMitraLocalStorage } from "./MainPage";
+import { clearMitraSessionStorage } from "./MainPage";
 import ROUTES from "../../../../url";
 import { useAICreationSessionStore } from "store";
 
@@ -128,7 +128,7 @@ export function BotMessage({
               <button
                 className="firstpage-confirm-button"
                 onClick={() => {
-                  clearMitraLocalStorage();
+                  clearMitraSessionStorage();
                   window.location.href = ROUTES.EXPLORE;
                 }}
               >
