@@ -57,7 +57,7 @@ test.describe("YLC Flow - Happy Path", () => {
       for (let i = 0; i < YLC_CHAT_CONVERSATION_EN.length; i++) {
         await chatInterfacePage.sendMessage(YLC_CHAT_CONVERSATION_EN[i])
         await chatInterfacePage.wait(10000)
-        if (i != YLC_CHAT_CONVERSATION_EN.length - 1) {
+        if (i !== YLC_CHAT_CONVERSATION_EN.length - 1) {
           await chatInterfacePage.waitForChatContainerCount(2 * i + 3, 20000)
         }
       }
@@ -76,7 +76,7 @@ test.describe("YLC Flow - Happy Path", () => {
 
     await test.step("Edit story", async () => {
       await chatInterfacePage.waitForReportButton()
-      await chatInterfacePage.openEditory()
+      await chatInterfacePage.openEditor()
       await chatInterfacePage.waitForEditorSaveButton()
       await chatInterfacePage.saveEditor()
       await chatInterfacePage.waitForReportButton()

@@ -1,6 +1,6 @@
-import { Page, Locator } from '@playwright/test';
-import { BasePage } from './base.page';
-import path from 'path';
+import { Page, Locator } from "@playwright/test"
+import { BasePage } from "./base.page"
+import path from "path"
 
 /**
  * ChatInterfacePage handles interactions with the chat interface
@@ -8,84 +8,84 @@ import path from 'path';
  */
 export class ChatInterfacePage extends BasePage {
   // Locators
-  private readonly chatContainer: Locator;
-  private readonly messageInput: Locator;
-  private readonly sendButton: Locator;
-  private readonly chatMessages: Locator;
-  private readonly userMessages: Locator;
-  private readonly botMessages: Locator;
-  private readonly loadingIndicator: Locator;
-  private readonly chatCompleteIndicator: Locator;
-  private readonly viewStoryButton: Locator;
-  private readonly termsAndConditionsContainer: Locator;
-  private readonly termsAndConditionsButton: Locator;
-  private readonly introMessage: Locator;
-  private readonly uploadImageInput: Locator;
-  private readonly uploadedImage: Locator;
-  private readonly reportButton: Locator;
-  private readonly editorSaveButton: Locator;
+  private readonly chatContainer: Locator
+  private readonly messageInput: Locator
+  private readonly sendButton: Locator
+  private readonly chatMessages: Locator
+  private readonly userMessages: Locator
+  private readonly botMessages: Locator
+  private readonly loadingIndicator: Locator
+  private readonly chatCompleteIndicator: Locator
+  private readonly viewStoryButton: Locator
+  private readonly termsAndConditionsContainer: Locator
+  private readonly termsAndConditionsButton: Locator
+  private readonly introMessage: Locator
+  private readonly uploadImageInput: Locator
+  private readonly uploadedImage: Locator
+  private readonly reportButton: Locator
+  private readonly editorSaveButton: Locator
 
   /**
    * Constructor for ChatInterfacePage
    * @param page - Playwright Page object
    */
   constructor(page: Page) {
-    super(page);
-    
+    super(page)
+
     // Initialize locators - these should be updated based on actual application selectors
-    this.chatContainer = page.locator('li.div34.div35.label1');
-    this.messageInput = page.locator('textarea#textBoxID.input-2.input-1');
-    this.sendButton = page.locator('button.button-6.sm\\:ml-\\[1\\.3rem\\].ml-\\[0\\.8rem\\]');
-    this.chatMessages = page.locator('[data-testid="chat-message"]');
-    this.userMessages = page.locator('[data-testid="user-message"]');
-    this.botMessages = page.locator('[data-testid="bot-message"]');
-    this.loadingIndicator = page.locator('[data-testid="loading-indicator"]');
-    this.chatCompleteIndicator = page.locator('[data-testid="chat-complete"]');
-    this.viewStoryButton = page.locator('[data-testid="view-story-button"]');
-    this.termsAndConditionsContainer = page.locator('div.tnc-cover');
-    this.termsAndConditionsButton = page.locator('button.tnc-button.accept');
+    this.chatContainer = page.locator("li.div34.div35.label1")
+    this.messageInput = page.locator("textarea#textBoxID.input-2.input-1")
+    this.sendButton = page.locator("button.button-6.sm\\:ml-\\[1\\.3rem\\].ml-\\[0\\.8rem\\]")
+    this.chatMessages = page.locator('[data-testid="chat-message"]')
+    this.userMessages = page.locator('[data-testid="user-message"]')
+    this.botMessages = page.locator('[data-testid="bot-message"]')
+    this.loadingIndicator = page.locator('[data-testid="loading-indicator"]')
+    this.chatCompleteIndicator = page.locator('[data-testid="chat-complete"]')
+    this.viewStoryButton = page.locator('[data-testid="view-story-button"]')
+    this.termsAndConditionsContainer = page.locator("div.tnc-cover")
+    this.termsAndConditionsButton = page.locator("button.tnc-button.accept")
     this.introMessage = page.locator("#intro_msg_id")
-    this.uploadImageInput = page.locator('input#file-upload[type="file"]');
-    this.uploadedImage = page.locator('li.li-2');
-    this.reportButton = page.locator('div.div20 > button.clickable-button');
+    this.uploadImageInput = page.locator('input#file-upload[type="file"]')
+    this.uploadedImage = page.locator("li.li-2")
+    this.reportButton = page.locator("div.div20 > button.clickable-button")
     this.editorSaveButton = page.locator("div.editor-button-div > button")
   }
 
   async waitForUploadImageInput(): Promise<void> {
-    await this.waitForElement(this.uploadImageInput, 30000);
+    await this.waitForElement(this.uploadImageInput, 30000)
   }
 
   async waitForEditorSaveButton(): Promise<void> {
-    await this.waitForElement(this.editorSaveButton, 30000);
+    await this.waitForElement(this.editorSaveButton, 30000)
   }
 
   async saveEditor(): Promise<void> {
-    await this.clickElement(this.editorSaveButton);
+    await this.clickElement(this.editorSaveButton)
   }
 
   async downloadReport(file_name: string | undefined = undefined): Promise<void> {
     const downloadPromise = this.page.waitForEvent("download")
-    await this.clickElement(this.reportButton.first());
+    await this.clickElement(this.reportButton.first())
     const download = await downloadPromise
 
-    await download.saveAs(path.join(process.cwd(), "downloads", file_name || await download.suggestedFilename()));
+    await download.saveAs(path.join(process.cwd(), "downloads", file_name || (await download.suggestedFilename())))
   }
 
   async waitForReportButton(): Promise<void> {
-    await this.waitForElement(this.reportButton.first(), 30000);
+    await this.waitForElement(this.reportButton.first(), 30000)
   }
 
-  async openEditory(): Promise<void> {
-    await this.clickElement(this.reportButton.nth(1));
+  async openEditor(): Promise<void> {
+    await this.clickElement(this.reportButton.nth(1))
   }
 
   async getImageCount(): Promise<number> {
-    return await this.uploadedImage.count();
+    return await this.uploadedImage.count()
   }
 
   async uploadImage(file_name: string): Promise<void> {
     const fileChooserPromise = this.page.waitForEvent("filechooser")
-    await this.clickElement(this.uploadImageInput);
+    await this.clickElement(this.uploadImageInput)
     const fileChooser = await fileChooserPromise
     await fileChooser.setFiles(path.join(__dirname, "..", "static", file_name))
   }
@@ -94,9 +94,9 @@ export class ChatInterfacePage extends BasePage {
    * Wait for chat interface to be fully loaded
    */
   async waitForChatInterfaceLoad(): Promise<void> {
-    await this.waitForElement(this.introMessage, 50000);
-    await this.waitForElement(this.messageInput);
-    await this.waitForPageLoad();
+    await this.waitForElement(this.introMessage, 50000)
+    await this.waitForElement(this.messageInput)
+    await this.waitForPageLoad()
   }
 
   /**
@@ -107,21 +107,21 @@ export class ChatInterfacePage extends BasePage {
   async waitForChatContainerCount(count: number = 3, timeout: number = 10000): Promise<void> {
     await this.page.waitForFunction(
       ({ selector, expectedCount }) => {
-        return document.querySelectorAll(selector).length >= expectedCount;
+        return document.querySelectorAll(selector).length >= expectedCount
       },
-      { selector: 'li.div34.div35.label1', expectedCount: count },
+      { selector: "li.div34.div35.label1", expectedCount: count },
       { timeout }
-    );
+    )
   }
 
   async waitForUploadedImage(): Promise<void> {
-    await this.waitForElement(this.uploadedImage, 60000);
+    await this.waitForElement(this.uploadedImage, 60000)
   }
 
   async removeUploadedImage(count: number = 0): Promise<void> {
-    const imageEntry = this.uploadedImage.nth(count);
-    const removeButton = imageEntry.locator('button');
-    await this.clickElement(removeButton);
+    const imageEntry = this.uploadedImage.nth(count)
+    const removeButton = imageEntry.locator("button")
+    await this.clickElement(removeButton)
   }
 
   /**
@@ -129,14 +129,13 @@ export class ChatInterfacePage extends BasePage {
    * @returns True if on guest chat route
    */
   checkRoute(route: string): boolean {
-    const currentUrl = this.getCurrentUrl();
-    return currentUrl.includes(route);
+    const currentUrl = this.getCurrentUrl()
+    return currentUrl.includes(route)
   }
 
-
   async acceptTermsAndConditions(): Promise<void> {
-    await this.waitForElement(this.termsAndConditionsContainer);
-    await this.clickElement(this.termsAndConditionsButton);
+    await this.waitForElement(this.termsAndConditionsContainer)
+    await this.clickElement(this.termsAndConditionsButton)
   }
 
   /**
@@ -144,7 +143,7 @@ export class ChatInterfacePage extends BasePage {
    * @returns True if chat interface is visible
    */
   async isChatInterfaceDisplayed(): Promise<boolean> {
-    return await this.isElementVisible(this.chatContainer);
+    return await this.isElementVisible(this.chatContainer)
   }
 
   /**
@@ -152,8 +151,8 @@ export class ChatInterfacePage extends BasePage {
    * @param message - Message text to send
    */
   async sendMessage(message: string): Promise<void> {
-    await this.fillInput(this.messageInput, message);
-    await this.clickElement(this.sendButton);
+    await this.fillInput(this.messageInput, message)
+    await this.clickElement(this.sendButton)
   }
 
   /**
@@ -162,15 +161,15 @@ export class ChatInterfacePage extends BasePage {
    * @param delay - Delay between keystrokes in milliseconds
    */
   async typeMessage(message: string, delay: number = 100): Promise<void> {
-    await this.waitForElement(this.messageInput);
-    await this.typeText(this.messageInput, message, delay);
+    await this.waitForElement(this.messageInput)
+    await this.typeText(this.messageInput, message, delay)
   }
 
   /**
    * Click the send button
    */
   async clickSend(): Promise<void> {
-    await this.clickElement(this.sendButton);
+    await this.clickElement(this.sendButton)
   }
 
   /**
@@ -180,15 +179,15 @@ export class ChatInterfacePage extends BasePage {
   async waitForBotResponse(timeout: number = 30000): Promise<void> {
     // Wait for loading indicator to appear and disappear
     try {
-      await this.waitForElement(this.loadingIndicator, 5000);
-      await this.waitForElementHidden(this.loadingIndicator, timeout);
+      await this.waitForElement(this.loadingIndicator, 5000)
+      await this.waitForElementHidden(this.loadingIndicator, timeout)
     } catch {
       // If loading indicator doesn't appear, just wait for new message
-      await this.wait(1000);
+      await this.wait(1000)
     }
-    
+
     // Wait for new bot message
-    await this.waitForElement(this.botMessages.last(), timeout);
+    await this.waitForElement(this.botMessages.last(), timeout)
   }
 
   /**
@@ -197,14 +196,14 @@ export class ChatInterfacePage extends BasePage {
    * @param timeout - Maximum time to wait for response
    */
   async sendMessageAndWaitForResponse(message: string, timeout: number = 30000): Promise<void> {
-    const initialMessageCount = await this.getMessageCount();
-    await this.sendMessage(message);
-    await this.waitForBotResponse(timeout);
-    
+    const initialMessageCount = await this.getMessageCount()
+    await this.sendMessage(message)
+    await this.waitForBotResponse(timeout)
+
     // Verify new message appeared
-    const newMessageCount = await this.getMessageCount();
+    const newMessageCount = await this.getMessageCount()
     if (newMessageCount <= initialMessageCount) {
-      throw new Error('No new message received after sending');
+      throw new Error("No new message received after sending")
     }
   }
 
@@ -213,8 +212,8 @@ export class ChatInterfacePage extends BasePage {
    * @returns Array of message texts
    */
   async getAllMessages(): Promise<string[]> {
-    await this.waitForElement(this.chatMessages);
-    return await this.chatMessages.allTextContents();
+    await this.waitForElement(this.chatMessages)
+    return await this.chatMessages.allTextContents()
   }
 
   /**
@@ -223,9 +222,9 @@ export class ChatInterfacePage extends BasePage {
    */
   async getUserMessages(): Promise<string[]> {
     if (await this.isElementPresent(this.userMessages)) {
-      return await this.userMessages.allTextContents();
+      return await this.userMessages.allTextContents()
     }
-    return [];
+    return []
   }
 
   /**
@@ -234,9 +233,9 @@ export class ChatInterfacePage extends BasePage {
    */
   async getBotMessages(): Promise<string[]> {
     if (await this.isElementPresent(this.botMessages)) {
-      return await this.botMessages.allTextContents();
+      return await this.botMessages.allTextContents()
     }
-    return [];
+    return []
   }
 
   /**
@@ -244,7 +243,7 @@ export class ChatInterfacePage extends BasePage {
    * @returns Text of the last message
    */
   async getLastMessage(): Promise<string | null> {
-    return await this.getTextContent(this.chatMessages.last());
+    return await this.getTextContent(this.chatMessages.last())
   }
 
   /**
@@ -253,9 +252,9 @@ export class ChatInterfacePage extends BasePage {
    */
   async getLastBotMessage(): Promise<string | null> {
     if (await this.isElementPresent(this.botMessages)) {
-      return await this.getTextContent(this.botMessages.last());
+      return await this.getTextContent(this.botMessages.last())
     }
-    return null;
+    return null
   }
 
   /**
@@ -263,7 +262,7 @@ export class ChatInterfacePage extends BasePage {
    * @returns Number of messages
    */
   async getMessageCount(): Promise<number> {
-    return await this.chatMessages.count();
+    return await this.chatMessages.count()
   }
 
   /**
@@ -271,8 +270,8 @@ export class ChatInterfacePage extends BasePage {
    * @returns True if enabled, false otherwise
    */
   async isSendButtonEnabled(): Promise<boolean> {
-    const isDisabled = await this.sendButton.isDisabled();
-    return !isDisabled;
+    const isDisabled = await this.sendButton.isDisabled()
+    return !isDisabled
   }
 
   /**
@@ -280,7 +279,7 @@ export class ChatInterfacePage extends BasePage {
    * @returns True if loading, false otherwise
    */
   async isLoading(): Promise<boolean> {
-    return await this.isElementVisible(this.loadingIndicator);
+    return await this.isElementVisible(this.loadingIndicator)
   }
 
   /**
@@ -288,7 +287,7 @@ export class ChatInterfacePage extends BasePage {
    * @param timeout - Maximum time to wait in milliseconds
    */
   async waitForChatComplete(timeout: number = 60000): Promise<void> {
-    await this.waitForElement(this.chatCompleteIndicator, timeout);
+    await this.waitForElement(this.chatCompleteIndicator, timeout)
   }
 
   /**
@@ -296,7 +295,7 @@ export class ChatInterfacePage extends BasePage {
    * @returns True if chat is complete
    */
   async isChatComplete(): Promise<boolean> {
-    return await this.isElementVisible(this.chatCompleteIndicator);
+    return await this.isElementVisible(this.chatCompleteIndicator)
   }
 
   /**
@@ -304,15 +303,15 @@ export class ChatInterfacePage extends BasePage {
    * @returns True if button is visible
    */
   async isViewStoryButtonVisible(): Promise<boolean> {
-    return await this.isElementVisible(this.viewStoryButton);
+    return await this.isElementVisible(this.viewStoryButton)
   }
 
   /**
    * Click view story button to navigate to story view
    */
   async clickViewStory(): Promise<void> {
-    await this.waitForElement(this.viewStoryButton);
-    await this.clickElement(this.viewStoryButton);
+    await this.waitForElement(this.viewStoryButton)
+    await this.clickElement(this.viewStoryButton)
   }
 
   /**
@@ -322,19 +321,19 @@ export class ChatInterfacePage extends BasePage {
    */
   async completeConversation(messages: string[], waitBetweenMessages: number = 1000): Promise<void> {
     for (const message of messages) {
-      await this.sendMessageAndWaitForResponse(message);
-      await this.wait(waitBetweenMessages);
+      await this.sendMessageAndWaitForResponse(message)
+      await this.wait(waitBetweenMessages)
     }
-    
+
     // Wait for chat to complete
-    await this.waitForChatComplete();
+    await this.waitForChatComplete()
   }
 
   /**
    * Clear message input
    */
   async clearMessageInput(): Promise<void> {
-    await this.fillInput(this.messageInput, '');
+    await this.fillInput(this.messageInput, "")
   }
 
   /**
@@ -342,7 +341,6 @@ export class ChatInterfacePage extends BasePage {
    * @returns Current text in input field
    */
   async getInputValue(): Promise<string> {
-    return await this.messageInput.inputValue();
+    return await this.messageInput.inputValue()
   }
 }
-

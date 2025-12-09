@@ -57,7 +57,7 @@ test.describe("PTM Flow - Happy Path", () => {
       for (let i = 0; i < PTM_CHAT_CONVERSATION_EN.length; i++) {
         await chatInterfacePage.sendMessage(PTM_CHAT_CONVERSATION_EN[i])
         await chatInterfacePage.wait(5000)
-        if (i != PTM_CHAT_CONVERSATION_EN.length - 1) {
+        if (i !== PTM_CHAT_CONVERSATION_EN.length - 1) {
           await chatInterfacePage.waitForChatContainerCount(2 * i + 3, 20000)
         }
       }

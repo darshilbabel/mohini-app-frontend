@@ -90,7 +90,7 @@ test.describe("Share Improvement Story Flow - Happy Path", () => {
 
     await test.step("Edit story", async () => {
       await chatInterfacePage.waitForReportButton()
-      await chatInterfacePage.openEditory()
+      await chatInterfacePage.openEditor()
       await chatInterfacePage.waitForEditorSaveButton()
       await chatInterfacePage.saveEditor()
       await chatInterfacePage.waitForReportButton()

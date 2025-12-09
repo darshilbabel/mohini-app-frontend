@@ -1,12 +1,12 @@
-import { Page } from '@playwright/test';
+import { Page } from "@playwright/test"
 
 /**
  * WebSocket message interface
  */
 export interface WebSocketMessage {
-  type: string;
-  data: any;
-  timestamp: number;
+  type: string
+  data: any
+  timestamp: number
 }
 
 /**
@@ -14,18 +14,18 @@ export interface WebSocketMessage {
  * This is crucial for testing real-time chat interactions
  */
 export class WebSocketHelper {
-  private page: Page;
-  private messages: WebSocketMessage[];
-  private isMonitoring: boolean;
+  private page: Page
+  private messages: WebSocketMessage[]
+  private isMonitoring: boolean
 
   /**
    * Constructor for WebSocketHelper
    * @param page - Playwright Page object
    */
   constructor(page: Page) {
-    this.page = page;
-    this.messages = [];
-    this.isMonitoring = false;
+    this.page = page
+    this.messages = []
+    this.isMonitoring = false
   }
 
   /**
@@ -33,48 +33,48 @@ export class WebSocketHelper {
    */
   async startMonitoring(): Promise<void> {
     if (this.isMonitoring) {
-      return;
+      return
     }
 
-    this.isMonitoring = true;
-    this.messages = [];
+    this.isMonitoring = true
+    this.messages = []
 
     // Inject script to capture WebSocket messages
     await this.page.addInitScript(() => {
       // Store original WebSocket
-      const OriginalWebSocket = window.WebSocket;
+      const OriginalWebSocket = window.WebSocket
 
       // Override WebSocket constructor
-      (window as any).WebSocket = function(url: string, protocols?: string | string[]) {
-        const ws = new OriginalWebSocket(url, protocols);
-        
+      ;(window as any).WebSocket = function (url: string, protocols?: string | string[]) {
+        const ws = new OriginalWebSocket(url, protocols)
+
         // Store websocket reference for testing
-        (window as any).__wsInstance = ws;
-        (window as any).__wsMessages = [];
+        ;(window as any).__wsInstance = ws
+        ;(window as any).__wsMessages = []
 
         // Capture sent messages
-        const originalSend = ws.send.bind(ws);
-        ws.send = function(data: any) {
-          (window as any).__wsMessages.push({
-            type: 'sent',
+        const originalSend = ws.send.bind(ws)
+        ws.send = function (data: any) {
+          ;(window as any).__wsMessages.push({
+            type: "sent",
             data: data,
-            timestamp: Date.now()
-          });
-          return originalSend(data);
-        };
+            timestamp: Date.now(),
+          })
+          return originalSend(data)
+        }
 
         // Capture received messages
-        ws.addEventListener('message', (event) => {
-          (window as any).__wsMessages.push({
-            type: 'received',
+        ws.addEventListener("message", event => {
+          ;(window as any).__wsMessages.push({
+            type: "received",
             data: event.data,
-            timestamp: Date.now()
-          });
-        });
+            timestamp: Date.now(),
+          })
+        })
 
-        return ws;
-      };
-    });
+        return ws
+      }
+    })
   }
 
   /**
@@ -83,9 +83,9 @@ export class WebSocketHelper {
    */
   async getMessages(): Promise<WebSocketMessage[]> {
     const messages = await this.page.evaluate(() => {
-      return (window as any).__wsMessages || [];
-    });
-    return messages;
+      return (window as any).__wsMessages || []
+    })
+    return messages
   }
 
   /**
@@ -93,8 +93,8 @@ export class WebSocketHelper {
    * @returns Array of sent messages
    */
   async getSentMessages(): Promise<WebSocketMessage[]> {
-    const allMessages = await this.getMessages();
-    return allMessages.filter(msg => msg.type === 'sent');
+    const allMessages = await this.getMessages()
+    return allMessages.filter(msg => msg.type === "sent")
   }
 
   /**
@@ -102,8 +102,8 @@ export class WebSocketHelper {
    * @returns Array of received messages
    */
   async getReceivedMessages(): Promise<WebSocketMessage[]> {
-    const allMessages = await this.getMessages();
-    return allMessages.filter(msg => msg.type === 'received');
+    const allMessages = await this.getMessages()
+    return allMessages.filter(msg => msg.type === "received")
   }
 
   /**
@@ -112,25 +112,22 @@ export class WebSocketHelper {
    * @param timeout - Maximum time to wait in milliseconds
    * @returns The matching message
    */
-  async waitForMessage(
-    predicate: (message: WebSocketMessage) => boolean,
-    timeout: number = 30000
-  ): Promise<WebSocketMessage> {
-    const startTime = Date.now();
-    
+  async waitForMessage(predicate: (message: WebSocketMessage) => boolean, timeout: number = 30000): Promise<WebSocketMessage> {
+    const startTime = Date.now()
+
     while (Date.now() - startTime < timeout) {
-      const messages = await this.getMessages();
-      const matchingMessage = messages.find(predicate);
-      
+      const messages = await this.getMessages()
+      const matchingMessage = messages.find(predicate)
+
       if (matchingMessage) {
-        return matchingMessage;
+        return matchingMessage
       }
-      
+
       // Wait before checking again
-      await this.page.waitForTimeout(500);
+      await this.page.waitForTimeout(500)
     }
-    
-    throw new Error('Timeout waiting for WebSocket message');
+
+    throw new Error("Timeout waiting for WebSocket message")
   }
 
   /**
@@ -140,10 +137,7 @@ export class WebSocketHelper {
    * @returns The matching message
    */
   async waitForReceivedMessageContaining(text: string, timeout: number = 30000): Promise<WebSocketMessage> {
-    return this.waitForMessage(
-      (msg) => msg.type === 'received' && msg.data.includes(text),
-      timeout
-    );
+    return this.waitForMessage(msg => msg.type === "received" && String(msg.data).includes(text), timeout)
   }
 
   /**
@@ -152,19 +146,19 @@ export class WebSocketHelper {
    * @param timeout - Maximum time to wait in milliseconds
    */
   async waitForMessageCount(count: number, timeout: number = 30000): Promise<void> {
-    const startTime = Date.now();
-    
+    const startTime = Date.now()
+
     while (Date.now() - startTime < timeout) {
-      const messages = await this.getMessages();
-      
+      const messages = await this.getMessages()
+
       if (messages.length >= count) {
-        return;
+        return
       }
-      
-      await this.page.waitForTimeout(500);
+
+      await this.page.waitForTimeout(500)
     }
-    
-    throw new Error(`Timeout waiting for ${count} messages`);
+
+    throw new Error(`Timeout waiting for ${count} messages`)
   }
 
   /**
@@ -173,9 +167,9 @@ export class WebSocketHelper {
    */
   async isConnected(): Promise<boolean> {
     return await this.page.evaluate(() => {
-      const ws = (window as any).__wsInstance;
-      return ws && ws.readyState === WebSocket.OPEN;
-    });
+      const ws = (window as any).__wsInstance
+      return ws && ws.readyState === WebSocket.OPEN
+    })
   }
 
   /**
@@ -184,18 +178,23 @@ export class WebSocketHelper {
    */
   async getConnectionState(): Promise<string> {
     const state = await this.page.evaluate(() => {
-      const ws = (window as any).__wsInstance;
-      if (!ws) return 'NONE';
-      
+      const ws = (window as any).__wsInstance
+      if (!ws) return "NONE"
+
       switch (ws.readyState) {
-        case WebSocket.CONNECTING: return 'CONNECTING';
-        case WebSocket.OPEN: return 'OPEN';
-        case WebSocket.CLOSING: return 'CLOSING';
-        case WebSocket.CLOSED: return 'CLOSED';
-        default: return 'UNKNOWN';
+        case WebSocket.CONNECTING:
+          return "CONNECTING"
+        case WebSocket.OPEN:
+          return "OPEN"
+        case WebSocket.CLOSING:
+          return "CLOSING"
+        case WebSocket.CLOSED:
+          return "CLOSED"
+        default:
+          return "UNKNOWN"
       }
-    });
-    return state;
+    })
+    return state
   }
 
   /**
@@ -203,16 +202,16 @@ export class WebSocketHelper {
    * @param timeout - Maximum time to wait in milliseconds
    */
   async waitForConnection(timeout: number = 10000): Promise<void> {
-    const startTime = Date.now();
-    
+    const startTime = Date.now()
+
     while (Date.now() - startTime < timeout) {
       if (await this.isConnected()) {
-        return;
+        return
       }
-      await this.page.waitForTimeout(500);
+      await this.page.waitForTimeout(500)
     }
-    
-    throw new Error('Timeout waiting for WebSocket connection');
+
+    throw new Error("Timeout waiting for WebSocket connection")
   }
 
   /**
@@ -220,9 +219,9 @@ export class WebSocketHelper {
    */
   async clearMessages(): Promise<void> {
     await this.page.evaluate(() => {
-      (window as any).__wsMessages = [];
-    });
-    this.messages = [];
+      ;(window as any).__wsMessages = []
+    })
+    this.messages = []
   }
 
   /**
@@ -230,8 +229,8 @@ export class WebSocketHelper {
    * @returns Last received message or null if none
    */
   async getLastReceivedMessage(): Promise<WebSocketMessage | null> {
-    const receivedMessages = await this.getReceivedMessages();
-    return receivedMessages.length > 0 ? receivedMessages[receivedMessages.length - 1] : null;
+    const receivedMessages = await this.getReceivedMessages()
+    return receivedMessages.length > 0 ? receivedMessages[receivedMessages.length - 1] : null
   }
 
   /**
@@ -241,9 +240,9 @@ export class WebSocketHelper {
    */
   parseMessageData(message: WebSocketMessage): any {
     try {
-      return JSON.parse(message.data);
+      return JSON.parse(message.data)
     } catch {
-      return message.data;
+      return message.data
     }
   }
 
@@ -251,7 +250,6 @@ export class WebSocketHelper {
    * Stop monitoring WebSocket connections
    */
   stopMonitoring(): void {
-    this.isMonitoring = false;
+    this.isMonitoring = false
   }
 }
-
