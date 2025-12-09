@@ -1279,10 +1279,16 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (storageFlow && [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow)) {
       return
     }
+    console.log(
+      "unnarated messages",
+      sentences.filter(sent => !sent.isNarrated)
+    )
+    console.log({ strandStep, stateMachineLength })
+    if (sentences.filter(sent => !sent.isNarrated).length > 0) return
     if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
     }
-  }, [isStreamingComplete, strandStep, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow])
+  }, [isStreamingComplete, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow, sentences])
 
   useEffect(() => {
     const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot"
