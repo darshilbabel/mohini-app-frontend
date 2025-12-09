@@ -194,7 +194,13 @@ function TitleGeneration({
           //   process.env.REACT_APP_ACCESS_TOKEN_KEY
           // );
           const access_token = sessionStorage.getItem(process.env.REACT_APP_ACCESS_TOKEN_KEY)
-          const chunks = JSON.parse(useAICreationSessionStore.getState().getChunks());
+          const objective_chunk = useAICreationSessionStore.getState().getSelectedObjectiveSource() || null;
+          const action_chunk = useAICreationSessionStore.getState().getSelectedActionSource() || null;
+
+          const chunks = {
+            objective_chunk,
+            action_chunk
+          };
 
           const project_response = await createProject(
             access_token,

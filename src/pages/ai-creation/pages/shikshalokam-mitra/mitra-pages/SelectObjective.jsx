@@ -178,13 +178,37 @@ function SelectObjective({
     setInputText(objectiveList[index]);
   };
 
+  function updateSelectedObjectiveSources(selectedObjectiveText) {
+    const store = useAICreationSessionStore.getState();
+    const objectives = store.getObjective() || [];
+    const setSelectedObjectiveSource = store.setSelectedObjectiveSource;
+
+    const matchedObjective = objectives.find(
+      (o) => o.text === selectedObjectiveText
+    );
+
+    const finalSources = [];
+    const seen = new Set();
+
+    (matchedObjective?.sources || []).forEach(src => {
+      if (src?.url && !seen.has(src.url)) {
+        seen.add(src.url);
+        finalSources.push(src);
+      }
+    });
+
+    setSelectedObjectiveSource(finalSources);
+    return finalSources;
+  }
+
   const handleNextClick = () => {
     const userSelectedObjective = inputText?.text?.trim();
     if (userSelectedObjective?.trim()?.length > 0) {
       setErrorText("");
       // setIsLoading(true);
       // setObjectiveList([userSelectedObjective]);
-      setSelectedObjectiveStore(userSelectedObjective)
+      setSelectedObjectiveStore(userSelectedObjective);
+      updateSelectedObjectiveSources(userSelectedObjective);
       const currentSession = useAICreationSessionStore.getState().getSession();
       const botMessage = hasClickedOnAddmore
         ? t("selectObjective.enterObjective")

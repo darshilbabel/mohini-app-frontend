@@ -202,6 +202,34 @@ function ActionItems({
     }
   };
 
+  function updateSelectedActionPlanSources(selectedIndex) {
+    const store = useAICreationSessionStore.getState();
+    const actionList = store.getActionList() || [];
+    const setSelectedActionSource = store.setSelectedActionSource;
+
+    if (!Array.isArray(actionList) || !actionList[selectedIndex]) {
+      setSelectedActionSource([]);
+      return [];
+    }
+
+    const selectedPlan = actionList[selectedIndex];
+    const finalSources = [];
+    const seen = new Set();
+
+    (selectedPlan?.actionSteps || []).forEach(step => {
+      (step?.sources || []).forEach(src => {
+        if (src?.url && !seen.has(src.url)) {
+          seen.add(src.url);
+          finalSources.push(src);
+        }
+      });
+    });
+
+    setSelectedActionSource(finalSources);
+    return finalSources;
+  }
+
+
   const isActionEmptyOrDefault = (action_to_store) => {
 
     if (!action_to_store || action_to_store.length === 0) {
@@ -350,6 +378,9 @@ function ActionItems({
                   <button
                     className={`thirdpage-select-bttn mt-14 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400`}
                     onClick={() => {
+                      if (selectedIndex !== null) {
+                        updateSelectedActionPlanSources(selectedIndex);
+                      }
                       setWantsToMoveForward(true);
                     }}
                   >

@@ -26,6 +26,8 @@ export const INITIAL_STATE = (set, get, store) => ({
     selectedWeek: null,
     company: null,
     introEndContext: null,
+    selectedObjectiveSource: null,
+    selectedActionSource: null,
 
   
     setMedia: media => set({ media }),
@@ -82,6 +84,13 @@ export const INITIAL_STATE = (set, get, store) => ({
     setProjectTitle: projectTitle => set({ projectTitle }),
     getSelectedWeek: () => get().selectedWeek,
     setSelectedWeek: selectedWeek => set({ selectedWeek }),
+
+    setSelectedObjectiveSource: selectedObjectiveSource => set({ selectedObjectiveSource }),
+    getSelectedObjectiveSource: () => get().selectedObjectiveSource,
+
+    setSelectedActionSource: selectedActionSource => set({ selectedActionSource }),
+    getSelectedActionSource: () => get().selectedActionSource,
+
   
     reset: () => {
       set(store.getInitialState())
