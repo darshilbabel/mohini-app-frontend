@@ -4,7 +4,7 @@ const BASE_URL = "https://shikshagraha.org"
 
 function Footer() {
   return (
-    <div className="mt-6">
+    <div>
       <style
         type="text/css"
         dangerouslySetInnerHTML={{

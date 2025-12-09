@@ -6,6 +6,7 @@ import useSiteDataLocalStore from "./slices/siteData/siteDataLocal"
 import useSiteDataSessionStore from "./slices/siteData/siteDataSession"
 import useUserDataLocalStore from "./slices/userData/userDataLocal"
 import useUserDataSessionStore from "./slices/userData/userDataSession"
+import useAICreationSessionStore from "./slices/aiCreationData/aiCreationDataSession"
 
 const SLICES_STORE_MAP = {
   local: {
@@ -17,6 +18,7 @@ const SLICES_STORE_MAP = {
     [STORE_NAME_CONSTANTS.USER_DATA]: useUserDataSessionStore,
     [STORE_NAME_CONSTANTS.CHAT_DATA]: useChatDataSessionStore,
     [STORE_NAME_CONSTANTS.SITE_DATA]: useSiteDataSessionStore,
+    [STORE_NAME_CONSTANTS.AI_CREATION_DATA]: useAICreationSessionStore,
   },
 }
 
@@ -27,6 +29,7 @@ export {
   useSiteDataSessionStore,
   useUserDataLocalStore,
   useUserDataSessionStore,
+  useAICreationSessionStore,
 
   // slices export
   SLICES_STORE_MAP,

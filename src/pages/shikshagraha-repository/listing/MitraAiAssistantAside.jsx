@@ -2,12 +2,13 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { MdMoreVert } from "react-icons/md";
 import ROUTES from "../../../url";
+import { rootPath } from "utils/constants";
 
 export default function MitraAiAssistantAside() {
   const { t } = useTranslation();
   const handleClick = () => {
     // Open Mitra AI assistant page in a new tab
-    const fullUrl = `${window.location.origin}${ROUTES.SHIKSHAGRAHA_REPOSITORY_MITRA_AI_ASSISTANT}`;
+    const fullUrl = `${window.location.origin}${rootPath}${ROUTES.MITRA_CHAT}`;
     window.open(fullUrl, "_blank");
   };
 
