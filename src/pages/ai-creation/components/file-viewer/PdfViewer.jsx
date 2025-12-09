@@ -12,11 +12,7 @@ import { BsDownload } from "react-icons/bs";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import BotMessage from "../../pages/shikshalokam-mitra/mitra-pages/components/chat-message/BotMessage";
-// Set up the PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function PdfViewer({
   url = "",
