@@ -29,7 +29,7 @@ export const useConfirmationPopup = () => {
 
     if (result.isConfirmed) {
       window.location.reload()
-    } else {
+    } else if (result.isConfirmed === false) {
       if (noButtonAction) noButtonAction()
     }
   }
