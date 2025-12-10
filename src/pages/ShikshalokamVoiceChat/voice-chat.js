@@ -183,22 +183,30 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const { stopAllAudio, audioRef } = useAudio()
 
   const onFinalReconnectAttempt = useCallback(() => {
-    showConfirmationPopup(
-      () => {
+    function onYesButtonClick() {
+      try {
         let chat_history = getChatHistory()
-        chat_history = chat_history.filter((chat, index) => !(index == chat_history.length - 1 && chat.source === "user"))
+        if (Array.isArray(chat_history)) {
+          chat_history = chat_history.filter((chat, index) => !(index == chat_history.length - 1 && chat.source === "user"))
+        }
         setChatHistory(chat_history)
         window.location.reload()
-      },
-      () => {
-        if (accessToken) {
-          clearFromStorage()
-          navigate(-1)
-        } else {
-          resetChat()
-        }
+      } catch (error) {
+        console.error("Error cleaning chat history before reload:", error)
+        window.location.reload()
       }
-    )
+    }
+
+    function onNoButtonClick() {
+      if (accessToken) {
+        clearFromStorage()
+        navigate(-1)
+      } else {
+        resetChat()
+      }
+    }
+
+    showConfirmationPopup(onYesButtonClick, onNoButtonClick)
   }, [])
 
   const onWebSocketClose = useCallback(event => {
