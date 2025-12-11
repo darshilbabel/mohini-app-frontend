@@ -190,6 +190,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           chat_history = chat_history.filter((chat, index) => !(index == chat_history.length - 1 && chat.source === "user"))
         }
         setChatHistory(chat_history)
+
+        if (chat_history?.length === 1) {
+          setShowHomepage(true)
+        }
+
         window.location.reload()
       } catch (error) {
         console.error("Error cleaning chat history before reload:", error)
@@ -295,6 +300,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       onError: onWebSocketError,
       onFinalReconnectAttempt,
       autoConnect: false,
+      reconnectAttempts: env.WEBSOCKET_RETRY_NUM(),
     }
   )
 
@@ -1012,7 +1018,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    */
   useEffect(() => {
     const handleLanguageSelect = language => {
-      if (chatHistory && chatHistory.length <= 1) {
+      if (chatHistory && !chatHistory.length) {
         stopAllAudio()
         isIntroPlayed.current = false
         // setIsLoading(true)
@@ -1144,7 +1150,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setShouldFetchIntro(true)
         setShowHomepage(false)
       } else if (isNewChatOpen === true) {
-        // setShowHomepage(showHomepage !== null ? showHomepage : true);
         setShowHomepage(true)
       }
     } else {
@@ -1438,6 +1443,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         ...updatedChatHistory[chatHistory?.length - 1],
         recording: recordings[recordings?.length - 1],
       }
+      console.log("state_tracker", updatedChatHistory)
       setChatHistory(updatedChatHistory)
     }
     return () => {}

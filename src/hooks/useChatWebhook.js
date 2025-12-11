@@ -4,7 +4,7 @@ export const useChatWebhook = (url, options = {}) => {
   const { onFinalReconnectAttempt, onOpen, onMessage, onError, onClose, reconnect = true, reconnectInterval = 3000, reconnectAttempts = 5, autoConnect = true } = options
 
   const ws = useRef(null)
-  const reconnectCount = useRef(0)
+  const reconnectCount = useRef(1)
   const reconnectTimeout = useRef(null)
   const socketQueue = useRef([])
 
@@ -51,9 +51,7 @@ export const useChatWebhook = (url, options = {}) => {
           reconnectTimeout.current = setTimeout(() => {
             connect()
           }, reconnectInterval)
-        }
-
-        if (reconnectCount.current >= reconnectAttempts) {
+        } else if (reconnectCount.current >= reconnectAttempts) {
           if (onFinalReconnectAttempt) onFinalReconnectAttempt()
         }
       }
