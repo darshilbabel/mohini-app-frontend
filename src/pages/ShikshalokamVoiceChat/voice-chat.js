@@ -117,9 +117,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [trigger, setTrigger] = useState(false)
   const [triggerDownload, setTriggerDownload] = useState(false)
   const [visibleItemCount, setVisibleItemCount] = useState(10)
-  // const [showHomepage, setShowHomepage] = useState(true)
-  // const [isReconnectInProgress, setIsReconnectInProgress] = useState(false);
-  // const [reconnectAttempts, setReconnectAttempts] = useState(0);
 
   // ========== useRef Hooks ==========
   const textAreaRef = useRef(null)
@@ -128,9 +125,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const editorContainerRef = useRef(null)
   const endPageToScrollRef = useRef(null)
   const isIntroPlayed = useRef(false)
-  // const retryConnectionRef = useRef(null);
-  const chatSocketRef = useRef(null)
-  // const introMessageRef = useRef(null);
 
   // ========== Other Hooks ==========
   const [chatHistory, setChatHistory, removeChatHistory, getChatHistory] = useSmartChatStorage()
@@ -151,7 +145,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
   const preferredLanguage = useUserStorage()(state => state.preferredLanguage)
   const previousUrl = useSiteStorage()(state => state.previousUrl)
-  const profileId = useUserStorage()(state => state.profileId)
+  // const profileId = useUserStorage()(state => state.profileId)
   const profileToUse = useUserStorage()(state => state.profileId)
   const projectIdStore = useChatStorage()(state => state.projectId)
   const selectedType = useChatStorage()(state => state.selectedType)
@@ -189,14 +183,30 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const { stopAllAudio, audioRef } = useAudio()
 
   const onFinalReconnectAttempt = useCallback(() => {
-    showConfirmationPopup(() => {
+    function onYesButtonClick() {
+      try {
+        let chat_history = getChatHistory()
+        if (Array.isArray(chat_history)) {
+          chat_history = chat_history.filter((chat, index) => !(index == chat_history.length - 1 && chat.source === "user"))
+        }
+        setChatHistory(chat_history)
+        window.location.reload()
+      } catch (error) {
+        console.error("Error cleaning chat history before reload:", error)
+        window.location.reload()
+      }
+    }
+
+    function onNoButtonClick() {
       if (accessToken) {
         clearFromStorage()
         navigate(-1)
       } else {
         resetChat()
       }
-    })
+    }
+
+    showConfirmationPopup(onYesButtonClick, onNoButtonClick)
   }, [])
 
   const onWebSocketClose = useCallback(event => {

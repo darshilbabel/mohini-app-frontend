@@ -75,7 +75,7 @@ export const useChatWebhook = (url, options = {}) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(typeof message === "string" ? message : JSON.stringify(message))
       return true
-    } else if (ws.current.readyState == WebSocket.CONNECTING) {
+    } else if (ws.current && ws.current.readyState === WebSocket.CONNECTING) {
       socketQueue.current.push(message)
     }
     return false
@@ -85,13 +85,6 @@ export const useChatWebhook = (url, options = {}) => {
     reconnectCount.current = 0
     if (autoConnect) connect()
 
-    /**
-     * * NOTE: This is for testing purposes only
-     */
-    // const test_timeout = setInterval(() => {
-    //   ws.current.close()
-    // }, 20000)
-
     return () => {
       if (reconnectTimeout.current) {
         clearTimeout(reconnectTimeout.current)
@@ -99,11 +92,6 @@ export const useChatWebhook = (url, options = {}) => {
       if (ws.current) {
         ws.current.close()
       }
-
-      /**
-       * * NOTE: This is for testing purposes only
-       */
-      // clearInterval(test_timeout)
     }
   }, [connect])
 
