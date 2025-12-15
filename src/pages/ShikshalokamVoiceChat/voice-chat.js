@@ -285,7 +285,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const {
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
-    isFreshConnection,
+    isConnected: isSocketConnected,
+    // isFreshConnection,
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
@@ -654,7 +655,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (!textMessage.trim()) return
 
     const chat_history = handleMessagesForUser(textMessage)
-    if (chat_history.filter(chat => chat.source === "user").length == 1) {
+    if (chat_history.filter(chat => chat.source === "user").length == 1 || !isSocketConnected) {
       connectToWebSocket()
       sendSocketMessage({
         type: "authenticate",
