@@ -40,6 +40,8 @@ export const env = {
   
   // URLs
   RECORD_STORY_URL: () => getEnv('REACT_APP_RECORD_STORY_URL', ''),
+
+  WS_PROTOCOL: () => getEnv('REACT_APP_WS_PROTOCOL', 'wss'),
   
   // Generic getter for any environment variable
   get: (key, defaultValue) => getEnv(key, defaultValue)

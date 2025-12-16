@@ -54,15 +54,15 @@ export const shouldShowLanguageButton = languageButtonSelect => {
   return languageButtonSelect && ![null, ""].includes(languageButtonSelect)
 }
 
-export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wssProtocol }) {
+export function buildWebSocketUrl({ searchParams, storageFlow, selectedType }) {
   // Handle SSO code path
   if (searchParams.get("code")) {
     // NOTE: revert this code after testing
     // return `${wssProtocol}${window.location.host}/ws/chat/company/`;
-    return `${wssProtocol}${env.WEBSOCKET_HOST()}/ws/chat/company/`
+    return `${env.WS_PROTOCOL()}://${env.WEBSOCKET_HOST()}/ws/chat/company/`
   }
 
-  const baseUrl = `${wssProtocol}${env.WEBSOCKET_HOST()}`
+  const baseUrl = `${env.WS_PROTOCOL()}://${env.WEBSOCKET_HOST()}`
   const currentFlow = storageFlow
 
   // Direct flow to websocket mapping

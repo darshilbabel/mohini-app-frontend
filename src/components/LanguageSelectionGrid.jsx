@@ -1,51 +1,30 @@
-// components/LanguageSelectionGrid.js
-import { useTranslation } from "react-i18next"
-import { languageList, sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
-import { useLocation } from "react-router-dom"
-import { useChatStorage, useSiteStorage } from "hooks/useStorage"
-import { STORE_NAME_CONSTANTS } from "store/constants"
-import { SESSION_USECASE_TYPE } from "constants/session"
-import ROUTES from "../url"
+import { languageList } from "../pages/ShikshalokamVoiceChat/enum"
+import { URL_PARAMS } from "../constants/urls"
 import { useNavigate } from "react-router-dom"
 import { useSiteDataLocalStore } from "store"
+import { useTranslation } from "react-i18next"
+import ROUTES from "../url"
+import useUrlFlow from "../hooks/useUrlFlow"
 
-const LanguageSelectionGrid = ({
-  usecaseType,
-  // onLanguageSelect,
-  // setIsLanguageProcessing
-}) => {
+const LanguageSelectionGrid = () => {
   const { t } = useTranslation()
-  const location = useLocation()
   const navigate = useNavigate()
 
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
-  const setFlow = useChatStorage()(state => state.setFlow)
-  const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
+
+  const { flow: urlFlow } = useUrlFlow()
 
   const handleLanguageClick = langValue => {
     setChatLanguage(langValue)
     setHasSelectedLanguage(true)
 
-    const ROUTE_MAP = {
-      [SESSION_USECASE_TYPE.MEGA_PTM]: ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE,
-      [SESSION_USECASE_TYPE.YLC]: ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE,
-    }
-
-    const FLOW_MAP = {
-      [SESSION_USECASE_TYPE.MEGA_PTM]: sessionFlowName.megaPTM,
-      [SESSION_USECASE_TYPE.YLC]: sessionFlowName.YLC,
-    }
-
-    setPreviousUrl(window.location.href)
-    if (ROUTE_MAP[usecaseType]) {
-      setFlow(FLOW_MAP[usecaseType])
-      navigate(ROUTE_MAP[usecaseType])
-    }
+    if (!urlFlow) return
+    navigate({
+      pathname: ROUTES.COMMON_CHAT,
+      search: new URLSearchParams({ [URL_PARAMS.FLOW]: urlFlow }).toString(),
+    })
   }
-
-  const searchParams = new URLSearchParams(location.search)
-  const currentFlow = searchParams.get("flow")
 
   return (
     <>
@@ -55,7 +34,7 @@ const LanguageSelectionGrid = ({
       <p className="sm:text-xl text-md font-semibold text-center">{t("languageQuestion")}</p>
       <div className="mt-4 mb-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 md:justify-items-center lg:px-[80px] md:px-[20px] sm:px-[20px] px-[10px]">
         {languageList
-          .filter(lang => !lang.excludeFor.includes(currentFlow) && !lang.excludeFor.includes(usecaseType))
+          .filter(lang => !lang.excludeFor.includes(urlFlow))
           .map(lang => (
             <div key={lang.value} className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center" onClick={() => handleLanguageClick(lang.value)}>
               <button className="w-full">{lang.label}</button>

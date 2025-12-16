@@ -11,10 +11,9 @@ import { createUserProfileApi, getProfileUserApi } from "api/endpoints/user"
 import { FaCircle } from "react-icons/fa6"
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
 import { FiDownload } from "react-icons/fi"
-import { getChatSessionApi } from "api/endpoints/chat"
-import { getCompanyBotApi } from "api/endpoints/chat"
+import { getChatSessionApi, getCompanyBotApi } from "api/endpoints/chat"
 import { getSessionDetails } from "../../services/api.service"
-import { getStoryBySessionAPI } from "api/endpoints"
+import { getStoryBySessionAPI, updateStoryMediaApi, updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi } from "api/endpoints"
 import { getTranslatedIntroMessageApi } from "api/endpoints/ai"
 import { GrGallery } from "react-icons/gr"
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
@@ -24,16 +23,13 @@ import { RxCross2 } from "react-icons/rx"
 import { setLanguage } from "../../i18n"
 import { TbReload } from "react-icons/tb"
 import { toast } from "react-toastify"
-import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi } from "api/endpoints"
-import { updateStoryMediaApi } from "api/endpoints"
 import { useAudio } from "hooks/useAudio"
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
-import { useChatDataSessionStore } from "store"
+import { useChatDataSessionStore, useSiteDataLocalStore } from "store"
 import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import { useChatWebhook } from "hooks/useChatWebhook"
 import { useConfirmationPopup } from "hooks/useConfirmationPopup"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { useSiteDataLocalStore } from "store"
 import { useTranslation } from "react-i18next"
 import axiosInstance from "../../utils/axios"
 import Cookies from "universal-cookie"
@@ -64,11 +60,7 @@ import WaveSurferPlayer from "../interview-text-voice/voice-player"
 
 const cookies = new Cookies()
 
-// TODO: After testing, revert this to the original code
-// const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-const wss_protocol = "wss://"
-
-const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
+const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
   // ========== useState Hooks ==========
   const [appendix, setAppendix] = useState([])
   const [asrAudio, setAsrAudio] = useState(null)
@@ -88,12 +80,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [intervalId, setIntervalId] = useState(null)
   const [isEndStoryLoading, setIsEndStoryLoading] = useState(false)
   const [isFetchingData, setIsFetchingData] = useState(false)
-  const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false)
   const [isImageUploading, setIsImageUploading] = useState(false)
   const [isIntroLoading, setIsIntroLoading] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isMute, setNotMute] = useState(true)
+  const [isMute, setIsMute] = useState(true)
   const [isNextAllowed, setIsNextAllowed] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
   const [isPdfDownloading, setIsPdfDownloading] = useState(false)
@@ -145,7 +136,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
   const preferredLanguage = useUserStorage()(state => state.preferredLanguage)
   const previousUrl = useSiteStorage()(state => state.previousUrl)
-  // const profileId = useUserStorage()(state => state.profileId)
   const profileToUse = useUserStorage()(state => state.profileId)
   const projectIdStore = useChatStorage()(state => state.projectId)
   const selectedType = useChatStorage()(state => state.selectedType)
@@ -263,7 +253,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             message: message?.msg || "",
             source: "bot",
             isNarrated: false,
-            id: new Date().valueOf(),
+            id: Date.now(),
           })
           lastBotMessageIndex.current = updatedSentences.length - 1
         }
@@ -292,7 +282,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       searchParams,
       storageFlow,
       selectedType,
-      wssProtocol: wss_protocol,
     }),
     {
       onOpen: onWebSocketOpen,
@@ -307,7 +296,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   const isShikshalokamPublicType = true
   const shouldShowChatHistoryFeature = true
-  const maxReconnectAttempts = env.WEBSOCKET_RETRY_NUM()
 
   // ========== useMemo Hooks ==========
 
@@ -403,10 +391,16 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           ...updatePayload,
           ...storyData?.other_params,
           other_params: {
-            ...(storyData?.other_params || {}),
             question_answers: questionAnswers,
           },
           formatted_content: null,
+        }
+
+        if (storyData?.other_params) {
+          updatePayload.other_params = {
+            ...storyData.other_params,
+            question_answers: questionAnswers,
+          }
         }
       } else {
         updatePayload = {
@@ -463,7 +457,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       language: languageToUse,
       company_bot__route: getSessionRoute(),
     })
-    console.log("handleIntroMessage", data)
     let message = data[0]?.introductory_message
     if (data && data[0]) {
       if (profileToUse && firstName && firstName !== "null" && firstName !== "") {
@@ -487,8 +480,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         }
       }
     }
-    console.log("message: ", message)
-    console.log("firstName: ", firstName)
     if (message && firstName) {
       const words = message.split(" ")
       words.splice(1, 0, firstName)
@@ -506,7 +497,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       ])
       if (isSpecialFlow) {
         setHasOverRideId("intro_msg_id")
-        setNotMute(false)
+        setIsMute(false)
         setIsNextAllowed(true)
       }
     }
@@ -645,7 +636,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     handleOnStopSpeaking()
     setIsChatVisible(true)
     setShowHomepage(false)
-    setNotMute(true)
+    setIsMute(true)
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
@@ -1524,7 +1515,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         shouldPlay = true
       }
     }
-    if (isStreamingComplete && shouldPlay && !isEndStoryLoading && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading && !isFetchingOldIntro) {
+    if (isStreamingComplete && shouldPlay && !isEndStoryLoading && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading) {
       const speakerButtons = document.querySelectorAll(".button-11.button-3")
       const lastSpeakerButton = speakerButtons[speakerButtons.length - 1]
 
@@ -2792,7 +2783,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           />
         </div>
       </div>
-      {(isInitialising || isLoading || isIntroLoading || isEndStoryLoading || isFetchingOldIntro) && (
+      {(isInitialising || isLoading || isIntroLoading || isEndStoryLoading) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />
@@ -2853,7 +2844,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                         isAnyPlaying={!!hasOverRideId || isTalking}
                         isPlaying={hasOverRideId === chat?.updated_at}
                         isStreamingComplete={isStreamingComplete}
-                        setNotMute={setNotMute}
+                        setNotMute={setIsMute}
                         chatId={chat?.updated_at}
                       />
                     </div>
@@ -2917,7 +2908,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                       isAnyPlaying={!!hasOverRideId || isTalking}
                       isPlaying={hasOverRideId === chatHistory[0]?.updated_at}
                       isStreamingComplete={isStreamingComplete}
-                      setNotMute={setNotMute}
+                      setNotMute={setIsMute}
                       chatId={chatHistory[0]?.updated_at}
                     />
                   </div>
@@ -2946,7 +2937,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                     isAnyPlaying={!!hasOverRideId || isTalking}
                     isPlaying={hasOverRideId === "upload-img-id"}
                     isStreamingComplete={isStreamingComplete}
-                    setNotMute={setNotMute}
+                    setNotMute={setIsMute}
                     chatId={"upload-img-id"}
                     isStaticMessage={true}
                   />
@@ -3032,7 +3023,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                     isAnyPlaying={!!hasOverRideId || isTalking}
                     isPlaying={hasOverRideId === "download-story-id"}
                     isStreamingComplete={isStreamingComplete}
-                    setNotMute={setNotMute}
+                    setNotMute={setIsMute}
                     chatId={"download-story-id"}
                     isStaticMessage={true}
                   />
