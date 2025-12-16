@@ -274,6 +274,17 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       setIsStreamingComplete(true)
     }
 
+    if (message.source === "user") {
+      const chat_history = getChatHistory()
+      const updated_chat_history = chat_history.map(chat => {
+        if (!chat.received && chat.msg === message.msg) {
+          return { ...chat, received: true }
+        }
+        return chat
+      })
+      setChatHistory(updated_chat_history)
+    }
+
     if (message.finish_reason === "stop" && message.source === "bot") {
       setStrandStep(message?.step)
       handleScrollToView()
@@ -731,6 +742,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             msg: intro_message,
             source: "bot",
             updated_at: "intro_msg_id",
+            received: true,
           })
         }
 
@@ -833,6 +845,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           createMessage({
             msg: sentence,
             source: "bot",
+            received: true,
           }),
         ])
       }
@@ -1418,7 +1431,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Keeps track of last bot message and scrolls to latest message
    */
   useEffect(() => {
-    // setChatHistory(chatHistory);
     lastBotMessageIndex.current = chatHistory?.length - 1
     if (!showFileInput) handleScrollToView()
   }, [chatHistory])
