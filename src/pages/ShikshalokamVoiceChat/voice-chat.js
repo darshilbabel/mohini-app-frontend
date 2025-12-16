@@ -276,9 +276,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
     if (message.source === "user") {
       const chat_history = getChatHistory()
-      const updated_chat_history = chat_history.slice(0).map(chat => {
+      const updated_chat_history = chat_history.map(chat => {
         if (!chat.received && chat.msg === message.msg) {
-          return createMessage({ ...chat, received: true })
+          return { ...chat, received: true }
         }
         return chat
       })
