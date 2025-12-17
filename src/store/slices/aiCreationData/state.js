@@ -28,6 +28,10 @@ export const INITIAL_STATE = (set, get, store) => ({
     introEndContext: null,
     selectedObjectiveSource: null,
     selectedActionSource: null,
+    durationChatHistory: [],
+    objectiveChatHistory: [],
+    actionListChatHistory: [],
+    prevObjective: null,
 
   
     setMedia: media => set({ media }),
@@ -90,6 +94,18 @@ export const INITIAL_STATE = (set, get, store) => ({
 
     setSelectedActionSource: selectedActionSource => set({ selectedActionSource }),
     getSelectedActionSource: () => get().selectedActionSource,
+
+    setDurationChatHistory: durationChatHistory => set({ durationChatHistory }),
+    getDurationChatHistory: () => get().durationChatHistory,
+
+    setObjectiveChatHistory: objectiveChatHistory => set({ objectiveChatHistory }),
+    getObjectiveChatHistory: () => get().objectiveChatHistory,
+
+    setPrevObjective: prevObjective => set({ prevObjective }),
+    getPrevObjective: () => get().prevObjective,
+
+    setActionListChatHistory: actionListChatHistory => set({ actionListChatHistory }),
+    getActionListChatHistory: () => get().actionListChatHistory,
 
   
     reset: () => {

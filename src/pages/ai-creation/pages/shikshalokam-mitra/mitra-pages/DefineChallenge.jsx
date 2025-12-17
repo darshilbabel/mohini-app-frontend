@@ -1126,7 +1126,7 @@ const DefineChallenge = ({
             isReadOnly={isReadOnly}
             hasStartedListening={hasStartedListening}
             hasOverRideId={hasOverRideId}
-            isDefineChallengeSection={isDefineChallengeSection}
+            isDefineChallengeSection={true}
             scrollRef={scrollRef}
           />
           {isDefineChallengeSection && (

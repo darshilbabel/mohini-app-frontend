@@ -71,6 +71,7 @@ export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wss
     [sessionFlowName.LoginDiscussion]: bot_websocket.shikshalokam_chaupal,
     [sessionFlowName.ListeningActivity]: bot_websocket.listening_activity,
     [sessionFlowName.ParentPerceptionSurvey]: bot_websocket.parent_perception_survey,
+    [sessionFlowName.Creation]: bot_websocket.creation
   }
 
   // Type-based flow to websocket mapping
@@ -84,6 +85,8 @@ export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wss
       [sessionFlowName.GuestMiStory]: bot_websocket.guest_oneshot,
     },
   }
+
+  console.log("websocket config", websocketConfig, currentFlow)
 
   // Check direct flow mapping first
   if (websocketConfig[currentFlow]) {

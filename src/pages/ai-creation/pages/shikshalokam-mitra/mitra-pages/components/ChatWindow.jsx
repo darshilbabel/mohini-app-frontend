@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useRef } from "react";
 import ChatMessage from "./chat-message/ChatMessage";
 import LoadingChat from "./LoadingChat";
+import { useAICreationSessionStore } from "../../../../../../store";
 
 function ChatWindow({
   isTalking,
@@ -15,15 +16,29 @@ function ChatWindow({
   hasOverRideId,
   isDefineChallengeSection,
   scrollRef,
+  page
 }) {
-  const isReadOnly = !isDefineChallengeSection;
+
+  const objectiveList = useAICreationSessionStore.getState().getObjective();
+  const selectedWeek = useAICreationSessionStore.getState().getSelectedWeek();
   const getShowLoadingChat = (indexNumber) => {
+
+    const isWeeksSelectionSection = page && page === 4;
+
+
+    let showLoader = true;
+
+    if(isDefineChallengeSection) {
+      showLoader = objectiveList?.length > 0 ? false : true;
+    }
+    else if(isWeeksSelectionSection) {
+      showLoader = selectedWeek ? false : true
+    }
+
     return (
-      isDefineChallengeSection &&
       !hasStartedListening &&
       chatHistory[chatHistory?.length - 1].source === "user" &&
-      indexNumber === chatHistory?.length - 1 &&
-      !isReadOnly
+      indexNumber === chatHistory?.length - 1 && showLoader
     );
   };
 
@@ -129,7 +144,7 @@ function ChatWindow({
                 userDetail={userDetail}
               />
             </div>
-            {getShowLoadingChat(i) && <LoadingChat />}
+            {getShowLoadingChat(i) && <><LoadingChat /></>}
           </li>
         ))}
       </ul>

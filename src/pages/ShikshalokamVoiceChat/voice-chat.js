@@ -173,6 +173,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const ipZipCode = useUserStorage()(state => state.ipZipCode)
   const ipFetched = useUserStorage()(state => state.ipFetched)
 
+  console.log({storageFlow,searchParams, selectedType})
+
   // chat data actions
   const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()
 
