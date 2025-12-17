@@ -1,46 +1,54 @@
-import { useEffect, useState } from "react"
+import { BiLoader } from "react-icons/bi"
 import { getIpLocation, getProfileDetails, getSessionDetails } from "../services/api.service"
 import { languageList } from "./ShikshalokamVoiceChat/enum"
-import ROUTES from "../url"
-import { useNavigate } from "react-router-dom"
-import { setLanguage } from "../i18n"
-import { BiLoader } from "react-icons/bi"
-import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat"
 import { loginApi } from "api/endpoints/auth"
+import { setLanguage } from "../i18n"
 import { useChatStorage, useUserStorage } from "hooks/useStorage"
-import useUserDataLocalStore from "store/slices/userData/userDataLocal"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useSiteDataLocalStore } from "store"
+import ROUTES from "../url"
+import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat"
+import useSmartChatStorage from "hooks/useSmartChatStorage"
+import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 
 function ShikshalokamChat({ type, variant }) {
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
 
+  const [isLoading, setIsLoading] = useState(false)
   const { setFirstName } = useUserStorage().getState()
+
   const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
   const companyName = useUserStorage()(state => state.companyName)
   const deviceId = useUserStorage()(state => state.device_id)
   const ipCity = useUserStorage()(state => state.ipCity)
   const ipCountry = useUserStorage()(state => state.ipCountry)
+  const ipFetched = useUserStorage()(state => state.ipFetched)
   const ipState = useUserStorage()(state => state.ipState)
   const sessionId = useChatStorage()(state => state.sessionId)
   const setCompanyName = useUserStorage()(state => state.setCompanyName)
   const setDeviceId = useUserStorage()(state => state.setDeviceId)
   const setFlow = useChatStorage()(state => state.setFlow)
-  const setHasAcceptedTnc = useUserStorage()(state => state.setHasAcceptedTnc)
   const setIpCity = useUserStorage()(state => state.setIpCity)
   const setIpCountry = useUserStorage()(state => state.setIpCountry)
+  const setIpFetched = useUserStorage()(state => state.setIpFetched)
   const setIpState = useUserStorage()(state => state.setIpState)
   const setIpZipCode = useUserStorage()(state => state.setIpZipCode)
-  const setIpFetched = useUserStorage()(state => state.setIpFetched)
   const setIsNewChatOpen = useChatStorage()(state => state.setIsNewChatOpen)
   const setProfileId = useUserStorage()(state => state.setProfileId)
   const setSessionId = useChatStorage()(state => state.setSessionId)
   const setUserId = useUserStorage()(state => state.setUserId)
   const storageFlow = useChatStorage()(state => state.flow)
-  const ipFetched = useUserStorage()(state => state.ipFetched)
-  const userId = useUserStorage()(state => state.userId)
+
+  const [chatHistory, setChatHistory, removeChatHistory, getChatHistory] = useSmartChatStorage()
 
   const accessToken = useUserDataLocalStore(state => state.access_token)
+
+  useEffect(() => {
+    const chat_history = getChatHistory()
+    const updated_chat_history = chat_history.filter(chat => chat.received)
+    setChatHistory(updated_chat_history)
+  }, [])
 
   useEffect(() => {
     console.log("companyName chk", companyName)

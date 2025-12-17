@@ -12,14 +12,14 @@ export const useConfirmationPopup = () => {
       cancelButtonText: t("denyButton"),
     })
 
-    if (result.isConfirmed) {
-      if (yesButtonAction) yesButtonAction()
-    } else {
-      if (noButtonAction) noButtonAction()
+    if (result.isConfirmed && yesButtonAction) {
+      yesButtonAction()
+    } else if (noButtonAction) {
+      noButtonAction()
     }
   }
 
-  const showConfirmationPopup = async noButtonAction => {
+  const showConfirmationPopup = async (yesButtonAction, noButtonAction) => {
     const result = await Swal.fire({
       title: t("popUpChanges"),
       showCancelButton: true,
@@ -27,10 +27,10 @@ export const useConfirmationPopup = () => {
       cancelButtonText: t("denyButton"),
     })
 
-    if (result.isConfirmed) {
-      window.location.reload()
-    } else {
-      if (noButtonAction) noButtonAction()
+    if (result.isConfirmed && yesButtonAction) {
+      yesButtonAction()
+    } else if (result.isConfirmed === false && noButtonAction) {
+      noButtonAction()
     }
   }
 
