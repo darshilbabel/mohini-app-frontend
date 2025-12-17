@@ -117,9 +117,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [trigger, setTrigger] = useState(false)
   const [triggerDownload, setTriggerDownload] = useState(false)
   const [visibleItemCount, setVisibleItemCount] = useState(10)
-  // const [showHomepage, setShowHomepage] = useState(true)
-  // const [isReconnectInProgress, setIsReconnectInProgress] = useState(false);
-  // const [reconnectAttempts, setReconnectAttempts] = useState(0);
 
   // ========== useRef Hooks ==========
   const textAreaRef = useRef(null)
@@ -128,9 +125,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const editorContainerRef = useRef(null)
   const endPageToScrollRef = useRef(null)
   const isIntroPlayed = useRef(false)
-  // const retryConnectionRef = useRef(null);
-  const chatSocketRef = useRef(null)
-  // const introMessageRef = useRef(null);
 
   // ========== Other Hooks ==========
   const [chatHistory, setChatHistory, removeChatHistory, getChatHistory] = useSmartChatStorage()
@@ -151,7 +145,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
   const preferredLanguage = useUserStorage()(state => state.preferredLanguage)
   const previousUrl = useSiteStorage()(state => state.previousUrl)
-  const profileId = useUserStorage()(state => state.profileId)
+  // const profileId = useUserStorage()(state => state.profileId)
   const profileToUse = useUserStorage()(state => state.profileId)
   const projectIdStore = useChatStorage()(state => state.projectId)
   const selectedType = useChatStorage()(state => state.selectedType)
@@ -191,14 +185,35 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const { stopAllAudio, audioRef } = useAudio()
 
   const onFinalReconnectAttempt = useCallback(() => {
-    showConfirmationPopup(() => {
+    function onYesButtonClick() {
+      try {
+        let chat_history = getChatHistory()
+        if (Array.isArray(chat_history)) {
+          chat_history = chat_history.filter((chat, index) => !(index == chat_history.length - 1 && chat.source === "user"))
+        }
+        setChatHistory(chat_history)
+
+        if (chat_history?.length === 1) {
+          setShowHomepage(true)
+        }
+
+        window.location.reload()
+      } catch (error) {
+        console.error("Error cleaning chat history before reload:", error)
+        window.location.reload()
+      }
+    }
+
+    function onNoButtonClick() {
       if (accessToken) {
         clearFromStorage()
         navigate(-1)
       } else {
         resetChat()
       }
-    })
+    }
+
+    showConfirmationPopup(onYesButtonClick, onNoButtonClick)
   }, [])
 
   const onWebSocketClose = useCallback(event => {
@@ -261,6 +276,17 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       setIsStreamingComplete(true)
     }
 
+    if (message.source === "user") {
+      const chat_history = getChatHistory()
+      const updated_chat_history = chat_history.map(chat => {
+        if (!chat.received && chat.msg === message.msg) {
+          return { ...chat, received: true }
+        }
+        return chat
+      })
+      setChatHistory(updated_chat_history)
+    }
+
     if (message.finish_reason === "stop" && message.source === "bot") {
       setStrandStep(message?.step)
       handleScrollToView()
@@ -272,7 +298,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const {
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
-    isFreshConnection,
+    isConnected: isSocketConnected,
+    // isFreshConnection,
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
@@ -287,6 +314,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       onError: onWebSocketError,
       onFinalReconnectAttempt,
       autoConnect: false,
+      reconnectAttempts: env.WEBSOCKET_RETRY_NUM(),
     }
   )
 
@@ -640,7 +668,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (!textMessage.trim()) return
 
     const chat_history = handleMessagesForUser(textMessage)
-    if (chat_history.filter(chat => chat.source === "user").length == 1) {
+    if (chat_history.filter(chat => chat.source === "user").length == 1 || !isSocketConnected) {
       connectToWebSocket()
       sendSocketMessage({
         type: "authenticate",
@@ -716,6 +744,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             msg: intro_message,
             source: "bot",
             updated_at: "intro_msg_id",
+            received: true,
           })
         }
 
@@ -818,6 +847,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           createMessage({
             msg: sentence,
             source: "bot",
+            received: true,
           }),
         ])
       }
@@ -1004,7 +1034,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    */
   useEffect(() => {
     const handleLanguageSelect = language => {
-      if (chatHistory && chatHistory.length <= 1) {
+      if (chatHistory && !chatHistory.length) {
         stopAllAudio()
         isIntroPlayed.current = false
         // setIsLoading(true)
@@ -1136,7 +1166,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setShouldFetchIntro(true)
         setShowHomepage(false)
       } else if (isNewChatOpen === true) {
-        // setShowHomepage(showHomepage !== null ? showHomepage : true);
         setShowHomepage(true)
       }
     } else {
@@ -1404,7 +1433,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Keeps track of last bot message and scrolls to latest message
    */
   useEffect(() => {
-    // setChatHistory(chatHistory);
     lastBotMessageIndex.current = chatHistory?.length - 1
     if (!showFileInput) handleScrollToView()
   }, [chatHistory])
@@ -1430,6 +1458,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         ...updatedChatHistory[chatHistory?.length - 1],
         recording: recordings[recordings?.length - 1],
       }
+      console.log("state_tracker", updatedChatHistory)
       setChatHistory(updatedChatHistory)
     }
     return () => {}
