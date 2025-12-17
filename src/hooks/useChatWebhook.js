@@ -4,7 +4,7 @@ export const useChatWebhook = (url, options = {}) => {
   const { onFinalReconnectAttempt, onOpen, onMessage, onError, onClose, reconnect = true, reconnectInterval = 3000, reconnectAttempts = 5, autoConnect = true } = options
 
   const ws = useRef(null)
-  const reconnectCount = useRef(0)
+  const reconnectCount = useRef(1)
   const reconnectTimeout = useRef(null)
   const socketQueue = useRef([])
 
@@ -51,9 +51,7 @@ export const useChatWebhook = (url, options = {}) => {
           reconnectTimeout.current = setTimeout(() => {
             connect()
           }, reconnectInterval)
-        }
-
-        if (reconnectCount.current >= reconnectAttempts) {
+        } else if (reconnectCount.current >= reconnectAttempts) {
           if (onFinalReconnectAttempt) onFinalReconnectAttempt()
         }
       }
@@ -75,7 +73,7 @@ export const useChatWebhook = (url, options = {}) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(typeof message === "string" ? message : JSON.stringify(message))
       return true
-    } else if (ws.current.readyState == WebSocket.CONNECTING) {
+    } else if (ws.current && ws.current.readyState === WebSocket.CONNECTING) {
       socketQueue.current.push(message)
     }
     return false
@@ -85,13 +83,6 @@ export const useChatWebhook = (url, options = {}) => {
     reconnectCount.current = 0
     if (autoConnect) connect()
 
-    /**
-     * * NOTE: This is for testing purposes only
-     */
-    // const test_timeout = setInterval(() => {
-    //   ws.current.close()
-    // }, 20000)
-
     return () => {
       if (reconnectTimeout.current) {
         clearTimeout(reconnectTimeout.current)
@@ -99,11 +90,6 @@ export const useChatWebhook = (url, options = {}) => {
       if (ws.current) {
         ws.current.close()
       }
-
-      /**
-       * * NOTE: This is for testing purposes only
-       */
-      // clearInterval(test_timeout)
     }
   }, [connect])
 
