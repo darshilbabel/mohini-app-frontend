@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 /* icons */
-import { IoArrowForward } from "react-icons/io5";
+import { IoArrowBack, IoArrowForward } from "react-icons/io5";
 import { RxCrossCircled } from "react-icons/rx";
 /* utils and api services */
 
@@ -17,7 +17,6 @@ import ObjectivesCard from "./components/objectives/ObjectivesCard";
 import SuggestOrAddCta from "./components/SuggestOrAddCta";
 import ErrorText from "./components/ErrorText";
 import UserMessage from "./components/chat-message/UserMessage";
-import LoadingChat from "./components/LoadingChat";
 /* constants */
 import { LOADER_KEYS } from "../../../constants/common";
 import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
@@ -31,6 +30,8 @@ import { buildWebSocketUrl } from "../../../../../utils/helpers";
 import { sessionFlowName } from "../../../../ShikshalokamVoiceChat/enum";
 import { useSearchParams } from "react-router-dom";
 import ChatWindow from "./components/ChatWindow";
+import { ShowLoader } from "../MainPage";
+import ChatMessage from "./components/chat-message/ChatMessage";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -195,6 +196,7 @@ function SelectObjective({
   }, [sessionId, profileId, accessToken, chatLanguage, storageFlow])
 
   const onWebSocketMessage = useCallback((event) => {
+
     const data = JSON.parse(event.data)
     const message = data?.text
   
@@ -262,6 +264,7 @@ function SelectObjective({
     connectToWebSocket();
   }, [])
 
+
   
 
   function handleSendMessage(event) {
@@ -271,6 +274,7 @@ function SelectObjective({
     }
 
     if (!textMessage.trim()) return
+
 
     const newMessage = {
       msg: textMessage,
@@ -283,12 +287,18 @@ function SelectObjective({
     // Update store - get current value first, then set new value
     const currentStoreHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
     useAICreationSessionStore.getState().setObjectiveChatHistory([...currentStoreHistory, newMessage])
+
+    if(hasClickedOnAddmore) {
+      handleInputSend(textMessage)
+    }
+    else {
+      sendSocketMessage({
+        text: textMessage,
+        context: "",
+        // asr_audio: asrAudio,
+      })
+    }
     
-    sendSocketMessage({
-      text: textMessage,
-      context: "",
-      // asr_audio: asrAudio,
-    })
 
     handleScrollIntoView();
     setTextMessage("")
@@ -365,19 +375,23 @@ function SelectObjective({
     return finalSources;
   }
 
-  const handleNextClick = (text = '') => {
+  const handleNextClick = (text = '', customObjective = false) => {
+
 
     const finalText = text ?? inputText;
+
+    console.log("coming here final text", finalText)
 
     const userSelectedObjective = finalText?.text?.trim();
     if (userSelectedObjective?.trim()?.length > 0) {
       setErrorText("");
+
       // setIsLoading(true);
       // setObjectiveList([userSelectedObjective]);
       setSelectedObjectiveStore(userSelectedObjective);
       updateSelectedObjectiveSources(userSelectedObjective);
       const currentSession = useAICreationSessionStore.getState().getSession();
-      const botMessage = hasClickedOnAddmore
+      const botMessage = hasClickedOnAddmore && !customObjective
         ? t("selectObjective.enterObjective")
         : {
             role: BOT,
@@ -415,7 +429,7 @@ function SelectObjective({
     setInputText(e?.target?.value);
   }
 
-  async function handleInputSend() {
+  async function handleInputSend(inputText = '') {
     try {
       if (!inputText || inputText === "") {
         setErrorText(t("selectObjective.emptyObjective"));
@@ -433,7 +447,8 @@ function SelectObjective({
         // setIsLoading(false);
         if (validate_response?.result) {
           setHasClickedObjAddMore(true)
-          handleNextClick();
+          setInputText(inputText)
+          handleNextClick({text: inputText}, true);
         } else {
           setErrorText(validate_response?.error_message);
         }
@@ -464,7 +479,7 @@ function SelectObjective({
   const selectedObjective = useAICreationSessionStore.getState().getSelectedObjective() || null;
 
   if (getLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST)) {
-    return <LoadingChat />;
+    return <></>;
   }
 
 
@@ -474,50 +489,50 @@ function SelectObjective({
     setTextMessage(e.target.value);
   };
 
-  console.log({objectiveSource, selectedObjective})
+
+  const handleAddOwnObjective = () => {
+    setInputText({})
+    setHasClickedOnAddmore(true)
+  }
 
   const separatorIndex = objectiveChatHistory?.findIndex(item => item?.source === "SEPARATOR");
 
   const beforeObjectiveHistory = separatorIndex !== -1 ?objectiveChatHistory?.slice(0, separatorIndex) : []
   const afterObjectiveHistory = separatorIndex !== -1 ?objectiveChatHistory?.slice(separatorIndex + 1) : objectiveChatHistory;
 
-  console.log({beforeObjectiveHistory, afterObjectiveHistory})
 
   return (
     <>
       <div>
-        <div className="secondpage-bot-div">
-          <BotMessage primaryMessage={t("selectObjective.theseAreSomeObjectives")} secondaryMessage={t("selectObjective.selectObjective")} />
-          {!isNewlyGeneratedList && <div className="secondpage-obj-fixed">
-            <div className="mt-3">
-              <p className="secondpage-obj-text">{t("selectObjective.title")}</p>
-              {!!(!fetchError || fetchError === "") && <ObjectivesCard objectiveList={objectiveList} visibleCount={visibleCount} selectedIndex={selectedIndex} handleObjectiveClick={handleObjectiveClick} selectedObjective={selectedObjective} isSelectObjectiveSection={isSelectObjectiveSection} objectiveSource={objectiveSource} />}
-              {!!(fetchError && fetchError !== "") && <ErrorText errorText={fetchError} />}
+        <div className="secondpage-bot-div ">
+          {hasClickedOnAddmore ? (
+            <div>
+              <p className="text-base">{t("selectObjective.enterObjective")}</p>
+              <p onClick={() => setHasClickedOnAddmore(false)} className="secondpage-add-bttn mt-3 cursor-pointer">
+                {t("selectObjective.goBack")}
+              </p>
+              <div className="mt-3">{errorText && <p>{errorText}</p>}</div>
             </div>
-            {isSelectObjectiveSection && (
-              <SuggestOrAddCta
-                showSuggestMoreButton={visibleCount < objectiveList?.length}
-                handleSuggestMore={handleSuggestMore}
-                language={language}
-                handleAddOwnClick={() => {
-                  setInputText({})
-                  localStorage.removeItem("selected_objective")
-                  setHasClickedOnAddmore(true)
-                }}
-                showAddOwnButton={false}
-              />
-            )}
-          </div>}
-          {isNewlyGeneratedList && <div>Previous Objectives List</div>}
-
+          ) : (
+            <>
+              <BotMessage primaryMessage={t("selectObjective.theseAreSomeObjectives")} secondaryMessage={t("selectObjective.selectObjective")} />
+              {!isNewlyGeneratedList && !hasClickedOnAddmore && (
+                <div className="secondpage-obj-fixed bg-white p-3 rounded-2xl">
+                  <div className="mt-3">
+                    <p className="secondpage-obj-text">{t("selectObjective.title")}</p>
+                    {!!(!fetchError || fetchError === "") && <ObjectivesCard objectiveList={objectiveList} visibleCount={visibleCount} selectedIndex={selectedIndex} handleObjectiveClick={handleObjectiveClick} selectedObjective={selectedObjective} isSelectObjectiveSection={isSelectObjectiveSection} objectiveSource={objectiveSource} />}
+                    {!!(fetchError && fetchError !== "") && <ErrorText errorText={fetchError} />}
+                  </div>
+                  {isSelectObjectiveSection && <SuggestOrAddCta showSuggestMoreButton={visibleCount < objectiveList?.length} handleSuggestMore={handleSuggestMore} language={language} handleAddOwnClick={handleAddOwnObjective} showAddOwnButton={true} />}
+                </div>
+              )}
+              {isNewlyGeneratedList && <div>Previous Objectives List</div>}
+            </>
+          )}
         </div>
 
         <div className="flex flex-col h-auto">
-          {beforeObjectiveHistory?.length > 0 && (
-            <ChatWindow
-              chatHistory={beforeObjectiveHistory}
-            />
-          )}
+          {beforeObjectiveHistory?.length > 0 && <ChatWindow chatHistory={beforeObjectiveHistory} />}
 
           {isNewlyGeneratedList && (
             <div>
@@ -528,45 +543,37 @@ function SelectObjective({
                   {!!(!fetchError || fetchError === "") && <ObjectivesCard objectiveList={objectiveList} visibleCount={visibleCount} selectedIndex={selectedIndex} handleObjectiveClick={handleObjectiveClick} selectedObjective={selectedObjective} isSelectObjectiveSection={isSelectObjectiveSection} objectiveSource={objectiveSource} />}
                   {!!(fetchError && fetchError !== "") && <ErrorText errorText={fetchError} />}
                 </div>
-                {isSelectObjectiveSection && (
-                  <SuggestOrAddCta
-                    showSuggestMoreButton={visibleCount < objectiveList?.length}
-                    handleSuggestMore={handleSuggestMore}
-                    language={language}
-                    handleAddOwnClick={() => {
-                      setInputText({})
-                      localStorage.removeItem("selected_objective")
-                      setHasClickedOnAddmore(true)
-                    }}
-                    showAddOwnButton={false}
-                  />
-                )}
+                {isSelectObjectiveSection && <SuggestOrAddCta showSuggestMoreButton={visibleCount < objectiveList?.length} handleSuggestMore={handleSuggestMore} language={language} handleAddOwnClick={handleAddOwnObjective} showAddOwnButton={true} />}
               </div>
             </div>
           )}
 
-          {afterObjectiveHistory?.length > 0 && (
-            <ChatWindow
-              chatHistory={afterObjectiveHistory}
-            />
-          )}
+          {afterObjectiveHistory?.length > 0 && <ChatWindow chatHistory={afterObjectiveHistory} />}
 
-          {!selectedObjective && !isNewlyGeneratedList ? <div className="mt-auto">
-            <ChatBox
-              textInputRef={textInputRef}
-              textMessage={textMessage}
-              handleOnInputText={handleOnInputText}
-              setUseTextbox={setUseTextbox}
-              handleSendMessage={handleSendMessage}
-              disabled={isFetchingData || hasStartedRecording}
-              hasStartedRecording={hasStartedRecording}
-              // startRecording={startRecording}
-              // stopRecording={stopRecording}
-              isFetchingData={isFetchingData}
-              seconds={seconds}
-              isReadOnly={false}
-            />
-          </div> : <UserMessage message={selectedObjective}/>}
+          {!selectedObjective ? (
+            <div className="mt-5">
+              <ChatBox
+                textInputRef={textInputRef}
+                textMessage={textMessage}
+                handleOnInputText={handleOnInputText}
+                setUseTextbox={setUseTextbox}
+                handleSendMessage={handleSendMessage}
+                disabled={isFetchingData || hasStartedRecording}
+                hasStartedRecording={hasStartedRecording}
+                // startRecording={startRecording}
+                // stopRecording={stopRecording}
+                isFetchingData={isFetchingData}
+                seconds={seconds}
+                isReadOnly={false}
+              />
+            </div>
+          ) : (
+            <div className={`div35 label1`}>
+              <div className={`div36 div37`}>
+                <ChatMessage message={selectedObjective} userType={CONVERSATION_USER_TYPES.USER} />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* {!isSelectObjectiveSection && (

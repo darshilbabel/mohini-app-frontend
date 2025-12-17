@@ -111,7 +111,7 @@ function WeeksSelection({
       handleScrollIntoView();
     }
     else if(message?.source === "bot" && message?.extra_content?.should_move_forward === "yes") {
-      const numOfWeeks = message?.extra_content?.query?.split("_weeks")[0];
+      const numOfWeeks = message?.extra_content?.query?.split(" weeks")[0];
       handleContinueClick(Number(numOfWeeks))
     }
   }, [])
@@ -221,7 +221,7 @@ function WeeksSelection({
   };
 
   if (getLoaderState(LOADER_KEYS.LOAD_WEEKS_SELECTION)) {
-    return <LoadingChat />;
+    return <></>
   }
 
 
@@ -259,6 +259,7 @@ function WeeksSelection({
             // hasStartedListening={hasStartedListening}
             // hasOverRideId={hasOverRideId}
             // scrollRef={scrollRef}
+            page={4}
           />}
           {isWeeksSelectionSection && (
             <div className="mt-auto">

@@ -30,6 +30,7 @@ export const INITIAL_STATE = (set, get, store) => ({
     selectedActionSource: null,
     durationChatHistory: [],
     objectiveChatHistory: [],
+    actionListChatHistory: [],
     prevObjective: null,
 
   
@@ -102,6 +103,9 @@ export const INITIAL_STATE = (set, get, store) => ({
 
     setPrevObjective: prevObjective => set({ prevObjective }),
     getPrevObjective: () => get().prevObjective,
+
+    setActionListChatHistory: actionListChatHistory => set({ actionListChatHistory }),
+    getActionListChatHistory: () => get().actionListChatHistory,
 
   
     reset: () => {

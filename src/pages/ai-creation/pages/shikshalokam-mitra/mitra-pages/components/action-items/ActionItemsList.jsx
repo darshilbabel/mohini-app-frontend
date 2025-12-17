@@ -15,6 +15,7 @@ const ActionItemsList = ({
   swipeDirection,
   isViewMode = false,
   finalActionList = [],
+  handleActionListClick
 }) => {
 
 
@@ -40,6 +41,7 @@ const ActionItemsList = ({
               swipeDirection={swipeDirection}
               finalActionList={finalActionList}
               isViewMode={isViewMode}
+              handleActionListClick={handleActionListClick}
             />
           )}
         </div>

@@ -62,7 +62,8 @@
         "selectObjective": "Select one to get started.",
         "theseAreSomeObjectives":  "These are some objectives that could help address your challenge.",
         "emptyObjective": "Please enter an objective!",
-        "enterObjectivePlaceholder": "Enter objectives"
+        "enterObjectivePlaceholder": "Enter objectives",
+        "goBack": "Go back to Objectives List"
     },
     "actionItems": {
         "title": "Action List",
@@ -76,7 +77,8 @@
         "writeActionHere": "Write action here...",
         "addAction": "Add Action",
         "action1": "Action 1",
-        "action2": "Action 2"
+        "action2": "Action 2",
+        "goBack": "Go back to Action List"
     },
     "weeksSelection": {
         "howManyWeeks": "How many weeks would you like to dedicate to this improvement?",

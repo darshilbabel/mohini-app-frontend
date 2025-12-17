@@ -17,6 +17,8 @@ const SuggestOrAddCta = ({
   const buttonStyle =
     "flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]";
 
+  console.log({showOrText, showSuggestMoreButton, showAddOwnButton})
+
   return (
     <div className="secondpage-div1">
       {showSuggestMoreButton && (
