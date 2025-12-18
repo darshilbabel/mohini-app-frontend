@@ -111,7 +111,9 @@ function WeeksSelection({
       handleScrollIntoView();
     }
     else if(message?.source === "bot" && message?.extra_content?.should_move_forward === "yes") {
-      const numOfWeeks = message?.extra_content?.query?.split(" weeks")[0];
+      const numOfWeeks = message?.extra_content?.query?.match(/\d+/)?.[0] ?? 1;
+
+      console.log({numOfWeeks})
       handleContinueClick(Number(numOfWeeks))
     }
   }, [])

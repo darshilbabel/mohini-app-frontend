@@ -53,6 +53,7 @@ const ActionItemsSwiper = ({
   }, [actionItems, isViewMode]);
 
 
+
   return (
     <div key={selectedIndex} className={`thirdpage-obj-selected-button-div ${swipeDirection === "left" ? "swipe-left" : swipeDirection === "right" ? "swipe-right" : ""}`} onClick={handleActionListClick}>
       <div className="secondpage-obj-line"></div>

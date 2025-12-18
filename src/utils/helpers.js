@@ -86,7 +86,6 @@ export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wss
     },
   }
 
-  console.log("websocket config", websocketConfig, currentFlow)
 
   // Check direct flow mapping first
   if (websocketConfig[currentFlow]) {

@@ -19,11 +19,18 @@ function ChatWindow({
   page
 }) {
 
+
   const objectiveList = useAICreationSessionStore.getState().getObjective();
+  const selectedObjective = useAICreationSessionStore.getState().getSelectedObjective();
+  const allObjectiveChatHistory = useAICreationSessionStore.getState().getObjectiveChatHistory();
+  const allActionListChatHistory = useAICreationSessionStore.getState().getActionListChatHistory();
+  const selectedAction = useAICreationSessionStore.getState().getSelectedAction();
   const selectedWeek = useAICreationSessionStore.getState().getSelectedWeek();
   const getShowLoadingChat = (indexNumber) => {
 
     const isWeeksSelectionSection = page && page === 4;
+    const isObjectiveSection = page && page === 2;
+    const isActionListSection = page && page === 3;
 
 
     let showLoader = true;
@@ -33,6 +40,17 @@ function ChatWindow({
     }
     else if(isWeeksSelectionSection) {
       showLoader = selectedWeek ? false : true
+    }
+    else if(isObjectiveSection) {
+
+      const messageIndex = allObjectiveChatHistory?.findIndex(item => item?.updated_at === chatHistory[chatHistory?.length - 1]?.updated_at);
+
+      showLoader = messageIndex !== allObjectiveChatHistory?.length - 1 ? false : selectedObjective ? false : true;
+    }
+    else if(isActionListSection) {
+      const messageIndex = allActionListChatHistory?.findIndex(item => item?.updated_at === chatHistory[chatHistory?.length - 1]?.updated_at);
+      showLoader = messageIndex !== allActionListChatHistory?.length - 1 ? false : selectedAction ? false : true;
+
     }
 
     return (
