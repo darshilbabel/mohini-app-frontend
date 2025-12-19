@@ -6,7 +6,8 @@ const ActionItemsSwiper = ({
   swipeDirection,
   finalActionList,
   isViewMode,
-  handleActionListClick
+  handleActionListClick,
+  hasClickedOnAddmore
 }) => {
   const actionItems = useMemo(() => {
     if (isViewMode) {
@@ -60,8 +61,12 @@ const ActionItemsSwiper = ({
       <button className={`thirdpage-obj-bttn ${swipeDirection ? `swipe-in-${swipeDirection}` : ""}`}>
         {actionList[selectedIndex]?.duration_weeks !== "" && (
           <p className="thirdpage-duration">
-            <span>{actionList[selectedIndex]?.plan_name}{" "}</span>
-            <span className="thirdpage-week">({actionList[selectedIndex]?.duration_weeks}</span> week{actionList[selectedIndex]?.duration_weeks > 1 ? "s" : ""} recommend)
+            <span>{hasClickedOnAddmore ? "My Action Plan" : actionList[selectedIndex]?.plan_name}{" "}</span>
+            {!hasClickedOnAddmore && (
+              <>
+                <span className="thirdpage-week">({actionList[selectedIndex]?.duration_weeks}</span> week{actionList[selectedIndex]?.duration_weeks > 1 ? "s" : ""} recommend)
+              </>
+            )}
           </p>
         )}
         <ol>

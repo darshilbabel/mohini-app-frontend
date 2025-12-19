@@ -10,7 +10,6 @@ export const useChatWebhook = (url, options = {}) => {
 
   const [isConnected, setIsConnected] = useState(false)
 
-  console.log("rendering now")
 
   const connect = useCallback(() => {
     if (!url) return
@@ -45,7 +44,6 @@ export const useChatWebhook = (url, options = {}) => {
 
       ws.current.onclose = event => {
 
-        console.log("CONNECTION GETTING CLOSED NOW")
         setIsConnected(false)
         if (onClose) onClose(event)
 
@@ -92,7 +90,6 @@ export const useChatWebhook = (url, options = {}) => {
         clearTimeout(reconnectTimeout.current)
       }
       if (ws.current) {
-        console.log("INSIDE THISSSSSSS")
         ws.current.close()
       }
     }

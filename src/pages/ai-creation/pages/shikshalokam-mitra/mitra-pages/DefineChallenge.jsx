@@ -12,8 +12,6 @@ import {
 } from "../../../../../api/endpoints/chat_flow";
 
 import { getAI4BharatAudioApi } from "api/endpoints/ai";
-import { handleS3Upload } from "../../../../../services/storage_service";
-import { ai4BharatASRApi } from "api/endpoints/ai";
 
 /* components */
 import ChatBox from "./components/ChatBox";
@@ -67,14 +65,11 @@ const DefineChallenge = ({
   );
   const [chatSocket, setChatSocket] = useState(null);
   const [textMessage, setTextMessage] = useState("");
-  const [isFetchingData, setIsFetchingData] = useState(false);
   const [reconText, setReconText] = useState("");
   const [isStreamingComplete, setIsStreamingComplete] = useState(true);
   const [audioCache, setAudioCache] = useState({});
   const [hasStartedListening, setHasStartedListening] = useState(false);
   const [botNameToDisplay, setBotNameToDisplay] = useState("Bot");
-  const [hasStartedRecording, setHasStartedRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
   const [sentences, setSentences] = useState([]);
   const [isNextAllowed, setIsNextAllowed] = useState(true);
   const [isMute, setNotMute] = useState(true);
@@ -105,28 +100,9 @@ const DefineChallenge = ({
   const textInputRef = useRef(null);
 
   const { recordings, HiddenRecorder } = useVoiceRecord();
-  const [storyData, setStoryData] = useState(null);
-  const [asrAudio, setAsrAudio] = useState(null);
-  const [seconds, setSeconds] = useState(0);
-  const [intervalId, setIntervalId] = useState(null);
 
   const { stopAllAudio, audioRef } = useAudio();
 
-
-  const isSilentAudio = async (blob, silenceThreshold = 0.01) => {
-    const audioContext = new (window.AudioContext ||
-      window.webkitAudioContext)();
-    const arrayBuffer = await blob.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    const rawData = audioBuffer.getChannelData(0);
-
-    const rms = Math.sqrt(
-      rawData.reduce((acc, val) => acc + val * val, 0) / rawData.length
-    );
-    console.log("RMS (volume):", rms);
-
-    return rms < silenceThreshold;
-  };
 
   const handleOnStopSpeaking = async () => {
     try {
@@ -140,103 +116,6 @@ const DefineChallenge = ({
       setIsNextAllowed(true);
     } catch (error) {
       console.error({ error });
-    }
-  };
-  const stopRecording = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop();
-      setHasStartedRecording(false);
-    }
-  };
-  const startRecording = () => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      handleOnStopSpeaking();
-      setTextMessage("");
-      navigator.mediaDevices
-        .getUserMedia({ audio: true })
-        .then((stream) => {
-          const options = {
-            mimeType: "audio/webm;codecs=opus",
-            audioBitsPerSecond: 16000,
-          };
-          const recorder = new MediaRecorder(stream, options);
-          setMediaRecorder(recorder);
-
-          const localAudioChunks = [];
-
-          recorder.start();
-          setHasStartedRecording(true);
-
-          recorder.ondataavailable = (event) => {
-            localAudioChunks.push(event.data);
-          };
-
-          recorder.onstop = async () => {
-            if (localAudioChunks.length > 0) {
-              const audioBlob = new Blob(localAudioChunks, {
-                type: "audio/webm;codecs=opus",
-              });
-              const isSilent = await isSilentAudio(audioBlob, 0.02);
-
-              if (!audioBlob || isSilent) {
-                showNotification({
-                  message: t("common.failedToCaptureSpeech"),
-                  type: "error",
-                  options: {
-                    position: "top-center",
-                    autoClose: 6000,
-                    style: { fontWeight: "bold", width: "80%" },
-                  },
-                });
-                return;
-              }
-
-              setIsFetchingData(true);
-              let transcriptResult = "";
-              const sessionId = useAICreationSessionStore.getState().getSession;
-
-              let s3Url = await handleS3Upload(
-                audioBlob,
-                `${Date.now()}`,
-                `chatbot/companychat/${sessionId}/`,
-                storyData
-              );
-              if (!s3Url || s3Url === "") {
-                transcriptResult = t("common.failedToCaptureSpeech");
-              }
-              setAsrAudio(s3Url);
-              let storedRoute = sessionRoute;
-              transcriptResult = await ai4BharatASRApi(
-                s3Url,
-                languageToUse,
-                storedRoute
-              );
-              if (!transcriptResult || transcriptResult === "") {
-                showNotification({
-                  message: t("common.failedToCaptureSpeech"),
-                  type: "error",
-                  options: {
-                    position: "top-center",
-                    autoClose: 6000,
-                    style: { fontWeight: "bold" },
-                  },
-                });
-              } else {
-                setTextMessage(transcriptResult);
-              }
-              setIsFetchingData(false);
-            } else {
-              console.warn("No audio chunks were recorded.");
-              setIsFetchingData(false);
-            }
-          };
-        })
-        .catch((err) => {
-          console.error("Error accessing microphone:", err);
-          setIsFetchingData(false);
-        });
-    } else {
-      console.warn("getUserMedia not supported on your browser!");
     }
   };
 
@@ -1068,20 +947,6 @@ const DefineChallenge = ({
     }
   };
 
-  useEffect(() => {
-    if (hasStartedRecording) {
-      const id = setInterval(() => {
-        setSeconds((prev) => prev + 1);
-      }, 1000);
-      setIntervalId(id);
-    } else {
-      clearInterval(intervalId);
-      setSeconds(0);
-    }
-
-    return () => clearInterval(intervalId);
-  }, [hasStartedRecording]);
-
   const isWelcomeScreen = useMemo(() => {
     return !!(
       chatHistory &&
@@ -1104,12 +969,6 @@ const DefineChallenge = ({
             handleOnInputText={handleOnInputText}
             setUseTextbox={setUseTextbox}
             handleSendMessage={handleSendMessage}
-            inputDisabled={isFetchingData || hasStartedRecording}
-            hasStartedRecording={hasStartedRecording}
-            startRecording={startRecording}
-            stopRecording={stopRecording}
-            isFetchingData={isFetchingData}
-            seconds={seconds}
           />
         </div>
       ) : (
@@ -1137,12 +996,6 @@ const DefineChallenge = ({
                 handleOnInputText={handleOnInputText}
                 setUseTextbox={setUseTextbox}
                 handleSendMessage={handleSendMessage}
-                disabled={isFetchingData || hasStartedRecording}
-                hasStartedRecording={hasStartedRecording}
-                startRecording={startRecording}
-                stopRecording={stopRecording}
-                isFetchingData={isFetchingData}
-                seconds={seconds}
                 isReadOnly={!isDefineChallengeSection}
               />
             </div>

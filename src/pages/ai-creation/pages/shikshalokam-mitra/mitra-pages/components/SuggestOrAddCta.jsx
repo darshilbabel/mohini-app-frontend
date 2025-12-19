@@ -23,7 +23,6 @@ const SuggestOrAddCta = ({
 
   const {t} =  useTranslation("ai_creation_translation")
 
-  console.log({showOrText, showSuggestMoreButton, showAddOwnButton})
 
   return (
     <div className="secondpage-div1">

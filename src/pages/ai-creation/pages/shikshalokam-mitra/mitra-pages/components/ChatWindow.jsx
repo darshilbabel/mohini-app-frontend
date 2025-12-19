@@ -12,7 +12,7 @@ function ChatWindow({
   setNotMute,
   userDetail,
   chatHistory,
-  hasStartedListening,
+  hasStartedListening = false,
   hasOverRideId,
   isDefineChallengeSection,
   scrollRef,
@@ -48,6 +48,7 @@ function ChatWindow({
       showLoader = messageIndex !== allObjectiveChatHistory?.length - 1 ? false : selectedObjective ? false : true;
     }
     else if(isActionListSection) {
+
       const messageIndex = allActionListChatHistory?.findIndex(item => item?.updated_at === chatHistory[chatHistory?.length - 1]?.updated_at);
       showLoader = messageIndex !== allActionListChatHistory?.length - 1 ? false : selectedAction ? false : true;
 

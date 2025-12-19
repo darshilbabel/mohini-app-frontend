@@ -363,7 +363,6 @@ function MainPage() {
     return <ShowLoader showFirstLoader={true} loadingText={t("common.loadingText")} />;
   }
 
-  console.log({currentPage})
   return (
     <>
 

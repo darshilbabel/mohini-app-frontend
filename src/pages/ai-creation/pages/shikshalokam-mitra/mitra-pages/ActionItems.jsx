@@ -318,7 +318,6 @@ function ActionItems({
   }, []);
 
   useEffect(() => {
-    console.log("*** new action list fetched now")
     fetchActionList();
   }, [objective])
 
@@ -416,7 +415,6 @@ function ActionItems({
 
   const handleContinueClick = async (action_to_store) => {
 
-    console.log("action to store", action_to_store)
 
     try {
 
@@ -567,7 +565,6 @@ function ActionItems({
   if(goBack) return <></>;
 
 
-  console.log({chatSections})
 
   return (
     <>
@@ -606,6 +603,7 @@ function ActionItems({
                       }
                       setWantsToMoveForward(true);
                     }}
+                    hasClickedOnAddmore={hasClickedOnAddmore}
                   />
                   <Source
                     source={actionItemSource}
@@ -675,6 +673,8 @@ function ActionItems({
                           }
                           setWantsToMoveForward(true);
                         }}
+                        hasClickedOnAddmore={hasClickedOnAddmore}
+
                       />
                       <Source
                         source={actionItemSource}
@@ -734,7 +734,7 @@ function ActionItems({
               // <></>
               <div className={`div35 label1`}>
               <div className={`div36 div37`}>
-                <ChatMessage message={actionList[selectedIndex]?.plan_name} userType={CONVERSATION_USER_TYPES.USER} />
+                {hasClickedOnAddmore ? <ChatMessage message="My Action Plan" userType={CONVERSATION_USER_TYPES.USER} /> : <ChatMessage message={actionList[selectedIndex]?.plan_name} userType={CONVERSATION_USER_TYPES.USER} />}
               </div>
             </div>
             )}

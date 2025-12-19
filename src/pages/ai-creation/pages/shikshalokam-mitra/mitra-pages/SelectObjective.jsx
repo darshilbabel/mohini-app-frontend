@@ -66,10 +66,7 @@ function SelectObjective({
 
   const textInputRef = useRef(null);
   const [textMessage, setTextMessage] = useState("");
-  const [isFetchingData, setIsFetchingData] = useState(false);
-  const [hasStartedRecording, setHasStartedRecording] = useState(false);
   const [useTextbox, setUseTextbox] = useState(false);
-  const [seconds, setSeconds] = useState(0)
   const [isNewlyGeneratedList, setIsNewlyGeneratedList] = useState(() => {
     const storedPrevObjective = useAICreationSessionStore.getState().getPrevObjective();
     if (storedPrevObjective?.length > 0) {
@@ -379,7 +376,6 @@ function SelectObjective({
     const text = objectiveList[index]
     setInputText(text)
 
-    console.log("**** TEXT IS", text)
     handleNextClick(text)
   };
 
@@ -436,7 +432,6 @@ function SelectObjective({
           };
 
 
-      console.log("GOING INSIDE handleNextClick *****")
 
 
       const chunks = JSON.parse(useAICreationSessionStore.getState().getChunks());
@@ -595,6 +590,7 @@ function SelectObjective({
   }
 
 
+
   return (
     <>
       <div>
@@ -602,7 +598,7 @@ function SelectObjective({
           {hasClickedOnAddmore ? (
             <div>
               <BotMessage primaryMessage={t("selectObjective.enterObjective")} />
-              {!selectedObjective && <button onClick={() => setHasClickedOnAddmore(false)} className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF] mx-auto">
+              {(!selectedObjective || isSelectObjectiveSection) && <button onClick={() => setHasClickedOnAddmore(false)} className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF] mx-auto">
                 {t("selectObjective.goBack")}
               </button>}
               <div className="mt-3">{errorText && <p>{errorText}</p>}</div>
@@ -729,12 +725,6 @@ function SelectObjective({
                 handleOnInputText={handleOnInputText}
                 setUseTextbox={setUseTextbox}
                 handleSendMessage={handleSendMessage}
-                disabled={isFetchingData || hasStartedRecording}
-                hasStartedRecording={hasStartedRecording}
-                // startRecording={startRecording}
-                // stopRecording={stopRecording}
-                isFetchingData={isFetchingData}
-                seconds={seconds}
                 isReadOnly={false}
               />
             </div>
