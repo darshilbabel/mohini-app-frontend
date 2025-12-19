@@ -21,6 +21,7 @@ export const updateReflectionStatusApi = async (projectId, status = "completed",
 
     return response
   } catch (error) {
+    console.error(error)
     return { error: "Error updating reflection status." }
   }
 }

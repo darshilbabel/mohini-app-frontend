@@ -2,6 +2,8 @@ export const API_ENDPOINTS = {
   ASR: "/api/asr/",
   BOT_VERNACULAR: "/api/bot_vernacular/",
   CREATE_USER_PROFILE: "/api/create-profile/",
+  FLOW_CONNECTION_INFO: "/api/flow-connection-info/",
+  FLOW_LANGUAGES: "/api/flow-languages/",
   GENERATE_SESSION: "/api/generate-session/",
   GET_CHAT_SESSION: "/api/chatsession/",
   GET_COMPANY_BOT: "/api/companybot/",

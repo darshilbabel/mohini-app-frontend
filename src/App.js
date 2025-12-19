@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { SESSION_USECASE_TYPE } from "constants/session"
 import { sessionFlowName } from "./pages/ShikshalokamVoiceChat/enum"
 import { useRoutes, Navigate } from "react-router-dom"
@@ -9,19 +10,19 @@ import React from "react"
 import ROUTES from "./url"
 import ShikshagrahaRepository from "./pages/shikshagraha-repository/listing"
 import ShikshagrahaRepositoryDetail from "./pages/shikshagraha-repository/details"
-import Shikshalokam from "./pages/shikshalokam"
 import ShikshalokamChat from "./pages/shikshalokamChat"
-import ShikshalokamVoiceBasedChat from "./pages/ShikshalokamVoiceChat/voice-chat"
 import SsoFlow from "./pages/ssoFlow"
 import UnifiedChat from "./pages/UnifiedChat/UnifiedChat"
+
+const queryClient = new QueryClient()
 
 function App() {
   const elements = useRoutes([...clean_routes(protected_routes_config), ...clean_routes(unprotected_routes_config), ...clean_routes(unprotected_old_routes)])
 
   return (
-    <React.Fragment>
+    <QueryClientProvider client={queryClient}>
       <UserProvider>{elements}</UserProvider>
-    </React.Fragment>
+    </QueryClientProvider>
   )
 }
 

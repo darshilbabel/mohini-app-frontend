@@ -194,10 +194,6 @@ export const createStoryMediaApi = async ({
  */
 export const partialUpdateStoryById = async ({ token, data, storyId, partialUpdate = true }) => {
   try {
-    // if (!token) {
-    //   throw new Error("Authorization token is required!")
-    // }
-
     if (!storyId) {
       throw new Error("Story ID is required!")
     }

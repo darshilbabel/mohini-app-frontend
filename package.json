@@ -10,6 +10,7 @@
     "@editorjs/paragraph": "^2.11.7",
     "@editorjs/simple-image": "^1.6.0",
     "@tailwindcss/typography": "^0.5.16",
+    "@tanstack/react-query": "^5.90.12",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",

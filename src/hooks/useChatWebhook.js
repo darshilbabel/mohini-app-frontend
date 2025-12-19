@@ -1,6 +1,12 @@
-import { useRef, useState, useCallback, useEffect } from "react"
+import { API_ENDPOINTS } from "../constants/urls"
+import { getFlowInfoApi } from "api/endpoints"
+import { useQuery } from "@tanstack/react-query"
+import { useMemo, useRef, useState, useCallback, useEffect } from "react"
+import useUrlFlow from "./useUrlFlow"
+import env from "../utils/env"
 
-export const useChatWebhook = (url, options = {}) => {
+export const useChatWebhook = (options = {}) => {
+  const { flow: storageFlow } = useUrlFlow()
   const { onFinalReconnectAttempt, onOpen, onMessage, onError, onClose, reconnect = true, reconnectInterval = 3000, reconnectAttempts = 5, autoConnect = true } = options
 
   const ws = useRef(null)
@@ -9,6 +15,19 @@ export const useChatWebhook = (url, options = {}) => {
   const socketQueue = useRef([])
 
   const [isConnected, setIsConnected] = useState(false)
+
+  const { data: flowInfo } = useQuery({
+    queryKey: [API_ENDPOINTS.FLOW_CONNECTION_INFO, storageFlow],
+    queryFn: () => getFlowInfoApi(storageFlow),
+    // staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
+
+  const url = useMemo(() => {
+    return `${env.WS_PROTOCOL()}://${env.WEBSOCKET_HOST()}/${flowInfo?.websocket_url ? flowInfo.websocket_url : ""}`
+  }, [flowInfo])
 
   const connect = useCallback(() => {
     if (!url) return
