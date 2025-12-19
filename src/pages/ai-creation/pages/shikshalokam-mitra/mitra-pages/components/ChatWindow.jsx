@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useRef } from "react";
 import ChatMessage from "./chat-message/ChatMessage";
 import LoadingChat from "./LoadingChat";
+import { useAICreationSessionStore } from "../../../../../../store";
 
 function ChatWindow({
   isTalking,
@@ -11,19 +12,52 @@ function ChatWindow({
   setNotMute,
   userDetail,
   chatHistory,
-  hasStartedListening,
+  hasStartedListening = false,
   hasOverRideId,
   isDefineChallengeSection,
   scrollRef,
+  page
 }) {
-  const isReadOnly = !isDefineChallengeSection;
+
+
+  const objectiveList = useAICreationSessionStore.getState().getObjective();
+  const selectedObjective = useAICreationSessionStore.getState().getSelectedObjective();
+  const allObjectiveChatHistory = useAICreationSessionStore.getState().getObjectiveChatHistory();
+  const allActionListChatHistory = useAICreationSessionStore.getState().getActionListChatHistory();
+  const selectedAction = useAICreationSessionStore.getState().getSelectedAction();
+  const selectedWeek = useAICreationSessionStore.getState().getSelectedWeek();
   const getShowLoadingChat = (indexNumber) => {
+
+    const isWeeksSelectionSection = page && page === 4;
+    const isObjectiveSection = page && page === 2;
+    const isActionListSection = page && page === 3;
+
+
+    let showLoader = true;
+
+    if(isDefineChallengeSection) {
+      showLoader = objectiveList?.length > 0 ? false : true;
+    }
+    else if(isWeeksSelectionSection) {
+      showLoader = selectedWeek ? false : true
+    }
+    else if(isObjectiveSection) {
+
+      const messageIndex = allObjectiveChatHistory?.findIndex(item => item?.updated_at === chatHistory[chatHistory?.length - 1]?.updated_at);
+
+      showLoader = messageIndex !== allObjectiveChatHistory?.length - 1 ? false : selectedObjective ? false : true;
+    }
+    else if(isActionListSection) {
+
+      const messageIndex = allActionListChatHistory?.findIndex(item => item?.updated_at === chatHistory[chatHistory?.length - 1]?.updated_at);
+      showLoader = messageIndex !== allActionListChatHistory?.length - 1 ? false : selectedAction ? false : true;
+
+    }
+
     return (
-      isDefineChallengeSection &&
       !hasStartedListening &&
       chatHistory[chatHistory?.length - 1].source === "user" &&
-      indexNumber === chatHistory?.length - 1 &&
-      !isReadOnly
+      indexNumber === chatHistory?.length - 1 && showLoader
     );
   };
 
@@ -129,7 +163,7 @@ function ChatWindow({
                 userDetail={userDetail}
               />
             </div>
-            {getShowLoadingChat(i) && <LoadingChat />}
+            {getShowLoadingChat(i) && <><LoadingChat /></>}
           </li>
         ))}
       </ul>

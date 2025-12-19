@@ -6,6 +6,8 @@ const ActionItemsSwiper = ({
   swipeDirection,
   finalActionList,
   isViewMode,
+  handleActionListClick,
+  hasClickedOnAddmore
 }) => {
   const actionItems = useMemo(() => {
     if (isViewMode) {
@@ -52,29 +54,19 @@ const ActionItemsSwiper = ({
   }, [actionItems, isViewMode]);
 
 
+
   return (
-    <div
-      key={selectedIndex}
-      className={`thirdpage-obj-selected-button-div ${
-        swipeDirection === "left"
-          ? "swipe-left"
-          : swipeDirection === "right"
-          ? "swipe-right"
-          : ""
-      }`}
-    >
+    <div key={selectedIndex} className={`thirdpage-obj-selected-button-div ${swipeDirection === "left" ? "swipe-left" : swipeDirection === "right" ? "swipe-right" : ""}`} onClick={handleActionListClick}>
       <div className="secondpage-obj-line"></div>
-      <button
-        className={`thirdpage-obj-bttn ${
-          swipeDirection ? `swipe-in-${swipeDirection}` : ""
-        }`}
-      >
+      <button className={`thirdpage-obj-bttn ${swipeDirection ? `swipe-in-${swipeDirection}` : ""}`}>
         {actionList[selectedIndex]?.duration_weeks !== "" && (
           <p className="thirdpage-duration">
-            <span className="thirdpage-week">
-              {actionList[selectedIndex]?.duration_weeks}
-            </span>{" "}
-            weeks recommend
+            <span>{hasClickedOnAddmore ? "My Action Plan" : actionList[selectedIndex]?.plan_name}{" "}</span>
+            {!hasClickedOnAddmore && (
+              <>
+                <span className="thirdpage-week">({actionList[selectedIndex]?.duration_weeks}</span> week{actionList[selectedIndex]?.duration_weeks > 1 ? "s" : ""} recommend)
+              </>
+            )}
           </p>
         )}
         <ol>
@@ -83,9 +75,7 @@ const ActionItemsSwiper = ({
               <span className="thirdpage-list-text">
                 {subAction?.step}{" "}
                 {subAction?.source_keys?.map((key, index) => (
-                  <sup key={index}>
-                    [{key}]{" "}
-                  </sup>
+                  <sup key={index}>[{key}] </sup>
                 ))}
               </span>
             </li>
@@ -93,7 +83,7 @@ const ActionItemsSwiper = ({
         </ol>
       </button>
     </div>
-  );
+  )
 };
 
 export default ActionItemsSwiper;

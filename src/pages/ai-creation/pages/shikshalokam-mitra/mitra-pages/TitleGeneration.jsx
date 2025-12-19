@@ -119,22 +119,23 @@ function TitleGeneration({
     setInputText(newText);
   }
 
-  useEffect(() => {
-    const textarea = document.getElementById("autoGrow");
+  // Auto-grow is now handled by TextareaWithVoice component
+  // useEffect(() => {
+  //   const textarea = document.getElementById("autoGrow");
 
-    const adjustHeight = () => {
-      if (textarea) {
-        textarea.style.height = "auto";
-        textarea.style.height = `${textarea.scrollHeight}px`;
-      }
-    };
+  //   const adjustHeight = () => {
+  //     if (textarea) {
+  //       textarea.style.height = "auto";
+  //       textarea.style.height = `${textarea.scrollHeight}px`;
+  //     }
+  //   };
 
-    adjustHeight();
+  //   adjustHeight();
 
-    textarea?.addEventListener("input", adjustHeight);
+  //   textarea?.addEventListener("input", adjustHeight);
 
-    return () => textarea?.removeEventListener("input", adjustHeight);
-  }, [inputText]);
+  //   return () => textarea?.removeEventListener("input", adjustHeight);
+  // }, [inputText]);
 
   async function handleCreateImprovement() {
     if (
@@ -261,7 +262,7 @@ function TitleGeneration({
               id="autoGrow"
               type="text"
               placeholder={t("titleGeneration.aiGeneratedTitle")}
-              className="secondpage-text-input"
+              className={`secondpage-text-input ${isApiCalling || isLocalLoading || media?.length > 0 ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
               value={inputText}
               onChange={(e) => handleInputText(e)}
               disabled={isApiCalling || isLocalLoading || media?.length > 0}

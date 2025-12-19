@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 /* icons */
 import { PiDotsSixVerticalBold } from "react-icons/pi";
 import { TbTrashOff } from "react-icons/tb";
 import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
-import { IoArrowForward } from "react-icons/io5";
+import { IoArrowBack, IoArrowForward } from "react-icons/io5";
 /* utils and api services */
 
 import {
@@ -28,6 +28,16 @@ import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 /* styles */
 import "../stylesheet/chatStyle.css";
 import { useAICreationSessionStore } from "store";
+import ChatWindow from "./components/ChatWindow";
+import ChatBox from "./components/ChatBox";
+import { useSearchParams } from "react-router-dom";
+import { sessionFlowName } from "../../../../ShikshalokamVoiceChat/enum";
+import { bot_routes } from "../../../../../configure";
+import { useChatWebhook } from "../../../../../hooks/useChatWebhook";
+import { buildWebSocketUrl } from "../../../../../utils/helpers";
+import { ShowLoader } from "../MainPage";
+import ChatMessage from "./components/chat-message/ChatMessage";
+import ObjectivesCard from "./components/objectives/ObjectivesCard";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -76,9 +86,155 @@ function ActionItems({
     return false;
   });
 
-  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore } = useAICreationSessionStore.getState()
-  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {}
+  const textInputRef = useRef(null);
+  const [textMessage, setTextMessage] = useState("");
+  const [useTextbox, setUseTextbox] = useState(false);
+  const [goBack, setGoBack] = useState(false)
+  const [showSelectedActionLoader, setShowSelectedActionLoader] = useState(false)
+
+  const localChatHistory = useAICreationSessionStore.getState().getActionListChatHistory()
+
+  const [actionListChatHistory, setActionListChatHistory] = useState(
+    !!localChatHistory?.length ? localChatHistory : []
+  );
+  const [searchParams] = useSearchParams()
+  const storageFlow = sessionFlowName.Creation;
+  const selectedType = ""
+  const wss_protocol = "wss://"
+  const sessionId = useAICreationSessionStore.getState().getSession();
+
+  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setSelectedObjectiveSource: setSelectedObjectiveSourceStore, setSelectedObjective: setSelectedObjectiveStore, setCurrentPage: setCurrentPageStore, currentPage: currentPageStore } = useAICreationSessionStore.getState()
+  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en"
   const language = preferredLanguage.value || "en";
+
+  const { profileId, selectedAction } = useAICreationSessionStore.getState();
+  const objective = useAICreationSessionStore.getState().getSelectedObjective()
+  const accessToken = sessionStorage.getItem("accToken");
+  const [isFetchingData, setIsFetchingData] = useState(false)
+
+  // ws logic
+
+  const onWebSocketClose = useCallback(() => {
+  }, [])
+
+  const onWebSocketOpen = useCallback(() => {
+    sendSocketMessage({
+      type: "authenticate",
+      sessionid: sessionId,
+      profileid: profileId,
+      access_token: accessToken,
+      route: "en",
+      bot_route: bot_routes.mitra_action_list,
+      flow_name: storageFlow,
+    })
+  }, [sessionId, profileId, accessToken, preferredLanguage, storageFlow])
+
+  const onWebSocketMessage = useCallback((event) => {
+    const data = JSON.parse(event.data)
+    const message = data?.text
+  
+    if (message?.msg && message?.source === "bot") {
+      const newMessage = {
+        msg: message.msg,
+        source: "bot",
+        updated_at: Date.now(),
+      }
+      
+      setActionListChatHistory(prev => [...prev, newMessage])
+      
+      // Update store - get current value first, then set new value
+      const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
+      useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
+      
+      handleScrollIntoView();
+    }
+    else if(message?.source === "bot" && message?.extra_content?.should_move_forward === "yes" && message?.extra_content?.validation === "CREATE_NEW") {
+
+      const newMessage = {
+        msg: "",
+        source: "SEPARATOR",
+        updated_at: Date.now(),
+      }
+      
+      setActionListChatHistory(prev => [...prev, newMessage])
+      // Update store - get current value first, then set new value
+      const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
+      useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
+
+      useAICreationSessionStore.getState().setSelectedObjective(message?.extra_content?.query)
+
+      fetchActionList(true, message?.extra_content?.query)
+    }
+  }, [])
+
+  const onWebSocketError = useCallback((error) => {
+  }, [])
+
+  const onFinalReconnectAttempt = useCallback(() => {
+  }, [])
+
+  const {
+    sendMessage: sendSocketMessage,
+    connect: connectToWebSocket,
+    isFreshConnection,
+    disconnect
+  } = useChatWebhook(
+    buildWebSocketUrl({
+      searchParams,
+      storageFlow,
+      selectedType,
+      wssProtocol: wss_protocol,
+    }),
+    {
+      onOpen: onWebSocketOpen,
+      onMessage: onWebSocketMessage,
+      onClose: onWebSocketClose,
+      onError: onWebSocketError,
+      onFinalReconnectAttempt,
+      autoConnect: false,
+    }
+  )
+
+  useEffect(() => {
+    connectToWebSocket();
+
+
+    return () => {
+      disconnect();
+    }
+  }, [disconnect])
+
+  
+
+  function handleSendMessage(event) {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
+    if (!textMessage.trim()) return
+
+    const newMessage = {
+      msg: textMessage,
+      source: "user",
+      updated_at: Date.now(),
+    }
+
+    setActionListChatHistory(prev => [...prev, newMessage])
+
+    // Update store - get current value first, then set new value
+    const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
+    useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
+    
+    sendSocketMessage({
+      text: textMessage,
+      context: "",
+      // asr_audio: asrAudio,
+    })
+
+    handleScrollIntoView();
+    setTextMessage("")
+  }
 
   const defaultActionList = [
     {id: "0", content: t("actionItems.action1")},
@@ -110,50 +266,54 @@ function ActionItems({
     handleScrollIntoView();
   };
 
-  useEffect(() => {
-    async function fetchActionList() {
-      // setIsLoading(true);
-      try {
-        handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, true);
-        if (!actionList || actionList?.length === 0) {
-          // setIsLoading(true);
-          const userProblemStatement = useAICreationSessionStore.getState().getUserProblemStatement()
-          const objective = useAICreationSessionStore.getState().getSelectedObjective()
-          const profile_id = useAICreationSessionStore.getState().getProfileId()
-          const fetchedActionList = await getActionList(
-            userProblemStatement,
-            objective,
-            language,
-            profile_id
-          );
+  async function fetchActionList(createNew = false, newObjective) {
+    // setIsLoading(true);
+    try {
+      handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, true);
+      if (!actionList || actionList?.length === 0) {
+        // setIsLoading(true);
+        const userProblemStatement = useAICreationSessionStore.getState().getUserProblemStatement()
+        const profile_id = useAICreationSessionStore.getState().getProfileId()
 
-          const { message = "", action_list = [] } = fetchedActionList || {};
-
-          if (action_list?.length > 0) {
-            setActionList(action_list);
-            setActionListStore(action_list)
-
-            const transformedSource = transformActionListSources(action_list);
-
-            setActionItemSource(transformedSource);
-            setActionItemSourceStore(transformedSource)
-            if (isSelectActionItems) handleScrollIntoView();
-          } else {
-            const errorMessage = message?.length > 0 ? message : (useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater"));
-            setFetchError(errorMessage);
-            // window.location.reload();
-          }
-        }
-      } catch (error) {
-        setFetchError(
-          useAICreationSessionStore.getState().getSystemError() ||
-            t("common.pleaseTryAgainLater")
+        const finalObjective = createNew ? newObjective : objective
+        const fetchedActionList = await getActionList(
+          userProblemStatement,
+          finalObjective,
+          language,
+          profile_id
         );
-        console.error(error);
-      } finally {
-        handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, false);
+
+        const { message = "", action_list = [] } = fetchedActionList || {};
+
+        if (action_list?.length > 0) {
+
+          setActionList(action_list);
+          setActionListStore(action_list)
+
+          const transformedSource = transformActionListSources(action_list);
+
+          setActionItemSource(transformedSource);
+          setActionItemSourceStore(transformedSource)
+          if (isSelectActionItems) handleScrollIntoView();
+        } else {
+          const errorMessage = message?.length > 0 ? message : (useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater"));
+          setFetchError(errorMessage);
+          // window.location.reload();
+        }
       }
+    } catch (error) {
+      setFetchError(
+        useAICreationSessionStore.getState().getSystemError() ||
+          t("common.pleaseTryAgainLater")
+      );
+      console.error(error);
+    } finally {
+      handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, false);
     }
+  }
+
+  useEffect(() => {
+
     const storedActions = useAICreationSessionStore.getState().getActionList()
 
     if (Array.isArray(storedActions)) {
@@ -164,11 +324,23 @@ function ActionItems({
   }, []);
 
   useEffect(() => {
+    fetchActionList();
+  }, [objective])
+
+  useEffect(() => {
     if (swipeDirection) {
       const timeout = setTimeout(() => setSwipeDirection(null), 500);
       return () => clearTimeout(timeout);
     }
   }, [swipeDirection]);
+
+  useEffect(() => {
+    if (showSelectedActionLoader) {
+      setTimeout(() => {
+        setShowSelectedActionLoader(false)
+      }, 1000)
+    }
+  }, [showSelectedActionLoader])
 
   // useEffect(() => {
   //   if (isInReadOnlyMode) {
@@ -248,7 +420,11 @@ function ActionItems({
   };
 
   const handleContinueClick = async (action_to_store) => {
+
+
     try {
+
+      setIsFetchingData(true)
 
       if (isActionEmptyOrDefault(action_to_store)) {
         return;
@@ -270,9 +446,12 @@ function ActionItems({
         language,
         profile_id
       );
+
+      setIsFetchingData(false)
+
       // setIsLoading(false);
 
-      if (validate_response?.result === false) {
+      if (validate_response?.result === "false") {
         setErrorText(validate_response?.error_message);
         return;
       }
@@ -295,10 +474,12 @@ function ActionItems({
           messageId: "7_1",
         };
 
-        saveUserChatsInDB(botMessage?.message, currentSession, botMessage?.role)
+        const planName = actionList[selectedIndex]?.plan_name;
+
+        saveUserChatsInDB(planName, currentSession, botMessage?.role)
           .then(() => {
             saveUserChatsInDB(
-              JSON.stringify(action_to_store),
+              planName,
               currentSession,
               USER
             );
@@ -326,8 +507,68 @@ function ActionItems({
   };
 
   if (getLoaderState(LOADER_KEYS.FETCH_ACTION_LIST)) {
-    return <LoadingChat />;
+    return <LoadingChat />
   }
+
+
+  const handleOnInputText = (e) => {
+    e.preventDefault();
+    setTextMessage(e.target.value);
+  };
+
+  // Find all separator messages
+  const separators = [];
+  actionListChatHistory?.forEach((item, index) => {
+    if (item?.source === "SEPARATOR") {
+      separators.push({
+        index
+      });
+    }
+  });
+
+  // Create sections: chat history between separators
+  const chatSections = [];
+  
+  if (separators.length === 0) {
+    // No separators, all chat history goes in one section
+    chatSections.push({
+      chatHistory: actionListChatHistory,
+      showActionList: false
+    });
+  } else {
+    // Before first separator
+    if (separators[0].index > 0) {
+      chatSections.push({
+        chatHistory: actionListChatHistory.slice(0, separators[0].index),
+        showActionList: false
+      });
+    }
+
+    // Between separators and after last separator
+    for (let i = 0; i < separators.length; i++) {
+      const currentSeparator = separators[i];
+      const nextSeparator = separators[i + 1];
+      
+      // Add action list for this separator
+      chatSections.push({
+        chatHistory: [],
+        showActionList: true,
+        isLatest: i === separators.length - 1
+      });
+
+      // Add chat history after this separator until next separator (or end)
+      const endIndex = nextSeparator?.index || actionListChatHistory.length;
+      if (currentSeparator.index + 1 < endIndex) {
+        chatSections.push({
+          chatHistory: actionListChatHistory.slice(currentSeparator.index + 1, endIndex),
+          showActionList: false
+        });
+      }
+    }
+  }
+
+
+  if(goBack) return <></>;
 
 
 
@@ -340,59 +581,172 @@ function ActionItems({
           !isLoading) ||
         !isSelectActionItems ? (
           <div>
-            <BotMessage
-              primaryMessage={t("actionItems.takeActionItems")}
-              secondaryMessage={t("actionItems.selectOneToGetStarted")}
-              customClassNames={{ wrapperStyles: "pb-3" }}
-            />
-            <ActionItemsList
-              language={language}
-              visibleCount={visibleCount}
-              selectedIndex={selectedIndex}
-              actionList={actionList}
-              handleLeftArrowClick={handleLeftArrowClick}
-              handleRightArrowClick={handleRightArrowClick}
-              fetchError={fetchError}
-              swipeDirection={swipeDirection}
-              isViewMode={!isSelectActionItems}
-              finalActionList={getActionListArray()}
-            />
-            <Source
-              source={actionItemSource}
-              customClassNames={{
-                wrapperStyles: "md:!w-[60%] md:min-w-[570px]",
-              }}
-            />
-            {isSelectActionItems && !!actionList && actionList?.length > 0 && (
+            {/* Only show initial action list if there are no separators (no regenerations) */}
+            {separators.length === 0 && (
               <>
-                <SuggestOrAddCta
-                  handleSuggestMore={handleSuggestMore}
-                  handleAddOwnClick={() => setHasClickedOnAddmore(true)}
-                  language={language}
-                  showSuggestMoreButton={
-                    !visibleCount && actionList?.length > 1
-                  }
-                  showAddOwnButton={false}
+                <BotMessage
+                  primaryMessage={t("actionItems.takeActionItems")}
+                  secondaryMessage={t("actionItems.selectOneToGetStarted")}
+                  customClassNames={{ wrapperStyles: "pb-3" }}
                 />
-                <div className="thirdpage-next-div">
-                  <button
-                    className={`thirdpage-select-bttn mt-14 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400`}
-                    onClick={() => {
+                <div className="bg-white p-3 rounded-2xl">
+                  <ActionItemsList
+                    language={language}
+                    visibleCount={visibleCount}
+                    selectedIndex={selectedIndex}
+                    actionList={actionList}
+                    handleLeftArrowClick={handleLeftArrowClick}
+                    handleRightArrowClick={handleRightArrowClick}
+                    fetchError={fetchError}
+                    swipeDirection={swipeDirection}
+                    isViewMode={!isSelectActionItems}
+                    finalActionList={getActionListArray()}
+                    handleActionListClick={() => {
+                      setShowSelectedActionLoader(true)
+
                       if (selectedIndex !== null) {
                         updateSelectedActionPlanSources(selectedIndex);
                       }
                       setWantsToMoveForward(true);
                     }}
-                  >
-                    {t("common.select")}
-                    <IoArrowForward className="thirdpage-cont-arrow-icon" />
-                  </button>
+                    hasClickedOnAddmore={hasClickedOnAddmore}
+                  />
+                  <Source
+                    source={actionItemSource}
+                    customClassNames={{
+                      wrapperStyles: "md:!w-[60%] md:min-w-[570px]",
+                    }}
+                  />
+                  {isSelectActionItems && !!actionList && actionList?.length > 0 && (
+                    <>
+                      <SuggestOrAddCta
+                        showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
+                        additionCTAText={t("selectObjective.goBack")}
+                        handleAdditionalCTAClick={() => {
+                          handleGoBack(3)
+                        }}
+                        handleSuggestMore={handleSuggestMore}
+                        handleAddOwnClick={() => setHasClickedOnAddmore(true)}
+                        language={language}
+                        showSuggestMoreButton={
+                          !visibleCount && actionList?.length > 1
+                        }
+                        showAddOwnButton={true}
+                      />
+                    </>
+                  )}
                 </div>
               </>
             )}
+
+            {/* Render chat sections */}
+            {chatSections.map((section, sectionIndex) => {
+              const isLatestList = section.isLatest || false;
+
+              // For previous action lists, just show simple text
+              if (!isLatestList && section?.showActionList) {
+                return (
+                  <div key={`action-list-${sectionIndex}`} className="my-4">
+                    <BotMessage primaryMessage="Previous Action List" />
+                  </div>
+                );
+              }
+
+              if (section.showActionList) {
+                // This is the latest action list section
+                return (
+                  <div key={`action-list-${sectionIndex}`}>
+                    <BotMessage
+                      primaryMessage={t("actionItems.takeActionItems")}
+                      secondaryMessage={t("actionItems.selectOneToGetStarted")}
+                      customClassNames={{ wrapperStyles: "pb-3" }}
+                    />
+                    <div className="bg-white p-3 rounded-2xl">
+                      <ActionItemsList
+                        language={language}
+                        visibleCount={visibleCount}
+                        selectedIndex={selectedIndex}
+                        actionList={actionList}
+                        handleLeftArrowClick={handleLeftArrowClick}
+                        handleRightArrowClick={handleRightArrowClick}
+                        fetchError={fetchError}
+                        swipeDirection={swipeDirection}
+                        isViewMode={!isSelectActionItems}
+                        finalActionList={getActionListArray()}
+                        handleActionListClick={() => {
+                          if (selectedIndex !== null) {
+                            updateSelectedActionPlanSources(selectedIndex);
+                          }
+                          setWantsToMoveForward(true);
+                        }}
+                        hasClickedOnAddmore={hasClickedOnAddmore}
+
+                      />
+                      <Source
+                        source={actionItemSource}
+                        customClassNames={{
+                          wrapperStyles: "md:!w-[60%] md:min-w-[570px]",
+                        }}
+                      />
+                      {isSelectActionItems && !!actionList && actionList?.length > 0 && (
+                        <>
+                          <SuggestOrAddCta
+                            showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
+                            additionCTAText={t("selectObjective.goBack")}
+                            handleAdditionalCTAClick={() => {
+                              handleGoBack(3)
+                            }}
+                            handleSuggestMore={handleSuggestMore}
+                            handleAddOwnClick={() => setHasClickedOnAddmore(true)}
+                            language={language}
+                            showSuggestMoreButton={
+                              !visibleCount && actionList?.length > 1
+                            }
+                            showAddOwnButton={true}
+                          />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              } else if (section.chatHistory?.length > 0) {
+                // This is a chat history section
+                return (
+                  <ChatWindow 
+                    key={`chat-${sectionIndex}`}
+                    chatHistory={section.chatHistory} 
+                    page={3} 
+                  />
+                );
+              }
+              return null;
+            })}
+
+            {showSelectedActionLoader && <LoadingChat />}
+
+
+            {isSelectActionItems ? (
+              <div className="mt-5">
+                <ChatBox
+                  textInputRef={textInputRef}
+                  textMessage={textMessage}
+                  handleOnInputText={handleOnInputText}
+                  handleSendMessage={handleSendMessage}
+                  setUseTextbox={setUseTextbox}
+                  isReadOnly={false}
+                />
+              </div>
+            ) : (
+              // <></>
+              <div className={`div35 label1`}>
+              <div className={`div36 div37`}>
+                {hasClickedOnAddmore ? <ChatMessage message="My Action Plan" userType={CONVERSATION_USER_TYPES.USER} /> : <ChatMessage message={actionList[selectedIndex]?.plan_name} userType={CONVERSATION_USER_TYPES.USER} />}
+              </div>
+            </div>
+            )}
           </div>
         ) : (
-          <>
+          <div className="bg-white p-3 rounded-2xl">
             <FinalActionPage
               actionListArray={getActionListArray()}
               isBotTalking={isBotTalking}
@@ -402,11 +756,13 @@ function ActionItems({
               errorText={errorText}
               hasClickedOnAddmore={hasClickedOnAddmore}
               isSelectActionItems={isSelectActionItems}
+              setHasClickedOnAddmore={setHasClickedOnAddmore}
+              setWantsToMoveForward={setWantsToMoveForward}
+              isFetchingData={isFetchingData}
             />
-          </>
+          </div>
         )}
       </div>
-      {!isSelectActionItems && <UserMessage message={t("common.next")} />}
     </>
   );
 }
@@ -422,6 +778,9 @@ export function FinalActionPage({
   errorText,
   hasClickedOnAddmore,
   isSelectActionItems,
+  setHasClickedOnAddmore,
+  setWantsToMoveForward,
+  isFetchingData
 }) {
   const { t } = useTranslation("ai_creation_translation");
   const [actionList, setActionList] = useState(actionListArray || []);
@@ -456,68 +815,39 @@ export function FinalActionPage({
 
 
   return (
-    <div className="final-action-page">
-      <BotMessage
-        primaryMessage={hasClickedOnAddmore ? t("actionItems.craftYourOwnActionPlan") : t("actionItems.finalizeActionList")}
-        secondaryMessage={hasClickedOnAddmore ? t("actionItems.addEachStep") : t("actionItems.editReorderDeleteActions")}
-      />
+    <div className="final-action-page mt-3">
+      <BotMessage primaryMessage={hasClickedOnAddmore ? t("actionItems.craftYourOwnActionPlan") : t("actionItems.finalizeActionList")} secondaryMessage={hasClickedOnAddmore ? t("actionItems.addEachStep") : t("actionItems.editReorderDeleteActions")} />
       <div className="secondpage-obj-fixed">
         <div className="secondpage-obj-div">
-          <p className="secondpage-obj-text">
-            {t("actionItems.title")}
-          </p>
+          <p className="secondpage-obj-text">{t("actionItems.title")}</p>
           <div className="thirdpage-error-div">
-            <p className="secondpage-valid-text">
-              {t("actionItems.pleaseAddAtLeastOneAction")}
-            </p>
+            <p className="secondpage-valid-text">{t("actionItems.pleaseAddAtLeastOneAction")}</p>
           </div>
-          {errorText && errorText !== "" && (
-            <ErrorText errorText={errorText} />
-          )}
+          {errorText && errorText !== "" && <ErrorText errorText={errorText} />}
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="actionList">
-              {(provided) => (
+              {provided => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
                   {actionList.map((action, index) => (
-                    <Draggable
-                      key={action.id}
-                      draggableId={action.id}
-                      index={index}
-                      isDragDisabled={!isSelectActionItems}
-                      disableInteractiveElementBlocking={!isSelectActionItems}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="action-box"
-                        >
+                    <Draggable key={action.id} draggableId={action.id} index={index} isDragDisabled={!isSelectActionItems} disableInteractiveElementBlocking={!isSelectActionItems}>
+                      {provided => (
+                        <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className="action-box">
                           <div className="drag-handle">
                             <span>
                               <PiDotsSixVerticalBold className="drag-icon" />{" "}
                             </span>
                           </div>
-                          <input
-                            type="text"
-                            placeholder={t("actionItems.writeActionHere")}
-                            disabled={!isSelectActionItems}
-                            value={action?.content?.step}
-                            className="final-action-input"
-                            onChange={(e) =>
-                              handleInputChange(action.id, e.target.value)
-                            }
-                          />
+                          <input type="text" placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems} value={action?.content?.step} className="final-action-input" onChange={e => handleInputChange(action.id, e.target.value)} />
                           {actionList && actionList.length > 1 ? (
                             <FiTrash2
                               className="delete-icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
+                              onClick={e => {
+                                e.stopPropagation()
                                 if (isSelectActionItems) {
-                                  handleDelete(action.id);
+                                  handleDelete(action.id)
                                 }
                               }}
-                              onMouseDown={(e) => e.stopPropagation()}
+                              onMouseDown={e => e.stopPropagation()}
                               disabled={!isSelectActionItems}
                             />
                           ) : (
@@ -538,23 +868,32 @@ export function FinalActionPage({
                 <button
                   className="secondpage-add-bttn"
                   onClick={() => {
-                    handleAddAction();
+                    handleAddAction()
                   }}
                 >
                   <FiPlusCircle className="secondpage-plus-icon" />
                   {t("actionItems.addAction")}
                 </button>
               </div>
+
+              <div className="secondpage-add-div1">
+                <button onClick={() => {
+                  setHasClickedOnAddmore(false)
+                  setWantsToMoveForward(false)
+                }} className="secondpage-add-bttn cursor-pointer">
+                  {t("actionItems.goBack")}
+                </button>
+              </div>
+
               <div className="thirdpage-continue-div">
                 <button
-                  className="thirdpage-select-bttn"
+                  className={`thirdpage-select-bttn ${isFetchingData ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                   onClick={() => {
-                    handleContinueClick(actionList);
+                    handleContinueClick(actionList)
                   }}
+                  disabled={isFetchingData}
                 >
-                  {hasClickedOnAddmore
-                    ? t("common.continue")
-                    : t("common.next")}
+                  {hasClickedOnAddmore ? t("common.continue") : t("common.next")}
                   <IoArrowForward className="thirdpage-cont-arrow-icon" />
                 </button>
               </div>
@@ -563,5 +902,5 @@ export function FinalActionPage({
         </div>
       </div>
     </div>
-  );
+  )
 }

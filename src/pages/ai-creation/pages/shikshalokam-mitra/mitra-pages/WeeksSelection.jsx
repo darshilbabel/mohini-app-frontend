@@ -1,122 +1,238 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-/* icons */
-import { IoArrowForward } from "react-icons/io5";
 /* utils and api services */
 import { saveUserChatsInDB } from "../../../../../api/endpoints/chat_flow";
 /* components */
-import UserMessage from "./components/chat-message/UserMessage";
 import LoadingChat from "./components/LoadingChat";
 import BotMessage from "./components/chat-message/BotMessage";
-import Slider from "../../../../../components/Slider/slider";
+import ChatBox from "./components/ChatBox";
+import ChatWindow from "./components/ChatWindow";
 /* constants */
 import { LOADER_KEYS } from "../../../constants/common";
 import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 /* styles */
 import "../stylesheet/chatStyle.css";
 import { useAICreationSessionStore } from "store";
+import { useChatWebhook } from "hooks/useChatWebhook";
+import { buildWebSocketUrl } from "utils/helpers";
+import { useSearchParams } from "react-router-dom";
+import { sessionFlowName } from "../../../../ShikshalokamVoiceChat/enum";
+import { bot_routes } from "../../../../../configure";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
 function WeeksSelection({
-  isBotTalking,
-  handleSpeakerOn,
-  handleSpeakerOff,
-  setIsLoading,
-  isLoading,
-  handleGoBack,
-  handleGoForward,
-  setCurrentPageValue,
-  setChatHistory,
   isWeeksSelectionSection = false,
   handleScrollIntoView,
-  handleLoaderState,
   getLoaderState,
+  setCurrentPageValue,
 }) {
+  const textInputRef = useRef(null);
+  const [textMessage, setTextMessage] = useState("");
+  const [isWeekSectionLoader, setIsWeekSectionLoader] = useState(false);
+  const [isWaitingForBot, setIsWaitingForBot] = useState(false);
+  const [useTextbox, setUseTextbox] = useState(false);
+
+
   const { t } = useTranslation("ai_creation_translation");
-  const [selectedWeek, setSelectedWeek] = useState(
-    useAICreationSessionStore.getState().getSelectedWeek() || 1
-  );
-  const [isInReadOnlyMode, setIsInReadOnlyMode] = useState(
-    useAICreationSessionStore.getState().getSelectedWeek() ? true : false
+
+  const localChatHistory =
+    useAICreationSessionStore.getState().getDurationChatHistory();
+
+  const [durationChatHistory, setDurationChatHistory] = useState(
+    localChatHistory?.length ? localChatHistory : []
   );
 
-  const { setSelectedWeek: setSelectedWeekStore } = useAICreationSessionStore.getState();
+  const {
+    setSelectedWeek: setSelectedWeekStore,
+    profileId,
+    getSession,
+    getPreferredLanguage,
+  } = useAICreationSessionStore.getState();
+
+  const [searchParams] = useSearchParams();
+  const storageFlow = sessionFlowName.Creation;
+  const sessionId = getSession();
+  const chatLanguage = getPreferredLanguage() || "en";
+  const accessToken = sessionStorage.getItem("accToken");
 
   useEffect(() => {
-    if (isWeeksSelectionSection) handleScrollIntoView();
-  }, []);
+
+    let timeout;
+    if(!isWeekSectionLoader) {
+      setIsWeekSectionLoader(true);
+      timeout = setTimeout(() => {
+        setIsWeekSectionLoader(false);
+      }, 1000);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [isWeeksSelectionSection]);
+
+  const onWebSocketOpen = useCallback(() => {
+    sendSocketMessage({
+      type: "authenticate",
+      sessionid: sessionId,
+      profileid: profileId,
+      access_token: accessToken,
+      route: "en",
+      bot_route: bot_routes.mitra_duration,
+      flow_name: storageFlow,
+    });
+  }, [sessionId, profileId, accessToken, chatLanguage, storageFlow]);
+
+  const onWebSocketMessage = useCallback(
+    (event) => {
+      const data = JSON.parse(event.data);
+      const message = data?.text;
+
+      if (message?.msg && message?.source === "bot") {
+        const newMessage = {
+          msg: message.msg,
+          source: "bot",
+          updated_at: Date.now(),
+        };
+
+        setDurationChatHistory((prev) => [...prev, newMessage]);
+
+        const currentStoreHistory =
+          useAICreationSessionStore
+            .getState()
+            .getDurationChatHistory();
+
+        useAICreationSessionStore
+          .getState()
+          .setDurationChatHistory([...currentStoreHistory, newMessage]);
+
+        setIsWaitingForBot(false);
+        handleScrollIntoView();
+      } else if (
+        message?.source === "bot" &&
+        message?.extra_content?.should_move_forward === "yes"
+      ) {
+        const numOfWeeks =
+          message?.extra_content?.query?.match(/\d+/)?.[0] ?? 1;
+        handleContinueClick(Number(numOfWeeks));
+      }
+    },
+    [handleScrollIntoView]
+  );
+
+  const {
+    sendMessage: sendSocketMessage,
+    connect: connectToWebSocket,
+    disconnect
+  } = useChatWebhook(
+    buildWebSocketUrl({
+      searchParams,
+      storageFlow,
+      selectedType: "",
+      wssProtocol: "wss://",
+    }),
+    {
+      onOpen: onWebSocketOpen,
+      onMessage: onWebSocketMessage,
+      autoConnect: false,
+    }
+  );
 
   useEffect(() => {
-    if (isInReadOnlyMode) {
-      // setIsLoading(true);
-      localStorage.removeItem("selected_week");
-      localStorage.removeItem("project_title");
-      // setIsLoading(false);
+    connectToWebSocket();
+
+    return () => {
+      disconnect();
     }
-  }, [isInReadOnlyMode]);
+  }, [connectToWebSocket, disconnect]);
 
-  const handleSliderChange = (value) => {};
+  const handleSendMessage = (event) => {
+    event?.preventDefault();
+    event?.stopPropagation();
 
-  const handleContinueClick = async () => {
-    if (selectedWeek) {
-      // setIsLoading(true);
-      setSelectedWeekStore(selectedWeek)
-      const botMessage =
-        t("weeksSelection.howManyWeeks") +
-        " " +
-        t("weeksSelection.slideToSelect");
-      const currentSession = useAICreationSessionStore.getState().getSession();
+    if (!textMessage.trim()) return;
 
-      saveUserChatsInDB(botMessage, currentSession, BOT)
-        .then(() => {
-          saveUserChatsInDB(
-            JSON.stringify(selectedWeek),
-            currentSession,
-            USER
-          );
-        })
-        .then(() => {
-          setCurrentPageValue(4);
-        });
-    }
+    const newMessage = {
+      msg: textMessage,
+      source: "user",
+      updated_at: Date.now(),
+    };
+
+    setDurationChatHistory((prev) => [...prev, newMessage]);
+
+    const currentStoreHistory =
+      useAICreationSessionStore
+        .getState()
+        .getDurationChatHistory();
+
+    useAICreationSessionStore
+      .getState()
+      .setDurationChatHistory([...currentStoreHistory, newMessage]);
+
+    setIsWaitingForBot(true);
+
+    sendSocketMessage({
+      text: textMessage,
+      context: "",
+    });
+
+    handleScrollIntoView();
+    setTextMessage("");
   };
 
-  if (getLoaderState(LOADER_KEYS.LOAD_WEEKS_SELECTION)) {
-    return <LoadingChat />;
-  }
+  const handleContinueClick = async (selectedWeek) => {
+    if (!selectedWeek) return;
+
+    setSelectedWeekStore(selectedWeek);
+    const botMessage =
+      t("weeksSelection.howManyWeeks") +
+      " " +
+      t("weeksSelection.slideToSelect");
+
+    const currentSession =
+      useAICreationSessionStore.getState().getSession();
+
+    await saveUserChatsInDB(botMessage, currentSession, BOT);
+    await saveUserChatsInDB(
+      JSON.stringify(selectedWeek),
+      currentSession,
+      USER
+    );
+
+    setCurrentPageValue(4);
+  };
+
+  if (getLoaderState(LOADER_KEYS.LOAD_WEEKS_SELECTION)) return null;
+  if (isWeekSectionLoader && isWeeksSelectionSection) return <LoadingChat />;
+
 
   return (
-    <>
-      <div>
-        <BotMessage
-          primaryMessage={t("weeksSelection.howManyWeeks")}
-          secondaryMessage={t("weeksSelection.slideToSelect")}
-        />
-        <Slider
-          min={1}
-          max={6}
-          onValueChange={handleSliderChange}
-          value={selectedWeek}
-          setValue={setSelectedWeek}
-          isDisabled={!isWeeksSelectionSection}
-        />
-        {isWeeksSelectionSection ? (
-          <div className="fourthpage-next-div">
-            <button
-              className={`thirdpage-select-bttn`}
-              onClick={handleContinueClick}
-            >
-              {t("common.next")}
+    <div>
+      <BotMessage primaryMessage={t("weeksSelection.howManyWeeks")} />
 
-              <IoArrowForward className="thirdpage-cont-arrow-icon" />
-            </button>
+      <div className="flex flex-col h-auto">
+        {durationChatHistory.length > 0 && (
+          <ChatWindow
+            chatHistory={durationChatHistory}
+            page={4}
+          />
+        )}
+
+        {isWeeksSelectionSection && (
+          <div className="mt-auto">
+            <ChatBox
+              textInputRef={textInputRef}
+              textMessage={textMessage}
+              handleOnInputText={(e) =>
+                setTextMessage(e.target.value)
+              }
+              setUseTextbox={setUseTextbox}
+              handleSendMessage={handleSendMessage}
+              isReadOnly={false}
+              disabled={isWaitingForBot}
+            />
           </div>
-        ) : (
-          <UserMessage message={t("common.next")} />
         )}
       </div>
-    </>
+    </div>
   );
 }
 
