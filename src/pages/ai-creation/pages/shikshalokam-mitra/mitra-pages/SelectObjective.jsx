@@ -531,8 +531,6 @@ function SelectObjective({
   const handleAddOwnObjective = () => {
     setInputText({})
     setHasClickedOnAddmore(true)
-
-    console.log("it is here")
   }
 
   // Find all separator messages with their data
@@ -595,9 +593,6 @@ function SelectObjective({
       }
     }
   }
-
-  console.log({hasClickedOnAddmore})
-
 
 
   return (
