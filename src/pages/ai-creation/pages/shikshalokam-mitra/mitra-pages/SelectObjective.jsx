@@ -531,6 +531,8 @@ function SelectObjective({
   const handleAddOwnObjective = () => {
     setInputText({})
     setHasClickedOnAddmore(true)
+
+    console.log("it is here")
   }
 
   // Find all separator messages with their data
@@ -593,6 +595,8 @@ function SelectObjective({
       }
     }
   }
+
+  console.log({hasClickedOnAddmore})
 
 
 
@@ -663,33 +667,35 @@ function SelectObjective({
                 <div key={`objectives-${sectionIndex}`}>
                   {objectiveListLoading ? (
                     <LoadingChat />
+                  ) : hasClickedOnAddmore ? (
+                    <>
+                      <div>
+                        <BotMessage primaryMessage={t("selectObjective.enterObjective")} />
+                        {(!selectedObjective || isSelectObjectiveSection) && (
+                          <button onClick={() => setHasClickedOnAddmore(false)} className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF] mx-auto">
+                            {t("selectObjective.goBack")}
+                          </button>
+                        )}
+                        <div className="mt-3">{errorText && <p>{errorText}</p>}</div>
+                      </div>
+                    </>
                   ) : (
                     <div>
                       <BotMessage primaryMessage={t("selectObjective.theseAreSomeObjectives")} secondaryMessage={t("selectObjective.selectObjective")} />
                       <div className="secondpage-obj-fixed bg-white p-3 rounded-2xl">
                         <div className="mt-3">
                           <p className="secondpage-obj-text">{t("selectObjective.title")}</p>
-                          
-                          {!!(!fetchError || fetchError === "") && (
-                            <ObjectivesCard 
-                              objectiveList={sectionObjectives} 
-                              visibleCount={visibleCount} 
-                              selectedIndex={selectedIndex} 
-                              handleObjectiveClick={handleObjectiveClick} 
-                              selectedObjective={selectedObjective} 
-                              isSelectObjectiveSection={isSelectObjectiveSection} 
-                              objectiveSource={sectionSources} 
-                            />
-                          )}
+
+                          {!!(!fetchError || fetchError === "") && <ObjectivesCard objectiveList={sectionObjectives} visibleCount={visibleCount} selectedIndex={selectedIndex} handleObjectiveClick={handleObjectiveClick} selectedObjective={selectedObjective} isSelectObjectiveSection={isSelectObjectiveSection} objectiveSource={sectionSources} />}
                           {!!(fetchError && fetchError !== "") && <ErrorText errorText={fetchError} />}
                         </div>
                         {isSelectObjectiveSection && (
-                          <SuggestOrAddCta 
-                            showSuggestMoreButton={visibleCount < objectiveList?.length} 
-                            handleSuggestMore={handleSuggestMore} 
-                            language={language} 
-                            handleAddOwnClick={handleAddOwnObjective} 
-                            showAddOwnButton={true} 
+                          <SuggestOrAddCta
+                            showSuggestMoreButton={visibleCount < objectiveList?.length}
+                            handleSuggestMore={handleSuggestMore}
+                            language={language}
+                            handleAddOwnClick={handleAddOwnObjective}
+                            showAddOwnButton={true}
                             showAdditionalCTA={!prevObjectiveShown && separators.length > 0}
                             additionCTAText={t("selectObjective.showPrevious")}
                             handleAdditionalCTAClick={() => {
@@ -708,7 +714,7 @@ function SelectObjective({
                     </div>
                   )}
                 </div>
-              );
+              )
             } else if (section.chatHistory?.length > 0) {
               // This is a chat history section
               return (
