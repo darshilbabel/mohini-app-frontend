@@ -102,7 +102,7 @@ function SelectObjective({
         : defaultValueToShow;
     }
   });
-  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {};
+  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en";
   const language = preferredLanguage.value || "en";
   const { setObjective: setObjectiveStore, setPrevObjective: setPrevObjectiveStore, setPrevObjectiveSource: setPrevObjectiveSourceStore, setObjectiveSource: setObjectiveSourceStore, setChunks: setChunksStore, setSelectedObjective: setSelectedObjectiveStore, setHasClickedObjAddMore, setIsOwnObjective, setObjectListRetries } = useAICreationSessionStore.getState()
 
@@ -257,6 +257,7 @@ function SelectObjective({
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
     isFreshConnection,
+    disconnect
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
@@ -276,7 +277,11 @@ function SelectObjective({
 
   useEffect(() => {
     connectToWebSocket();
-  }, [])
+
+    return () => {
+      disconnect();
+    }
+  }, [disconnect])
 
 
   

@@ -104,7 +104,7 @@ function ActionItems({
   const sessionId = useAICreationSessionStore.getState().getSession();
 
   const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setSelectedObjectiveSource: setSelectedObjectiveSourceStore, setSelectedObjective: setSelectedObjectiveStore, setCurrentPage: setCurrentPageStore, currentPage: currentPageStore } = useAICreationSessionStore.getState()
-  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {}
+  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en"
   const language = preferredLanguage.value || "en";
 
   const { profileId, selectedAction } = useAICreationSessionStore.getState();
@@ -143,7 +143,7 @@ function ActionItems({
       setActionListChatHistory(prev => [...prev, newMessage])
       
       // Update store - get current value first, then set new value
-      const currentStoreHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
+      const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
       useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
       
       handleScrollIntoView();
@@ -158,7 +158,7 @@ function ActionItems({
       
       setActionListChatHistory(prev => [...prev, newMessage])
       // Update store - get current value first, then set new value
-      const currentStoreHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
+      const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
       useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
 
       useAICreationSessionStore.getState().setSelectedObjective(message?.extra_content?.query)
@@ -177,6 +177,7 @@ function ActionItems({
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
     isFreshConnection,
+    disconnect
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
@@ -196,7 +197,12 @@ function ActionItems({
 
   useEffect(() => {
     connectToWebSocket();
-  }, [])
+
+
+    return () => {
+      disconnect();
+    }
+  }, [disconnect])
 
   
 
@@ -217,7 +223,7 @@ function ActionItems({
     setActionListChatHistory(prev => [...prev, newMessage])
 
     // Update store - get current value first, then set new value
-    const currentStoreHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
+    const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
     useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
     
     sendSocketMessage({

@@ -53,7 +53,7 @@ function WeeksSelection({
   const [searchParams] = useSearchParams();
   const storageFlow = sessionFlowName.Creation;
   const sessionId = getSession();
-  const chatLanguage = getPreferredLanguage();
+  const chatLanguage = getPreferredLanguage() || "en";
   const accessToken = sessionStorage.getItem("accToken");
 
   useEffect(() => {
@@ -75,7 +75,7 @@ function WeeksSelection({
       sessionid: sessionId,
       profileid: profileId,
       access_token: accessToken,
-      route: chatLanguage || "en",
+      route: "en",
       bot_route: bot_routes.mitra_duration,
       flow_name: storageFlow,
     });
@@ -121,6 +121,7 @@ function WeeksSelection({
   const {
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
+    disconnect
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
@@ -137,7 +138,11 @@ function WeeksSelection({
 
   useEffect(() => {
     connectToWebSocket();
-  }, [connectToWebSocket]);
+
+    return () => {
+      disconnect();
+    }
+  }, [connectToWebSocket, disconnect]);
 
   const handleSendMessage = (event) => {
     event?.preventDefault();
@@ -221,7 +226,7 @@ function WeeksSelection({
               }
               setUseTextbox={setUseTextbox}
               handleSendMessage={handleSendMessage}
-              isReadOnly={true}
+              isReadOnly={false}
               disabled={isWaitingForBot}
             />
           </div>
