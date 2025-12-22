@@ -47,6 +47,24 @@ export const FLOW_CONFIG = {
     },
     storyTextAudio: ylcStoryTextAudio,
   },
+  [sessionFlowName.GuestDiscussion]: {
+    flowName: sessionFlowName.GuestDiscussion,
+    storyActions: {
+      downloadReportText: "reDownloadReportText",
+    },
+  },
+  [sessionFlowName.ListeningActivity]: {
+    flowName: sessionFlowName.ListeningActivity,
+    storyActions: {
+      downloadReportText: "reDownloadReportText",
+    },
+  },
+  [sessionFlowName.LoginDiscussion]: {
+    flowName: sessionFlowName.LoginDiscussion,
+    storyActions: {
+      downloadReportText: "reDownloadReportText",
+    },
+  },
 }
 
 export const getFlowConfig = flowType => {

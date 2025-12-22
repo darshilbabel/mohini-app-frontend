@@ -9,9 +9,6 @@ import Cookies from "universal-cookie"
 import getConfiguration from "../../../configure"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
-import { getStorageSlice } from "services/storage_service"
-import { SLICES_STORE_MAP } from "store"
-import { STORE_NAME_CONSTANTS } from "store/constants"
 import { useUserDataLocalStore } from "store"
 
 const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDownloadStop, storyMediaArr, currentState, current_company }) => {
@@ -28,11 +25,6 @@ const PdfDownloader = ({ storyData, isShikshalokam, downloadTriggered, handleDow
     address: "",
   })
   const [files, setFiles] = useState([])
-  const [isUploading, setIsUploading] = useState(false)
-  const [error, setError] = useState({
-    response: "",
-    status: 200,
-  })
   const [pages, setPages] = useState([])
   const [storyMediaIdArray, setStoryMediaIdArray] = useState(null)
   const downloadTriggeredRef = React.useRef(false)

@@ -182,3 +182,94 @@ export const handleMultipleUploads = async (e, storyData, files, sessionId) => {
     files: [...currentFiles, ...validFiles],
   }
 }
+
+export const getEditorContentBlocks = (otherParams, storageFlow, editorCopyChanges) => {
+  try {
+    if (!otherParams || !storageFlow) return []
+    let parsed_content = []
+
+    if ([sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(storageFlow)) {
+      const challenges = otherParams?.challenges_faced || []
+      const solutions = otherParams?.solutions_discussed || []
+
+      parsed_content = [
+        {
+          type: "header",
+          data: {
+            text: i18n.t("challengesHeader"),
+            level: 2,
+            customId: "challenges",
+          },
+        },
+        {
+          type: "list",
+          data: {
+            style: "unordered",
+            items: challenges.length > 0 ? challenges : [""],
+          },
+        },
+        {
+          type: "header",
+          data: {
+            text: i18n.t("solutionsHeader"),
+            level: 2,
+            customId: "solutions",
+          },
+        },
+        {
+          type: "list",
+          data: {
+            style: "unordered",
+            items: solutions.length > 0 ? solutions : [""],
+          },
+        },
+      ]
+    } else if ([sessionFlowName.ListeningActivity].includes(storageFlow)) {
+      const questionAnswers = otherParams?.question_answers || []
+
+      parsed_content = []
+      questionAnswers.forEach((qa, index) => {
+        // Add question header
+        parsed_content = [
+          ...parsed_content,
+          {
+            type: "header",
+            data: {
+              text: `Q${index + 1}: ${qa.question}`,
+              level: 3,
+              customId: `question-${index}`,
+            },
+          },
+          {
+            type: "paragraph",
+            data: {
+              text: qa.answer || "",
+            },
+          },
+        ]
+
+        if (index < questionAnswers.length - 1) {
+          parsed_content.push({
+            type: "paragraph",
+            data: {
+              text: "​",
+            },
+            readonly: true,
+          })
+        }
+      })
+    } else {
+      parsed_content = editorCopyChanges.map(item => ({
+        type: item.type,
+        data: {
+          text: item.data.text,
+        },
+      }))
+    }
+
+    return parsed_content
+  } catch (error) {
+    console.error("Error getting editor content blocks: ", error)
+    return []
+  }
+}

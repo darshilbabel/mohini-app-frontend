@@ -6,10 +6,11 @@ import { BiLoader } from "react-icons/bi"
 import { clearFromStorage, handleS3Upload } from "../../services/storage_service"
 import { createMessage } from "../interview-voice"
 import { createUserProfileApi, getProfileUserApi } from "api/endpoints/user"
-import { extractStoryData, extractTextBlocks, handleMultipleUploads } from "../../utils/story"
+import { extractStoryData, extractTextBlocks, getEditorContentBlocks, handleMultipleUploads } from "../../utils/story"
 import { FaCircle } from "react-icons/fa6"
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
 import { FiDownload } from "react-icons/fi"
+import { FLOW_CONFIG } from "../../config/flowConfig"
 import { getChatSessionApi, getCompanyBotApi } from "api/endpoints/chat"
 import { getSessionDetails } from "../../services/api.service"
 import { getStoryAllMedia, partialUpdateStoryById } from "api/endpoints/story"
@@ -39,7 +40,6 @@ import DOMPurify from "dompurify"
 import EditorJS from "@editorjs/editorjs"
 import env from "../../utils/env"
 import Header from "@editorjs/header"
-import InfiniteScroll from "react-infinite-scroll-component"
 import List from "@editorjs/list"
 import MainHeader from "./shikshaChatHeader"
 import Notification, { showNotification } from "../../components/ToastMessage/TotastMessage"
@@ -51,7 +51,6 @@ import remarkGfm from "remark-gfm"
 import ReportEditor from "components/ReportEditor"
 import ReportEditorAuth from "../../components/ReportEditorAuth"
 import ROUTES from "../../url"
-import Sidebar from "./shikshaChatSidebar"
 import Swal from "sweetalert2"
 import useCustomMediaQuery from "hooks/useCustomMediaQuery"
 import useSmartChatStorage from "hooks/useSmartChatStorage"
@@ -70,7 +69,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
   const [asrAudio, setAsrAudio] = useState(null)
   const [audioCache, setAudioCache] = useState({})
   const [botNameToDisplay, setBotNameToDisplay] = useState("Bot")
-  const [chatTitle, setChatTitle] = useState([])
   const [companySlug, setCompanySlug] = useState("")
   const [editor, setEditor] = useState(null)
   const [editorCopyChanges, setEditorCopyChanges] = useState(null)
@@ -92,7 +90,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isPdfDownloading, setIsPdfDownloading] = useState(false)
   const [isRecognizing, setIsRecognizing] = useState(false)
-  const [isResetCalled, setIsResetCalled] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isStreamingComplete, setIsStreamingComplete] = useState(true)
   const [isTalking, setTalking] = useState(0)
@@ -101,7 +98,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
   const [reconText, setReconText] = useState("")
   const [seconds, setSeconds] = useState(0)
   const [sentences, setSentences] = useState([])
-  const [sessionTitleDetail, setSessionTitleDetail] = useState(null)
   const [shouldFetchIntro, setShouldFetchIntro] = useState(false)
   const [shouldSendMessage] = useState(true)
   const [ssoNavigationTriggered, setSsoNavigationTriggered] = useState(false)
@@ -110,7 +106,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
   const [textMessage, setTextMessage] = useState("")
   const [trigger, setTrigger] = useState(false)
   const [triggerDownload, setTriggerDownload] = useState(false)
-  const [visibleItemCount, setVisibleItemCount] = useState(10)
 
   // ========== useRef Hooks ==========
   const textAreaRef = useRef(null)
@@ -121,7 +116,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
 
   // ========== react query hooks ==========
   const partialUpdateStoryByIdMutation = useMutation({ mutationFn: partialUpdateStoryById })
-  const { data: flowInfo } = useQuery({
+  const {
+    data: flowInfo,
+    isError: isFlowInfoError,
+    error: flowInfoError,
+  } = useQuery({
     queryKey: [API_ENDPOINTS.FLOW_CONNECTION_INFO, storageFlow],
     queryFn: () => getFlowInfoApi(storageFlow),
     // staleTime: Infinity,
@@ -595,6 +594,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
 
     try {
       let storedRoute = flowInfo.bot_route
+      console.log({ storedRoute, flowInfo })
       const response = await getCompanyBotApi({
         company__slug: companySlug,
         target_language: languageToUse,
@@ -781,35 +781,17 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
    * Handles chat session button clicks from sidebar
    * Loads selected chat session or fetches intro for new session
    */
-  const handleChatSessionButtonClick = useCallback(
-    async ({ key }) => {
-      if (!flowInfo) return
-      lastBotMessageIndex.current = -1
-      let key_num
-      let currentSession
-      if (key) {
-        /** String representation of array index that can be converted to number */
-        key_num = parseInt(key?.split("-").pop())
-        if (isNaN(key_num)) return
-        currentSession = chatTitle[key_num]?.session
-        setLlmError("")
-        setIsOldChatOpen(true)
-        setIsNewChatOpen(false)
-        setSessionId(currentSession)
-        setChatHistory([])
-        window.location.reload()
-      } else {
-        try {
-          await fetchBotInfo()
-          await handleCompanyChatCall()
-        } catch (error) {
-          console.error(error)
-          // setIsIntroLoading(false)
-        }
-      }
-    },
-    [sessionId, flowInfo]
-  )
+  const handleChatSessionButtonClick = useCallback(async () => {
+    if (!flowInfo) return
+    lastBotMessageIndex.current = -1
+    try {
+      await fetchBotInfo()
+      await handleCompanyChatCall()
+    } catch (error) {
+      console.error(error)
+      // setIsIntroLoading(false)
+    }
+  }, [sessionId, flowInfo])
 
   /**
    * Adds bot messages to chat history during streaming
@@ -841,6 +823,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
     },
     [chatHistory]
   )
+
+  useEffect(() => {
+    if (!isFlowInfoError) return
+
+    if (flowInfoError.response.status === 404) {
+      clearFromStorage()
+      navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
+    }
+  }, [flowInfoError, isFlowInfoError])
 
   useEffect(() => {
     if (chatHistory.length > 1) {
@@ -944,7 +935,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
       console.log("History length:", window.history.length)
       console.log("Can go back 1?", window.history.length > 1)
       console.log("Can go back 3?", window.history.length > 3)
-      if ((acceptedTnc || acceptedTnc === "ONGOING") && currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.SsoFlow, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
+      if ((acceptedTnc || acceptedTnc === "ONGOING") && currentFlow) {
         if (ssoNavigationTriggered && accessToken) {
           console.log("isnide navigate happens")
           navigate(-2)
@@ -980,14 +971,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
   // SECTION: Initial Configuration (Execution Order: 2 - On Mount & Specific Deps)
   // These effects initialize component state and configuration on mount
   // ========================================================================
-
-  /**
-   * Initialize visible item count for chat history pagination
-   * Sets initial number of visible chat sessions
-   */
-  useEffect(() => {
-    setVisibleItemCount(chatToAddLength)
-  }, [chatToAddLength])
 
   /**
    * Initialize bot name display from storage
@@ -1166,7 +1149,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
    */
   useEffect(() => {
     if (isOldChatOpen === true && !hasFetchIntro && chatHistory?.length === 0 && sentences?.length === 0) {
-      handleChatSessionButtonClick({ key: null })
+      handleChatSessionButtonClick()
     }
   }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences])
 
@@ -1188,11 +1171,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
       setIsIntroLoading(true)
       console.log("state_tracker", "fetching bot info")
       fetchBotInfo()
-        .then(() => {
-          if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
-            handleCompanyChatCall(sessionId)
-          }
-        })
+        .then(() => handleCompanyChatCall(sessionId))
         .finally(() => {
           setIsIntroLoading(false)
         })
@@ -1298,6 +1277,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
     }
   }, [isStreamingComplete, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow, sentences])
 
+  /**
+   * * Display Popup for the flows where end story api is not being called
+   */
   useEffect(() => {
     const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot"
     if (storageFlow && [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && isLastMessageFromBot) {
@@ -1322,30 +1304,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
       })
     }
   }, [isStreamingComplete, strandStep, stateMachineLength, storageFlow, chatHistory])
-
-  /**
-   * Display chat session titles for guest users after delay
-   * Shows available chat sessions in sidebar with loading state
-   */
-  useEffect(() => {
-    const currentFlow = storageFlow
-    if (profileToUse && !accessToken && !isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
-      console.log("setting loading to true", "state_tracker")
-      setIsLoading(true)
-      const titleTime = setTimeout(() => {
-        if (shouldShowChatHistoryFeature) showChatTitle()
-      }, 4000)
-
-      return () => {
-        if (!noStoryFound) {
-          setIsLoading(false)
-        }
-        clearTimeout(titleTime)
-      }
-    } else if (!isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
-      setIsLoading(false)
-    }
-  }, [profileToUse, accessToken, isEndStoryLoading, noStoryFound])
 
   // ========================================================================
   // SECTION: UI State Management (Execution Order: 7 - Throughout Lifecycle)
@@ -1512,13 +1470,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
     } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !isEndStoryLoading) {
       const currentFlow = storageFlow
 
-      if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
+      if (currentFlow) {
         if (chatHistory.length > 0) {
           if (isStreamingComplete && chatHistory[chatHistory.length - 1]?.source === "bot") {
             shouldPlay = true
           }
-        } else if (langProgress === "IN_PROGRESS") {
-          shouldPlay = false
         } else {
           shouldPlay = true
         }
@@ -1558,14 +1514,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
     return () => {}
   }, [isNextAllowed, sentences, languageToUse, isLoading, isEndStoryLoading, acceptedTnc, flowInfo])
 
-  /**
-   * Debug log for tracking override ID changes
-   * Helps debug audio playback override scenarios
-   */
-  useEffect(() => {
-    console.log("hasOverideId: ", hasOverRideId)
-  }, [hasOverRideId])
-
   // ========================================================================
   // SECTION: Editor Management (Execution Order: 10 - When Modal Opens)
   // These effects initialize and manage the EditorJS instance for story editing
@@ -1578,87 +1526,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
   useEffect(() => {
     if (!!editorCopyChanges && isModalOpen && storyData) {
       const flow = storageFlow
-      let parsed_content = []
-      try {
-        if (storageFlow && [sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(storageFlow)) {
-          const challenges = storyData?.other_params?.challenges_faced || []
-          const solutions = storyData?.other_params?.solutions_discussed || []
-
-          parsed_content = [
-            {
-              type: "header",
-              data: {
-                text: t("challengesHeader"),
-                level: 2,
-                customId: "challenges",
-              },
-            },
-            {
-              type: "list",
-              data: {
-                style: "unordered",
-                items: challenges.length > 0 ? challenges : [""],
-              },
-            },
-            {
-              type: "header",
-              data: {
-                text: t("solutionsHeader"),
-                level: 2,
-                customId: "solutions",
-              },
-            },
-            {
-              type: "list",
-              data: {
-                style: "unordered",
-                items: solutions.length > 0 ? solutions : [""],
-              },
-            },
-          ]
-        } else if (storageFlow && [sessionFlowName.ListeningActivity].includes(flow)) {
-          const questionAnswers = storyData?.other_params?.question_answers || []
-
-          parsed_content = []
-          questionAnswers.forEach((qa, index) => {
-            // Add question header
-            parsed_content.push({
-              type: "header",
-              data: {
-                text: `Q${index + 1}: ${qa.question}`,
-                level: 3,
-                customId: `question-${index}`,
-              },
-            })
-
-            parsed_content.push({
-              type: "paragraph",
-              data: {
-                text: qa.answer || "",
-              },
-            })
-
-            if (index < questionAnswers.length - 1) {
-              parsed_content.push({
-                type: "paragraph",
-                data: {
-                  text: "​",
-                },
-                readonly: true,
-              })
-            }
-          })
-        } else {
-          parsed_content = editorCopyChanges.map(item => ({
-            type: item.type,
-            data: {
-              text: item.data.text,
-            },
-          }))
-        }
-      } catch (error) {
-        parsed_content = []
-      }
+      let parsed_content = getEditorContentBlocks(storyData?.other_params, flow, editorCopyChanges)
 
       if (!document.getElementById("editorjs")) {
         return
@@ -2102,95 +1970,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
     return resp
   }
 
-  async function showChatTitle() {
-    try {
-      const currentSessionID = sessionId
-      const currentFlow = storageFlow
-      let sessionComplete
-      const TitleAndSession = []
-      const response = await getChatSessionApi({
-        profile: profileToUse,
-        flow: currentFlow,
-      })
-
-      if (response) {
-        let sortedResult = quickSort(response?.data?.results, compareByIdDesc)
-        sortedResult.forEach((sessionObj, index) => {
-          const status = sessionObj.session_status?.toLowerCase() === "completed" ? t("completedStatusText") : t("inProgressStatusText")
-          TitleAndSession.push({
-            session: sessionObj.session,
-            title: sessionObj.title,
-            sessionStatus: status,
-          })
-          if (sessionObj.session === currentSessionID) {
-            sessionComplete = sessionObj.session_status?.toLowerCase() === "completed"
-          }
-        })
-        setShowFileInput(sessionComplete === true)
-        setSessionTitleDetail(TitleAndSession)
-        setChatTitle([...TitleAndSession.slice(0, chatToAddLength)])
-      }
-    } catch (error) {
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const fetchMoreData = () => {
-    setTimeout(() => {
-      if (visibleItemCount < sessionTitleDetail.length) {
-        setVisibleItemCount(prevCount => prevCount + chatToAddLength)
-        setChatTitle(prevChatTitle => [...prevChatTitle, ...sessionTitleDetail.slice(prevChatTitle.length, prevChatTitle.length + chatToAddLength)])
-      }
-    }, 1000)
-  }
-
-  function showScrollbarContent() {
-    return (
-      <div className={isMobile ? "div1" : "div2"}>
-        <InfiniteScroll
-          dataLength={visibleItemCount}
-          next={fetchMoreData}
-          hasMore={visibleItemCount < sessionTitleDetail?.length}
-          loader={
-            <div className={isMobile ? "div3" : "div4"}>
-              <BiLoader className="rotate-loader loader-icon" />
-            </div>
-          }
-          scrollableTarget="shikshaScrollableDiv"
-        >
-          {chatTitle.map((item, index) => (
-            <div key={`session-title-bttn-${index}`} className="chat-title-div div5">
-              <div
-                className="div6"
-                onClick={() => {
-                  handleChatSessionButtonClick({
-                    key: `session-title-bttn-${index}`,
-                  })
-                }}
-              >
-                <span className="span1">{item?.title}</span>
-                <span className={`span2 ${item?.sessionStatus === t("completedStatusText") ? "span3" : "span4"}`}>{item?.sessionStatus}</span>
-              </div>
-
-              {item?.sessionStatus === t("completedStatusText") && (
-                <button
-                  className="span5"
-                  onClick={() => {
-                    pdfDownloadSidebar(item?.session)
-                  }}
-                >
-                  <FiDownload />
-                </button>
-              )}
-              {item?.sessionStatus !== t("completedStatusText") && <button className="span5"></button>}
-            </div>
-          ))}
-        </InfiniteScroll>
-      </div>
-    )
-  }
-
   const handleOnInputText = e => {
     e.preventDefault()
     setTextMessage(e.target.value)
@@ -2466,8 +2245,13 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
   }
 
   useEffect(() => {
-    console.log(acceptedTnc, "acceptedTnc")
-  }, [acceptedTnc])
+    console.log({
+      isInitialising,
+      isLoading,
+      isIntroLoading,
+      isEndStoryLoading,
+    })
+  }, [isInitialising, isLoading, isIntroLoading, isEndStoryLoading])
 
   return (
     <>
@@ -2475,7 +2259,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
 
       {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={`div27 ${isOpen && " div70"}`}>
-        <div className={`div28 ${isOpen ? "div29" : ""}`}>{isShikshalokamPublicType && storageFlow && !isSpecialFlow && <Sidebar isOpen={isOpen} toggle={setIsOpen} isMobileFirst={true} showScrollbarContent={accessToken && showScrollbarContent} resetChat={resetChat} setIsResetCalled={setIsResetCalled} languageToUse={languageToUse} stopAllAudio={stopAllAudio} />}</div>
+        {/* <div className={`div28 ${isOpen ? "div29" : ""}`}>{isShikshalokamPublicType && storageFlow && !isSpecialFlow && <Sidebar isOpen={isOpen} toggle={setIsOpen} isMobileFirst={true} showScrollbarContent={accessToken && showScrollbarContent} resetChat={resetChat} setIsResetCalled={setIsResetCalled} languageToUse={languageToUse} stopAllAudio={stopAllAudio} />}</div> */}
         {isOpen && <div className="div7" onClick={() => setIsOpen(false)}></div>}
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
@@ -2486,14 +2270,13 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
                 {[sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(storageFlow) && <CustomFormData layOut={2} selectID="selectedTypeID" selectName="selectedType" selectOptions={selectedLabel.types} selectValue={selectedType} selectClassName="div31" selectOnChange={handleSelectedTypeNameChanges} showDefaultDropdownText={false} />}
                 <button
                   onClick={async e => {
-                    if (isSpecialFlow) {
+                    if (accessToken) {
+                      await resetChat(e)
+                    } else {
                       showGuestPopup(() => {
-                        if (isSpecialFlow) setBotName(null)
+                        setBotName(null)
                         resetChat()
                       }, stayOnPage)
-                    } else {
-                      setIsResetCalled(true)
-                      await resetChat(e)
                     }
                   }}
                   className="div32"
@@ -2841,7 +2624,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
                   <div className="download-story-div">
                     <TbReload className="icon-1" />
                     <span className="div16" ref={endPageToScrollRef}>
-                      {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reDownloadReportText") : t("reDownloadStoryText")}
+                      {FLOW_CONFIG[storageFlow] ? t(FLOW_CONFIG[storageFlow].storyActions?.downloadReportText) : t("reDownloadStoryText")}
                     </span>
                   </div>
                 </button>

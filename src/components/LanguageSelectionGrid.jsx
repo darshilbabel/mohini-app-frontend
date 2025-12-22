@@ -1,13 +1,14 @@
-import { languageList, languageValueMap } from "../pages/ShikshalokamVoiceChat/enum"
 import { API_ENDPOINTS, URL_PARAMS } from "../constants/urls"
-import { useNavigate } from "react-router-dom"
+import { clearFromStorage } from "../services/storage_service"
 import { getFlowLanguagesApi } from "../api/endpoints/flow"
+import { languageList, languageValueMap } from "../pages/ShikshalokamVoiceChat/enum"
+import { useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { useQuery } from "@tanstack/react-query"
 import { useSiteDataLocalStore } from "store"
 import { useTranslation } from "react-i18next"
-import { useQuery } from "@tanstack/react-query"
 import ROUTES from "../url"
 import useUrlFlow from "../hooks/useUrlFlow"
-import { useEffect } from "react"
 
 const LanguageSelectionGrid = () => {
   const { t } = useTranslation()
@@ -18,14 +19,26 @@ const LanguageSelectionGrid = () => {
 
   const { flow: urlFlow } = useUrlFlow()
 
-  const { data: flowLanguages } = useQuery({
+  const {
+    data: flowLanguages,
+    isError: isFlowLanguagesError,
+    error: flowLanguagesError,
+  } = useQuery({
     queryKey: [API_ENDPOINTS.FLOW_LANGUAGES, urlFlow],
     queryFn: () => getFlowLanguagesApi(urlFlow),
+    retry: false,
+    enabled: !!urlFlow,
   })
 
   useEffect(() => {
-    console.log(flowLanguages)
-  }, [flowLanguages])
+    if (!isFlowLanguagesError) return
+
+    if (flowLanguagesError.response.status === 404) {
+      console.error("Flow not found or inactivate, navigating to home page")
+      clearFromStorage()
+      navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE, { replace: true })
+    }
+  }, [flowLanguagesError, isFlowLanguagesError])
 
   const handleLanguageClick = langValue => {
     setChatLanguage(langValue)
