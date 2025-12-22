@@ -32,6 +32,9 @@ export const INITIAL_STATE = (set, get, store) => ({
     objectiveChatHistory: [],
     actionListChatHistory: [],
     prevObjective: null,
+    prevObjectiveSource: null,
+    objectListRetries: 0,
+    isOwnObjective: false,
 
   
     setMedia: media => set({ media }),
@@ -103,6 +106,15 @@ export const INITIAL_STATE = (set, get, store) => ({
 
     setPrevObjective: prevObjective => set({ prevObjective }),
     getPrevObjective: () => get().prevObjective,
+
+    setPrevObjectiveSource: prevObjectiveSource => set({ prevObjectiveSource }),
+    getPrevObjectiveSource: () => get().prevObjectiveSource,
+
+    setIsOwnObjective: isOwnObjective => set({ isOwnObjective }),
+    getIsOwnObjective: () => get().isOwnObjective,
+
+    setObjectListRetries: objectListRetries => set({ objectListRetries }),
+    getObjectListRetries: () => get().objectListRetries,
 
     setActionListChatHistory: actionListChatHistory => set({ actionListChatHistory }),
     getActionListChatHistory: () => get().actionListChatHistory,

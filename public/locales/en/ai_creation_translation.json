@@ -63,7 +63,8 @@
         "theseAreSomeObjectives":  "These are some objectives that could help address your challenge.",
         "emptyObjective": "Please enter an objective!",
         "enterObjectivePlaceholder": "Enter objectives",
-        "goBack": "Go back to Objectives List"
+        "goBack": "Go back to Objectives List",
+        "showPrevious": "Show Previous Objective List"
     },
     "actionItems": {
         "title": "Action List",

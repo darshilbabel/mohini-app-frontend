@@ -8,12 +8,6 @@ export default function InitialConversationCard({
   handleOnInputText,
   setUseTextbox,
   handleSendMessage,
-  inputDisabled,
-  hasStartedRecording,
-  startRecording,
-  stopRecording,
-  isFetchingData,
-  seconds,
 }) {
   const { t } = useTranslation("ai_creation_translation");
   return (
@@ -27,12 +21,6 @@ export default function InitialConversationCard({
         handleOnInputText={handleOnInputText}
         setUseTextbox={setUseTextbox}
         handleSendMessage={handleSendMessage}
-        disabled={inputDisabled}
-        hasStartedRecording={hasStartedRecording}
-        startRecording={startRecording}
-        stopRecording={stopRecording}
-        isFetchingData={isFetchingData}
-        seconds={seconds}
       />
     </div>
   );

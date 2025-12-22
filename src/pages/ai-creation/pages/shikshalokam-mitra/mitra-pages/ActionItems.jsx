@@ -37,6 +37,7 @@ import { useChatWebhook } from "../../../../../hooks/useChatWebhook";
 import { buildWebSocketUrl } from "../../../../../utils/helpers";
 import { ShowLoader } from "../MainPage";
 import ChatMessage from "./components/chat-message/ChatMessage";
+import ObjectivesCard from "./components/objectives/ObjectivesCard";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -87,8 +88,9 @@ function ActionItems({
 
   const textInputRef = useRef(null);
   const [textMessage, setTextMessage] = useState("");
-  const [isNewlyGeneratedList, setIsNewlyGeneratedList] = useState(false)
   const [useTextbox, setUseTextbox] = useState(false);
+  const [goBack, setGoBack] = useState(false)
+  const [showSelectedActionLoader, setShowSelectedActionLoader] = useState(false)
 
   const localChatHistory = useAICreationSessionStore.getState().getActionListChatHistory()
 
@@ -101,13 +103,14 @@ function ActionItems({
   const wss_protocol = "wss://"
   const sessionId = useAICreationSessionStore.getState().getSession();
 
-  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore } = useAICreationSessionStore.getState()
-  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {}
+  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setSelectedObjectiveSource: setSelectedObjectiveSourceStore, setSelectedObjective: setSelectedObjectiveStore, setCurrentPage: setCurrentPageStore, currentPage: currentPageStore } = useAICreationSessionStore.getState()
+  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en"
   const language = preferredLanguage.value || "en";
 
   const { profileId, selectedAction } = useAICreationSessionStore.getState();
+  const objective = useAICreationSessionStore.getState().getSelectedObjective()
   const accessToken = sessionStorage.getItem("accToken");
-  
+  const [isFetchingData, setIsFetchingData] = useState(false)
 
   // ws logic
 
@@ -140,7 +143,7 @@ function ActionItems({
       setActionListChatHistory(prev => [...prev, newMessage])
       
       // Update store - get current value first, then set new value
-      const currentStoreHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
+      const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
       useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
       
       handleScrollIntoView();
@@ -155,8 +158,10 @@ function ActionItems({
       
       setActionListChatHistory(prev => [...prev, newMessage])
       // Update store - get current value first, then set new value
-      const currentStoreHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
+      const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
       useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
+
+      useAICreationSessionStore.getState().setSelectedObjective(message?.extra_content?.query)
 
       fetchActionList(true, message?.extra_content?.query)
     }
@@ -172,6 +177,7 @@ function ActionItems({
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
     isFreshConnection,
+    disconnect
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
@@ -191,7 +197,12 @@ function ActionItems({
 
   useEffect(() => {
     connectToWebSocket();
-  }, [])
+
+
+    return () => {
+      disconnect();
+    }
+  }, [disconnect])
 
   
 
@@ -212,7 +223,7 @@ function ActionItems({
     setActionListChatHistory(prev => [...prev, newMessage])
 
     // Update store - get current value first, then set new value
-    const currentStoreHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
+    const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
     useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
     
     sendSocketMessage({
@@ -255,18 +266,19 @@ function ActionItems({
     handleScrollIntoView();
   };
 
-  async function fetchActionList(createNew = false) {
+  async function fetchActionList(createNew = false, newObjective) {
     // setIsLoading(true);
     try {
       handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, true);
       if (!actionList || actionList?.length === 0) {
         // setIsLoading(true);
         const userProblemStatement = useAICreationSessionStore.getState().getUserProblemStatement()
-        const objective = useAICreationSessionStore.getState().getSelectedObjective()
         const profile_id = useAICreationSessionStore.getState().getProfileId()
+
+        const finalObjective = createNew ? newObjective : objective
         const fetchedActionList = await getActionList(
           userProblemStatement,
-          objective,
+          finalObjective,
           language,
           profile_id
         );
@@ -274,13 +286,6 @@ function ActionItems({
         const { message = "", action_list = [] } = fetchedActionList || {};
 
         if (action_list?.length > 0) {
-
-          if(createNew) {
-            // setPrevActionListStore(objectiveList)
-            // setPrevActionList(objectiveList)
-            setIsNewlyGeneratedList(true)
-          }
-
 
           setActionList(action_list);
           setActionListStore(action_list)
@@ -319,11 +324,23 @@ function ActionItems({
   }, []);
 
   useEffect(() => {
+    fetchActionList();
+  }, [objective])
+
+  useEffect(() => {
     if (swipeDirection) {
       const timeout = setTimeout(() => setSwipeDirection(null), 500);
       return () => clearTimeout(timeout);
     }
   }, [swipeDirection]);
+
+  useEffect(() => {
+    if (showSelectedActionLoader) {
+      setTimeout(() => {
+        setShowSelectedActionLoader(false)
+      }, 1000)
+    }
+  }, [showSelectedActionLoader])
 
   // useEffect(() => {
   //   if (isInReadOnlyMode) {
@@ -404,8 +421,10 @@ function ActionItems({
 
   const handleContinueClick = async (action_to_store) => {
 
-    console.log({action_to_store})
+
     try {
+
+      setIsFetchingData(true)
 
       if (isActionEmptyOrDefault(action_to_store)) {
         return;
@@ -427,9 +446,12 @@ function ActionItems({
         language,
         profile_id
       );
+
+      setIsFetchingData(false)
+
       // setIsLoading(false);
 
-      if (validate_response?.result === false) {
+      if (validate_response?.result === "false") {
         setErrorText(validate_response?.error_message);
         return;
       }
@@ -452,10 +474,12 @@ function ActionItems({
           messageId: "7_1",
         };
 
-        saveUserChatsInDB(botMessage?.message, currentSession, botMessage?.role)
+        const planName = actionList[selectedIndex]?.plan_name;
+
+        saveUserChatsInDB(planName, currentSession, botMessage?.role)
           .then(() => {
             saveUserChatsInDB(
-              JSON.stringify(action_to_store),
+              planName,
               currentSession,
               USER
             );
@@ -483,7 +507,7 @@ function ActionItems({
   };
 
   if (getLoaderState(LOADER_KEYS.FETCH_ACTION_LIST)) {
-    return <LoadingChat />;
+    return <LoadingChat />
   }
 
 
@@ -492,13 +516,60 @@ function ActionItems({
     setTextMessage(e.target.value);
   };
 
-  const separatorIndex = actionListChatHistory?.findIndex(item => item?.source === "SEPARATOR");
+  // Find all separator messages
+  const separators = [];
+  actionListChatHistory?.forEach((item, index) => {
+    if (item?.source === "SEPARATOR") {
+      separators.push({
+        index
+      });
+    }
+  });
 
-  const beforeActionListHistory = separatorIndex !== -1 ?actionListChatHistory?.slice(0, separatorIndex) : []
-  const afterActionListHistory = separatorIndex !== -1 ?actionListChatHistory?.slice(separatorIndex + 1) : actionListChatHistory;
+  // Create sections: chat history between separators
+  const chatSections = [];
+  
+  if (separators.length === 0) {
+    // No separators, all chat history goes in one section
+    chatSections.push({
+      chatHistory: actionListChatHistory,
+      showActionList: false
+    });
+  } else {
+    // Before first separator
+    if (separators[0].index > 0) {
+      chatSections.push({
+        chatHistory: actionListChatHistory.slice(0, separators[0].index),
+        showActionList: false
+      });
+    }
+
+    // Between separators and after last separator
+    for (let i = 0; i < separators.length; i++) {
+      const currentSeparator = separators[i];
+      const nextSeparator = separators[i + 1];
+      
+      // Add action list for this separator
+      chatSections.push({
+        chatHistory: [],
+        showActionList: true,
+        isLatest: i === separators.length - 1
+      });
+
+      // Add chat history after this separator until next separator (or end)
+      const endIndex = nextSeparator?.index || actionListChatHistory.length;
+      if (currentSeparator.index + 1 < endIndex) {
+        chatSections.push({
+          chatHistory: actionListChatHistory.slice(currentSeparator.index + 1, endIndex),
+          showActionList: false
+        });
+      }
+    }
+  }
 
 
-  console.log({hasClickedOnAddmore, wantsToMoveForward, actionList, isLoading, isSelectActionItems})
+  if(goBack) return <></>;
+
 
 
   return (
@@ -510,109 +581,169 @@ function ActionItems({
           !isLoading) ||
         !isSelectActionItems ? (
           <div>
-            <BotMessage
-              primaryMessage={t("actionItems.takeActionItems")}
-              secondaryMessage={t("actionItems.selectOneToGetStarted")}
-              customClassNames={{ wrapperStyles: "pb-3" }}
-            />
-            <div className="bg-white p-3 rounded-2xl">
-            <ActionItemsList
-              language={language}
-              visibleCount={visibleCount}
-              selectedIndex={selectedIndex}
-              actionList={actionList}
-              handleLeftArrowClick={handleLeftArrowClick}
-              handleRightArrowClick={handleRightArrowClick}
-              fetchError={fetchError}
-              swipeDirection={swipeDirection}
-              isViewMode={!isSelectActionItems}
-              finalActionList={getActionListArray()}
-              handleActionListClick={() => {
-                if (selectedIndex !== null) {
-                  updateSelectedActionPlanSources(selectedIndex);
-                }
-                setWantsToMoveForward(true);
-              }}
-            />
-            <Source
-              source={actionItemSource}
-              customClassNames={{
-                wrapperStyles: "md:!w-[60%] md:min-w-[570px]",
-              }}
-            />
-            {isSelectActionItems && !!actionList && actionList?.length > 0 && (
+            {/* Only show initial action list if there are no separators (no regenerations) */}
+            {separators.length === 0 && (
               <>
-                <SuggestOrAddCta
-                  handleSuggestMore={handleSuggestMore}
-                  handleAddOwnClick={() => setHasClickedOnAddmore(true)}
-                  language={language}
-                  showSuggestMoreButton={
-                    !visibleCount && actionList?.length > 1
-                  }
-                  showAddOwnButton={true}
+                <BotMessage
+                  primaryMessage={t("actionItems.takeActionItems")}
+                  secondaryMessage={t("actionItems.selectOneToGetStarted")}
+                  customClassNames={{ wrapperStyles: "pb-3" }}
                 />
-                {/* <div className="thirdpage-next-div">
-                  <button
-                    className={`thirdpage-select-bttn mt-14 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400`}
-                    onClick={() => {
+                <div className="bg-white p-3 rounded-2xl">
+                  <ActionItemsList
+                    language={language}
+                    visibleCount={visibleCount}
+                    selectedIndex={selectedIndex}
+                    actionList={actionList}
+                    handleLeftArrowClick={handleLeftArrowClick}
+                    handleRightArrowClick={handleRightArrowClick}
+                    fetchError={fetchError}
+                    swipeDirection={swipeDirection}
+                    isViewMode={!isSelectActionItems}
+                    finalActionList={getActionListArray()}
+                    handleActionListClick={() => {
+                      setShowSelectedActionLoader(true)
+
                       if (selectedIndex !== null) {
                         updateSelectedActionPlanSources(selectedIndex);
                       }
                       setWantsToMoveForward(true);
                     }}
-                  >
-                    {t("common.select")}
-                    <IoArrowForward className="thirdpage-cont-arrow-icon" />
-                  </button>
-                </div> */}
+                    hasClickedOnAddmore={hasClickedOnAddmore}
+                  />
+                  <Source
+                    source={actionItemSource}
+                    customClassNames={{
+                      wrapperStyles: "md:!w-[60%] md:min-w-[570px]",
+                    }}
+                  />
+                  {isSelectActionItems && !!actionList && actionList?.length > 0 && (
+                    <>
+                      <SuggestOrAddCta
+                        showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
+                        additionCTAText={t("selectObjective.goBack")}
+                        handleAdditionalCTAClick={() => {
+                          handleGoBack(3)
+                        }}
+                        handleSuggestMore={handleSuggestMore}
+                        handleAddOwnClick={() => setHasClickedOnAddmore(true)}
+                        language={language}
+                        showSuggestMoreButton={
+                          !visibleCount && actionList?.length > 1
+                        }
+                        showAddOwnButton={true}
+                      />
+                    </>
+                  )}
+                </div>
               </>
             )}
-            </div>
+
+            {/* Render chat sections */}
+            {chatSections.map((section, sectionIndex) => {
+              const isLatestList = section.isLatest || false;
+
+              // For previous action lists, just show simple text
+              if (!isLatestList && section?.showActionList) {
+                return (
+                  <div key={`action-list-${sectionIndex}`} className="my-4">
+                    <BotMessage primaryMessage="Previous Action List" />
+                  </div>
+                );
+              }
+
+              if (section.showActionList) {
+                // This is the latest action list section
+                return (
+                  <div key={`action-list-${sectionIndex}`}>
+                    <BotMessage
+                      primaryMessage={t("actionItems.takeActionItems")}
+                      secondaryMessage={t("actionItems.selectOneToGetStarted")}
+                      customClassNames={{ wrapperStyles: "pb-3" }}
+                    />
+                    <div className="bg-white p-3 rounded-2xl">
+                      <ActionItemsList
+                        language={language}
+                        visibleCount={visibleCount}
+                        selectedIndex={selectedIndex}
+                        actionList={actionList}
+                        handleLeftArrowClick={handleLeftArrowClick}
+                        handleRightArrowClick={handleRightArrowClick}
+                        fetchError={fetchError}
+                        swipeDirection={swipeDirection}
+                        isViewMode={!isSelectActionItems}
+                        finalActionList={getActionListArray()}
+                        handleActionListClick={() => {
+                          if (selectedIndex !== null) {
+                            updateSelectedActionPlanSources(selectedIndex);
+                          }
+                          setWantsToMoveForward(true);
+                        }}
+                        hasClickedOnAddmore={hasClickedOnAddmore}
+
+                      />
+                      <Source
+                        source={actionItemSource}
+                        customClassNames={{
+                          wrapperStyles: "md:!w-[60%] md:min-w-[570px]",
+                        }}
+                      />
+                      {isSelectActionItems && !!actionList && actionList?.length > 0 && (
+                        <>
+                          <SuggestOrAddCta
+                            showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
+                            additionCTAText={t("selectObjective.goBack")}
+                            handleAdditionalCTAClick={() => {
+                              handleGoBack(3)
+                            }}
+                            handleSuggestMore={handleSuggestMore}
+                            handleAddOwnClick={() => setHasClickedOnAddmore(true)}
+                            language={language}
+                            showSuggestMoreButton={
+                              !visibleCount && actionList?.length > 1
+                            }
+                            showAddOwnButton={true}
+                          />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              } else if (section.chatHistory?.length > 0) {
+                // This is a chat history section
+                return (
+                  <ChatWindow 
+                    key={`chat-${sectionIndex}`}
+                    chatHistory={section.chatHistory} 
+                    page={3} 
+                  />
+                );
+              }
+              return null;
+            })}
+
+            {showSelectedActionLoader && <LoadingChat />}
 
 
-          {beforeActionListHistory?.length > 0 && <ChatWindow chatHistory={beforeActionListHistory} />}
-
-          {/* {isNewlyGeneratedList && (
-            <div>
-              <BotMessage primaryMessage={t("selectObjective.theseAreSomeObjectives")} secondaryMessage={t("selectObjective.selectObjective")} />
-              <div className="secondpage-obj-fixed">
-                <div className="mt-3">
-                  <p className="secondpage-obj-text">{t("selectObjective.title")}</p>
-                  {!!(!fetchError || fetchError === "") && <ObjectivesCard objectiveList={objectiveList} visibleCount={visibleCount} selectedIndex={selectedIndex} handleObjectiveClick={handleObjectiveClick} selectedObjective={selectedObjective} isSelectObjectiveSection={isSelectObjectiveSection} objectiveSource={objectiveSource} />}
-                  {!!(fetchError && fetchError !== "") && <ErrorText errorText={fetchError} />}
-                </div>
-                {isSelectObjectiveSection && <SuggestOrAddCta showSuggestMoreButton={visibleCount < objectiveList?.length} handleSuggestMore={handleSuggestMore} language={language} handleAddOwnClick={handleAddOwnObjective} showAddOwnButton={true} />}
+            {isSelectActionItems ? (
+              <div className="mt-5">
+                <ChatBox
+                  textInputRef={textInputRef}
+                  textMessage={textMessage}
+                  handleOnInputText={handleOnInputText}
+                  handleSendMessage={handleSendMessage}
+                  setUseTextbox={setUseTextbox}
+                  isReadOnly={false}
+                />
+              </div>
+            ) : (
+              // <></>
+              <div className={`div35 label1`}>
+              <div className={`div36 div37`}>
+                {hasClickedOnAddmore ? <ChatMessage message="My Action Plan" userType={CONVERSATION_USER_TYPES.USER} /> : <ChatMessage message={actionList[selectedIndex]?.plan_name} userType={CONVERSATION_USER_TYPES.USER} />}
               </div>
             </div>
-          )} */}
-
-
-          {afterActionListHistory?.length > 0 && <ChatWindow chatHistory={afterActionListHistory} />}
-
-          {!selectedAction && !isNewlyGeneratedList ? (
-            <div className="mt-5">
-              <ChatBox
-                textInputRef={textInputRef}
-                textMessage={textMessage}
-                handleOnInputText={handleOnInputText}
-                handleSendMessage={handleSendMessage}
-                // disabled={isFetchingData || hasStartedRecording}
-                // hasStartedRecording={hasStartedRecording}
-                // startRecording={startRecording}
-                // stopRecording={stopRecording}
-                // isFetchingData={isFetchingData}
-                // seconds={seconds}
-                setUseTextbox={setUseTextbox}
-                isReadOnly={false}
-              />
-            </div>
-          ) : (
-            <div className={`div35 label1`}>
-            <div className={`div36 div37`}>
-              <ChatMessage message={actionList[selectedIndex]?.plan_name} userType={CONVERSATION_USER_TYPES.USER} />
-            </div>
-          </div>
-          )}
+            )}
           </div>
         ) : (
           <div className="bg-white p-3 rounded-2xl">
@@ -627,6 +758,7 @@ function ActionItems({
               isSelectActionItems={isSelectActionItems}
               setHasClickedOnAddmore={setHasClickedOnAddmore}
               setWantsToMoveForward={setWantsToMoveForward}
+              isFetchingData={isFetchingData}
             />
           </div>
         )}
@@ -647,7 +779,8 @@ export function FinalActionPage({
   hasClickedOnAddmore,
   isSelectActionItems,
   setHasClickedOnAddmore,
-  setWantsToMoveForward
+  setWantsToMoveForward,
+  isFetchingData
 }) {
   const { t } = useTranslation("ai_creation_translation");
   const [actionList, setActionList] = useState(actionListArray || []);
@@ -682,7 +815,7 @@ export function FinalActionPage({
 
 
   return (
-    <div className="final-action-page">
+    <div className="final-action-page mt-3">
       <BotMessage primaryMessage={hasClickedOnAddmore ? t("actionItems.craftYourOwnActionPlan") : t("actionItems.finalizeActionList")} secondaryMessage={hasClickedOnAddmore ? t("actionItems.addEachStep") : t("actionItems.editReorderDeleteActions")} />
       <div className="secondpage-obj-fixed">
         <div className="secondpage-obj-div">
@@ -754,10 +887,11 @@ export function FinalActionPage({
 
               <div className="thirdpage-continue-div">
                 <button
-                  className="thirdpage-select-bttn"
+                  className={`thirdpage-select-bttn ${isFetchingData ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                   onClick={() => {
                     handleContinueClick(actionList)
                   }}
+                  disabled={isFetchingData}
                 >
                   {hasClickedOnAddmore ? t("common.continue") : t("common.next")}
                   <IoArrowForward className="thirdpage-cont-arrow-icon" />
