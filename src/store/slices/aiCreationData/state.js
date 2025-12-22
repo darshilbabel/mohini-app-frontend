@@ -33,6 +33,7 @@ export const INITIAL_STATE = (set, get, store) => ({
     actionListChatHistory: [],
     prevObjective: null,
     prevObjectiveSource: null,
+    isPrevObjectiveShown: false,
     objectListRetries: 0,
     isOwnObjective: false,
 
@@ -112,6 +113,9 @@ export const INITIAL_STATE = (set, get, store) => ({
 
     setIsOwnObjective: isOwnObjective => set({ isOwnObjective }),
     getIsOwnObjective: () => get().isOwnObjective,
+
+    setIsPrevObjectiveShown: isPrevObjectiveShown => set({ isPrevObjectiveShown }),
+    getIsPrevObjectiveShown: () => get().isPrevObjectiveShown,
 
     setObjectListRetries: objectListRetries => set({ objectListRetries }),
     getObjectListRetries: () => get().objectListRetries,

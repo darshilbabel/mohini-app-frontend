@@ -7,21 +7,25 @@ const ObjectivesCard = ({
   visibleCount,
   selectedIndex,
   handleObjectiveClick,
-  selectedObjective,
   isSelectObjectiveSection,
   objectiveSource = {},
 }) => {
 
+
+  const selectedObjective = useAICreationSessionStore(
+    state => state.selectedObjective
+  );
+
   const getObjectiveCardClass = (objIndex, obj) => {
+
     // If no index is selected, check if this objective matches the stored one
-    if (selectedIndex === null || selectedIndex === undefined) {
-      const storedObjective = useAICreationSessionStore.getState().getSelectedObjective();
-      return storedObjective === obj
+    if (selectedObjective && (selectedIndex === null || selectedIndex === undefined)) {
+      return selectedObjective === obj
         ? "secondpage-obj-selected-button-div"
         : "secondpage-obj-bttn-div";
     }
     // Otherwise, check if this index matches the selected index
-    return objIndex === selectedIndex
+    return objIndex === selectedIndex && selectedObjective
       ? "secondpage-obj-selected-button-div"
       : "secondpage-obj-bttn-div";
   };

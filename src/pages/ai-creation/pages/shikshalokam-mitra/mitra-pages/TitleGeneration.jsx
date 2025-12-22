@@ -24,6 +24,7 @@ import "../stylesheet/chatStyle.css";
 import { useNavigate } from "react-router-dom";
 import { useAICreationSessionStore } from "store";
 import { rootPath } from "utils/constants";
+import TextareaWithVoice from "../../../components/textarea-with-mic";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 function TitleGeneration({
@@ -51,6 +52,7 @@ function TitleGeneration({
   const [shouldDisableButton, setShouldDisableButton] = useState(false);
   const [media, setMedia] = useState([]);
   const [isApiCalling, setIsApiCalling] = useState(false);
+  const [isRecording, setIsRecording] = useState(false)
 
   const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {};
   const language = preferredLanguage.value || "en";
@@ -101,7 +103,16 @@ function TitleGeneration({
   }, []);
 
   function handleInputText(e) {
+
     const newText = e?.target?.value;
+
+
+    // Skip validation while recording
+    if (isRecording) {
+      setInputText(newText);
+      return;
+    }
+
     const specialCharRegex = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~₹]/;
     if (specialCharRegex.test(newText)) {
       setShouldDisableButton(true);
@@ -109,7 +120,7 @@ function TitleGeneration({
     } else if (newText.length > titleCharacterLimit) {
       setShouldDisableButton(true);
       setLocalErrorText(t("titleGeneration.shouldNotExceed100Characters"));
-    } else if (newText === "") {
+    } else if (newText === "" && !isRecording) {
       setShouldDisableButton(true);
       setLocalErrorText(t("titleGeneration.titleCannotBeEmpty"));
     } else {
@@ -252,40 +263,22 @@ function TitleGeneration({
   return (
     <>
       <div>
-        <BotMessage
-          primaryMessage={t("titleGeneration.hereIsTheTitle")}
-          secondaryMessage={t("titleGeneration.youCanEditIt")}
-        />
+        <BotMessage primaryMessage={t("titleGeneration.hereIsTheTitle")} secondaryMessage={t("titleGeneration.youCanEditIt")} />
         {(!fetchError || fetchError === "") && (
           <div className="secondpage-textbox-container sm:w-full md:w-1/2 lg:w-1/2">
-            <textarea
-              id="autoGrow"
-              type="text"
-              placeholder={t("titleGeneration.aiGeneratedTitle")}
-              className={`secondpage-text-input ${isApiCalling || isLocalLoading || media?.length > 0 ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
-              value={inputText}
-              onChange={(e) => handleInputText(e)}
-              disabled={isApiCalling || isLocalLoading || media?.length > 0}
-            />
+            <TextareaWithVoice value={inputText} onChange={(val, isRec) => {
+              if(!isRec) {
+                handleInputText({ target: { value: val } })
+              }
+            }} placeholder={t("titleGeneration.aiGeneratedTitle")} disabled={isApiCalling || isLocalLoading || media?.length > 0} className="secondpage-text-input" setIsRecording={setIsRecording} />
           </div>
         )}
-        {fetchError && fetchError !== "" && (
-          <ErrorText errorText={fetchError} />
-        )}
-        {localErrorText && localErrorText !== "" && (
-          <ErrorText errorText={localErrorText} />
-        )}
+        {fetchError && fetchError !== "" && <ErrorText errorText={fetchError} />}
+        {localErrorText && localErrorText !== "" && <ErrorText errorText={localErrorText} />}
 
         {!isApiCalling && !isLocalLoading && media?.length === 0 && (
           <div className="fourthpage-next-div">
-            <button
-              className={`${
-                shouldDisableButton
-                  ? "fifthpage-disable-button"
-                  : "fifthpage-select-bttn"
-              } `}
-              onClick={handleCreateImprovement}
-            >
+            <button className={`${shouldDisableButton ? "fifthpage-disable-button" : "fifthpage-select-bttn"} `} onClick={handleCreateImprovement}>
               {t("titleGeneration.createMicroImprovementPlan")}
             </button>
           </div>
@@ -298,7 +291,7 @@ function TitleGeneration({
         )}
       </div>
     </>
-  );
+  )
 }
 
 export default TitleGeneration;
