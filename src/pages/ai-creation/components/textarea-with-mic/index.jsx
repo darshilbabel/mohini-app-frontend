@@ -17,17 +17,19 @@ const formatTime = (secs) => {
 };
 
 const isSilentAudio = async (blob, silenceThreshold = 0.01) => {
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const arrayBuffer = await blob.arrayBuffer();
-  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-  const rawData = audioBuffer.getChannelData(0);
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+  try {
+    const arrayBuffer = await blob.arrayBuffer()
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+    const rawData = audioBuffer.getChannelData(0)
 
-  const rms = Math.sqrt(
-    rawData.reduce((acc, val) => acc + val * val, 0) / rawData.length
-  );
+    const rms = Math.sqrt(rawData.reduce((acc, val) => acc + val * val, 0) / rawData.length)
 
-  return rms < silenceThreshold;
-};
+    return rms < silenceThreshold
+  } finally {
+    await audioContext.close()
+  }
+}
 
 /* ---------- component ---------- */
 
@@ -43,6 +45,8 @@ function TextareaWithVoice({
 }) {
   const { t } = useTranslation("ai_creation_translation");
   const textareaRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const intervalRef = useRef(null); 
 
   const [hasStartedRecording, setHasStartedRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
@@ -61,6 +65,7 @@ function TextareaWithVoice({
         setSeconds((prev) => prev + 1);
       }, 1000);
       setIntervalId(id);
+      intervalRef.current = id;
     } else {
       clearInterval(intervalId);
       setSeconds(0);
@@ -73,10 +78,15 @@ function TextareaWithVoice({
 
   useEffect(() => {
     return () => {
-      if (mediaRecorder && mediaRecorder.state === "recording") {
-        mediaRecorder.stop();
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state === "recording"
+      ) {
+        mediaRecorderRef.current.stop();
       }
-      if (intervalId) clearInterval(intervalId);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, []);
 
@@ -86,13 +96,13 @@ function TextareaWithVoice({
     if (mediaRecorder) {
       mediaRecorder.stop();
       setHasStartedRecording(false);
-      setIsRecording(false);
+      setIsRecording?.(false);
     }
   };
 
   const startRecording = () => {
 
-    setIsRecording(true);
+    setIsRecording?.(true);
 
     if (!navigator.mediaDevices?.getUserMedia) {
       showNotification({
@@ -113,6 +123,7 @@ function TextareaWithVoice({
         });
 
         setMediaRecorder(recorder);
+        mediaRecorderRef.current = recorder;
         const chunks = [];
 
         recorder.start();
@@ -227,7 +238,6 @@ function TextareaWithVoice({
         disabled={disableVoice}
         onClick={() => {
 
-            console.log("mic clicked")
             if(hasStartedRecording) {
                 stopRecording();
             }

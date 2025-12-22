@@ -130,23 +130,6 @@ function TitleGeneration({
     setInputText(newText);
   }
 
-  // Auto-grow is now handled by TextareaWithVoice component
-  // useEffect(() => {
-  //   const textarea = document.getElementById("autoGrow");
-
-  //   const adjustHeight = () => {
-  //     if (textarea) {
-  //       textarea.style.height = "auto";
-  //       textarea.style.height = `${textarea.scrollHeight}px`;
-  //     }
-  //   };
-
-  //   adjustHeight();
-
-  //   textarea?.addEventListener("input", adjustHeight);
-
-  //   return () => textarea?.removeEventListener("input", adjustHeight);
-  // }, [inputText]);
 
   async function handleCreateImprovement() {
     if (
@@ -266,11 +249,20 @@ function TitleGeneration({
         <BotMessage primaryMessage={t("titleGeneration.hereIsTheTitle")} secondaryMessage={t("titleGeneration.youCanEditIt")} />
         {(!fetchError || fetchError === "") && (
           <div className="secondpage-textbox-container sm:w-full md:w-1/2 lg:w-1/2">
-            <TextareaWithVoice value={inputText} onChange={(val, isRec) => {
-              if(!isRec) {
-                handleInputText({ target: { value: val } })
-              }
-            }} placeholder={t("titleGeneration.aiGeneratedTitle")} disabled={isApiCalling || isLocalLoading || media?.length > 0} className="secondpage-text-input" setIsRecording={setIsRecording} />
+            <TextareaWithVoice
+              value={inputText}
+              onChange={(val, isRec) => {
+                if (isRec) {
+                  setInputText(val) // Clear text when recording starts
+                } else {
+                  handleInputText({ target: { value: val } })
+                }
+              }}
+              placeholder={t("titleGeneration.aiGeneratedTitle")}
+              disabled={isApiCalling || isLocalLoading || media?.length > 0}
+              className="secondpage-text-input"
+              setIsRecording={setIsRecording}
+            />
           </div>
         )}
         {fetchError && fetchError !== "" && <ErrorText errorText={fetchError} />}

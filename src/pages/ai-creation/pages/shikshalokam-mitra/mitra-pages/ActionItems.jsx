@@ -36,6 +36,7 @@ import { useChatWebhook } from "../../../../../hooks/useChatWebhook";
 import { buildWebSocketUrl } from "../../../../../utils/helpers";
 import ChatMessage from "./components/chat-message/ChatMessage";
 import { getOrTextTranslation } from "../question script/secondpage_tanslation";
+import TextareaWithVoice from "../../../components/textarea-with-mic";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -833,7 +834,8 @@ export function FinalActionPage({
                               <PiDotsSixVerticalBold className="drag-icon" />{" "}
                             </span>
                           </div>
-                          <input type="text" placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems} value={action?.content?.step} className="final-action-input" onChange={e => handleInputChange(action.id, e.target.value)} />
+                          {/* <input type="text" placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems} value={action?.content?.step} className="final-action-input" onChange={e => handleInputChange(action.id, e.target.value)} /> */}
+                          <TextareaWithVoice value={action?.content?.step || ""} placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems} onChange={text => handleInputChange(action.id, text)} className="final-action-input" />
                           {actionList && actionList.length > 1 ? (
                             <FiTrash2
                               className="delete-icon"
@@ -877,10 +879,13 @@ export function FinalActionPage({
               </div>
 
               <div className="secondpage-add-div1 mt-0">
-                <button onClick={() => {
-                  setHasClickedOnAddmore(false)
-                  setWantsToMoveForward(false)
-                }} className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]">
+                <button
+                  onClick={() => {
+                    setHasClickedOnAddmore(false)
+                    setWantsToMoveForward(false)
+                  }}
+                  className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]"
+                >
                   {t("actionItems.goBack")}
                 </button>
               </div>
