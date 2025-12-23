@@ -541,6 +541,7 @@ function SelectObjective({
 
 
   const handleAddOwnObjective = () => {
+    console.log("clicked")
     setInputText({})
     setHasClickedOnAddmore(true)
   }
@@ -608,12 +609,11 @@ function SelectObjective({
 
 
 
-
   return (
     <>
       <div>
         <div className="secondpage-bot-div ">
-          {hasClickedOnAddmore && chatSections.length === 0 ? (
+          {hasClickedOnAddmore && chatSections.length === 1 ? (
             <div>
               <BotMessage primaryMessage={t("selectObjective.enterObjective")} />
               {(!selectedObjective || isSelectObjectiveSection) && <button onClick={() => setHasClickedOnAddmore(false)} className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF] mx-auto">
@@ -673,6 +673,7 @@ function SelectObjective({
               const sectionObjectives = prevObjectiveShown ? prevObjectiveList : objectiveList;
               const sectionSources = prevObjectiveShown ? useAICreationSessionStore.getState().getPrevObjectiveSource() : objectiveSource;
               
+              console.log({sectionIndex})
               return (
                 <div key={`objectives-${sectionIndex}`}>
                   {objectiveListLoading ? (
