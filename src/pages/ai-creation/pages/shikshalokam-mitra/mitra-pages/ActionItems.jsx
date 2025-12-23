@@ -835,7 +835,7 @@ export function FinalActionPage({
                             </span>
                           </div>
                           <TextareaWithVoice value={action?.content?.step || ""} placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems || isFetchingData} onChange={text => handleInputChange(action.id, text)} className="final-action-input" />
-                          {actionList && actionList.length > 1 ? (
+                          {actionList && actionList.length > 1 && !isFetchingData ? (
                             <FiTrash2
                               className="delete-icon"
                               onClick={e => {

@@ -266,6 +266,13 @@ function ChatBox({
     }
   }
 
+  const resetTextareaHeight = () => {
+    if (textInputRef?.current) {
+      textInputRef.current.style.height = "24px"
+      textInputRef.current.style.overflowY = "hidden"
+    }
+  }
+
   return (
     <>
       <style>{`
@@ -288,7 +295,10 @@ function ChatBox({
           scrollbar-color: #AAAAAA transparent;
         }
       `}</style>
-      <form onSubmit={handleSendMessage} autoComplete="off" className={`cursor-pointer flex items-center gap-[10px] h-full overflow-y-auto border border-[#DDDDDD] py-3 px-4 mx-auto w-full md:w-[80%] lg:w-[70%] ${shouldShowWhiteBg ? "bg-white" : "bg-[#F0F2F5]"} ${textMessage?.includes("\n") ? "rounded-3xl" : "rounded-[50px]"} ${formStyles}`}>
+      <form onSubmit={(e) => {
+        resetTextareaHeight();
+        handleSendMessage(e);
+      }} autoComplete="off" className={`cursor-pointer flex items-center gap-[10px] h-full overflow-y-auto border border-[#DDDDDD] py-3 px-4 mx-auto w-full md:w-[80%] lg:w-[70%] ${shouldShowWhiteBg ? "bg-white" : "bg-[#F0F2F5]"} ${textMessage?.includes("\n") ? "rounded-3xl" : "rounded-[50px]"} ${formStyles}`}>
         <textarea
           ref={textInputRef}
           id="chat-box-textarea"

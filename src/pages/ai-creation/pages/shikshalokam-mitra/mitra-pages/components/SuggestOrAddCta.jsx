@@ -48,11 +48,9 @@ const SuggestOrAddCta = ({
       )}
       {showAdditionalCTA && (
         <>
-          {showOrText && (
-            <div className="flex justify-center">
-              <p className="secondpage-or-text">{getOrTextTranslation(language)}</p>
-            </div>
-          )}
+          <div className="flex justify-center">
+            <p className="secondpage-or-text">{getOrTextTranslation(language)}</p>
+          </div>
           <div className="flex justify-center">
             <button className={buttonStyle} onClick={handleAdditionalCTAClick}>
               {t(additionCTAText)}
