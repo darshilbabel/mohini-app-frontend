@@ -808,7 +808,7 @@ export function FinalActionPage({
   };
 
   // isContinueDisabled should be true if all the action.content.step are empty. if even one is non empty then we can enable the button
-  const isContinueDisabled = actionList.every((action) => !action.content?.step?.trim());
+  const isContinueDisabled = actionList.every((action) => !action.content?.step?.trim()) || isFetchingData;
 
 
   return (
@@ -834,8 +834,7 @@ export function FinalActionPage({
                               <PiDotsSixVerticalBold className="drag-icon" />{" "}
                             </span>
                           </div>
-                          {/* <input type="text" placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems} value={action?.content?.step} className="final-action-input" onChange={e => handleInputChange(action.id, e.target.value)} /> */}
-                          <TextareaWithVoice value={action?.content?.step || ""} placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems} onChange={text => handleInputChange(action.id, text)} className="final-action-input" />
+                          <TextareaWithVoice value={action?.content?.step || ""} placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems || isFetchingData} onChange={text => handleInputChange(action.id, text)} className="final-action-input" />
                           {actionList && actionList.length > 1 ? (
                             <FiTrash2
                               className="delete-icon"
@@ -846,7 +845,7 @@ export function FinalActionPage({
                                 }
                               }}
                               onMouseDown={e => e.stopPropagation()}
-                              disabled={!isSelectActionItems}
+                              disabled={!isSelectActionItems || isFetchingData}
                             />
                           ) : (
                             <TbTrashOff className="delete-icon-disable" />
