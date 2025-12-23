@@ -18,9 +18,13 @@ export const useFlow = () => {
 
     setPreviousUrl(window.location.href)
 
+    // navigate({
+    //   pathname: ROUTES.COMMON_CHAT,
+    //   search: new URLSearchParams({ [URL_PARAMS.FLOW]: selectedFlow }).toString(),
+    // })
+
     navigate({
-      pathname: ROUTES.COMMON_CHAT,
-      search: new URLSearchParams({ [URL_PARAMS.FLOW]: selectedFlow }).toString(),
+
     })
 
     setIsLoading(false)

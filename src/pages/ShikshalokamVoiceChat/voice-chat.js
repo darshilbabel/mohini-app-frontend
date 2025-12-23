@@ -317,11 +317,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
 
   const projectId = useMemo(() => projectIdStore || searchParams.get("projectId"), [projectIdStore, searchParams])
 
-  const isSpecialFlow = useMemo(() => {
-    if (!storageFlow) return false
-    return [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(storageFlow)
-  }, [storageFlow])
-
   const shouldFetchChatSession = useMemo(() => {
     return storageFlow && [sessionFlowName.Reflection].includes(storageFlow)
   }, [storageFlow])
@@ -1269,9 +1264,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
    * * DO NOT END STORY FOR PARENT PERCEPTION SURVEY
    */
   useEffect(() => {
-    if (storageFlow && [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow)) {
+    if (flowInfo.create_story === "none") {
       return
     }
+
     if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
     }
@@ -1282,7 +1278,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
    */
   useEffect(() => {
     const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot"
-    if (storageFlow && [sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && isLastMessageFromBot) {
+    if (storageFlow && flowInfo.create_story === "none" && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && isLastMessageFromBot) {
       Swal.fire({
         title: t("PPsCompletionMessage"),
         showCancelButton: false,
@@ -1303,7 +1299,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
         }
       })
     }
-  }, [isStreamingComplete, strandStep, stateMachineLength, storageFlow, chatHistory])
+  }, [isStreamingComplete, strandStep, stateMachineLength, storageFlow, chatHistory, flowInfo])
 
   // ========================================================================
   // SECTION: UI State Management (Execution Order: 7 - Throughout Lifecycle)
@@ -1793,9 +1789,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
             session: sessionId,
             profile_id: profileToUse,
             stage: "COMPLETED",
-            access_token: accessToken,
             flow: storageFlow,
             language: sourceLanguage,
+          },
+          headers: {
+            Authorization: accessToken ? `Bearer ${accessToken}` : "",
           },
           method: "POST",
         })
@@ -2239,19 +2237,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
 
   function handleAcceptTnC() {
     setAcceptedTnC(true)
-    if (isSpecialFlow) {
-      setShouldFetchIntro(true)
-    }
+    setShouldFetchIntro(true)
   }
-
-  useEffect(() => {
-    console.log({
-      isInitialising,
-      isLoading,
-      isIntroLoading,
-      isEndStoryLoading,
-    })
-  }, [isInitialising, isLoading, isIntroLoading, isEndStoryLoading])
 
   return (
     <>
@@ -2450,46 +2437,48 @@ const ShikshalokamVoiceBasedChat = ({ type = "" }) => {
                     chatId={"upload-img-id"}
                     isStaticMessage={true}
                   />
-                  <div className="div14">
-                    <label className="clickable-label" htmlFor="file-upload">
-                      <GrGallery className="icon-1" />
-                      <span className="div16">{t("upload")}</span>
-                      <input
-                        id="file-upload"
-                        type="file"
-                        accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic"
-                        // multiple
-                        onChange={e => {
-                          setIsLoading(true)
-                          handleMultipleUploads(e, storyData, files, sessionId)
-                            .then(uploadedFiles => {
-                              if (uploadedFiles && uploadedFiles.error) {
-                                setFileErrorText(uploadedFiles.error)
-                              }
-                              if (uploadedFiles && uploadedFiles.files) {
-                                setFiles(uploadedFiles.files)
-                              }
-                            })
-                            .catch(error => {
-                              console.error(error)
-                              setFileErrorText(t("somethingWentWrong") || "Upload failed")
-                            })
-                            .finally(() => {
-                              setIsLoading(false)
-                            })
-                        }}
-                        onClick={e => {
-                          if (files?.length >= 10) {
-                            setFileErrorText(fileExceedText)
-                          } else {
-                            setFileErrorText("")
-                          }
-                        }}
-                        disabled={isLoading || isImageUploading || (fileErrorText !== "" && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
-                        className="div17"
-                      />
-                    </label>
-                  </div>
+                  {flowInfo.image_config && (
+                    <div className="div14">
+                      <label className="clickable-label" htmlFor="file-upload">
+                        <GrGallery className="icon-1" />
+                        <span className="div16">{t("upload")}</span>
+                        <input
+                          id="file-upload"
+                          type="file"
+                          accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic"
+                          // multiple
+                          onChange={e => {
+                            setIsLoading(true)
+                            handleMultipleUploads(e, storyData, files, sessionId)
+                              .then(uploadedFiles => {
+                                if (uploadedFiles && uploadedFiles.error) {
+                                  setFileErrorText(uploadedFiles.error)
+                                }
+                                if (uploadedFiles && uploadedFiles.files) {
+                                  setFiles(uploadedFiles.files)
+                                }
+                              })
+                              .catch(error => {
+                                console.error(error)
+                                setFileErrorText(t("somethingWentWrong") || "Upload failed")
+                              })
+                              .finally(() => {
+                                setIsLoading(false)
+                              })
+                          }}
+                          onClick={e => {
+                            if (files?.length >= 10) {
+                              setFileErrorText(fileExceedText)
+                            } else {
+                              setFileErrorText("")
+                            }
+                          }}
+                          disabled={isLoading || isImageUploading || (fileErrorText !== "" && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
+                          className="div17"
+                        />
+                      </label>
+                    </div>
+                  )}
 
                   <div className="div18">
                     <p className="li-message">{t("photosLimitMsg")}</p>

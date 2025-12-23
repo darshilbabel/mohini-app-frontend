@@ -32,11 +32,11 @@ export const getChatSessionApi = async data => {
   let params = {}
 
   if (sessionId) {
-    params = { ...params, sessionId }
+    params = { ...params, session: sessionId }
   }
 
   if (projectId) {
-    params = { projectId }
+    params = { project_id: projectId }
   }
 
   if (profile) {

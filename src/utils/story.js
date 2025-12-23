@@ -112,17 +112,27 @@ const convertHeifToJpg = async file => {
   return jpgFile
 }
 
-export const handleMultipleUploads = async (e, storyData, files, sessionId) => {
+export const handleMultipleUploads = async (e, storyData, files, sessionId, maxImages = 10, perImageSize = 2) => {
   const urlParams = new URLSearchParams(window.location.search)
   const storageFlow = urlParams.get(URL_PARAMS.FLOW)
 
-  const filesArray = Array.from(e.target.files)
+  const filesArray = Array.from(e.target.files).filter(file => {
+    const fileSizeInMB = file.size / (1024 * 1024)
+    return fileSizeInMB <= perImageSize
+  })
+
+  // if any files exceed the perImageSize, return an appropriate error
+  if (Array.from(e.target.files).some(file => file.size / (1024 * 1024) > perImageSize)) {
+    return {
+      error: i18n.t("fileSizeTextDyn", { number: perImageSize }),
+    }
+  }
   const currentFiles = [...files]
   const accessToken = useUserDataLocalStore.getState().getAccessToken()
 
-  if (currentFiles?.length + filesArray.length > 10) {
+  if (currentFiles?.length + filesArray.length > maxImages) {
     return {
-      error: i18n.t("fileExceedText"),
+      error: i18n.t("fileExceedTextDyn", { number: maxImages }),
     }
   }
 
