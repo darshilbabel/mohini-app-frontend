@@ -13,6 +13,7 @@ import ShikshagrahaRepositoryDetail from "./pages/shikshagraha-repository/detail
 import ShikshalokamChat from "./pages/shikshalokamChat"
 import SsoFlow from "./pages/ssoFlow"
 import UnifiedChat from "./pages/UnifiedChat/UnifiedChat"
+import DynamicVoiceChat from "./pages/ShikshalokamVoiceChat/dynamic-voice-chat"
 
 const queryClient = new QueryClient()
 
@@ -42,7 +43,7 @@ const unprotected_old_routes = [
   // { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN, element: <Shikshalokam type={"shikshalokam"} variant={"publicBot"} /> },
   // { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={"shikshalokam"} variant={"publicBot"} /> },
 
-  { path: ROUTES.COMMON_CHAT, element: <ShikshalokamChat /> },
+  { path: ROUTES.COMMON_CHAT, element: <DynamicVoiceChat /> },
 
   { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamChat type={sessionFlowName.GuestDiscussion} /> },
   { path: ROUTES.SHIKSHALOKAM_GUEST_LISTENING_CHAT, element: <ShikshalokamChat type={sessionFlowName.ListeningActivity} /> },

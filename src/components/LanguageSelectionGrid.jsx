@@ -1,7 +1,7 @@
 import { API_ENDPOINTS, URL_PARAMS } from "../constants/urls"
 import { clearFromStorage } from "../services/storage_service"
 import { getFlowLanguagesApi } from "../api/endpoints/flow"
-import { languageList, languageValueMap } from "../pages/ShikshalokamVoiceChat/enum"
+import { languageList, languageValueMap, sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
@@ -16,6 +16,7 @@ const LanguageSelectionGrid = () => {
 
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
+  const setStorageFlow = useChatStorage()(state => state.setFlow)
 
   const { flow: urlFlow } = useUrlFlow()
 
@@ -45,6 +46,17 @@ const LanguageSelectionGrid = () => {
     setHasSelectedLanguage(true)
 
     if (!urlFlow) return
+    const route_mapping = {
+      [sessionFlowName.ParentPerceptionSurvey]: ROUTES.SHIKSHALOKAM_PPPI_VOICE_CHAT,
+      [sessionFlowName.ListeningActivity]: ROUTES.SHIKSHALOKAM_GUEST_LISTENING_CHAT,
+    }
+
+    if (route_mapping[urlFlow]) {
+      setStorageFlow(urlFlow)
+      navigate(route_mapping[urlFlow])
+      return
+    }
+
     navigate({
       pathname: ROUTES.COMMON_CHAT,
       search: new URLSearchParams({ [URL_PARAMS.FLOW]: urlFlow }).toString(),

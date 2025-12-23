@@ -1,4 +1,3 @@
-import { URL_PARAMS } from "../constants/urls"
 import { useChatStorage, useSiteStorage } from "hooks/useStorage"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
@@ -16,17 +15,27 @@ export const useFlow = () => {
     setIsLoading(true)
     await stopAllAudio()
 
+    let navigateUrl
+
     setPreviousUrl(window.location.href)
 
-    // navigate({
-    //   pathname: ROUTES.COMMON_CHAT,
-    //   search: new URLSearchParams({ [URL_PARAMS.FLOW]: selectedFlow }).toString(),
-    // })
+    const flowRoutes = {
+      [sessionFlowName.GuestDiscussion]: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT,
+      [sessionFlowName.GuestMiStory]: ROUTES.SHIKSHALOKAM_GUEST_MI_STORY,
+    }
 
-    navigate({
+    const route = flowRoutes[selectedFlow]
+    if (!route) {
+      return
+    }
 
-    })
+    if (searchParams.get("flow")) {
+      useChatDataLocalStore.getState().setFlow(searchParams.get("flow"))
+    }
 
+    navigateUrl = route
+
+    navigate(navigateUrl)
     setIsLoading(false)
   }
 
