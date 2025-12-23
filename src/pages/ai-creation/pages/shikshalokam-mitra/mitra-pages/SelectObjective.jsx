@@ -541,7 +541,6 @@ function SelectObjective({
 
 
   const handleAddOwnObjective = () => {
-    console.log("clicked")
     setInputText({})
     setHasClickedOnAddmore(true)
   }
@@ -673,7 +672,6 @@ function SelectObjective({
               const sectionObjectives = prevObjectiveShown ? prevObjectiveList : objectiveList;
               const sectionSources = prevObjectiveShown ? useAICreationSessionStore.getState().getPrevObjectiveSource() : objectiveSource;
               
-              console.log({sectionIndex})
               return (
                 <div key={`objectives-${sectionIndex}`}>
                   {objectiveListLoading ? (
