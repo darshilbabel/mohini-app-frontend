@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { FiArrowLeft } from "react-icons/fi";
 import { HiMenu, HiX } from "react-icons/hi";
 import ROUTES from "../../../../url";
+import { clearMitraSessionStorage } from "../../pages/shikshalokam-mitra/MainPage";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL || "https://shikshagraha.org";
 
@@ -130,6 +131,7 @@ export default function Header({
               onClick={() => {
                 const currentRoute = window.location.pathname;
                 if (!currentRoute.includes(ROUTES.MITRA_CHAT)) {
+                  clearMitraSessionStorage();
                   navigate(`/${ROUTES.MITRA_CHAT}`);
                 }
                 else {

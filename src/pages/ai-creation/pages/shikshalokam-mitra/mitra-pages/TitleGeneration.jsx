@@ -221,9 +221,6 @@ function TitleGeneration({
             mitra_result || {};
 
           if (status?.toLowerCase() === "ok") {
-              // Clear the Zustand store and its persisted storage
-            useAICreationSessionStore.persist.clearStorage();
-            useAICreationSessionStore.getState().reset();
 
             clearMitraSessionStorage();
             setMediaStore(media)
