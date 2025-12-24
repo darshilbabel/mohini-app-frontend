@@ -50,8 +50,20 @@ function SelectObjective({
   getLoaderState,
 }) {
   const { t } = useTranslation("ai_creation_translation");
-  const [objectiveList, setObjectiveList] = useState([]);
-  const [prevObjectiveList, setPrevObjectiveList] = useState([]);
+  const [objectiveList, setObjectiveList] = useState(() => {
+    const storedObjective = useAICreationSessionStore.getState().getObjective();
+    if (storedObjective?.length > 0) {
+      return storedObjective
+    }
+    else return []
+  });
+  const [prevObjectiveList, setPrevObjectiveList] = useState(() => {
+    const storedPrevObjective = useAICreationSessionStore.getState().getPrevObjective();
+    if (storedPrevObjective?.length > 0) {
+      return storedPrevObjective
+    }
+    else return []
+  });
   const [hasClickedOnAddmore, setHasClickedOnAddmore] = useState(false);
   const [fetchError, setFetchError] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -63,7 +75,7 @@ function SelectObjective({
     }
   });
   const [objectiveSource, setObjectiveSource] = useState([]);
-
+  const [prevObjectiveSource, setPrevObjectiveSource] = useState([]);
   const textInputRef = useRef(null);
   const [textMessage, setTextMessage] = useState("");
   const [useTextbox, setUseTextbox] = useState(false);
@@ -75,9 +87,16 @@ function SelectObjective({
     else return false
   })
   const [objectiveListLoading, setObjectiveListLoading] = useState(false)
-  const [prevObjectiveShown, setPrevObjectiveShown] = useState(false)
+  const [prevObjectiveShown, setPrevObjectiveShown] = useState(() => {
+    const isPrevObjectiveShown = useAICreationSessionStore.getState().getIsPrevObjectiveShown();
+    if (isPrevObjectiveShown) {
+      return true
+    }
+    else return false;
+  })
 
   const localChatHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
+  const isOwnObjective = useAICreationSessionStore.getState().getIsOwnObjective();
 
   const [objectiveChatHistory, setObjectiveChatHistory] = useState(
     !!localChatHistory?.length ? localChatHistory : []
@@ -104,7 +123,7 @@ function SelectObjective({
   });
   const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en";
   const language = preferredLanguage.value || "en";
-  const { setObjective: setObjectiveStore, setPrevObjective: setPrevObjectiveStore, setPrevObjectiveSource: setPrevObjectiveSourceStore, setObjectiveSource: setObjectiveSourceStore, setChunks: setChunksStore, setSelectedObjective: setSelectedObjectiveStore, setHasClickedObjAddMore, setIsOwnObjective, setObjectListRetries } = useAICreationSessionStore.getState()
+  const { setObjective: setObjectiveStore, setPrevObjective: setPrevObjectiveStore, setPrevObjectiveSource: setPrevObjectiveSourceStore, setObjectiveSource: setObjectiveSourceStore, setChunks: setChunksStore, setSelectedObjective: setSelectedObjectiveStore, setHasClickedObjAddMore, setIsOwnObjective, setObjectListRetries, setIsPrevObjectiveShown: setIsPrevObjectiveShownStore } = useAICreationSessionStore.getState()
 
   const { setSelectedWeek: setSelectedWeekStore, profileId, setUserProblemStatement: setUserProblemStatementStore } = useAICreationSessionStore.getState();
 
@@ -241,6 +260,8 @@ function SelectObjective({
       setPrevObjectiveSourceStore(currentObjectiveSource)
       setObjectListRetries(useAICreationSessionStore.getState().getObjectListRetries() + 1)
       setPrevObjectiveShown(false)
+      setIsPrevObjectiveShownStore(false)
+      setSelectedObjectiveStore(null)
 
       setUserProblemStatementStore(message?.extra_content?.query)
       fetchObjectiveList(true, message?.extra_content?.query)
@@ -310,6 +331,7 @@ function SelectObjective({
     if(hasClickedOnAddmore) {
       handleInputSend(textMessage)
       setIsOwnObjective(true)
+      setHasClickedOnAddmore(false)
     }
     else {
       sendSocketMessage({
@@ -328,34 +350,22 @@ function SelectObjective({
 
     const storedObjective = useAICreationSessionStore.getState().getObjective();
 
-    const storedPrevObjective = useAICreationSessionStore.getState().getPrevObjective();
 
-
-    if(storedPrevObjective) {
-      setPrevObjectiveList(
-        typeof storedObjective === "string"
-          ? [storedObjective]
-          : storedObjective
-      );
-    }
-
-
-    if (storedObjective) {
-      setObjectiveList(
-        typeof storedObjective === "string"
-          ? [storedObjective]
-          : storedObjective
-      );
-    } else {
+    if(!storedObjective)
       fetchObjectiveList();
-    }
 
     const storedObjectiveSource = useAICreationSessionStore.getState().getObjectiveSource();
+    const storedPrevObjectiveSource = useAICreationSessionStore.getState().getPrevObjectiveSource();
+
     if (storedObjectiveSource) {
       setObjectiveSource(storedObjectiveSource);
     }
+    if (storedPrevObjectiveSource) {
+      setPrevObjectiveSource(storedPrevObjectiveSource);
+    }
     if (isSelectObjectiveSection) handleScrollIntoView();
   }, []);
+
 
   const handleSuggestMore = () => {
     setVisibleCount((prevCount) => {
@@ -511,7 +521,9 @@ function SelectObjective({
     }
   }
 
-  const selectedObjective = useAICreationSessionStore.getState().getSelectedObjective() || null;
+  const selectedObjective = useAICreationSessionStore(
+    state => state.selectedObjective
+  ) || null;
 
   if (getLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST) && !prevObjectiveList?.length) {
     return <></>;
@@ -595,11 +607,12 @@ function SelectObjective({
   }
 
 
+
   return (
     <>
       <div>
         <div className="secondpage-bot-div ">
-          {hasClickedOnAddmore ? (
+          {hasClickedOnAddmore && chatSections.length === 1 ? (
             <div>
               <BotMessage primaryMessage={t("selectObjective.enterObjective")} />
               {(!selectedObjective || isSelectObjectiveSection) && <button onClick={() => setHasClickedOnAddmore(false)} className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF] mx-auto">
@@ -655,14 +668,15 @@ function SelectObjective({
               // }
               
               // For latest list, show full objectives card
-              const sectionObjectives = objectiveList;
-              const sectionSources = objectiveSource;
+
+              const sectionObjectives = prevObjectiveShown ? prevObjectiveList : objectiveList;
+              const sectionSources = prevObjectiveShown ? useAICreationSessionStore.getState().getPrevObjectiveSource() : objectiveSource;
               
               return (
                 <div key={`objectives-${sectionIndex}`}>
                   {objectiveListLoading ? (
                     <LoadingChat />
-                  ) : hasClickedOnAddmore ? (
+                  ) : hasClickedOnAddmore && sectionIndex === chatSections.length -1 ? (
                     <>
                       <div>
                         <BotMessage primaryMessage={t("selectObjective.enterObjective")} />
@@ -697,7 +711,9 @@ function SelectObjective({
                               setObjectiveList(prevObjectiveList)
                               setObjectiveSource(useAICreationSessionStore.getState().getPrevObjectiveSource())
                               setPrevObjectiveShown(true)
+                              setIsPrevObjectiveShownStore(true)
                               setObjectiveListLoading(true)
+                              setSelectedObjectiveStore(null)
 
                               setTimeout(() => {
                                 setObjectiveListLoading(false)
@@ -710,7 +726,7 @@ function SelectObjective({
                   )}
                 </div>
               )
-            } else if (section.chatHistory?.length > 0) {
+            } else if (section.chatHistory?.length > 0 && !hasClickedOnAddmore) {
               // This is a chat history section
               return (
                 <ChatWindow 
@@ -734,7 +750,7 @@ function SelectObjective({
                 isReadOnly={false}
               />
             </div>
-          ) : !hasClickedOnAddmore && (
+          ) : !isOwnObjective && (
             // <></>
             <div className={`div35 label1`}>
               <div className={`div36 div37`}>

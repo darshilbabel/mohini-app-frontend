@@ -21,10 +21,10 @@ function ChatWindow({
 
 
   const objectiveList = useAICreationSessionStore.getState().getObjective();
-  const selectedObjective = useAICreationSessionStore.getState().getSelectedObjective();
   const allObjectiveChatHistory = useAICreationSessionStore.getState().getObjectiveChatHistory();
   const allActionListChatHistory = useAICreationSessionStore.getState().getActionListChatHistory();
-  const selectedAction = useAICreationSessionStore.getState().getSelectedAction();
+  const selectedObjective = useAICreationSessionStore(state => state.selectedObjective);
+  const selectedAction = useAICreationSessionStore(state => state.selectedAction);
   const selectedWeek = useAICreationSessionStore.getState().getSelectedWeek();
   const getShowLoadingChat = (indexNumber) => {
 

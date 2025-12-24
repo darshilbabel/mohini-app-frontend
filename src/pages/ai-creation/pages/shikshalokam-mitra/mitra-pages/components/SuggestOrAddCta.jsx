@@ -46,15 +46,20 @@ const SuggestOrAddCta = ({
           </button>
         </div>
       )}
-       {showAdditionalCTA && (
-        <div className="flex justify-center mt-3">
-          <button className={buttonStyle} onClick={handleAdditionalCTAClick}>
-            {t(additionCTAText)}
-          </button>
-        </div>
+      {showAdditionalCTA && (
+        <>
+          <div className="flex justify-center">
+            <p className="secondpage-or-text">{getOrTextTranslation(language)}</p>
+          </div>
+          <div className="flex justify-center">
+            <button className={buttonStyle} onClick={handleAdditionalCTAClick}>
+              {t(additionCTAText)}
+            </button>
+          </div>
+        </>
       )}
     </div>
-  );
+  )
 };
 
 export default SuggestOrAddCta;

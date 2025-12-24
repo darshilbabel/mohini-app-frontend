@@ -472,5 +472,10 @@ function clearExcept(keepKeys = ["accToken", "name", "image", "email"]) {
 }
 
 export function clearMitraSessionStorage(avoidLogout = false) {
+  // Clear the Zustand store and its persisted storage
+  useAICreationSessionStore.persist.clearStorage();
+  useAICreationSessionStore.getState().reset();
+  
+  // Then remove from sessionStorage
   sessionStorage.removeItem("aiCreationData");
 }

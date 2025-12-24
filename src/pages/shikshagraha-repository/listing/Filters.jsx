@@ -277,7 +277,7 @@ export default function Filters() {
       </div>
       <div className="relative w-full flex items-center justify-center">
         <textarea
-          className={`${isConvertingVoiceToText ? "min-h-[29px] sm:min-h-0" : ""} pl-3 max-w-[331px] w-full border-0 focus:outline-none focus:bg-transparent bg-transparent rounded-[12px] text-[14px] font-manrope text-gray-700 placeholder-[#9CA3AF] resize-none`}
+          className={`${isConvertingVoiceToText ? "min-h-[29px] sm:min-h-0" : ""} pl-3 max-w-[331px] w-full border-0 focus:outline-none focus:bg-transparent bg-transparent rounded-[12px] text-[14px] font-manrope text-gray-700 placeholder-[#9CA3AF] resize-none !overflow-y-auto`}
           style={{
             backgroundColor: "transparent",
             height: "29px",
@@ -298,13 +298,13 @@ export default function Filters() {
             // If empty or single line (no newline), always set to minHeight to prevent shifting
             if (!textarea.value || !hasNewline) {
               textarea.style.height = `${minHeight}px`
-              textarea.style.overflowY = "hidden"
+              // textarea.style.overflowY = "hidden"
             } else if (scrollHeight > maxHeight) {
               textarea.style.height = `${maxHeight}px`
               textarea.style.overflowY = "auto"
             } else {
               textarea.style.height = `${scrollHeight}px`
-              textarea.style.overflowY = "hidden"
+              // textarea.style.overflowY = "hidden"
             }
           }}
           onChange={e => {

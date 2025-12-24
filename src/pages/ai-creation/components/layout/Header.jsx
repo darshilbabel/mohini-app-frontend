@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FiArrowLeft } from "react-icons/fi";
 import { HiMenu, HiX } from "react-icons/hi";
-import { rootPath } from "utils/constants";
+import ROUTES from "../../../../url";
+import { clearMitraSessionStorage } from "../../pages/shikshalokam-mitra/MainPage";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL || "https://shikshagraha.org";
 
@@ -127,7 +128,16 @@ export default function Header({
           >
             <button
               className="bg-transparent w-fit p-0 border-0 cursor-pointer inline-flex items-center justify-center"
-              onClick={() => navigate(`/`)}
+              onClick={() => {
+                const currentRoute = window.location.pathname;
+                if (!currentRoute.includes(ROUTES.MITRA_CHAT)) {
+                  clearMitraSessionStorage();
+                  navigate(ROUTES.MITRA_CHAT);
+                }
+                else {
+                  navigate(`/`);
+                }
+              }}
             >
               <FiArrowLeft className="w-8 h-8 text-[#1E1E1E]" />
             </button>

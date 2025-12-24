@@ -808,7 +808,7 @@
     .delete-icon-disable {
         color: rgb(73, 70, 70);
         font-size: 1.2rem;
-        cursor: none;
+        cursor: not-allowed;
     }
     
     .final-action-input {
@@ -1713,11 +1713,9 @@
     }
     
     .thirdpage-obj-container {
-        width: 60%;
+        width: 100%;
         position: relative;
         overflow: hidden;
-        min-width: 570px;
-
     }
       
     @keyframes swipe-in-left {
@@ -1827,7 +1825,7 @@
     .delete-icon-disable {
         color: rgb(73, 70, 70);
         font-size: 1.2rem;
-        cursor: none;
+        cursor: not-allowed;
     }
     
     .final-action-input {

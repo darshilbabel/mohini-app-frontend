@@ -5,7 +5,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { PiDotsSixVerticalBold } from "react-icons/pi";
 import { TbTrashOff } from "react-icons/tb";
 import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
-import { IoArrowBack, IoArrowForward } from "react-icons/io5";
+import { IoArrowForward } from "react-icons/io5";
 /* utils and api services */
 
 import {
@@ -16,7 +16,6 @@ import {
 import { transformActionListSources } from "../../../utils/mitra-chat";
 /* components */
 import ActionItemsList from "./components/action-items/ActionItemsList";
-import UserMessage from "./components/chat-message/UserMessage";
 import LoadingChat from "./components/LoadingChat";
 import BotMessage from "./components/chat-message/BotMessage";
 import SuggestOrAddCta from "./components/SuggestOrAddCta";
@@ -35,9 +34,9 @@ import { sessionFlowName } from "../../../../ShikshalokamVoiceChat/enum";
 import { bot_routes } from "../../../../../configure";
 import { useChatWebhook } from "../../../../../hooks/useChatWebhook";
 import { buildWebSocketUrl } from "../../../../../utils/helpers";
-import { ShowLoader } from "../MainPage";
 import ChatMessage from "./components/chat-message/ChatMessage";
-import ObjectivesCard from "./components/objectives/ObjectivesCard";
+import { getOrTextTranslation } from "../question script/secondpage_tanslation";
+import TextareaWithVoice from "../../../components/textarea-with-mic";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -59,7 +58,10 @@ function ActionItems({
   getLoaderState,
 }) {
   const { t } = useTranslation("ai_creation_translation");
-  const [actionList, setActionList] = useState([]);
+  const [actionList, setActionList] = useState(() => {
+    const storedActionList = useAICreationSessionStore.getState().getActionList()
+    return storedActionList || []
+  });
 
   const [visibleCount, setVisibleCount] = useState(false);
   const [hasClickedOnAddmore, setHasClickedOnAddmore] = useState(false);
@@ -103,12 +105,12 @@ function ActionItems({
   const wss_protocol = "wss://"
   const sessionId = useAICreationSessionStore.getState().getSession();
 
-  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setSelectedObjectiveSource: setSelectedObjectiveSourceStore, setSelectedObjective: setSelectedObjectiveStore, setCurrentPage: setCurrentPageStore, currentPage: currentPageStore } = useAICreationSessionStore.getState()
+  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setActionListChatHistory: setActionListChatHistoryStore, setSelectedObjective: setSelectedObjectiveStore } = useAICreationSessionStore.getState()
   const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en"
   const language = preferredLanguage.value || "en";
 
   const { profileId, selectedAction } = useAICreationSessionStore.getState();
-  const objective = useAICreationSessionStore.getState().getSelectedObjective()
+  const objective = useAICreationSessionStore(state => state.selectedObjective)
   const accessToken = sessionStorage.getItem("accToken");
   const [isFetchingData, setIsFetchingData] = useState(false)
 
@@ -267,11 +269,8 @@ function ActionItems({
   };
 
   async function fetchActionList(createNew = false, newObjective) {
-    // setIsLoading(true);
     try {
       handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, true);
-      if (!actionList || actionList?.length === 0) {
-        // setIsLoading(true);
         const userProblemStatement = useAICreationSessionStore.getState().getUserProblemStatement()
         const profile_id = useAICreationSessionStore.getState().getProfileId()
 
@@ -300,7 +299,7 @@ function ActionItems({
           setFetchError(errorMessage);
           // window.location.reload();
         }
-      }
+      // }
     } catch (error) {
       setFetchError(
         useAICreationSessionStore.getState().getSystemError() ||
@@ -312,20 +311,12 @@ function ActionItems({
     }
   }
 
-  useEffect(() => {
-
-    const storedActions = useAICreationSessionStore.getState().getActionList()
-
-    if (Array.isArray(storedActions)) {
-      setActionList(storedActions);
-    } else {
-      fetchActionList();
-    }
-  }, []);
 
   useEffect(() => {
     fetchActionList();
-  }, [objective])
+  }, [objective]);
+
+
 
   useEffect(() => {
     if (swipeDirection) {
@@ -342,12 +333,6 @@ function ActionItems({
     }
   }, [showSelectedActionLoader])
 
-  // useEffect(() => {
-  //   if (isInReadOnlyMode) {
-  //     setIsLoading(true);
-  //     setIsLoading(false);
-  //   }
-  // }, [isInReadOnlyMode]);
 
   const getActionListArray = () => {
     if (!isSelectActionItems || isInReadOnlyMode) {
@@ -426,15 +411,14 @@ function ActionItems({
 
       setIsFetchingData(true)
 
-      if (isActionEmptyOrDefault(action_to_store)) {
-        return;
-      }
+
       const actionListToStore = [
         {
           duration: "",
-          actionSteps: action_to_store.map((action) => action.content),
+          actionSteps: action_to_store?.filter((action) => action.content?.step?.trim())?.map((action) => action.content),
         },
       ];
+
       const userProblemStatement = useAICreationSessionStore.getState().getUserProblemStatement()
       const objective = useAICreationSessionStore.getState().getSelectedObjective()
       // setIsLoading(true);
@@ -568,6 +552,13 @@ function ActionItems({
   }
 
 
+  const handleGoBackToObjectives = () => {
+    handleGoBack(3)
+    setActionListChatHistory([])
+    setActionListChatHistoryStore([])
+    setSelectedObjectiveStore(null)
+  }
+
   if(goBack) return <></>;
 
 
@@ -614,7 +605,7 @@ function ActionItems({
                   <Source
                     source={actionItemSource}
                     customClassNames={{
-                      wrapperStyles: "md:!w-[60%] md:min-w-[570px]",
+                      wrapperStyles: "md:!w-[100%]",
                     }}
                   />
                   {isSelectActionItems && !!actionList && actionList?.length > 0 && (
@@ -622,9 +613,7 @@ function ActionItems({
                       <SuggestOrAddCta
                         showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
                         additionCTAText={t("selectObjective.goBack")}
-                        handleAdditionalCTAClick={() => {
-                          handleGoBack(3)
-                        }}
+                        handleAdditionalCTAClick={handleGoBackToObjectives}
                         handleSuggestMore={handleSuggestMore}
                         handleAddOwnClick={() => setHasClickedOnAddmore(true)}
                         language={language}
@@ -685,7 +674,7 @@ function ActionItems({
                       <Source
                         source={actionItemSource}
                         customClassNames={{
-                          wrapperStyles: "md:!w-[60%] md:min-w-[570px]",
+                          wrapperStyles: "md:!w-[100%]",
                         }}
                       />
                       {isSelectActionItems && !!actionList && actionList?.length > 0 && (
@@ -693,9 +682,7 @@ function ActionItems({
                           <SuggestOrAddCta
                             showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
                             additionCTAText={t("selectObjective.goBack")}
-                            handleAdditionalCTAClick={() => {
-                              handleGoBack(3)
-                            }}
+                            handleAdditionalCTAClick={handleGoBackToObjectives}
                             handleSuggestMore={handleSuggestMore}
                             handleAddOwnClick={() => setHasClickedOnAddmore(true)}
                             language={language}
@@ -784,6 +771,10 @@ export function FinalActionPage({
 }) {
   const { t } = useTranslation("ai_creation_translation");
   const [actionList, setActionList] = useState(actionListArray || []);
+
+  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en"
+  const language = preferredLanguage.value || "en";
+
   const handleDragEnd = (result) => {
     if (!result.destination) return;
     if (result.source.index === result.destination.index) return;
@@ -813,6 +804,9 @@ export function FinalActionPage({
     ]);
   };
 
+  // isContinueDisabled should be true if all the action.content.step are empty. if even one is non empty then we can enable the button
+  const isContinueDisabled = actionList.every((action) => !action.content?.step?.trim()) || isFetchingData;
+
 
   return (
     <div className="final-action-page mt-3">
@@ -837,8 +831,8 @@ export function FinalActionPage({
                               <PiDotsSixVerticalBold className="drag-icon" />{" "}
                             </span>
                           </div>
-                          <input type="text" placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems} value={action?.content?.step} className="final-action-input" onChange={e => handleInputChange(action.id, e.target.value)} />
-                          {actionList && actionList.length > 1 ? (
+                          <TextareaWithVoice value={action?.content?.step || ""} placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems || isFetchingData} onChange={text => handleInputChange(action.id, text)} className="final-action-input" />
+                          {actionList && actionList.length > 1 && !isFetchingData ? (
                             <FiTrash2
                               className="delete-icon"
                               onClick={e => {
@@ -848,7 +842,7 @@ export function FinalActionPage({
                                 }
                               }}
                               onMouseDown={e => e.stopPropagation()}
-                              disabled={!isSelectActionItems}
+                              disabled={!isSelectActionItems || isFetchingData}
                             />
                           ) : (
                             <TbTrashOff className="delete-icon-disable" />
@@ -866,7 +860,7 @@ export function FinalActionPage({
             <>
               <div className="secondpage-add-div1">
                 <button
-                  className="secondpage-add-bttn"
+                  className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]"
                   onClick={() => {
                     handleAddAction()
                   }}
@@ -876,22 +870,29 @@ export function FinalActionPage({
                 </button>
               </div>
 
-              <div className="secondpage-add-div1">
-                <button onClick={() => {
-                  setHasClickedOnAddmore(false)
-                  setWantsToMoveForward(false)
-                }} className="secondpage-add-bttn cursor-pointer">
+              <div className="secondpage-add-div1 mt-0">
+                <p className="secondpage-or-text">{getOrTextTranslation(language)}</p>
+              </div>
+
+              <div className="secondpage-add-div1 mt-0">
+                <button
+                  onClick={() => {
+                    setHasClickedOnAddmore(false)
+                    setWantsToMoveForward(false)
+                  }}
+                  className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]"
+                >
                   {t("actionItems.goBack")}
                 </button>
               </div>
 
               <div className="thirdpage-continue-div">
                 <button
-                  className={`thirdpage-select-bttn ${isFetchingData ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                  className={`thirdpage-select-bttn ${isContinueDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                   onClick={() => {
                     handleContinueClick(actionList)
                   }}
-                  disabled={isFetchingData}
+                  disabled={isContinueDisabled}
                 >
                   {hasClickedOnAddmore ? t("common.continue") : t("common.next")}
                   <IoArrowForward className="thirdpage-cont-arrow-icon" />
