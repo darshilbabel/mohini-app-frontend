@@ -303,7 +303,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       searchParams,
       storageFlow,
       selectedType,
-      wssProtocol: wss_protocol,
     }),
     {
       onOpen: onWebSocketOpen,

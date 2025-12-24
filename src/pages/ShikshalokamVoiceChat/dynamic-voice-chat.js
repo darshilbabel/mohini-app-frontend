@@ -28,7 +28,7 @@ import { useAudio } from "hooks/useAudio"
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useChatDataSessionStore, useSiteDataLocalStore } from "store"
 import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
-import { useChatWebhook } from "hooks/useChatWebhook"
+import { useChatWebhook } from "../../hooks/useChatWebhook"
 import { useConfirmationPopup } from "hooks/useConfirmationPopup"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useNavigate, useSearchParams } from "react-router-dom"
@@ -62,7 +62,7 @@ import WaveSurferPlayer from "../interview-text-voice/voice-player"
 const cookies = new Cookies()
 
 const DynamicVoiceChat = ({ type = "" }) => {
-  const { flow: storageFlow, setFlow: setStorageFlow } = useUrlFlow()
+  const { flow: storageFlow } = useUrlFlow()
 
   // ========== useState Hooks ==========
   const [appendix, setAppendix] = useState([])
@@ -154,12 +154,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
   const setLangProgress = useChatStorage()(state => state.setLangProgress)
-  // const setStorageFlow = useChatStorage()(state => state.setFlow)
+  const setStorageFlow = useChatStorage()(state => state.setFlow)
   const setStrandStep = useChatDataSessionStore(state => state.setStrandStep)
   const showHomepage = useChatStorage()(state => state.showHomepage)
   const ssoRerouteURL = useSiteStorage()(state => state.ssoRerouteURL)
   const stateMachineLength = useChatStorage()(state => state.stateMachineLength)
-  // const storageFlow = useChatStorage()(state => state.flow)
   const strandStep = useChatDataSessionStore(state => state.strandStep)
   const taskId = useChatStorage()(state => state.taskId)
   const userState = useUserStorage()(state => state.state)
@@ -295,20 +294,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
   }, [])
 
-  const {
-    sendMessage: sendSocketMessage,
-    connect: connectToWebSocket,
-    isConnected: isSocketConnected,
-  } = useChatWebhook({
-    onOpen: onWebSocketOpen,
-    onMessage: onWebSocketMessage,
-    onClose: onWebSocketClose,
-    onError: onWebSocketError,
-    onFinalReconnectAttempt,
-    autoConnect: false,
-    reconnectAttempts: env.WEBSOCKET_RETRY_NUM(),
-  })
-
   const isShikshalokamPublicType = true
   const shouldShowChatHistoryFeature = true
 
@@ -324,6 +309,24 @@ const DynamicVoiceChat = ({ type = "" }) => {
     console.log("state_tracker", "sessionId", sessionId, "chatHistory", chatHistory)
     return !sessionId || chatHistory?.length === 0
   }, [sessionId, chatHistory])
+
+  const webSocketUrl = useMemo(() => {
+    return `${env.WS_PROTOCOL()}://${env.WEBSOCKET_HOST()}/ws/${flowInfo ? flowInfo.websocket_url : ""}`
+  }, [flowInfo])
+
+  const {
+    sendMessage: sendSocketMessage,
+    connect: connectToWebSocket,
+    isConnected: isSocketConnected,
+  } = useChatWebhook(webSocketUrl, {
+    onOpen: onWebSocketOpen,
+    onMessage: onWebSocketMessage,
+    onClose: onWebSocketClose,
+    onError: onWebSocketError,
+    onFinalReconnectAttempt,
+    autoConnect: false,
+    reconnectAttempts: env.WEBSOCKET_RETRY_NUM(),
+  })
 
   // ========================================================================
   // SECTION: Helper Functions (Must be defined before callbacks that use them)
@@ -828,6 +831,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
   }, [flowInfoError, isFlowInfoError])
 
   useEffect(() => {
+    setStorageFlow(storageFlow)
+  }, [storageFlow])
+
+  useEffect(() => {
     if (chatHistory.length > 1) {
       setShowHomepage(false)
       setIsOldChatOpen(true)
@@ -1052,7 +1059,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           } else if (languageToUse) {
             language = languageToUse
           }
-          setStorageFlow(type)
+          // setStorageFlow(type)
           setChatLanguage(language)
           setLanguage(language)
           setProfileToUse(data?.id)
