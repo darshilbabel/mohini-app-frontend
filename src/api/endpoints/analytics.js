@@ -8,8 +8,6 @@ import { apiClient } from "../client"
 export const trackResourceView = (resourceId) => {
   if (!resourceId) return
 
-  console.log({resourceId})
-
   // Fire-and-forget: don't await, catch errors silently
   apiClient.post(`/api/track-view/${resourceId}/`).catch(() => {
     // Silently ignore errors - analytics should not impact user experience

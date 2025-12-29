@@ -142,7 +142,7 @@ export default function Header({ isHeroSection = true, isBackButton = false, onS
                 <a href={`${BASE_URL}/story-archive`} className="nav-link w-nav-link">
                   Stories of Impact
                 </a>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSfSX2bzdJzPBOlstfGg7vWqPFaS5weLnPpwIieR1DBdRgepPg/viewform" target="_blank" className="nav-link w-nav-link">
+                <a rel="noopener noreferrer" href="https://docs.google.com/forms/d/e/1FAIpQLSfSX2bzdJzPBOlstfGg7vWqPFaS5weLnPpwIieR1DBdRgepPg/viewform" target="_blank" className="nav-link w-nav-link">
                   Join the Movement
                 </a>
               </div>

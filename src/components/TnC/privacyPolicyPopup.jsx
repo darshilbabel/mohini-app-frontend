@@ -49,6 +49,8 @@ PrivacyPolicyPopup.propTypes = {
   tncText: PropTypes.string.isRequired,
   onAccept: PropTypes.func,
   onDecline: PropTypes.func,
+  useStaticText: PropTypes.bool,
+  isGuestChat: PropTypes.bool,
 };
 
 export default PrivacyPolicyPopup;
