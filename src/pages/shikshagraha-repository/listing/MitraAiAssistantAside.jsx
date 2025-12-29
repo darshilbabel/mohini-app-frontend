@@ -25,8 +25,8 @@ export default function MitraAiAssistantAside() {
         </p>
         
       </div>
-      <button onClick={handleClick} className="w-full p-2 flex justify-center items-center rounded-lg bg-[#2563EB] text-white mt-3">
-          <span className="text-sm font-medium">
+      <button onClick={handleClick} className="w-full p-2 flex justify-center items-center rounded-lg bg-[#2563EB] text-white mt-3 text-xs">
+          <span className="font-medium">
             {t("generateImprovementProjects")}
           </span>
         </button>

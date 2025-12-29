@@ -1,7 +1,8 @@
-import React, { useState } from "react"
+import React from "react"
 import { Star, Download, FileSpreadsheet, FileText, FileType, File } from "lucide-react"
 import ROUTES from "../../../url"
 import env from "../../../utils/env"
+import { trackResourceView } from "api/endpoints/analytics"
 
 const MEDIA_FILE_TYPE = {
   PDF: "PDF",
@@ -46,13 +47,15 @@ export default function ResourceCard({ resource, index }) {
   const card_background = ["bg-[#D52C1A] text-white", "bg-[#382280] text-white", "bg-[#B8062B] text-white", "bg-[#E68000] text-white", "bg-[#D40A6F] text-white", "bg-[#802C81] text-white", "bg-[#BAE6FD] text-black", "bg-[#9CA3AF] text-white"][index % 8] || "bg-red-100"
   const { background: fileTypeBg, textColor, Icon: FileIcon } = getMediaFileTypeStyles(resource?.media_type_display, card_background)
   
-  
   return (
     <div
       className="bg-white rounded-[20px] border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow
                  flex flex-col justify-between w-full min-w-[340px] h-full box-border "
       role="button"
       onClick={() => {
+        // Fire analytics event without blocking navigation
+        trackResourceView(resource?.id)
+
         const root = (env.ROOT_PATH() || "").replace(/^\/|\/$/g, "")
         const repo = (ROUTES.SHIKSHAGRAHA_REPOSITORY || "").replace(/^\/|\/$/g, "")
         const id = resource?.id ? `/${resource.id}` : ""

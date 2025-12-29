@@ -7,6 +7,7 @@ import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
 import { toast, ToastContainer } from "react-toastify";
 import Footer from "../common/Footer";
 import ROUTES from "../../../url";
+import { trackResourceDownload } from "api/endpoints/analytics";
 
 export default function ResourceDetailPage() {
   const params = useParams();
@@ -158,17 +159,22 @@ function ResourceMeta({ resource }) {
           </div>
         </div>
       </div>
-      <Actions downloadUrl={resource?.s3_url} />
+      <Actions downloadUrl={resource?.s3_url} resourceId={resource?.id} />
     </div>
   );
 }
 
-function Actions({ downloadUrl }) {
+function Actions({ downloadUrl, resourceId }) {
+  const handleDownload = () => {
+    trackResourceDownload(resourceId)
+    window.open(downloadUrl, "_blank")
+  }
+
   return (
     <div className="flex gap-2 mt-4">
       <button
         className="flex gap-1 items-center justify-center bg-blue-600 text-white px-6 py-2 rounded shadow font-medium"
-        onClick={() => window.open(downloadUrl, "_blank")}
+        onClick={handleDownload}
       >
         <Download size={16} /> Download Resource
       </button>
