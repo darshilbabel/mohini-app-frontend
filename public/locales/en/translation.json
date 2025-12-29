@@ -113,6 +113,7 @@
     "mitraAiAssistant": "Mitra AI Assistant",
     "generateMicroImprovementProjects": "Generate Micro Improvement Projects (MIPs)",
     "generateMicroImprovementProjectsDescription": "MItra AI asks questions to understand your challenges, objectives, tasks, along with observations and surveys to generate tailored solutions...",
+    "generateImprovementProjects": "Generate Improvement Projects",
     "PPsCompletionMessage": "<div class='text-class'>Thank you! Your answer has been successfully recorded.</div>",
     "PPsCompletionCTA": "Submit another response",
     "pppi_homepageHeading": "We're Here to Listen to You",
