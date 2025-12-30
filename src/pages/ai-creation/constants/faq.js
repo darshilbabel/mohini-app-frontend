@@ -15,14 +15,14 @@ export const faqData = {
         ]
       },
       {
-        "title": "Micro Improvement Projects",
+        "title": "Improvement Projects",
         "question_list": [
           {
-            "question": "What is a Micro Improvement Project (MIP)?",
-            "answer": "<p><strong>Micro Improvement Project (MIP)</strong> is a structured, short-duration intervention designed to address a specific education challenge.</p><ul><li>Multiple objectives can exist for a challenge, each supported by one or more MIPs.</li><li><strong>Analogy:</strong> Large goals are broken into small, achievable units that build momentum and flexibility.</li></ul>"
+            "question": "What is a Improvement Project (MIP)?",
+            "answer": "<p><strong>Improvement Project (MIP)</strong> is a structured, short-duration intervention designed to address a specific education challenge.</p><ul><li>Multiple objectives can exist for a challenge, each supported by one or more MIPs.</li><li><strong>Analogy:</strong> Large goals are broken into small, achievable units that build momentum and flexibility.</li></ul>"
           },
           {
-            "question": "Why is a Micro Improvement Project (MIP) needed?",
+            "question": "Why is a Improvement Project (MIP) needed?",
             "answer": "<p>MIPs provide a structured, actionable blueprint for change by breaking large goals into sequential micro-goals. They ensure clarity, accountability, continuous engagement, and measurable outcomes through defined tasks and M&E assets.</p>"
           }
         ]
