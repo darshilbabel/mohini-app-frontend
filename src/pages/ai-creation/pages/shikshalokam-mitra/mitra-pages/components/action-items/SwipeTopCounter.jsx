@@ -9,7 +9,7 @@ const SwipeTopCounter = ({
 }) => {
   return (
     (
-      <div className="flex flex-row-reverse items-center sm:w-full md:w-[60%] md:min-w-[570px]">
+      <div className="flex flex-row-reverse items-center">
         <RiArrowRightSFill
           className={`cursor-pointer ${
             selectedIndex === actionList?.length - 1

@@ -132,7 +132,7 @@ export default function Header({
                 const currentRoute = window.location.pathname;
                 if (!currentRoute.includes(ROUTES.MITRA_CHAT)) {
                   clearMitraSessionStorage();
-                  navigate(`/${ROUTES.MITRA_CHAT}`);
+                  navigate(ROUTES.MITRA_CHAT);
                 }
                 else {
                   navigate(`/`);

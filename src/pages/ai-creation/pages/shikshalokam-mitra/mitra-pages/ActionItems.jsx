@@ -269,11 +269,8 @@ function ActionItems({
   };
 
   async function fetchActionList(createNew = false, newObjective) {
-    // setIsLoading(true);
     try {
       handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, true);
-      // if (!actionList || actionList?.length === 0) {
-        // setIsLoading(true);
         const userProblemStatement = useAICreationSessionStore.getState().getUserProblemStatement()
         const profile_id = useAICreationSessionStore.getState().getProfileId()
 
