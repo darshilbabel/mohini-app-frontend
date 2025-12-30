@@ -94,10 +94,10 @@ export function getCreateMicroButtonTranslation(language) {
 
     switch(language) {
         case "en":
-            return "Create Micro-Improvement Plan"
+            return "Create Improvement Plan"
         case "hi":
             return "सूक्ष्म-सुधार योजना बनाएं"
         default:
-            return "Create Micro-Improvement Plan"
+            return "Create Improvement Plan"
     }
 }
