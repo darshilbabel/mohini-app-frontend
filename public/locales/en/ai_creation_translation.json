@@ -44,8 +44,8 @@
         "shikshalokamLogoAlt": "ShikshaLokam Logo"
     },
     "startMipPopup": {
-        "headerText": "Start New MIP",
-        "bodyText": "Are you sure you want to start a new MIP? This will clear all your current progress.",
+        "headerText": "Start New Chat",
+        "bodyText": "Are you sure you want to start a new chat? This will clear all your current progress.",
         "confirmButtonText": "Yes, Start New"
     },
     "defineChallenge": {

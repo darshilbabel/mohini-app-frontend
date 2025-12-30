@@ -18,12 +18,12 @@ export const faqData = {
         "title": "Improvement Projects",
         "question_list": [
           {
-            "question": "What is a Improvement Project (MIP)?",
-            "answer": "<p><strong>Improvement Project (MIP)</strong> is a structured, short-duration intervention designed to address a specific education challenge.</p><ul><li>Multiple objectives can exist for a challenge, each supported by one or more MIPs.</li><li><strong>Analogy:</strong> Large goals are broken into small, achievable units that build momentum and flexibility.</li></ul>"
+            "question": "What is a Improvement Project?",
+            "answer": "<p><strong>Improvement Project</strong> is a structured, short-duration intervention designed to address a specific education challenge.</p><ul><li>Multiple objectives can exist for a challenge, each supported by one or more improvement plans.</li><li><strong>Analogy:</strong> Large goals are broken into small, achievable units that build momentum and flexibility.</li></ul>"
           },
           {
-            "question": "Why is a Improvement Project (MIP) needed?",
-            "answer": "<p>MIPs provide a structured, actionable blueprint for change by breaking large goals into sequential micro-goals. They ensure clarity, accountability, continuous engagement, and measurable outcomes through defined tasks and M&E assets.</p>"
+            "question": "Why is a Improvement Project needed?",
+            "answer": "<p>Improvement projects provide a structured, actionable blueprint for change by breaking large goals into sequential micro-goals. They ensure clarity, accountability, continuous engagement, and measurable outcomes through defined tasks and M&E assets.</p>"
           }
         ]
       },
@@ -32,7 +32,7 @@ export const faqData = {
         "question_list": [
           {
             "question": "What can Mitra currently do and how do I use it?",
-            "answer": "<p>Mitra focuses on initial solution design and helps transform challenges into actionable plans.</p><p><strong>Current capabilities include:</strong></p><ol><li>Accepting the challenge statement</li><li>Refining a specific objective</li><li>Generating actionable tasks</li></ol><p><strong>Future Scope:</strong> Generating multiple objectives, full MIPs, and comprehensive M&E resources.</p>"
+            "answer": "<p>Mitra focuses on initial solution design and helps transform challenges into actionable plans.</p><p><strong>Current capabilities include:</strong></p><ol><li>Accepting the challenge statement</li><li>Refining a specific objective</li><li>Generating actionable tasks</li></ol><p><strong>Future Scope:</strong> Generating multiple objectives, full improvement plans, and comprehensive M&E resources.</p>"
           },
           {
             "question": "What are some good questions to ask Mitra in this phase?",
