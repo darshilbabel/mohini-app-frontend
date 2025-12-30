@@ -12,6 +12,8 @@ import { BsDownload } from "react-icons/bs";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import BotMessage from "../../pages/shikshalokam-mitra/mitra-pages/components/chat-message/BotMessage";
+import { useAICreationSessionStore } from "store";
+import { trackSolutionDownload } from "api/endpoints/analytics";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function PdfViewer({
@@ -36,6 +38,12 @@ function PdfViewer({
 
   const isShareButtonVisible = isShareVisible && !!url?.length;
   const isDownloadButtonVisible = isDownloadVisible && !!url?.length;
+  const projectId = useAICreationSessionStore((state) => state.projectId);
+
+  const handleDownload = () => {
+    trackSolutionDownload(projectId);
+    handleDownloadFile(url, fileName, fileExtension, (error) => setError(error));
+  };
 
   function onDocumentLoadSuccess({ numPages }) {
     setTotalPages(numPages);
@@ -113,11 +121,7 @@ function PdfViewer({
             <div className="flex flex-row-reverse gap-2.5 my-5">
               {isDownloadButtonVisible && (
                 <button
-                  onClick={() =>
-                    handleDownloadFile(url, fileName, fileExtension, (error) =>
-                      setError(error)
-                    )
-                  }
+                  onClick={handleDownload}
                   className="w-[106px] h-[35px] flex items-center justify-center gap-[8px] rounded-md border border-[#572E91] p-2 bg-[#572E91] font-['Manrope'] font-medium text-sm leading-none text-white"
                 >
                   <BsDownload />

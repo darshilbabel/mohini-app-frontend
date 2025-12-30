@@ -60,7 +60,7 @@ function TitleGeneration({
 
   const [localErrorText, setLocalErrorText] = useState("");
 
-  const { setProjectTitle: setProjectTitleStore, setMedia: setMediaStore } = useAICreationSessionStore.getState();
+  const { setProjectTitle: setProjectTitleStore, setMedia: setMediaStore, setProjectId } = useAICreationSessionStore.getState();
 
   useEffect(() => {
     async function fetchTitle() {
@@ -217,13 +217,19 @@ function TitleGeneration({
 
           if (media?.length > 0) setMedia(media);
 
-          const { message = "", project_id: projectId = 0 } =
+          const { project_id } =
             mitra_result || {};
+
 
           if (status?.toLowerCase() === "ok") {
 
             clearMitraSessionStorage();
             setMediaStore(media)
+
+            if (project_id) {
+              setProjectId(project_id);
+            }
+  
 
             navigate(ROUTES.IMPROVEMENT_PLAN)
 

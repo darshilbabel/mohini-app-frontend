@@ -24,6 +24,7 @@ export const useRepositoryStore = create((set, get) => ({
   loadingMaster: false,
   filters: {}, // current filters object (media_type, priority, tag, etc.)
   q: "",
+  searchInput: "", // current value in search textarea (not submitted yet)
   pagination: {
     limit: 12,
     offset: 0,
@@ -176,6 +177,13 @@ export const useRepositoryStore = create((set, get) => ({
     get().fetchMediaList();
   },
   /**
+   * Update search input value (textarea value, not submitted yet)
+   * @param {string} newSearchInput - Current textarea value
+   */
+  setSearchInput: (newSearchInput) => {
+    set({ searchInput: newSearchInput });
+  },
+  /**
    * Update filters and optionally reset pagination
    * @param {Object} newFilters - Filter updates to merge
    * @param {boolean} resetPagination - Whether to reset offset to 0 (default true)
@@ -184,6 +192,7 @@ export const useRepositoryStore = create((set, get) => ({
     set((state) => ({
       ...state,
       q: newSearch,
+      searchInput: newSearch, // sync searchInput with submitted search
       pagination: resetPagination
         ? { ...state.pagination, offset: 0 }
         : state.pagination,

@@ -9,12 +9,14 @@ import DefineChallenge from "./mitra-pages/DefineChallenge";
 import Sidebar from "./mitra-pages/components/Sidebar";
 import ConversationWrapperCard from "./mitra-pages/components/ConversationWrapperCard";
 import Footer from "../../../shikshagraha-repository/common/Footer";
-import Header from "../../components/layout/Header";
+import Header from "../../../shikshagraha-repository/listing/Header";
 import ActionItems from "./mitra-pages/ActionItems";
 import WeeksSelection from "./mitra-pages/WeeksSelection";
 import TitleGeneration from "./mitra-pages/TitleGeneration";
 import SelectObjective from "./mitra-pages/SelectObjective";
 import Popup from "../../../../components/Popup/index";
+import PrivacyPolicyPopup from "../../../../components/TnC/privacyPolicyPopup";
+import FAQ from "./mitra-pages/components/FAQ";
 /* constants */
 import { ACTIVE_TABS } from "../../constants/mitra.constants";
 import { LOADER_KEYS } from "../../constants/common";
@@ -22,6 +24,7 @@ import { useAICreationSessionStore } from "store";
 
 function MainPage() {
   const { t } = useTranslation("ai_creation_translation");
+  const { t: tncTranslation } = useTranslation();
   const [activeTab, setActiveTab] = useState(ACTIVE_TABS.CONVERSATION);
   const [audioCache, setAudioCache] = useState({});
   const [isBotTalking, setIsBotTalking] = useState(false);
@@ -31,6 +34,9 @@ function MainPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [acceptedTnc, setAcceptedTnc] = useState(
+    sessionStorage.getItem("acceptedTnc") || "ONGOING"
+  );
 
   useEffect(() => {
     const checkMobile = () => {
@@ -216,6 +222,11 @@ function MainPage() {
     setIsPopupOpen(!isPopupOpen);
   };
 
+  const handleAcceptTnC = () => {
+    setAcceptedTnc(true);
+    sessionStorage.setItem("acceptedTnc", "true");
+  };
+
   useEffect(() => {
     const language = useAICreationSessionStore.getState().getPreferredLanguage() || {};
     setLanguage(language.value);
@@ -364,7 +375,11 @@ function MainPage() {
   }
 
   return (
-    <>
+    <div className="bg-[#F0F2F5]">
+    <div className="container max-w-[1500px] h-full mx-auto py-3">
+      {acceptedTnc === "ONGOING" && !isLoading && (
+        <PrivacyPolicyPopup tncText={tncTranslation("tncText")} onAccept={handleAcceptTnC} isGuestChat={false} />
+      )}
 
       <Header
         isHeroSection={false}
@@ -376,12 +391,12 @@ function MainPage() {
   
       <main
         className={`w-full sm:[50%] h-[calc(100vh-200px)] md:h-[80vh] flex flex-col md:flex-row relative gap-10 sm:p-0 md:py-12 md:px-8 lg:px-16 xl:px-32 2xl:px-48 ${
-          isMobile ? "bg-white" : "bg-[#F0F2F5]"
+          isMobile ? "bg-white mt-3" : "bg-[#F0F2F5]"
         }`}
       >
            
         <Sidebar
-          setActiveTab={() => {}}
+          setActiveTab={setActiveTab}
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}
           isMobile={isMobile}
@@ -398,8 +413,12 @@ function MainPage() {
             {getCurrentPageView()}
           </ConversationWrapperCard>
         )}
+        {activeTab === ACTIVE_TABS.FAQ && (
+          <div className="flex-1 h-full overflow-hidden">
+            <FAQ />
+          </div>
+        )}
       </main>
-      <Footer />
       <Popup
         togglePopup={togglePopup}
         isOpen={isPopupOpen}
@@ -410,7 +429,10 @@ function MainPage() {
         handleDiscard={handleDiscardClearStorage}
         handleConfirm={handleConfirmClearStorage}
       />
-    </>
+    </div>
+    <Footer />
+
+    </div>
   );
 }
 
