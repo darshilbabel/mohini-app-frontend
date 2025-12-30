@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function HeroSection() {
+  const {t} = useTranslation();
   return (
     <div 
       className="w-full flex-1 relative rounded-xl lg:rounded-[1.25rem] overflow-hidden"
@@ -15,10 +17,10 @@ export default function HeroSection() {
       <div className="w-full h-full flex items-end px-4 lg:px-8 pt-12 pb-4">
         <div>
           <h1 className="text-lg md:text-3xl text-white mb-3 font-semibold">
-            Shikshagraha Commons
+            {t("heroTitle")}
           </h1>
           <p className="text-white text-sm md:text-lg font-light">
-          A compendium of solutions shared for public use by the Shikshagraha movement partners under the Creative Commons Attribution Share-Alike license.
+            {t("heroDescription")}
           </p>
         </div>
       </div>

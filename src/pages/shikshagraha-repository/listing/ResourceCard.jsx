@@ -121,7 +121,7 @@ export default function ResourceCard({ resource, index }) {
         </div>
       </div>
 
-      <div className="h-full flex items-start flex-col p-3.5 pt-0">
+      <div className="h-full flex items-start justify-end flex-col p-3.5 pt-0">
         {/* Rating and download count */}
         <div className="flex flex-row justify-between items-center w-full min-h-[36px] d-none">
           {/* Rating */}
