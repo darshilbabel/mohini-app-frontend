@@ -122,5 +122,7 @@
     "pppi_homepageList1": "Share your experiences and thoughts with MItra",
     "pppi_homepageList2": "Submit your feedback",
     "search_placeholder": "Search with AI",
-    "sortDisabledTooltipText": "When search is enabled, sorting is disabled" 
+    "sortDisabledTooltipText": "AI Search sorts results by relevance automatically. Manual sorting is disabled.",
+    "heroDescription": "Shared for Public use (CC BY-SA)",
+    "heroTitle": "Shikshagraha Commons"
 }

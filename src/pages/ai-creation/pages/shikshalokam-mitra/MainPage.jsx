@@ -375,11 +375,14 @@ function MainPage() {
   }
 
   return (
-    <div className="bg-[#F0F2F5]">
-    <div className="container max-w-[1500px] h-full mx-auto py-3">
-      {acceptedTnc === "ONGOING" && !isLoading && (
+    <>
+          {acceptedTnc === "ONGOING" && !isLoading && (
         <PrivacyPolicyPopup tncText={tncTranslation("tncText")} onAccept={handleAcceptTnC} isGuestChat={false} />
       )}
+
+<div className="bg-[#F0F2F5]">
+    <div className="container max-w-[1500px] h-full mx-auto py-3">
+
 
       <Header
         isHeroSection={false}
@@ -433,6 +436,8 @@ function MainPage() {
     <Footer />
 
     </div>
+    </>
+
   );
 }
 
