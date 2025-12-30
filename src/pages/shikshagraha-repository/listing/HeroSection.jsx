@@ -3,10 +3,9 @@ import React from 'react';
 export default function HeroSection() {
   return (
     <div 
-      className="w-full relative rounded-xl lg:rounded-[46px] overflow-hidden"
+      className="w-full flex-1 relative rounded-xl lg:rounded-[1.25rem] overflow-hidden"
       style={{
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('https://static-media.gritworks.ai/fe-images/PNG/SG%20Commons/sg_commons_main.png')`,
-        backgroundSize: 'cover',
         backgroundPosition: 'center',
         minHeight: '240px',
         backgroundRepeat: 'no-repeat',

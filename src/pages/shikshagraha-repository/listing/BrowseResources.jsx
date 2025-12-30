@@ -9,6 +9,7 @@ import { Grid, List, ChevronDown, Check } from "lucide-react";
 import ResourceCard from "./ResourceCard";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
 import MitraAiAssistantAside from "./MitraAiAssistantAside.jsx";
+import { useTranslation } from "react-i18next";
 
 // Custom hook for dropdown functionality
 const useDropdown = () => {
@@ -174,6 +175,8 @@ export default function BrowseResources({ resources, viewMode, setViewMode }) {
   const setSortBy = useRepositoryStore((state) => state.setSortBy);
   const searchInput = useRepositoryStore((state) => state.searchInput);
   const isSearchActive = searchInput && searchInput.trim().length > 0;
+
+  const {t} = useTranslation();
   
   const sortOptions = [
     { value: "title", label: "Title (A-Z)" },
@@ -233,7 +236,7 @@ export default function BrowseResources({ resources, viewMode, setViewMode }) {
               <span>Sort by: {selected?.label || "Select"}</span>
             )}
             disabled={isSearchActive}
-            tooltipText="When search is enabled, sorting is disabled"
+            tooltipText={`${t("sortDisabledTooltipText")}`}
           />
           </div>
        
