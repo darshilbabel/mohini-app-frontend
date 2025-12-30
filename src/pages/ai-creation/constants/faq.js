@@ -18,7 +18,7 @@ export const faqData = {
         "title": "Improvement Projects",
         "question_list": [
           {
-            "question": "What is a Improvement Project?",
+            "question": "What is an Improvement Project?",
             "answer": "<p><strong>Improvement Project</strong> is a structured, short-duration intervention designed to address a specific education challenge.</p><ul><li>Multiple objectives can exist for a challenge, each supported by one or more improvement plans.</li><li><strong>Analogy:</strong> Large goals are broken into small, achievable units that build momentum and flexibility.</li></ul>"
           },
           {

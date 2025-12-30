@@ -115,7 +115,7 @@ export default function RepositoryPage() {
         <>
 
           {/* Popup Modal */}
-          <div className="fixed bottom-24 right-8 w-[250px] max-w-[calc(100vw-4rem) z-50">
+          <div className="fixed bottom-24 right-8 w-[250px] z-50">
             <MitraAiAssistantAside />
           </div>
         </>
