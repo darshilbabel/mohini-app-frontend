@@ -220,6 +220,9 @@ function MainPage() {
   };
 
   const togglePopup = () => {
+    if(isPopupOpen) {
+      setActiveTab(ACTIVE_TABS.CONVERSATION);
+    }
     setIsPopupOpen(!isPopupOpen);
   };
 
