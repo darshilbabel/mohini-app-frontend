@@ -216,6 +216,7 @@ function MainPage() {
 
   const handleDiscardClearStorage = () => {
     setIsPopupOpen(false);
+    setActiveTab(ACTIVE_TABS.CONVERSATION);
   };
 
   const togglePopup = () => {
