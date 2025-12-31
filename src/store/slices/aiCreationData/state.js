@@ -36,6 +36,7 @@ export const INITIAL_STATE = (set, get, store) => ({
     isPrevObjectiveShown: false,
     objectListRetries: 0,
     isOwnObjective: false,
+    projectId: null,
 
   
     setMedia: media => set({ media }),
@@ -122,6 +123,9 @@ export const INITIAL_STATE = (set, get, store) => ({
 
     setActionListChatHistory: actionListChatHistory => set({ actionListChatHistory }),
     getActionListChatHistory: () => get().actionListChatHistory,
+
+    setProjectId: projectId => set({ projectId }),
+    getProjectId: () => get().projectId,
 
   
     reset: () => {

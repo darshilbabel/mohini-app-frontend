@@ -12,7 +12,7 @@
         "download": "Download"
     },
     "sidebar": {
-        "newMIP": "New MIP",
+        "newMIP": "New Chat",
         "faq": "FAQ"
     },
     "header": {
@@ -44,12 +44,12 @@
         "shikshalokamLogoAlt": "ShikshaLokam Logo"
     },
     "startMipPopup": {
-        "headerText": "Start New MIP",
-        "bodyText": "Are you sure you want to start a new MIP? This will clear all your current progress.",
+        "headerText": "Start New Chat",
+        "bodyText": "Are you sure you want to start a new chat? This will clear all your current progress.",
         "confirmButtonText": "Yes, Start New"
     },
     "defineChallenge": {
-        "welcomeCardTitle": "Generate Micro Improvement Project",
+        "welcomeCardTitle": "Generate Improvement Project",
         "welcomeCardDescription": "This guided conversation will help MItra AI understand your challenges, objective and stakeholders. Based on your responses, it will suggest tasks, surveys, and observations to build your complete solution — ready to download as a Word file.",
         "welcomeMessage": " Hello! I'm MItra, your SG-Commons AI assistant. I'm here to help you turn your challenge in the Public School and Education ecosystem into a focused, actionable plan. To get started, please define your challenge statement as clearly as you can.",
         "placeholderDefine": "Describe your challenge here...",
@@ -92,6 +92,6 @@
         "hereIsTheTitle": "Here is the title for your improvement journey.",
         "youCanEditIt": "You can edit it if you'd like.",
         "aiGeneratedTitle": "[AI-generated title]",
-        "createMicroImprovementPlan": "Create Micro-Improvement Plan"
+        "createMicroImprovementPlan": "Create Improvement Plan"
     }
 }

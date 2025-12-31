@@ -44,7 +44,7 @@ export function getFirstPageMessages(userDetail, userInput, userProblemStatement
             12: [
                 {
                     role: "bot",
-                    message: "Glad to hear that! To discover micro improvements relevant to you, start exploring here",
+                    message: "Glad to hear that! To discover improvements relevant to you, start exploring here",
                     messageId: '12_0'
                 },
             ]

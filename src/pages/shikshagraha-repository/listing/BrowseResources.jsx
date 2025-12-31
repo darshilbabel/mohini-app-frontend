@@ -9,6 +9,7 @@ import { Grid, List, ChevronDown, Check } from "lucide-react";
 import ResourceCard from "./ResourceCard";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore";
 import MitraAiAssistantAside from "./MitraAiAssistantAside.jsx";
+import { useTranslation } from "react-i18next";
 
 // Custom hook for dropdown functionality
 const useDropdown = () => {
@@ -53,8 +54,11 @@ const Dropdown = ({
   renderItem = DefaultDropdownItem,
   className = "",
   dropdownClassName = "",
+  disabled = false,
+  tooltipText = "",
 }) => {
   const { isOpen, toggleDropdown, closeDropdown, dropdownRef } = useDropdown();
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const handleSelect = useCallback(
     (value) => {
@@ -71,18 +75,31 @@ const Dropdown = ({
     [options, selectedValue]
   );
 
+  const handleButtonClick = () => {
+    if (!disabled) {
+      toggleDropdown();
+    }
+  };
+
   return (
     <div
       className={`relative inline-block text-left ${className}`}
       ref={dropdownRef}
+      onMouseEnter={() => disabled && setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
     >
       <div>
         <button
           type="button"
-          className="inline-flex items-center gap-1 text-sm text-gray-700 hover:text-gray-900 focus:outline-none"
-          onClick={toggleDropdown}
+          className={`min-w-[120px] inline-flex items-center gap-1 text-sm focus:outline-none ${
+            disabled
+              ? "text-gray-400 cursor-not-allowed"
+              : "text-gray-700 hover:text-gray-900"
+          }`}
+          onClick={handleButtonClick}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
+          disabled={disabled}
         >
           {renderButton(selectedOption, options)}
           <ChevronDown
@@ -92,7 +109,15 @@ const Dropdown = ({
           />
         </button>
       </div>
-      {isOpen && (
+      {showTooltip && tooltipText && (
+        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-3 py-2 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-50">
+          {tooltipText}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+            <div className="border-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
+      )}
+      {isOpen && !disabled && (
         <div
           className={`absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none ${dropdownClassName}`}
           role="listbox"
@@ -148,6 +173,11 @@ export default function BrowseResources({ resources, viewMode, setViewMode }) {
   const mediaCount = useRepositoryStore((state) => state.mediaCount);
   const sortBy = useRepositoryStore((state) => state.sortBy);
   const setSortBy = useRepositoryStore((state) => state.setSortBy);
+  const searchInput = useRepositoryStore((state) => state.searchInput);
+  const isSearchActive = searchInput && searchInput.trim().length > 0;
+
+  const {t} = useTranslation();
+  
   const sortOptions = [
     { value: "title", label: "Title (A-Z)" },
     { value: "-title", label: "Title (Z-A)" },
@@ -176,12 +206,12 @@ export default function BrowseResources({ resources, viewMode, setViewMode }) {
   const handleItemsPerPageChange = (value) => {
     setPagination({ limit: Number(value) });
   };
-
+   
   // Removed unused variables
   return (
     <section className="px-1 md:px-4 pb-4 pt-1 max-w-[1670px]">
       <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-        <div>
+        <div className="w-full mb-3">
           <h2 className="text-lg font-semibold text-gray-900 mb-1">
             Browse Resources
           </h2>
@@ -189,7 +219,9 @@ export default function BrowseResources({ resources, viewMode, setViewMode }) {
             Discover high quality resources for your project
           </p>
         </div>
-        <div className="flex flex-col md:flex-row  items-center gap-6">
+        <div className="flex flex-col md:flex-row  items-center gap-6 w-full">
+
+          <div className="flex items-center justify-between lg:justify-end w-full lg:gap-6">
           <div className="text-sm text-gray-600 font-bold">
             {mediaCount} results
           </div>
@@ -203,7 +235,13 @@ export default function BrowseResources({ resources, viewMode, setViewMode }) {
             renderButton={(selected) => (
               <span>Sort by: {selected?.label || "Select"}</span>
             )}
+            disabled={isSearchActive}
+            tooltipText={`${t("sortDisabledTooltipText")}`}
           />
+          </div>
+       
+
+          <div className="flex items-center justify-between flex-row-reverse lg:flex-row lg:justify-start lg:gap-6 w-full lg:w-auto">
           <div className="flex items-center gap-1 border border-gray-300 rounded">
             <button
               onClick={() => setViewMode("grid")}
@@ -232,19 +270,21 @@ export default function BrowseResources({ resources, viewMode, setViewMode }) {
             onSelect={(value) => {
               handleItemsPerPageChange(Number(value));
             }}
-            className="ml-2"
+            // className="ml-2"
             dropdownClassName="w-32"
             renderButton={(selected) => (
               <span>{selected?.value || 12} Per Page</span>
             )}
           />
+          </div>
+       
         </div>
       </div>
-      <div className="flex gap-6 items-stretch">
+      <div className="flex gap-0 md:!gap-6 items-stretch ">
         <div
-          className={`grid gap-6 w-[calc(80%-1.5rem)] ${
+          className={`flex flex-col md:grid gap-6 w-full lg:!w-[calc(80%-1.5rem)]  ${
             viewMode === "grid"
-              ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 sm:grid-cols-1"
+              ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 sm:grid-cols-1"
               : "grid-cols-1"
           }`}
         >
@@ -258,7 +298,7 @@ export default function BrowseResources({ resources, viewMode, setViewMode }) {
             </React.Fragment>
           ))}
         </div>
-        <div className="w-[20%] self-stretch">
+        <div className="hidden lg:block w-[20%] self-stretch bg-white p-4 rounded-xl">
           <MitraAiAssistantAside />
         </div>
       </div>

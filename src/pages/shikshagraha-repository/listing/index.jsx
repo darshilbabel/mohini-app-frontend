@@ -4,12 +4,15 @@ import Filters from "./Filters.jsx";
 import BrowseResources from "./BrowseResources.jsx";
 import Pagination from "./Pagination.jsx";
 import Footer from "../common/Footer.jsx";
+import MitraAiAssistantAside from "./MitraAiAssistantAside.jsx";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore.js";
 import { GrResources } from "react-icons/gr";
+import { X } from "lucide-react";
 
 export default function RepositoryPage() {
   const [viewMode, setViewMode] = useState("grid");
   const [sortBy, setSortBy] = useState("recent");
+  const [isMitraPopupOpen, setIsMitraPopupOpen] = useState(false);
   const { loadingList, loadingDetail, loadingMaster } = useRepositoryStore();
   // Add filter and search logic if needed
   const isLoading = loadingList || loadingDetail || loadingMaster;
@@ -32,8 +35,8 @@ export default function RepositoryPage() {
   }, [mediaList]);
 
   return (
-    <div className="bg-gray-50 relative" ref={containerRef}>
-      <div className="container max-w-[1690px] h-full">
+    <div className="bg-gray-50 relative listing-pages" ref={containerRef}>
+      <div className="container max-w-[1500px] h-full mx-auto">
         <div className="min-h-screen  py-3 flex flex-col  align-items-center gap-4 ">
           <Header />
           <Filters />
@@ -88,6 +91,36 @@ export default function RepositoryPage() {
           Please wait we are loading your data
         </div>
       )}
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => setIsMitraPopupOpen(!isMitraPopupOpen)}
+        className="fixed lg:!hidden bottom-8 right-8 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 z-[60]"
+        style={{ 
+          backgroundColor: '#1E3360',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#152847'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1E3360'}
+        aria-label={isMitraPopupOpen ? "Close Mitra AI Assistant" : "Open Mitra AI Assistant"}
+      >
+        {isMitraPopupOpen ? (
+          <X className="w-6 h-6 text-white" />
+        ) : (
+          <img src="https://static-media.gritworks.ai/fe-images/SVG/SG%20Commons/icon-chat.svg" className="w-6 h-6" />
+        )}
+      </button>
+
+      {/* Mitra AI Assistant Popup */}
+      {isMitraPopupOpen && (
+        <>
+
+          {/* Popup Modal */}
+          <div className="fixed bottom-24 right-8 w-[250px] z-50">
+            <MitraAiAssistantAside />
+          </div>
+        </>
+      )}
+
       <Footer />
     </div>
   );

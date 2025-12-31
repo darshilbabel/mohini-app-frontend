@@ -34,6 +34,7 @@ export default function Filters() {
 
   const setFilters = useRepositoryStore(state => state.setFilters)
   const setGlobalSearch = useRepositoryStore(state => state.setSearch)
+  const setSearchInput = useRepositoryStore(state => state.setSearchInput)
 
   const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
   const sessionId = useChatStorage()(state => state.sessionId)
@@ -191,6 +192,7 @@ export default function Filters() {
   }
   const handleOnInputText = inpText => {
     setSearch(inpText)
+    setSearchInput(inpText) // Update store with current input value
 
     if (inpText.trim() === "") {
       // setIsRecognizing(false)
@@ -230,10 +232,12 @@ export default function Filters() {
     const searched_param = new URLSearchParams(window.location.search)?.get("q")
     setSearch(searched_param ?? "")
     setGlobalSearch(searched_param ?? "")
+    setSearchInput(searched_param ?? "") // Also set searchInput on mount
 
     return () => {
       setIsMaxLengthReached(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -392,8 +396,9 @@ export default function Filters() {
       `}</style>
       <HiddenRecorder />
       <Notification />
-      <div id="filters-boundary" className="md:sticky top-0 z-50 flex flex-row items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
-        <div className="flex flex-wrap items-center p-0 gap-3 w-full md:w-[75%]">
+      <div id="filters-boundary" className="md:sticky top-0 z-50 flex flex-col lg:flex-row items-stretch lg:items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
+        <div className="h-[40px] flex items-center p-0 gap-1 w-full lg:w-[75%] overflow-x-auto flex-shrink-0">
+
           {!!dropdown_meta?.length
             ? dropdown_meta?.map(({ label, options, key }, index) => (
                 <React.Fragment key={`label-${label}-${index}`}>
@@ -401,6 +406,7 @@ export default function Filters() {
                 </React.Fragment>
               ))
             : null}
+
           {!!Object.keys(filters).some(key => !!filters[key]?.length) && (
             <button className="p-2 rounded-[12px] flex items-center gap-2 text-red-600 bg-red-50" onClick={() => resetFilters()}>
               <X className="w-4 h-4" /> Clear All
@@ -408,8 +414,8 @@ export default function Filters() {
           )}
         </div>
 
-        <div className="flex justify-end ml-auto relative z-10 w-full md:w-[25%]">
-          <div className="flex flex-col items-start max-w-[331px] w-full h-[53px]">{searchInput}</div>
+        <div className="flex justify-end ml-auto relative z-10 w-full lg:w-[25%] mt-7 lg:mt-0">
+          <div className="flex flex-col items-start w-full h-[53px]">{searchInput}</div>
         </div>
       </div>
     </>
@@ -469,7 +475,7 @@ const MenuList = props => {
 }
 
 const DropdownSelect = ({ label, options, selected, onChange }) => (
-  <div className="relative mr-4 p-1">
+  <div className="relative mr-4 flex-shrink-0">
     <Select
       options={options.map(x => ({ value: x.value, label: x.display }))}
       value={selected}
@@ -478,6 +484,8 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
       placeholder={label}
       closeMenuOnSelect={false}
       hideSelectedOptions={false}
+      menuPortalTarget={document.body}
+      menuPosition="fixed"
       components={{
         Option: CheckboxOption,
         MenuList: MenuList,
@@ -489,7 +497,7 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
           border: "none",
           background: "rgb(82 82 91 / 1%)",
           boxShadow: "none",
-          minHeight: "40px",
+          minHeight: "36px",
           "&:hover": { border: "none" },
         }),
         placeholder: base => ({ ...base, color: "#49454F" }),
@@ -499,7 +507,7 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
           flexWrap: "wrap",
           gap: "4px",
           alignItems: "center",
-          padding: "2px 8px",
+          padding: "0px 8px",
         }),
         multiValue: base => ({
           ...base,
@@ -518,8 +526,12 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
           ...base,
           zIndex: 9999,
         }),
+        menuPortal: base => ({
+          ...base,
+          zIndex: 9999,
+        }),
       }}
-      className="max-w-[200px] bg-gray-100 rounded-[12px] text-zinc-600 text-sm"
+      className="max-w-[200px] min-w-[128px] bg-gray-100 rounded-[12px] text-zinc-600 text-sm"
     />
   </div>
 )

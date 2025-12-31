@@ -1,51 +1,61 @@
 import React from "react"
-import { Heart, Star, Download } from "lucide-react"
-import SmallLogo from "./SmallLogo"
-import { useNavigate } from "react-router-dom"
-import { GrDocument } from "react-icons/gr"
+import { Star, Download, FileSpreadsheet, FileText, FileType, File } from "lucide-react"
 import ROUTES from "../../../url"
 import env from "../../../utils/env"
+import { trackResourceView } from "api/endpoints/analytics"
+
 const MEDIA_FILE_TYPE = {
   PDF: "PDF",
   DOCX: "DOCX",
   XLSX: "XLSX",
 }
 
-export const getMeidaFileLabelColors = label_value => {
+// Get file type badge styles and icon
+export const getMediaFileTypeStyles = (label_value, cardBackground) => {
   switch (label_value) {
     case MEDIA_FILE_TYPE.PDF:
       return {
-        color: "text-[#2563EB]",
-        background: "bg-white",
+        background: "bg-[#DA1618]",
+        textColor: "text-white",
+        Icon: FileType,
       }
     case MEDIA_FILE_TYPE.DOCX:
       return {
-        color: "text-[#DC2626]",
-        background: "bg-white",
+        background: "bg-[#0086F9]",
+        textColor: "text-white",
+        Icon: FileText,
       }
     case MEDIA_FILE_TYPE.XLSX:
       return {
-        color: "text-[#9333EA]",
-        background: "bg-white",
+        background: "bg-[#0DB563]",
+        textColor: "text-white",
+        Icon: FileSpreadsheet,
       }
-
     default:
       return {
-        color: "text-[#DB2777]",
-        background: "bg-white",
+        background: cardBackground || "bg-gray-500",
+        textColor: "text-white",
+        Icon: File,
       }
   }
 }
 
+
+
+
 export default function ResourceCard({ resource, index }) {
-  const { background, color } = getMeidaFileLabelColors(resource?.media_type_display)
   const card_background = ["bg-[#D52C1A] text-white", "bg-[#382280] text-white", "bg-[#B8062B] text-white", "bg-[#E68000] text-white", "bg-[#D40A6F] text-white", "bg-[#802C81] text-white", "bg-[#BAE6FD] text-black", "bg-[#9CA3AF] text-white"][index % 8] || "bg-red-100"
+  const { background: fileTypeBg, textColor, Icon: FileIcon } = getMediaFileTypeStyles(resource?.media_type_display, card_background)
+  
   return (
     <div
       className="bg-white rounded-[20px] border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow
-                 flex flex-col justify-between gap-2.5 w-full min-w-[340px] h-full box-border "
+                 flex flex-col justify-between w-full min-w-[340px] h-full box-border "
       role="button"
       onClick={() => {
+        // Fire analytics event without blocking navigation
+        trackResourceView(resource?.id)
+
         const root = (env.ROOT_PATH() || "").replace(/^\/|\/$/g, "")
         const repo = (ROUTES.SHIKSHAGRAHA_REPOSITORY || "").replace(/^\/|\/$/g, "")
         const id = resource?.id ? `/${resource.id}` : ""
@@ -58,12 +68,20 @@ export default function ResourceCard({ resource, index }) {
     >
       <div className="flex flex-col gap-3.5 p-3.5">
         {/* Image container */}
-        <div className="relative flex flex-col gap-2.5 isolate w-full min-h-[180px] rounded-[10px]">
-          <div className={card_background + " w-full h-full rounded-[10px]"} aria-label="Image placeholder" />
-          {/* Suggestion Chip */}
-          <div className={"absolute left-[10px] top-[10px]  rounded-[8px] py-1 px-[14px] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_3px_1px_rgba(0,0,0,0.15)] flex justify-center items-center w-[47px] h-[22px] z-10 " + background + " " + color}>
-            <span className=" font-manrope font-semibold text-[10px] leading-[14px] tracking-[0.1px] flex items-center justify-center">{resource?.media_type_display}</span>
-          </div>
+        <div className="relative flex flex-col gap-2.5 isolate w-full h-[154px] rounded-[10px]">
+          {/* PDF Preview or Colored Background */}
+          {resource?.thumbnail_url ? (
+            <div className="border border-[#D6D6D6] rounded-[20px] overflow-none">
+              <img className="object-cover rounded-[20px] w-full max-h-[154px]" src={resource.thumbnail_url} />
+            </div>
+          ) : (
+            <div className={card_background + " w-full h-full rounded-[10px]"} aria-label="Image placeholder">
+                        {/* Title over image */}
+          <h3 className={"absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-manrope font-bold text-[16px] leading-[22px] max-w-[300px] h-[22px] flex items-center justify-center z-30 text-center " + card_background}>{resource?.title}</h3>
+
+            </div>
+          )}
+
           {/* Like (Heart) button: FUTURE @TODO */}
           {/* <button
           className="absolute right-[9px] top-[10px] w-[30px] h-[30px] bg-gray-100 rounded-[17.6471px]
@@ -73,25 +91,21 @@ export default function ResourceCard({ resource, index }) {
         >
           <Heart className="w-[21px] h-[21px]" />
         </button> */}
-          {/* Title over image */}
-          <h3 className={"absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-manrope font-bold text-[16px] leading-[22px] max-w-[300px] h-[22px] flex items-center justify-center z-30 text-center " + card_background}>{resource?.title}</h3>
         </div>
         {/* Details container */}
         <div className="flex flex-col gap-2 max-w-[320px] w-full">
-          {/* Resource type row */}
-          <div className="flex flex-row items-center gap-2.5 w-full h-[24px]">
-            {/* Icon container */}
-            <div className="relative flex items-center justify-center p-1 bg-blue-100 rounded-[6px] " aria-label="Resource Type Icon">
-              <div className=" text-blue-500 w-[24px] h-[24px] flex items-center justify-center">
-                <GrDocument className="w-[20px] h-[20px]" />
-              </div>
-            </div>
-            <span className="font-manrope font-semibold text-[14px] leading-[19px] text-gray-500">{resource?.document_type || "Not Available"}</span>
-          </div>
           {/* Description */}
           <div className="flex flex-col justify-center gap-1.5 py-2 w-full overflow-hidden" aria-label="Resource description">
-            <h4 className="font-manrope font-bold text-[1rem] text-md leading-[22px] text-black">{resource?.title || "Not Available"}</h4>
-            <p className="font-urbanist font-normal  leading-[20px] text-zinc-500 overflow-hidden line-clamp-2">{resource?.description || "Not Available"}</p>
+            <h4 className="font-semibold text-[1rem] text-md leading-[22px] text-black">{resource?.title || "Not Available"}</h4>
+            <p className="font-normal  leading-[20px] text-zinc-500 overflow-hidden line-clamp-2">{resource?.description || "Not Available"}</p>
+          </div>
+
+          <div className="flex items-center gap-2 border border-[#D6D6D6] py-2 !border-l-0 !border-r-0">
+            <p className="text-[#27272A] text-xs">File Type: </p>
+            <div className={`rounded-md uppercase px-2 py-1 text-xs flex items-center gap-1 ${fileTypeBg} ${textColor}`}>
+              <FileIcon className="w-3 h-3" />
+              {resource?.media_type_display}
+            </div>
           </div>
           {/* Tags row */}
           <div className="flex flex-row flex-wrap gap-2.5 w-full  overflow-hidden" aria-label="Resource tags">
@@ -107,7 +121,7 @@ export default function ResourceCard({ resource, index }) {
         </div>
       </div>
 
-      <div className="h-full flex justify-end items-start flex-col gap-2.5 p-3.5">
+      <div className="h-full flex items-start justify-end flex-col p-3.5 pt-0">
         {/* Rating and download count */}
         <div className="flex flex-row justify-between items-center w-full min-h-[36px] d-none">
           {/* Rating */}
@@ -152,9 +166,6 @@ export default function ResourceCard({ resource, index }) {
             }}
           >
             <img src={resource?.org_logo} alt="Shikshagraha Logo" className="h-6" />
-            <div className="flex flex-col gap-0 w-[273.5px] h-[22px]">
-              <span className="font-manrope font-medium text-[16px] leading-[22px] text-[#757575] text-left hover:text-blue-500 transition-colors">{resource?.organization}</span>
-            </div>
           </button>
         )}
       </div>
