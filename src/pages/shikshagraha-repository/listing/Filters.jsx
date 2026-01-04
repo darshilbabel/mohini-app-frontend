@@ -397,7 +397,7 @@ export default function Filters() {
       <HiddenRecorder />
       <Notification />
       <div id="filters-boundary" className="md:sticky top-0 z-50 flex flex-col lg:flex-row items-stretch lg:items-center p-3 bg-white max-w-[1670px]  w-full rounded-[1rem] shadow-[0_0_4px_rgba(0,0,0,0.2)]">
-        <div className="h-[40px] flex items-center p-0 gap-1 w-full lg:w-[75%] overflow-x-auto flex-shrink-0">
+        <div className="min-h-[40px] flex items-center pt-2 gap-1 w-full lg:w-[75%] overflow-x-auto flex-shrink-0 lg:flex-wrap">
 
           {!!dropdown_meta?.length
             ? dropdown_meta?.map(({ label, options, key }, index) => (
@@ -408,7 +408,7 @@ export default function Filters() {
             : null}
 
           {!!Object.keys(filters).some(key => !!filters[key]?.length) && (
-            <button className="p-2 rounded-[12px] flex items-center gap-2 text-red-600 bg-red-50" onClick={() => resetFilters()}>
+            <button className="min-w-[100px] p-2 rounded-[12px] flex items-center gap-2 text-red-600 bg-red-50" onClick={() => resetFilters()}>
               <X className="w-4 h-4" /> Clear All
             </button>
           )}
@@ -420,23 +420,6 @@ export default function Filters() {
       </div>
     </>
   )
-}
-
-const CustomMultiValue = props => {
-  const { index, getValue } = props
-  const maxToShow = 2
-  const selected = getValue()
-
-  if (index < maxToShow) {
-    return <components.MultiValue {...props} />
-  }
-
-  if (index === maxToShow) {
-    const remaining = selected.length - maxToShow
-    return <div className="flex items-center px-2 text-sm text-gray-600">+{remaining} more</div>
-  }
-
-  return null
 }
 
 const CheckboxOption = props => {
@@ -474,8 +457,16 @@ const MenuList = props => {
   )
 }
 
-const DropdownSelect = ({ label, options, selected, onChange }) => (
+const DropdownSelect = ({ label, options, selected, onChange }) => {
+  const selectedCount = Array.isArray(selected) ? selected.length : 0
+
+  return (
   <div className="relative mr-4 flex-shrink-0">
+      {selectedCount > 0 && (
+        <div className="absolute -top-1 -right-2 z-10 flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-blue-500 rounded-full">
+          {selectedCount}
+        </div>
+      )}
     <Select
       options={options.map(x => ({ value: x.value, label: x.display }))}
       value={selected}
@@ -486,10 +477,10 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
       hideSelectedOptions={false}
       menuPortalTarget={document.body}
       menuPosition="fixed"
+      controlShouldRenderValue={false}
       components={{
         Option: CheckboxOption,
         MenuList: MenuList,
-        MultiValue: CustomMultiValue,
       }}
       styles={{
         control: base => ({
@@ -500,27 +491,20 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
           minHeight: "36px",
           "&:hover": { border: "none" },
         }),
-        placeholder: base => ({ ...base, color: "#49454F" }),
+        placeholder: base => ({ ...base, color: "#49454F", gridArea: "1/1/2/3" }),
         valueContainer: base => ({
           ...base,
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "4px",
+          display: "grid",
+          gridTemplateColumns: "1fr auto",
           alignItems: "center",
           padding: "0px 8px",
+          overflow: "hidden",
         }),
-        multiValue: base => ({
+        input: base => ({
           ...base,
-          background: "white",
-          borderRadius: "6px",
-          display: "flex",
-          alignItems: "center",
-        }),
-        multiValueLabel: base => ({
-          ...base,
-          color: "black",
-          fontSize: "13px",
-          padding: "0 4px",
+          gridArea: "1/1/2/3",
+          margin: 0,
+          padding: 0,
         }),
         menu: base => ({
           ...base,
@@ -535,3 +519,4 @@ const DropdownSelect = ({ label, options, selected, onChange }) => (
     />
   </div>
 )
+}
