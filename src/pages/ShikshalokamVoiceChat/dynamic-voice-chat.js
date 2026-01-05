@@ -88,7 +88,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isMute, setIsMute] = useState(true)
   const [isNextAllowed, setIsNextAllowed] = useState(true)
-  const [isOpen, setIsOpen] = useState(false)
   const [isPdfDownloading, setIsPdfDownloading] = useState(false)
   const [isRecognizing, setIsRecognizing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -2225,20 +2224,15 @@ const DynamicVoiceChat = ({ type = "" }) => {
     return <PdfDownloader key={new Date().getTime()} storyData={storyData} isShikshalokam={true} downloadTriggered={triggerDownload} handleDownloadStop={handleDownloadStop} storyMediaArr={files} currentState={currentState} current_company={current_company} />
   }
 
-  function changeSelectedValue(value, e) {
-    if (value === "") value = selectedLabel?.types[0]?.value
-    setSelectedType(value)
-    resetChat(e)
-  }
-
   const handleSelectedTypeNameChanges = e => {
-    console.log("reached here")
-    let { value } = e?.target
-    if ([sessionFlowName.GuestMiStory].includes(storageFlow)) {
-      showGuestPopup(() => changeSelectedValue(value, e), stayOnPage)
-    } else {
-      changeSelectedValue(value, e)
+    function changeSelectedValue(value, e) {
+      if (value === "") value = selectedLabel?.types[0]?.value
+      setSelectedType(value)
+      resetChat(e)
     }
+
+    let { value } = e?.target
+    changeSelectedValue(value, e)
   }
 
   function handleAcceptTnC() {
@@ -2251,32 +2245,27 @@ const DynamicVoiceChat = ({ type = "" }) => {
       {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} />}
 
       {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} useStaticText={false} />}
-      <div className={`div27 ${isOpen && " div70"}`}>
-        {/* <div className={`div28 ${isOpen ? "div29" : ""}`}>{isShikshalokamPublicType && storageFlow && !isSpecialFlow && <Sidebar isOpen={isOpen} toggle={setIsOpen} isMobileFirst={true} showScrollbarContent={accessToken && showScrollbarContent} resetChat={resetChat} setIsResetCalled={setIsResetCalled} languageToUse={languageToUse} stopAllAudio={stopAllAudio} />}</div> */}
-        {isOpen && <div className="div7" onClick={() => setIsOpen(false)}></div>}
+      <div className={`div27`}>
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
             isMobileFirst={isMobile}
             showTheDots={false}
             content={
-              <>
-                {[sessionFlowName.LoginMiStory, sessionFlowName.GuestMiStory].includes(storageFlow) && <CustomFormData layOut={2} selectID="selectedTypeID" selectName="selectedType" selectOptions={selectedLabel.types} selectValue={selectedType} selectClassName="div31" selectOnChange={handleSelectedTypeNameChanges} showDefaultDropdownText={false} />}
-                <button
-                  onClick={async e => {
-                    if (accessToken) {
-                      await resetChat(e)
-                    } else {
-                      showGuestPopup(() => {
-                        setBotName(null)
-                        resetChat()
-                      }, stayOnPage)
-                    }
-                  }}
-                  className="div32"
-                >
-                  <div className="div8">+</div>
-                </button>
-              </>
+              <button
+                onClick={async e => {
+                  if (accessToken) {
+                    await resetChat(e)
+                  } else {
+                    showGuestPopup(() => {
+                      setBotName(null)
+                      resetChat()
+                    }, stayOnPage)
+                  }
+                }}
+                className="div32"
+              >
+                <div className="div8">+</div>
+              </button>
             }
           />
         </div>
@@ -2308,7 +2297,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         ) : (
           <ReportEditor onClose={closeModal} onSave={onEditorSave} disabled={isLoading || isSaving} />
         ))}
-      <div className={`${accessToken ? "div72" : isOpen ? "div71" : ""}`}>
+      <div className={`${accessToken ? "div72" : ""}`}>
         {shouldFetchChatSession && (
           <button
             onClick={() => {
