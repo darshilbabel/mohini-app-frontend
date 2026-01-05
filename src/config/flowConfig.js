@@ -1,4 +1,4 @@
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
+import { sessionFlowName } from "../constants/session"
 import ROUTES from "../url"
 import ptmQuestions from "../services/const/questions/ptmQuestions"
 import ylcQuestions, { ylcStoryTextAudio } from "../services/const/questions/ylcQuestions"

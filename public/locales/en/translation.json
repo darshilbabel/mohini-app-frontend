@@ -99,6 +99,7 @@
   "challengesHeader": "Challenges",
   "solutionsHeader": "Solutions",
   "photosLimitMsg": "You can upload upto 10 images.",
+  "photosLimitMsgDyn": "You can upload upto {{image_limit}} images.",
   "pageLogo": "https://static-media.gritworks.ai/fe-images/PNG/Shikshalokam/Shikshagraha/PDF Logo/English Horizontal.png",
   "continueBtnText": "Continue",
   "commonPageButtonText1": "Share improvement story",

@@ -1,6 +1,6 @@
 import { createStoryMediaApi } from "api/endpoints"
 import { handleS3Upload } from "../services/storage_service"
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
+import { sessionFlowName } from "../constants/session"
 import { URL_PARAMS } from "../constants/urls"
 import { useUserDataLocalStore } from "../store"
 import axiosInstance from "./axios"

@@ -30,19 +30,6 @@ export const languageList = [
   { label: "తెలుగు", value: "te", excludeFor: [SESSION_USECASE_TYPE.ListeningActivity, SESSION_USECASE_TYPE.YLC, SESSION_USECASE_TYPE.ParentPerceptionSurvey] },
 ]
 
-export const sessionFlowName = {
-  GuestDiscussion: "guest-discussion",
-  LoginDiscussion: "login-discussion",
-  GuestMiStory: "guest-mi-story",
-  LoginMiStory: "login",
-  SsoFlow: "guest-mi-story",
-  Reflection: "reflection",
-  megaPTM: "megaPTM",
-  YLC: "YLC",
-  ListeningActivity: "listening-activity",
-  ParentPerceptionSurvey: "parent_perception_survey",
-}
-
 export const PTM_CONVERSATION_STATUS_TYPE = {
   COMPLETED: "COMPLETED",
   IN_PROGRESS: "IN_PROGRESS",

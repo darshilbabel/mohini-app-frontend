@@ -1,6 +1,6 @@
 // components/FlowSelection.js
 import { FaArrowRightLong } from "react-icons/fa6"
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
+import { sessionFlowName } from "../constants/session"
 import { useChatStorage } from "hooks/useStorage"
 import { useTranslation } from "react-i18next"
 import ShowPageButton from "./ShowPageButton"

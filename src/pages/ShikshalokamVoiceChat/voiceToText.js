@@ -1,5 +1,5 @@
-import { sessionFlowName } from "./enum";
-import { bot_routes } from "../../configure";
+import { sessionFlowName } from "../../constants/session"
+import { bot_routes } from "../../configure"
 
 export const isSilentAudio = async (blob, silenceThreshold = 0.01) => {
   const audioContext = new (window.AudioContext || window.webkitAudioContext)()
@@ -52,11 +52,8 @@ export function getSessionRoute(storageFlow, selectedType) {
   return bot_routes.reflection
 }
 
-export const formatTime = (secs) => {
-  const minutes = Math.floor(secs / 60);
-  const seconds = secs % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-    2,
-    "0"
-  )}`;
-};
+export const formatTime = secs => {
+  const minutes = Math.floor(secs / 60)
+  const seconds = secs % 60
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+}

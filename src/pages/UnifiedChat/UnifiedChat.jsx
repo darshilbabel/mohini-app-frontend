@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react"
-import { getSessionDetailsApi } from "../../api/endpoints/chat"
-import { languageList, sessionFlowName } from "../ShikshalokamVoiceChat/enum"
-import { useNavigate } from "react-router-dom"
-import { setLanguage } from "../../i18n"
 import { BiLoader } from "react-icons/bi"
-import { useSiteDataLocalStore } from "store"
-
-import UnifiedVoiceBasedChat from "./UnifiedVoiceBasedChat"
 import { getFlowConfig } from "../../config/flowConfig"
-import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
+import { getSessionDetailsApi } from "../../api/endpoints/chat"
+import { languageList } from "../ShikshalokamVoiceChat/enum"
+import { setLanguage } from "../../i18n"
+import { useChatStorage, useUserStorage } from "hooks/useStorage"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { useSiteDataLocalStore } from "store"
+import UnifiedVoiceBasedChat from "./UnifiedVoiceBasedChat"
 
 function UnifiedChat({ type }) {
   const navigate = useNavigate()
