@@ -107,6 +107,7 @@ export const handleS3Upload = async (file, fileName, folderStructure, storyData,
 
 export function clearFromStorage() {
   try {
+    console.log("clearing storage")
     useChatDataLocalStore.setState(useChatDataLocalStore.getInitialState(), true)
     useChatDataSessionStore.setState(useChatDataSessionStore.getInitialState(), true)
 

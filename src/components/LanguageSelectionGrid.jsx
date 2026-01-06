@@ -1,5 +1,5 @@
 import { API_ENDPOINTS, URL_PARAMS } from "../constants/urls"
-import { useChatStorage } from "hooks/useStorage"
+import { useChatStorage, useSiteStorage } from "hooks/useStorage"
 import { clearFromStorage } from "../services/storage_service"
 import { getFlowLanguagesApi } from "../api/endpoints/flow"
 import { languageList, languageValueMap } from "../pages/ShikshalokamVoiceChat/enum"
@@ -12,13 +12,14 @@ import { useTranslation } from "react-i18next"
 import ROUTES from "../url"
 import useUrlFlow from "../hooks/useUrlFlow"
 
-const LanguageSelectionGrid = () => {
+const LanguageSelectionGrid = ({ usecaseType }) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
   const setStorageFlow = useChatStorage()(state => state.setFlow)
+  const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
 
   const { flow: urlFlow } = useUrlFlow()
 
@@ -30,7 +31,7 @@ const LanguageSelectionGrid = () => {
     queryKey: [API_ENDPOINTS.FLOW_LANGUAGES, urlFlow],
     queryFn: () => getFlowLanguagesApi(urlFlow),
     retry: false,
-    enabled: !!urlFlow,
+    enabled: !!urlFlow && ![sessionFlowName.ParentPerceptionSurvey, sessionFlowName.ListeningActivity].includes(urlFlow),
   })
 
   useEffect(() => {
@@ -54,6 +55,7 @@ const LanguageSelectionGrid = () => {
     }
 
     if (route_mapping[urlFlow]) {
+      setPreviousUrl(window.location.href)
       setStorageFlow(urlFlow)
       navigate(route_mapping[urlFlow])
       return
@@ -80,7 +82,7 @@ const LanguageSelectionGrid = () => {
           ))}
         {!flowLanguages &&
           languageList
-            .filter(lang => !lang.excludeFor.includes(urlFlow))
+            .filter(lang => !lang.excludeFor.includes(urlFlow || usecaseType))
             .map(lang => (
               <div key={lang.value} className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center" onClick={() => handleLanguageClick(lang.value)}>
                 <button className="w-full">{lang.label}</button>

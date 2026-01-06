@@ -1970,8 +1970,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     setLanguage(LANGUAGE_ENUMS.ENGLISH)
     setChatLanguage(LANGUAGE_ENUMS.ENGLISH)
     setHasSelectedLanguage(false)
-    // navigate(ROUTES.SHIKSHALOKAM_GUEST_PAGE)
-    // navigate("/", { replace: true });
     if (rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== "") {
       window.location.href = rerouteUrl
     } else {

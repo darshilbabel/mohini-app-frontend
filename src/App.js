@@ -52,11 +52,11 @@ const unprotected_old_routes = [
 
   // Unified PTM route
   { path: ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE, element: <UnifiedChat type={sessionFlowName.megaPTM} /> },
-  { path: ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE, element: <CommonHomePage usecaseType={SESSION_USECASE_TYPE.MEGA_PTM} /> },
+  { path: ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE, element: <CommonHomePage usecaseType={sessionFlowName.megaPTM} /> },
 
   // Unified YLC route
   { path: ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE, element: <UnifiedChat type={sessionFlowName.YLC} /> },
-  { path: ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE, element: <CommonHomePage usecaseType={SESSION_USECASE_TYPE.YLC} /> },
+  { path: ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE, element: <CommonHomePage usecaseType={sessionFlowName.YLC} /> },
 
   { path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage /> },
   { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <CommonHomePage /> },

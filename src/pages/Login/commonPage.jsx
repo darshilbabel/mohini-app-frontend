@@ -2,6 +2,7 @@ import "../../components/custom-style.css"
 import "../../index.css"
 import "./commonPageStyle.css"
 import { LANGUAGE_ENUMS } from "pages/ShikshalokamVoiceChat/enum"
+import { sessionFlowName } from "../../constants/session"
 import { URL_PARAMS } from "../../constants/urls"
 import { useAudio } from "../../hooks/useAudio"
 import { useEffect, useMemo } from "react"
@@ -9,7 +10,7 @@ import { useFlow } from "../../hooks/useFlow"
 import { useLanguage } from "../../hooks/useLanguage"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import { useSiteDataLocalStore } from "store"
-import { useSiteStorage } from "hooks/useStorage"
+import { useSiteStorage, useChatStorage } from "hooks/useStorage"
 import FlowSelection from "../../components/FlowSelection"
 import Header from "../../components/Header"
 import LanguageSelectionGrid from "../../components/LanguageSelectionGrid"
@@ -17,16 +18,19 @@ import LoadingSpinner from "../../components/LoadingSpinner"
 import ROUTES from "../../url"
 import useUrlFlow from "hooks/useUrlFlow"
 
-function CommonHomePage() {
+function CommonHomePage({ usecaseType }) {
   const { audioRef, stopAudioTriggered, setStopAudioTriggered, stopAllAudio } = useAudio()
   const { isLoading, setIsLoading, handleFlowSelection } = useFlow()
   const { languageButtonSelect, handleLanguageChange } = useLanguage()
   const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
   const hasSelectedLanguage = useSiteDataLocalStore(state => state.hasSelectedLanguage)
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
+  const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
+
+  const ptm_case = sessionFlowName.megaPTM === usecaseType
+  const ylc_case = sessionFlowName.YLC === usecaseType
 
   const navigate = useNavigate()
-  const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
 
   const [searchParams] = useSearchParams()
   const { flow: urlFlow } = useUrlFlow()
@@ -59,12 +63,37 @@ function CommonHomePage() {
   // Process language selection
   useEffect(() => {
     // Don't process if user hasn't selected a language (and no URL language) or if no flow is specified
-    if ((!urlLanguage && !hasSelectedLanguage) || !urlFlow) {
+    console.log({ urlLanguage, hasSelectedLanguage, urlFlow })
+    if (!urlLanguage && !hasSelectedLanguage) {
       setIsLoading(false)
       return
     }
 
+    if (ptm_case) {
+      navigate(ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE)
+      return
+    }
+
+    if (ylc_case) {
+      navigate(ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE)
+      return
+    }
+
+    if (!urlFlow) {
+      setIsLoading(false)
+      return
+    }
+
+    const URL_PARAMS_MAP = {
+      [sessionFlowName.ListeningActivity]: ROUTES.SHIKSHALOKAM_GUEST_LISTENING_CHAT,
+      [sessionFlowName.ParentPerceptionSurvey]: ROUTES.SHIKSHALOKAM_PPPI_VOICE_CHAT,
+    }
     setPreviousUrl(window.location.href)
+
+    if (URL_PARAMS_MAP[urlFlow]) {
+      navigate(URL_PARAMS_MAP[urlFlow])
+      return
+    }
 
     navigate({
       pathname: ROUTES.COMMON_CHAT,
@@ -94,8 +123,8 @@ function CommonHomePage() {
         <div className="bg-slate-50 sm:pt-6 sm:h-[100%] flex flex-col justify-center mt-0 w-full">
           <div className="flex justify-end mr-6 relative block sm:hidden"></div>
 
-          {!hasSelectedLanguage && <LanguageSelectionGrid />}
-          {hasSelectedLanguage && !urlFlow && <FlowSelection audioRef={audioRef} stopAudioTriggered={stopAudioTriggered} setStopAudioTriggered={setStopAudioTriggered} onFlowContinue={onFlowContinue} setIsLoading={setIsLoading} />}
+          {!hasSelectedLanguage && <LanguageSelectionGrid usecaseType={usecaseType} />}
+          {!ptm_case && !ylc_case && hasSelectedLanguage && !urlFlow && <FlowSelection audioRef={audioRef} stopAudioTriggered={stopAudioTriggered} setStopAudioTriggered={setStopAudioTriggered} onFlowContinue={onFlowContinue} setIsLoading={setIsLoading} />}
         </div>
       </div>
 
