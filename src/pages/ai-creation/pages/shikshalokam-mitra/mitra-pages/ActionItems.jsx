@@ -286,6 +286,7 @@ function ActionItems({
 
         if (action_list?.length > 0) {
 
+          setErrorTextStore("")
           setActionList(action_list);
           setActionListStore(action_list)
 

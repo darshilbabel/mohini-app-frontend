@@ -157,6 +157,8 @@ function SelectObjective({
         ) {
 
 
+          setErrorTextStore("")
+
 
           if(createNew) {
             setIsNewlyGeneratedList(true)
