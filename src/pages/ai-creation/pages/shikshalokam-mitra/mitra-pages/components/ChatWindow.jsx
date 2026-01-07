@@ -16,7 +16,7 @@ function ChatWindow({
   hasOverRideId,
   isDefineChallengeSection,
   scrollRef,
-  page
+  page,
 }) {
 
 
@@ -26,6 +26,9 @@ function ChatWindow({
   const selectedObjective = useAICreationSessionStore(state => state.selectedObjective);
   const selectedAction = useAICreationSessionStore(state => state.selectedAction);
   const selectedWeek = useAICreationSessionStore.getState().getSelectedWeek();
+  const errorText = useAICreationSessionStore.getState().getErrorText();
+
+
   const getShowLoadingChat = (indexNumber) => {
 
     const isWeeksSelectionSection = page && page === 4;
@@ -37,6 +40,10 @@ function ChatWindow({
 
     if(isDefineChallengeSection) {
       showLoader = objectiveList?.length > 0 ? false : true;
+
+      if(errorText) {
+        showLoader = false;
+      }
     }
     else if(isWeeksSelectionSection) {
       showLoader = selectedWeek ? false : true
@@ -46,6 +53,10 @@ function ChatWindow({
       const messageIndex = allObjectiveChatHistory?.findIndex(item => item?.updated_at === chatHistory[chatHistory?.length - 1]?.updated_at);
 
       showLoader = messageIndex !== allObjectiveChatHistory?.length - 1 ? false : selectedObjective ? false : true;
+
+      if(errorText) {
+        showLoader = false;
+      }
     }
     else if(isActionListSection) {
 
@@ -53,6 +64,7 @@ function ChatWindow({
       showLoader = messageIndex !== allActionListChatHistory?.length - 1 ? false : selectedAction ? false : true;
 
     }
+
 
     return (
       !hasStartedListening &&

@@ -1,5 +1,5 @@
 import React from "react"
-import { Star, Download, FileSpreadsheet, FileText, FileType, File } from "lucide-react"
+import { Star, Download, FileSpreadsheet, FileText, FileType, File, Eye } from "lucide-react"
 import ROUTES from "../../../url"
 import env from "../../../utils/env"
 import { trackResourceView } from "api/endpoints/analytics"
@@ -100,11 +100,24 @@ export default function ResourceCard({ resource, index }) {
             <p className="font-normal  leading-[20px] text-zinc-500 overflow-hidden line-clamp-2">{resource?.description || "Not Available"}</p>
           </div>
 
-          <div className="flex items-center gap-2 border border-[#D6D6D6] py-2 !border-l-0 !border-r-0">
-            <p className="text-[#27272A] text-xs">File Type: </p>
-            <div className={`rounded-md uppercase px-2 py-1 text-xs flex items-center gap-1 ${fileTypeBg} ${textColor}`}>
-              <FileIcon className="w-3 h-3" />
-              {resource?.media_type_display}
+          <div className="flex items-center justify-between gap-2 border border-[#D6D6D6] py-2 !border-l-0 !border-r-0">
+            <div className="flex items-center gap-2">
+              <p className="text-[#27272A] text-xs">File type</p>
+              <div className={`rounded-md uppercase px-2 py-1 text-xs flex items-center gap-1 ${fileTypeBg} ${textColor}`}>
+                <FileIcon className="w-3 h-3" />
+                {resource?.media_type_display}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-[#333843]">
+              <div className="flex items-center gap-1">
+                <Eye className="w-4 h-4" />
+                <span>{resource?.view_count ?? 0}</span>
+              </div>
+              <span className="text-[#D6D6D6]">|</span>
+              <div className="flex items-center gap-1">
+                <Download className="w-4 h-4" />
+                <span>{resource?.download_count ?? 0}</span>
+              </div>
             </div>
           </div>
           {/* Tags row */}

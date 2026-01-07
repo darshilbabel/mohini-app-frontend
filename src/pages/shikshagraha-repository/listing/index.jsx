@@ -8,12 +8,15 @@ import MitraAiAssistantAside from "./MitraAiAssistantAside.jsx";
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore.js";
 import { GrResources } from "react-icons/gr";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function RepositoryPage() {
   const [viewMode, setViewMode] = useState("grid");
   const [sortBy, setSortBy] = useState("recent");
   const [isMitraPopupOpen, setIsMitraPopupOpen] = useState(false);
   const { loadingList, loadingDetail, loadingMaster } = useRepositoryStore();
+
+  const { t } = useTranslation()
   // Add filter and search logic if needed
   const isLoading = loadingList || loadingDetail || loadingMaster;
 
@@ -58,13 +61,7 @@ export default function RepositoryPage() {
                   <GrResources size={100} />
                 </div>
                 <div className="flex flex-col items-center justify-center p-4">
-                  <h2 className="text-lg py-2">No resources found</h2>
-                  <p className="text-sm text-muted text-center max-w-[400px]">
-                    If you can't find the resources you were looking for, please
-                    ensure that your filters are set correctly or try clearing
-                    them. If the issue persists, please feel free to reach out
-                    to our support team for assistance.
-                  </p>
+                  <h2 className="text-lg py-2 text-center">{t("noResourceFoundTitle")}</h2>
                 </div>
               </div>
             )}
