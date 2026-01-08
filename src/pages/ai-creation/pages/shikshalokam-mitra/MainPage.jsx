@@ -22,6 +22,7 @@ import FAQ from "./mitra-pages/components/FAQ"
 import { ACTIVE_TABS } from "../../constants/mitra.constants"
 import { LOADER_KEYS } from "../../constants/common"
 import { useAICreationSessionStore } from "store"
+import { useChatDataSessionStore, useSiteDataLocalStore } from "../../../../store"
 
 function MainPage() {
   const { t } = useTranslation("ai_creation_translation")
@@ -392,6 +393,9 @@ export function clearMitraSessionStorage(avoidLogout = false) {
   // Clear the Zustand store and its persisted storage
   useAICreationSessionStore.persist.clearStorage()
   useAICreationSessionStore.getState().reset()
+
+  useChatDataSessionStore.getState().reset()
+  useSiteDataLocalStore.getState().reset()
 
   // Then remove from sessionStorage
   sessionStorage.removeItem("aiCreationData")

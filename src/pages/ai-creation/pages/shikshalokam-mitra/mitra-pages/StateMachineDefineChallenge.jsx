@@ -1,16 +1,20 @@
-import { bot_routes } from "configure"
+import { bot_routes } from "../../../../../configure"
 import { clearMitraSessionStorage, ShowLoader } from "../MainPage"
 import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants"
-import { createUserProfileApi, getTranslatedIntroMessageApi } from "../../../../../api/endpoints"
+import { createUserProfileApi, getTranslatedIntroMessageApi, getSessionDetailsApi, getCompanyBotApi, getChatSessionApi } from "../../../../../api/endpoints"
+import { DEFAULT_COMPANY_SLUG } from "../../../../../constants/session"
 import { FIRST_BOT_MESSAGE } from "../../../constants/mitra-chat"
 import { getAI4BharatAudioApi } from "api/endpoints/ai"
-import { getNewSessionID } from "../../../../../api/endpoints/chat_flow"
+import { URL_PARAMS } from "../../../../../constants/urls"
 import { useAudio } from "../../../../../hooks/useAudio"
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
+import { useChatDataSessionStore } from "../../../../../store"
+import { useChatWebhook } from "../../../../../hooks/useChatWebhook"
 import { useNavigate } from "react-router-dom"
 import { useSiteDataLocalStore, useAICreationSessionStore } from "store"
 import ChatBox from "./components/ChatBox"
 import ChatWindow from "./components/ChatWindow"
+import env from "../../../../../utils/env"
 import InitialConversationCard from "./components/InitialConversationCard"
 import Notification from "../../../../../components/ToastMessage/TotastMessage"
 import useVoiceRecord from "../../text-voice/useVoiceRecord"
@@ -18,21 +22,25 @@ import WelcomeCard from "./components/WelcomeCard"
 
 const wss_protocol = "wss://"
 
-const { BOT } = CONVERSATION_USER_TYPES
+const state_machine_bot_route = bot_routes.shikshalokam_chaupal
+
+const { BOT, USER } = CONVERSATION_USER_TYPES
 
 const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDetail, isDefineChallengeSection = false, handleScrollIntoView, scrollRef }) => {
   const lastBotMessageIndex = useRef(-1)
-  let access_token = sessionStorage.getItem("accToken")
+  let access_token = sessionStorage.getItem(URL_PARAMS.ACCESS_TOKEN)
 
   const chatHistory = useAICreationSessionStore(state => state.chatHistory)
   const firstName = useAICreationSessionStore(state => state.firstName)
   const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
   const profileId = useAICreationSessionStore(state => state.profileId)
+  const session = useAICreationSessionStore(state => state.session)
+  const stateMachineLength = useChatDataSessionStore(state => state.stateMachineLength)
 
   const { setChatLanguage } = useSiteDataLocalStore.getState()
-  const { setSystemError: setSystemErrorStore, setProfileId, setFirstName, setCompany: setCompanyStore, setSession: setSessionStore, setChatHistory, setIsChatVisible, setIntroMessage: setIntroMessageStore, setBotName, setUserProblemStatement: setUserProblemStatementStore, getChatHistory, getSession, getPreferredLanguage } = useAICreationSessionStore.getState()
+  const { setSystemError: setSystemErrorStore, setProfileId, setFirstName, setCompany: setCompanyStore, setSession: setSessionStore, setChatHistory, setIsChatVisible, setIntroMessage: setIntroMessageStore, setBotName, setUserProblemStatement: setUserProblemStatementStore, getChatHistory, getPreferredLanguage } = useAICreationSessionStore.getState()
+  const { setStateMachineLength, setStrandStep, getStrandStep } = useChatDataSessionStore.getState()
 
-  const [chatSocket, setChatSocket] = useState(null)
   const [textMessage, setTextMessage] = useState("")
   const [isStreamingComplete, setIsStreamingComplete] = useState(true)
   const [audioCache, setAudioCache] = useState({})
@@ -60,6 +68,95 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
 
   const navigate = useNavigate()
 
+  const {
+    sendMessage,
+    connect: connectToWebSocket,
+    disconnect: disconnectFromWebSocket,
+    isConnected: isSocketConnected,
+  } = useChatWebhook(`${wss_protocol}${env.WEBSOCKET_HOST()}/ws/common/`, {
+    autoConnect: false,
+    reconnectAttempts: env.WEBSOCKET_RETRY_NUM(),
+    onMessage: onWebSocketMessage,
+  })
+
+  function onWebSocketMessage(e) {
+    const data = JSON.parse(e.data)
+    const message = data["text"]
+
+    if (message.source === BOT) {
+      setIsStreamingComplete(false)
+      const validation = message?.extra_content?.validation
+      const should_move_forward = message?.extra_content?.should_move_forward
+      const userProblemStatement = message?.extra_content?.problem_statement
+      setUserProblemStatementStore(userProblemStatement)
+      if (message?.msg !== "") {
+        if (message?.step && Number.isInteger(message?.step)) setStrandStep(message?.step)
+        const chat_history = [...getChatHistory()]
+        if (chat_history.length > 0 && chat_history[chat_history.length - 1]?.source === BOT) {
+          if (message?.msg) {
+            chat_history[chat_history.length - 1].msg += message?.msg
+          }
+        } else {
+          chat_history.push({
+            msg: message?.msg || "",
+            updated_at: Date.now(),
+            problemStatement: userProblemStatement || "",
+            shouldMoveForward: should_move_forward,
+            source: BOT,
+            validation: validation || "",
+          })
+        }
+        setChatHistory(chat_history)
+        setSentences(prevSentences => {
+          let updatedSentences = [...prevSentences]
+
+          if (updatedSentences.length > 0 && updatedSentences[updatedSentences.length - 1]?.source === BOT) {
+            if (message?.msg) {
+              updatedSentences[updatedSentences.length - 1].message += message?.msg
+            }
+          } else {
+            updatedSentences.push({
+              message: message?.msg || "",
+              source: BOT,
+              isNarrated: false,
+              id: Date.now(),
+              validation: validation || "",
+              shouldMoveForward: should_move_forward,
+              problemStatement: userProblemStatement || "",
+            })
+            lastBotMessageIndex.current = updatedSentences.length - 1
+          }
+          return updatedSentences
+        })
+      }
+
+      const strand_step = getStrandStep()
+      if (Number.isInteger(strand_step) && Number.isInteger(stateMachineLength) && strand_step >= stateMachineLength) {
+        setShouldMoveForward("yes")
+      }
+    } else {
+      setIsStreamingComplete(false)
+    }
+
+    if (message.finish_reason === "stop" && message.source === BOT) {
+      setTalking(0)
+      setIsStreamingComplete(true)
+      const chat_history = [...getChatHistory()]
+
+      const chat_history_updated = chat_history.map((chat, index) => {
+        if (index === chat_history.length - 1) {
+          return {
+            ...chat,
+            shouldMoveForward: "yes",
+          }
+        }
+        return chat
+      })
+
+      setChatHistory(chat_history_updated)
+    }
+  }
+
   const handleOnStopSpeaking = async () => {
     try {
       try {
@@ -74,6 +171,12 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
       console.error({ error })
     }
   }
+
+  useEffect(() => {
+    return () => {
+      disconnectFromWebSocket()
+    }
+  }, [])
 
   useEffect(() => {
     async function createUserProfile() {
@@ -92,16 +195,43 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
       }
     }
 
-    if (!profileId && access_token) {
-      createUserProfile()
-      setShouldFetchIntro(true)
-      setIsStreamingComplete(true)
+    async function fetchCompanyBotInfo() {
+      try {
+        const bots = await getCompanyBotApi({
+          company__slug: DEFAULT_COMPANY_SLUG,
+          route: state_machine_bot_route,
+        }).then(resp => resp?.results)
+
+        if (!bots || bots.length === 0) {
+          throw new Error("No bots found")
+        }
+        const selectedBot = bots[0]
+        if (selectedBot?.statemachine_length) {
+          setStateMachineLength(selectedBot.statemachine_length)
+        }
+      } catch (error) {
+        console.error(error)
+        navigate(-1)
+      }
     }
+
     const getSessionId = async () => {
-      let sessionid = getSession()
-      if (!sessionid) {
-        let session = await getNewSessionID()
-        setSessionStore(session)
+      if (!session) {
+        try {
+          setIsLocalLoading(true)
+          let sessionid = await getSessionDetailsApi().then(resp => resp?.sessionid)
+          if (!sessionid) {
+            throw new Error("Session ID not found")
+          }
+          setSessionStore(sessionid)
+        } catch (error) {
+          console.error(error)
+          navigate(-1)
+          clearMitraSessionStorage()
+          return
+        } finally {
+          setIsLocalLoading(false)
+        }
       }
 
       const preferredLanguage = getPreferredLanguage() || {}
@@ -110,168 +240,44 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
       sessionStorage.setItem("route", JSON.stringify(language))
       setChatLanguage(language)
     }
+
+    if (!profileId && access_token) {
+      createUserProfile()
+      setShouldFetchIntro(true)
+      setIsStreamingComplete(true)
+    }
+    fetchCompanyBotInfo()
     getSessionId()
   }, [access_token, profileId])
+
+  useEffect(() => {
+    async function getCurrentStep() {
+      try {
+        const chat_session_info = await getChatSessionApi({ sessionId: session }).then(resp => resp?.data?.results)
+        if (!chat_session_info.length) {
+          return null
+        } else {
+          return chat_session_info[0]?.current_step
+        }
+      } catch (error) {
+        console.error(error)
+        return null
+      }
+    }
+    if (!session) return
+
+    getCurrentStep().then(step => {
+      if (step) {
+        setStrandStep(step)
+      }
+    })
+  }, [session])
 
   useEffect(() => {
     setShouldFetchIntro(true)
     setIsStreamingComplete(true)
     if (isDefineChallengeSection) handleScrollIntoView()
   }, [])
-
-  const MakeSocketConnection = useCallback(
-    (currentTextMessage, currentSocket) => {
-      return new Promise((resolve, reject) => {
-        try {
-          if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-            return resolve(chatSocket)
-          } else if (currentSocket && currentSocket.readyState === WebSocket.OPEN) {
-            return resolve(currentSocket)
-          }
-          let socket
-
-          let url = `${wss_protocol}${process.env.REACT_APP_WEBSOCKET_HOST}/ws/mitra/`
-
-          socket = new WebSocket(url)
-
-          socket.onmessage = e => {
-            const data = JSON.parse(e.data)
-            const message = data["text"]
-
-            if (message.source === "bot") {
-              setIsStreamingComplete(false)
-              const validation = message?.extra_content?.validation
-              const should_move_forward = message?.extra_content?.should_move_forward
-              const userProblemStatement = message?.extra_content?.problem_statement
-              setUserProblemStatementStore(userProblemStatement)
-              if (message?.msg !== "") {
-                const chat_history = [...getChatHistory()]
-                if (chat_history.length > 0 && chat_history[chat_history.length - 1]?.source === "bot") {
-                  if (message?.msg) {
-                    console.log("last message is bot message")
-                    chat_history[chat_history.length - 1].msg += message?.msg
-                  }
-                } else {
-                  chat_history.push({
-                    msg: message?.msg || "",
-                    updated_at: Date.now(),
-                    problemStatement: userProblemStatement || "",
-                    shouldMoveForward: should_move_forward,
-                    source: "bot",
-                    validation: validation || "",
-                  })
-                }
-                setChatHistory(chat_history)
-                setSentences(prevSentences => {
-                  let updatedSentences = [...prevSentences]
-
-                  if (updatedSentences.length > 0 && updatedSentences[updatedSentences.length - 1]?.source === "bot") {
-                    if (message?.msg) {
-                      updatedSentences[updatedSentences.length - 1].message += message?.msg
-                    }
-                  } else {
-                    updatedSentences.push({
-                      message: message?.msg || "",
-                      source: "bot",
-                      isNarrated: false,
-                      id: Date.now(),
-                      validation: validation || "",
-                      shouldMoveForward: should_move_forward,
-                      problemStatement: userProblemStatement || "",
-                    })
-                    lastBotMessageIndex.current = updatedSentences.length - 1
-                  }
-                  return updatedSentences
-                })
-              }
-
-              setShouldMoveForward(should_move_forward)
-            } else {
-              setIsStreamingComplete(false)
-            }
-
-            if (message.finish_reason === "stop" && message.source === "bot") {
-              setTalking(0)
-              setIsStreamingComplete(true)
-              const chat_history = [...getChatHistory()]
-
-              const chat_history_updated = chat_history.map((chat, index) => {
-                if (index === chat_history.length - 1) {
-                  return {
-                    ...chat,
-                    shouldMoveForward: "yes",
-                  }
-                }
-                return chat
-              })
-
-              setChatHistory(chat_history_updated)
-            }
-          }
-
-          socket.onopen = () => {
-            setChatSocket(socket)
-            let sessionid = getSession()
-            let route = JSON.parse(sessionStorage.getItem("route"))
-            if (sessionid) {
-              socket.send(
-                JSON.stringify({
-                  type: "authenticate",
-                  sessionid: sessionid,
-                  profileid: profileId,
-                  access_token: access_token,
-                  route: route,
-                })
-              )
-            }
-            resolve(socket)
-          }
-
-          socket.onclose = event => {}
-
-          socket.onerror = error => {
-            console.error("WebSocket error:", error)
-            socket.close()
-            retryConnection(currentTextMessage)
-            reject(error)
-          }
-
-          return () => {
-            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-              chatSocket.close()
-            }
-          }
-        } catch (error) {
-          console.error("Error establishing WebSocket connection:", error)
-          reject(error)
-        }
-      })
-    },
-    [chatSocket]
-  )
-
-  let reconnectAttempts = 0
-  const maxReconnectAttempts = process.env.REACT_APP_WEBSOCKET_RETRY_NUM || 3
-
-  function retryConnection(currentTextMessage = "") {
-    if (reconnectAttempts >= maxReconnectAttempts) {
-      console.error("Max reconnection attempts reached. Stopping.")
-      return
-    }
-    reconnectAttempts++
-    setTimeout(() => {
-      MakeSocketConnection(currentTextMessage)
-        .then(newSocket => {
-          reconnectAttempts = 0
-          if (currentTextMessage && currentTextMessage.trim() !== "") {
-            handleSendMessage(null, newSocket)
-          }
-        })
-        .catch(error => {
-          console.error("Reconnection Failed:", error)
-        })
-    }, 1000)
-  }
 
   useEffect(() => {
     if (chatHistory?.length !== 0) {
@@ -336,8 +342,10 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
     lastBotMessageIndex.current = chatHistory?.length - 1
   }, [chatHistory])
 
+  useEffect(() => {}, [])
+
   useEffect(() => {
-    if (recordings?.length && chatHistory[chatHistory?.length - 1]?.source !== "bot") {
+    if (recordings?.length && chatHistory[chatHistory?.length - 1]?.source !== BOT) {
       let chat_history = getChatHistory()
 
       chat_history[chat_history?.length - 1] = {
@@ -365,40 +373,53 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
     }
   }, [useTextbox])
 
-  const handleSendMessage = useCallback(
-    async (event, currentSocket) => {
-      if (event) {
-        event.preventDefault()
-        event.stopPropagation()
+  /**
+   * Function is called when the form is submitted
+   */
+  async function handleSendMessage(event) {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+    try {
+      setIsChatVisible(true)
+      setNotMute(true)
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
       }
-      try {
-        const socket = await MakeSocketConnection(textMessage, currentSocket)
 
-        setIsChatVisible(true)
-        setNotMute(true)
-        if (audioRef.current) {
-          audioRef.current.pause()
-          audioRef.current.currentTime = 0
-        }
+      if (!textMessage.trim()) return
 
-        if (!textMessage.trim()) return
+      const chat_history = handleMessagesForUser(textMessage)
 
-        handleMessagesForUser(textMessage)
-        socket.send(
-          JSON.stringify({
-            text: textMessage,
-            context: "",
-          })
-        )
-
-        setTextMessage("")
-      } catch (error) {
-        console.error("WebSocket connection failed:", error)
+      const user_messages = chat_history.filter(message => message.source === USER)
+      if (user_messages.length === 1 || !isSocketConnected) {
+        connectToWebSocket()
+        sendMessage({
+          type: "authenticate",
+          sessionid: session,
+          profileid: profileId,
+          access_token: access_token,
+          route: chatLanguage,
+          bot_route: state_machine_bot_route,
+        })
       }
-    },
-    [textMessage, MakeSocketConnection]
-  )
 
+      sendMessage({
+        text: textMessage,
+        context: "",
+      })
+
+      setTextMessage("")
+    } catch (error) {
+      console.error("WebSocket connection failed:", error)
+    }
+  }
+
+  /**
+   * Function is called whenever the textarea input changes
+   */
   const handleOnInputText = e => {
     e.preventDefault()
     setTextMessage(e.target.value)
@@ -414,21 +435,19 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
       if (isRecognizing || hasStartedListening || !shouldSendMessage) return
 
       const lastMessage = chatHistory[chatHistory?.length - 1]
-      if (lastMessage?.msg === sentence && lastMessage?.source === "bot") {
+      if (lastMessage?.msg === sentence && lastMessage?.source === BOT) {
         return
       }
 
       const chat_history = [...getChatHistory()]
-      console.log("chat_history", chat_history)
-      console.log(lastMessage, "404")
-      if (chatHistory[chatHistory?.length - 1]?.source === "bot") {
+      if (chatHistory[chatHistory?.length - 1]?.source === BOT) {
         const lastMessage = chat_history[chat_history?.length - 1]
         lastMessage.msg += " " + sentence
         setChatHistory(chat_history)
       } else {
         chat_history.push({
           msg: sentence,
-          source: "bot",
+          source: BOT,
         })
         setChatHistory(chat_history)
       }
@@ -436,16 +455,18 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
     [chatHistory]
   )
 
-  const handleMessagesForUser = useCallback(sentence => {
+  const handleMessagesForUser = sentence => {
     const chat_history = [...getChatHistory()]
     chat_history.push(
       createMessage({
         msg: sentence,
-        source: "user",
+        source: USER,
       })
     )
     setChatHistory(chat_history)
-  }, [])
+
+    return chat_history
+  }
 
   const handleAI4BharatTTSRequest = async (text, id, sourceLanguage) => {
     try {
@@ -488,7 +509,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
 
         audio.onended = () => {
           setSentences(prev => {
-            let all_sentences = JSON.parse(JSON.stringify([...prev]))
+            let all_sentences = structuredClone(prev)
             let index = prev.findIndex(x => x.id === id)
             if (index > -1) all_sentences[index].isNarrated = true
             return all_sentences
@@ -502,7 +523,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
         } catch (error) {
           console.error("Error playing audio:", error)
           setSentences(prev => {
-            let all_sentences = JSON.parse(JSON.stringify([...prev]))
+            let all_sentences = structuredClone(prev)
             let index = prev.findIndex(x => x.id === id)
             if (index > -1) all_sentences[index].isNarrated = true
             return all_sentences
@@ -526,7 +547,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
   }, [isNextAllowed, sentences, chatLanguage])
 
   useEffect(() => {
-    if (!!appendix?.length && chatHistory[chatHistory?.length - 1].source === "bot") {
+    if (!!appendix?.length && chatHistory[chatHistory?.length - 1].source === BOT) {
       const chat_history = [...getChatHistory()]
       const lastMessage = chat_history[chat_history?.length - 1]
       lastMessage.appendixURL = appendix
@@ -540,7 +561,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
   const handleOnSpeaking = async (text, id, staticMsg) => {
     try {
       try {
-        if (!!audioRef.current) await audioRef.current.pause()
+        if (audioRef.current) await audioRef.current.pause()
       } catch (error) {
         console.error({ error })
       }
@@ -591,9 +612,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
 
 export default StateMachineDefineChallenge
 
-/* eslint-disable react-hooks/exhaustive-deps */
-
-export const createMessage = ({ updated_at = Date.now(), source = "bot" || "user", msg = "", validation = "" }) => ({
+export const createMessage = ({ updated_at = Date.now(), source = BOT, msg = "", validation = "" }) => ({
   updated_at,
   source,
   msg,

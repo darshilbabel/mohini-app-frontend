@@ -36,6 +36,8 @@ export const INITIAL_STATE = (set, get, store) => ({
 
   getFlow: () => get().flow,
 
+  getStrandStep: () => get().strandStep,
+
   setSessionId: sessionId => set({ sessionId }),
 
   getSessionId: () => get().sessionId,
