@@ -713,16 +713,17 @@ function ActionItems({
 
 
             {isSelectActionItems ? (
-              <div className="mt-5">
-                <ChatBox
-                  textInputRef={textInputRef}
-                  textMessage={textMessage}
-                  handleOnInputText={handleOnInputText}
-                  handleSendMessage={handleSendMessage}
-                  setUseTextbox={setUseTextbox}
-                  isReadOnly={false}
-                />
-              </div>
+              <></>
+              // <div className="mt-5">
+              //   <ChatBox
+              //     textInputRef={textInputRef}
+              //     textMessage={textMessage}
+              //     handleOnInputText={handleOnInputText}
+              //     handleSendMessage={handleSendMessage}
+              //     setUseTextbox={setUseTextbox}
+              //     isReadOnly={false}
+              //   />
+              // </div>
             ) : (
               // <></>
               <div className={`div35 label1`}>

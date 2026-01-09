@@ -59,12 +59,17 @@
     "selectObjective": {
         "title": "Objectives",
         "enterObjective": "Enter your objective",
-        "selectObjective": "Select one to get started.",
-        "theseAreSomeObjectives":  "These are some objectives that could help address your challenge.",
+        "selectObjective": "Please select one or more of these. You can also add your objective to this list.",
+        "theseAreSomeObjectives":  "Here are some objectives that can help address your challenge.",
         "emptyObjective": "Please enter an objective!",
         "enterObjectivePlaceholder": "Enter objectives",
         "goBack": "Go back to Objectives List",
-        "showPrevious": "Show Previous Objective List"
+        "showPrevious": "Show Previous Objective List",
+        "craftYourOwnObjectives": "Craft your own objectives",
+        "addEditObjectives": "Add, edit, or remove objectives as needed.",
+        "pleaseAddAtLeastOneObjective": "Please add at least one objective before proceeding.",
+        "writeObjectiveHere": "Write objective here...",
+        "addObjective": "Add Objective"
     },
     "actionItems": {
         "title": "Action List",
