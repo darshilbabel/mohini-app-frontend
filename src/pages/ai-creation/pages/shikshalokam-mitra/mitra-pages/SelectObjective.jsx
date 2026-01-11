@@ -35,6 +35,7 @@ import { TbTrashOff } from "react-icons/tb";
 import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
 import TextareaWithVoice from "../../../components/textarea-with-mic";
 import { getOrTextTranslation } from "../question script/secondpage_tanslation";
+import Disclaimer from "./components/Disclaimer";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -693,6 +694,7 @@ function SelectObjective({
                       <p className="secondpage-obj-text">{t("selectObjective.title")}</p>
                       {!!(!fetchError || fetchError === "") && <ObjectivesCard objectiveList={objectiveList} visibleCount={visibleCount} selectedIndices={selectedIndices} handleObjectiveClick={handleObjectiveClick} selectedObjective={selectedObjective} isSelectObjectiveSection={isSelectObjectiveSection} objectiveSource={objectiveSource} />}
                       {!!(fetchError && fetchError !== "") && <ErrorText errorText={fetchError} />}
+                      <Disclaimer text={t('disclaimer.objectivesText')} />
                     </div>
                     {isSelectObjectiveSection && <SuggestOrAddCta showSuggestMoreButton={visibleCount < objectiveList?.length} handleSuggestMore={handleSuggestMore} language={language} handleAddOwnClick={handleAddOwnObjective} showAddOwnButton={true} />}
 
@@ -772,6 +774,7 @@ function SelectObjective({
 
                           {!!(!fetchError || fetchError === "") && <ObjectivesCard objectiveList={sectionObjectives} visibleCount={visibleCount} selectedIndices={selectedIndices} handleObjectiveClick={handleObjectiveClick} selectedObjective={selectedObjective} isSelectObjectiveSection={isSelectObjectiveSection} objectiveSource={sectionSources} />}
                           {!!(fetchError && fetchError !== "") && <ErrorText errorText={fetchError} />}
+                          <Disclaimer text={t('disclaimer.objectivesText')} />
                         </div>
                         {isSelectObjectiveSection && (
                           <SuggestOrAddCta

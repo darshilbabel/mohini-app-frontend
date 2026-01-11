@@ -61,10 +61,10 @@ const ActionItemsSwiper = ({
       <button className={`thirdpage-obj-bttn ${swipeDirection ? `swipe-in-${swipeDirection}` : ""}`}>
         {actionList[selectedIndex]?.duration_weeks !== "" && (
           <p className="thirdpage-duration">
-            <span>{hasClickedOnAddmore ? "My Action Plan" : actionList[selectedIndex]?.plan_name}{" "}</span>
+            <span>{hasClickedOnAddmore ? "My Action Plan" : actionList[selectedIndex]?.plan_name?.value}{" "}</span>
             {!hasClickedOnAddmore && (
               <>
-                <span className="thirdpage-week">({actionList[selectedIndex]?.duration_weeks}</span> week{actionList[selectedIndex]?.duration_weeks > 1 ? "s" : ""} recommend)
+                <span className="thirdpage-week">({actionList[selectedIndex]?.duration_weeks?.value}</span> week{actionList[selectedIndex]?.duration_weeks > 1 ? "s" : ""} recommend)
               </>
             )}
           </p>

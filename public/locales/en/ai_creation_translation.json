@@ -98,5 +98,9 @@
         "youCanEditIt": "You can edit it if you'd like.",
         "aiGeneratedTitle": "[AI-generated title]",
         "createMicroImprovementPlan": "Create Improvement Plan"
+    },
+    "disclaimer": {
+        "objectivesText": "Mitra uses AI to generate objectives and insights. While it aims to be accurate and helpful, it may occasionally make mistakes. Please review outputs before use.",
+        "actionsText": "Mitra uses AI to generate actions and insights. While it aims to be accurate and helpful, it may occasionally make mistakes. Please review outputs before use."
     }
 }

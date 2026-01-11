@@ -37,6 +37,7 @@ import { buildWebSocketUrl } from "../../../../../utils/helpers";
 import ChatMessage from "./components/chat-message/ChatMessage";
 import { getOrTextTranslation } from "../question script/secondpage_tanslation";
 import TextareaWithVoice from "../../../components/textarea-with-mic";
+import Disclaimer from "./components/Disclaimer";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -165,6 +166,8 @@ function ActionItems({
 
       useAICreationSessionStore.getState().setSelectedObjective(message?.extra_content?.query)
 
+      // Update the store so the useEffect doesn't refetch
+      useAICreationSessionStore.getState().setLastFetchedActionListObjective(message?.extra_content?.query);
       fetchActionList(true, message?.extra_content?.query)
     }
   }, [])
@@ -313,7 +316,16 @@ function ActionItems({
 
 
   useEffect(() => {
-    fetchActionList();
+    // Only fetch if objective has actually changed to a different value
+    // Use JSON.stringify to compare arrays/objects by value, not reference
+    const currentObjectiveStr = JSON.stringify(objective);
+    const lastFetchedObjective = useAICreationSessionStore.getState().getLastFetchedActionListObjective();
+    const lastFetchedStr = JSON.stringify(lastFetchedObjective);
+    
+    if (objective && currentObjectiveStr !== lastFetchedStr) {
+      useAICreationSessionStore.getState().setLastFetchedActionListObjective(objective);
+      fetchActionList();
+    }
   }, [objective]);
 
 
@@ -608,6 +620,7 @@ function ActionItems({
                       wrapperStyles: "md:!w-[100%]",
                     }}
                   />
+                  <Disclaimer text={t('disclaimer.actionsText')} />
                   {isSelectActionItems && !!actionList && actionList?.length > 0 && (
                     <>
                       <SuggestOrAddCta

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 /* utils and api services */
 import { saveUserChatsInDB } from "../../../../../api/endpoints/chat_flow";
+import { getTranslatedIntroMessageApi } from "../../../../../api/endpoints/ai";
 /* components */
 import LoadingChat from "./components/LoadingChat";
 import BotMessage from "./components/chat-message/BotMessage";
@@ -32,7 +33,8 @@ function WeeksSelection({
   const [isWeekSectionLoader, setIsWeekSectionLoader] = useState(false);
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [useTextbox, setUseTextbox] = useState(false);
-
+  const [introMessage, setIntroMessage] = useState(null);
+  const [isLoadingIntro, setIsLoadingIntro] = useState(true);
 
   const { t } = useTranslation("ai_creation_translation");
 
@@ -55,6 +57,36 @@ function WeeksSelection({
   const sessionId = getSession();
   const chatLanguage = getPreferredLanguage() || "en";
   const accessToken = sessionStorage.getItem("accToken");
+
+  // Fetch intro message from API
+  useEffect(() => {
+    const fetchIntroMessage = async () => {
+      try {
+        setIsLoadingIntro(true);
+        const response = await getTranslatedIntroMessageApi({
+          language: "en",
+          company_bot__route: bot_routes.mitra_duration,
+        });
+        const message = response?.[0]?.alt_introductory_message;
+        setIntroMessage(message);
+        useAICreationSessionStore.getState().setDurationIntroMessage(message);
+      } catch (error) {
+        console.error("Error fetching duration intro message:", error);
+        // Fallback to translation if API fails
+        setIntroMessage(t("weeksSelection.howManyWeeks"));
+      } finally {
+        setIsLoadingIntro(false);
+      }
+    };
+
+    const storedIntroMessage = useAICreationSessionStore.getState().getDurationIntroMessage();
+    if (storedIntroMessage) {
+      setIntroMessage(storedIntroMessage);
+      setIsLoadingIntro(false);
+    } else {
+      fetchIntroMessage();
+    }
+  }, [t]);
 
   useEffect(() => {
 
@@ -182,10 +214,7 @@ function WeeksSelection({
     if (!selectedWeek) return;
 
     setSelectedWeekStore(selectedWeek);
-    const botMessage =
-      t("weeksSelection.howManyWeeks") +
-      " " +
-      t("weeksSelection.slideToSelect");
+    const botMessage = introMessage || t("weeksSelection.howManyWeeks");
 
     const currentSession =
       useAICreationSessionStore.getState().getSession();
@@ -201,12 +230,12 @@ function WeeksSelection({
   };
 
   if (getLoaderState(LOADER_KEYS.LOAD_WEEKS_SELECTION)) return null;
-  if (isWeekSectionLoader && isWeeksSelectionSection) return <LoadingChat />;
+  if ((isWeekSectionLoader || isLoadingIntro) && isWeeksSelectionSection) return <LoadingChat />;
 
 
   return (
     <div>
-      <BotMessage primaryMessage={t("weeksSelection.howManyWeeks")} />
+      {introMessage && <BotMessage primaryMessage={introMessage} />}
 
       <div className="flex flex-col h-auto">
         {durationChatHistory.length > 0 && (
