@@ -671,10 +671,6 @@ function SelectObjective({
   const isNextDisabled = !hasSelectedObjectives;
 
 
-  console.log({selectedIndices,selectedObjective, hasSelectedObjectives, isNextDisabled})
-
-
-
   return (
     <>
       <div>

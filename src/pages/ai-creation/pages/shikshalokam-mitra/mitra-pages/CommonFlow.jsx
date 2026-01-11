@@ -79,7 +79,6 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
 
   const onWebSocketOpen = useCallback(() => {
 
-    console.log({botRoute, storageFlow})
     sendSocketMessage({
       type: 'authenticate',
       sessionid: sessionId,

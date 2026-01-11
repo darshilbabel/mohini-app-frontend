@@ -98,7 +98,7 @@ function MainPage() {
   const audioRef = useRef();
   const scrollContainerRef = useRef(null);
 
-  const { setIsReadOnly: setIsReadOnlyStore, setUserText: setUserTextStore, setCurrentPage: setCurrentPageStore } = useAICreationSessionStore.getState()
+  const { setIsReadOnly: setIsReadOnlyStore, setUserText: setUserTextStore, setCurrentPage: setCurrentPageStore, setSelectedFlowType: setSelectedFlowTypeStore } = useAICreationSessionStore.getState()
 
   useEffect(() => {
     setUserDetail({
@@ -119,6 +119,10 @@ function MainPage() {
   useEffect(() => {
     setCurrentPageStore(currentPage)
   }, [currentPage]);
+
+  useEffect(() => {
+    setSelectedFlowTypeStore(selectedFlowType)
+  }, [selectedFlowType]);
 
   function handleSpeakerOn(messageToUse, audioId) {
     if (!messageToUse || !audioId) return;
