@@ -106,7 +106,7 @@ function ActionItems({
   const wss_protocol = "wss://"
   const sessionId = useAICreationSessionStore.getState().getSession();
 
-  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setActionListChatHistory: setActionListChatHistoryStore, setSelectedObjective: setSelectedObjectiveStore } = useAICreationSessionStore.getState()
+  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setActionListChatHistory: setActionListChatHistoryStore, setSelectedObjective: setSelectedObjectiveStore, setErrorText: setErrorTextStore } = useAICreationSessionStore.getState()
   const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en"
   const language = preferredLanguage.value || "en";
 
@@ -289,6 +289,7 @@ function ActionItems({
 
         if (action_list?.length > 0) {
 
+          setErrorTextStore("")
           setActionList(action_list);
           setActionListStore(action_list)
 
@@ -308,6 +309,8 @@ function ActionItems({
         useAICreationSessionStore.getState().getSystemError() ||
           t("common.pleaseTryAgainLater")
       );
+
+      setErrorTextStore(error?.response?.data?.message || t("common.pleaseTryAgainLater"))
       console.error(error);
     } finally {
       handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, false);

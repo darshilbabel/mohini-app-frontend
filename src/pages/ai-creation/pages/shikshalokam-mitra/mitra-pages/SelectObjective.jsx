@@ -139,7 +139,7 @@ function SelectObjective({
   });
   const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en";
   const language = preferredLanguage.value || "en";
-  const { setObjective: setObjectiveStore, setPrevObjective: setPrevObjectiveStore, setPrevObjectiveSource: setPrevObjectiveSourceStore, setObjectiveSource: setObjectiveSourceStore, setChunks: setChunksStore, setSelectedObjective: setSelectedObjectiveStore, setHasClickedObjAddMore, setIsOwnObjective, setObjectListRetries, setIsPrevObjectiveShown: setIsPrevObjectiveShownStore } = useAICreationSessionStore.getState()
+  const { setObjective: setObjectiveStore, setPrevObjective: setPrevObjectiveStore, setPrevObjectiveSource: setPrevObjectiveSourceStore, setObjectiveSource: setObjectiveSourceStore, setChunks: setChunksStore, setSelectedObjective: setSelectedObjectiveStore, setHasClickedObjAddMore, setIsOwnObjective, setObjectListRetries, setIsPrevObjectiveShown: setIsPrevObjectiveShownStore, setErrorText: setErrorTextStore } = useAICreationSessionStore.getState()
 
   const { setSelectedWeek: setSelectedWeekStore, profileId, setUserProblemStatement: setUserProblemStatementStore } = useAICreationSessionStore.getState();
 
@@ -173,6 +173,8 @@ function SelectObjective({
         ) {
 
 
+          setErrorTextStore("")
+
 
           if(createNew) {
             setIsNewlyGeneratedList(true)
@@ -203,9 +205,12 @@ function SelectObjective({
         }
       }
     } catch (error) {
+
       setFetchError(
-        useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater")
+       error?.response?.data?.message || t("common.pleaseTryAgainLater")
       );
+
+      setErrorTextStore(error?.response?.data?.message || t("common.pleaseTryAgainLater"))
       // setIsLoading(false);
       handleLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST, false);
       console.error(error);
@@ -213,6 +218,7 @@ function SelectObjective({
       handleLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST, false);
     }
   }
+
 
   const onWebSocketClose = useCallback(() => {
   }, [])

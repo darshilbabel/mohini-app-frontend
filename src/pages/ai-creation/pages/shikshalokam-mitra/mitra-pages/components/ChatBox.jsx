@@ -299,7 +299,7 @@ function ChatBox({
       <form onSubmit={(e) => {
         resetTextareaHeight();
         handleSendMessage(e);
-      }} autoComplete="off" className={`cursor-pointer flex items-center gap-[10px] h-full overflow-y-auto border border-[#DDDDDD] py-3 px-4 mx-auto w-full md:w-[80%] lg:w-[70%] ${shouldShowWhiteBg ? "bg-white" : "bg-[#F0F2F5]"} ${textMessage?.includes("\n") ? "rounded-3xl" : "rounded-[50px]"} ${formStyles}`}>
+      }} autoComplete="off" className={`cursor-pointer flex items-center gap-[10px] h-full overflow-y-auto border border-[#DDDDDD] py-2 md:py-3 px-4 mx-auto w-full md:w-[80%] lg:w-[70%] ${shouldShowWhiteBg ? "bg-white" : "bg-[#F0F2F5]"} ${textMessage?.includes("\n") ? "rounded-3xl" : "rounded-[50px]"} ${formStyles}`}>
         <textarea
           ref={textInputRef}
           id="chat-box-textarea"
@@ -364,11 +364,13 @@ function ChatBox({
     border-0
     outline-none
     focus:outline-none
-    text-base
+    text-xs
+    md:text-base
     font-normal
     leading-normal
     text-[#101010]
-    placeholder:text-base
+    placeholder:text-xs
+    md:placeholder:text-base
     placeholder:font-normal
     placeholder:text-[#AAAAAA]
     disabled:bg-slate-200
