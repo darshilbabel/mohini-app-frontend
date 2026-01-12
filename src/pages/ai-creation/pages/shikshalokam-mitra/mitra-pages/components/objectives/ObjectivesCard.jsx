@@ -5,7 +5,7 @@ import { useAICreationSessionStore } from "store";
 const ObjectivesCard = ({
   objectiveList = [],
   visibleCount,
-  selectedIndex,
+  selectedIndices = [],
   handleObjectiveClick,
   isSelectObjectiveSection,
   objectiveSource = {},
@@ -16,18 +16,30 @@ const ObjectivesCard = ({
     state => state.selectedObjective
   );
 
-  const getObjectiveCardClass = (objIndex, obj) => {
+  // Handle both legacy single string and new array format for selectedObjective from store
+  const selectedObjectivesArray = Array.isArray(selectedObjective) 
+    ? selectedObjective 
+    : (selectedObjective ? [selectedObjective] : []);
 
-    // If no index is selected, check if this objective matches the stored one
-    if (selectedObjective && (selectedIndex === null || selectedIndex === undefined)) {
-      return selectedObjective === obj
+  const getObjectiveCardClass = (objIndex, obj) => {
+    // Check if this index is in the selectedIndices array
+    if (selectedIndices.length > 0) {
+      return selectedIndices.includes(objIndex)
         ? "secondpage-obj-selected-button-div"
         : "secondpage-obj-bttn-div";
     }
-    // Otherwise, check if this index matches the selected index
-    return objIndex === selectedIndex && selectedObjective
-      ? "secondpage-obj-selected-button-div"
-      : "secondpage-obj-bttn-div";
+    
+    // Fallback: check if this objective's text matches any stored selected objective
+    if (selectedObjectivesArray.length > 0) {
+      const isSelected = selectedObjectivesArray.some(
+        selected => selected === obj?.text || selected === obj
+      );
+      return isSelected
+        ? "secondpage-obj-selected-button-div"
+        : "secondpage-obj-bttn-div";
+    }
+
+    return "secondpage-obj-bttn-div";
   };
 
 
@@ -56,14 +68,17 @@ const mappedObjectives = objectiveList.map(obj => {
 
   return (
     <div className="objective-list-div">
-      {!!(!isSelectObjectiveSection && selectedObjective?.length > 0) ? (
-        <div
-          key="selected-objective"
-          className="secondpage-obj-selected-button-div"
-        >
-          <div className="secondpage-obj-line"></div>
-          <button className="secondpage-obj-bttn">{selectedObjective}</button>
-        </div>
+      {!!(!isSelectObjectiveSection && selectedObjectivesArray.length > 0) ? (
+        // Show all selected objectives when not in selection mode
+        selectedObjectivesArray.map((objective, idx) => (
+          <div
+            key={`selected-objective-${idx}`}
+            className="secondpage-obj-selected-button-div"
+          >
+            <div className="secondpage-obj-line"></div>
+            <button className="secondpage-obj-bttn">{objective}</button>
+          </div>
+        ))
       ) : (
         <>
           {(Array.isArray(mappedObjectives) ? mappedObjectives : [])

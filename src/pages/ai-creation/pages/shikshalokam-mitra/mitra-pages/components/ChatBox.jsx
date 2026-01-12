@@ -44,6 +44,7 @@ function ChatBox({
   styles = {},
   disabled = false,
   isReadOnly = false,
+  isCommonFlow = false,
 }) {
   const { t } = useTranslation("ai_creation_translation");
   const [isFocused, setIsFocused] = useState(false);

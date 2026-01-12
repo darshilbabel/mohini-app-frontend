@@ -26,6 +26,7 @@ function ChatWindow({
   const selectedObjective = useAICreationSessionStore(state => state.selectedObjective);
   const selectedAction = useAICreationSessionStore(state => state.selectedAction);
   const selectedWeek = useAICreationSessionStore.getState().getSelectedWeek();
+  const selectedFlowType = useAICreationSessionStore.getState().getSelectedFlowType();
   const errorText = useAICreationSessionStore.getState().getErrorText();
 
 
@@ -34,9 +35,15 @@ function ChatWindow({
     const isWeeksSelectionSection = page && page === 4;
     const isObjectiveSection = page && page === 2;
     const isActionListSection = page && page === 3;
+    const isInitialSwitchSection = page === 0;
 
 
     let showLoader = true;
+
+    if(isInitialSwitchSection) {
+
+      showLoader = selectedFlowType ? false : true;
+    }
 
     if(isDefineChallengeSection) {
       showLoader = objectiveList?.length > 0 ? false : true;
