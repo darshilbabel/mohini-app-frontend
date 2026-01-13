@@ -15,14 +15,13 @@ import { useSiteDataLocalStore, useAICreationSessionStore } from "store"
 import ChatBox from "./components/ChatBox"
 import ChatWindow from "./components/ChatWindow"
 import env from "../../../../../utils/env"
-import InitialConversationCard from "./components/InitialConversationCard"
 import Notification from "../../../../../components/ToastMessage/TotastMessage"
 import useVoiceRecord from "../../text-voice/useVoiceRecord"
-import WelcomeCard from "./components/WelcomeCard"
+import LoadingChat from "./components/LoadingChat"
 
 const wss_protocol = "wss://"
 
-const state_machine_bot_route = bot_routes.shikshalokam_chaupal
+const state_machine_bot_route = bot_routes.define_challenges
 
 const { BOT, USER } = CONVERSATION_USER_TYPES
 
@@ -295,7 +294,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
     const fetchBotInfo = async () => {
       setIsIntroLoading(true)
       try {
-        const storedRoute = "/mitra-create"
+        const storedRoute = state_machine_bot_route
 
         if (!shouldFetchIntro || chatHistory?.length || !chatLanguage) return
 
@@ -304,7 +303,10 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
           company_bot__route: storedRoute,
         })
         setSystemErrorStore(data[0]?.error_message)
-        let message = FIRST_BOT_MESSAGE
+        let message = data[0]?.alt_introductory_message
+        if (!message) {
+          message = FIRST_BOT_MESSAGE
+        }
         const botName = data[0]?.name || "Bot"
         setBotName(botName)
 
@@ -582,20 +584,12 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
     }
   }
 
-  const isWelcomeScreen = useMemo(() => {
-    return !!(chatHistory && chatHistory.length === 1 && chatHistory[0]?.source === BOT)
-  }, [chatHistory])
-
   return (
     <>
-      {(isLocalLoading || isIntroLoading) && <ShowLoader />}
       <HiddenRecorder />
       <Notification />
-      {isWelcomeScreen ? (
-        <div>
-          <WelcomeCard />
-          <InitialConversationCard textInputRef={textInputRef} textMessage={textMessage} handleOnInputText={handleOnInputText} setUseTextbox={setUseTextbox} handleSendMessage={handleSendMessage} />
-        </div>
+      {isLocalLoading || isIntroLoading ? (
+        <LoadingChat />
       ) : (
         <div className={isDefineChallengeSection ? "flex flex-col h-full" : ""}>
           <ChatWindow isTalking={isTalking} handleOnSpeaking={handleOnSpeaking} handleOnStopSpeaking={handleOnStopSpeaking} isStreamingComplete={isStreamingComplete} setNotMute={setNotMute} userDetail={userDetail} chatHistory={chatHistory} isReadOnly={isReadOnly} hasStartedListening={hasStartedListening} hasOverRideId={hasOverRideId} isDefineChallengeSection={true} scrollRef={scrollRef} />

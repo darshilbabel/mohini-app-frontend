@@ -144,7 +144,6 @@ function ChatWindow({ isTalking, handleOnSpeaking, handleOnStopSpeaking, isStrea
               />
             </div>
             {getShowLoadingChat(i) && <LoadingChat />}
-            {getShowLoadingChat(i) && <LoadingChat />}
           </li>
         ))}
       </ul>
