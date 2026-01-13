@@ -31,6 +31,10 @@ function ChatWindow({ isTalking, handleOnSpeaking, handleOnStopSpeaking, isStrea
       if (errorText) {
         showLoader = false
       }
+
+      if (errorText) {
+        showLoader = false
+      }
     } else if (isWeeksSelectionSection) {
       showLoader = selectedWeek ? false : true
     } else if (isObjectiveSection) {
@@ -139,6 +143,7 @@ function ChatWindow({ isTalking, handleOnSpeaking, handleOnStopSpeaking, isStrea
                 userDetail={userDetail}
               />
             </div>
+            {getShowLoadingChat(i) && <LoadingChat />}
             {getShowLoadingChat(i) && <LoadingChat />}
           </li>
         ))}
