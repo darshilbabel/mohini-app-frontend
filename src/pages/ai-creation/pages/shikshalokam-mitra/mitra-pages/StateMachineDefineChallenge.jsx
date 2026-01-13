@@ -348,7 +348,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
 
   useEffect(() => {
     if (recordings?.length && chatHistory[chatHistory?.length - 1]?.source !== BOT) {
-      let chat_history = getChatHistory()
+      let chat_history = [...getChatHistory()]
 
       chat_history[chat_history?.length - 1] = {
         ...chat_history[chat_history?.length - 1],
@@ -549,7 +549,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
   }, [isNextAllowed, sentences, chatLanguage])
 
   useEffect(() => {
-    if (!!appendix?.length && chatHistory[chatHistory?.length - 1].source === BOT) {
+    if (!!appendix?.length && Array.isArray(chatHistory) && chatHistory.length && chatHistory[chatHistory?.length - 1].source === BOT) {
       const chat_history = [...getChatHistory()]
       const lastMessage = chat_history[chat_history?.length - 1]
       lastMessage.appendixURL = appendix

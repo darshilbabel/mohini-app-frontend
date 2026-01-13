@@ -31,10 +31,6 @@ function ChatWindow({ isTalking, handleOnSpeaking, handleOnStopSpeaking, isStrea
       if (errorText) {
         showLoader = false
       }
-
-      if (errorText) {
-        showLoader = false
-      }
     } else if (isWeeksSelectionSection) {
       showLoader = selectedWeek ? false : true
     } else if (isObjectiveSection) {
@@ -50,7 +46,7 @@ function ChatWindow({ isTalking, handleOnSpeaking, handleOnStopSpeaking, isStrea
       showLoader = messageIndex !== allActionListChatHistory?.length - 1 ? false : selectedAction ? false : true
     }
 
-    return !hasStartedListening && chatHistory[chatHistory?.length - 1].source === "user" && indexNumber === chatHistory?.length - 1 && showLoader
+    return !hasStartedListening && Array.isArray(chatHistory) && chatHistory?.length !== 0 && chatHistory[chatHistory?.length - 1].source === "user" && indexNumber === chatHistory?.length - 1 && showLoader
   }
 
   const chatsToShow = useMemo(() => {

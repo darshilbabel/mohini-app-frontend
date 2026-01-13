@@ -3,6 +3,7 @@ export function compareById(a, b) {
 }
 
 export function quickSort(arr, compare) {
+  if (!Array.isArray(arr)) return []
   if (arr?.length <= 1) {
     return arr
   }
