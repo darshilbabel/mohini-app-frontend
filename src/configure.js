@@ -33,6 +33,35 @@ export const bot_routes = {
   mitra_duration: "/mitra-duration",
   mitra_objective_list: "/mitra-objective-list",
   mitra_action_list: "/mitra-action-list",
+  initial_switch_bot: "/initial_switch_bot",
+  free_flow: "/free-flow",
+  lfa_bot: "/lfa-bot",
+  lcf_bot: "/lcf-bot",
+  free_flow_bot: "/free-flow-bot",
+};
+
+// Flow types for initial switch validation
+export const FLOW_TYPES = {
+  MIP: "MIP",
+  LFA: "LFA",
+  LCF: "LCF",
+  FREE_FLOW: "FREE_FLOW",
+};
+
+// Mapping of flow types to their bot routes and flow names
+export const FLOW_CONFIG = {
+  [FLOW_TYPES.LFA]: {
+    bot_route: "/lfa-bot",
+    flow_name: "lfa",
+  },
+  [FLOW_TYPES.LCF]: {
+    bot_route: "/lcf-bot",
+    flow_name: "lcf",
+  },
+  [FLOW_TYPES.FREE_FLOW]: {
+    bot_route: "/free-flow-bot",
+    flow_name: "free_flow",
+  },
 };
 
 export const bot_websocket = {

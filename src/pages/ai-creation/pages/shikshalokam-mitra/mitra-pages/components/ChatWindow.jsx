@@ -10,22 +10,37 @@ function ChatWindow({ isTalking, handleOnSpeaking, handleOnStopSpeaking, isStrea
   const selectedObjective = useAICreationSessionStore(state => state.selectedObjective)
   const selectedAction = useAICreationSessionStore(state => state.selectedAction)
   const selectedWeek = useAICreationSessionStore.getState().getSelectedWeek()
-  console.log("chatHistory", chatHistory)
+  const selectedFlowType = useAICreationSessionStore.getState().getSelectedFlowType()
+  const errorText = useAICreationSessionStore.getState().getErrorText()
+
   const getShowLoadingChat = indexNumber => {
     const isWeeksSelectionSection = page && page === 4
     const isObjectiveSection = page && page === 2
     const isActionListSection = page && page === 3
+    const isInitialSwitchSection = page === 0
 
     let showLoader = true
 
+    if (isInitialSwitchSection) {
+      showLoader = selectedFlowType ? false : true
+    }
+
     if (isDefineChallengeSection) {
       showLoader = objectiveList?.length > 0 ? false : true
+
+      if (errorText) {
+        showLoader = false
+      }
     } else if (isWeeksSelectionSection) {
       showLoader = selectedWeek ? false : true
     } else if (isObjectiveSection) {
       const messageIndex = allObjectiveChatHistory?.findIndex(item => item?.updated_at === chatHistory[chatHistory?.length - 1]?.updated_at)
 
       showLoader = messageIndex !== allObjectiveChatHistory?.length - 1 ? false : selectedObjective ? false : true
+
+      if (errorText) {
+        showLoader = false
+      }
     } else if (isActionListSection) {
       const messageIndex = allActionListChatHistory?.findIndex(item => item?.updated_at === chatHistory[chatHistory?.length - 1]?.updated_at)
       showLoader = messageIndex !== allActionListChatHistory?.length - 1 ? false : selectedAction ? false : true
@@ -124,11 +139,7 @@ function ChatWindow({ isTalking, handleOnSpeaking, handleOnStopSpeaking, isStrea
                 userDetail={userDetail}
               />
             </div>
-            {getShowLoadingChat(i) && (
-              <>
-                <LoadingChat />
-              </>
-            )}
+            {getShowLoadingChat(i) && <LoadingChat />}
           </li>
         ))}
       </ul>

@@ -124,5 +124,6 @@
     "search_placeholder": "Search with AI",
     "sortDisabledTooltipText": "AI Search sorts results by relevance automatically. Manual sorting is disabled.",
     "heroDescription": "Shared for Public use (CC BY-SA)",
-    "heroTitle": "Shikshagraha Commons"
+    "heroTitle": "Shikshagraha Commons",
+    "noResourceFoundTitle": "No matching solutions found. Please modify your prompt."
 }

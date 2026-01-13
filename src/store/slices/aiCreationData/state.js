@@ -13,6 +13,7 @@ export const INITIAL_STATE = (set, get, store) => ({
     profileId: null,
     systemError: null,
     actionList: null,
+    lastFetchedActionListObjective: null,
     isChatVisible: null,
     session: null,
     introMessage: null,
@@ -31,6 +32,11 @@ export const INITIAL_STATE = (set, get, store) => ({
     durationChatHistory: [],
     objectiveChatHistory: [],
     actionListChatHistory: [],
+    initialSwitchChatHistory: [],
+    selectedFlowType: null,
+    commonFlowChatHistory: [],
+    commonFlowIntroMessage: null,
+    durationIntroMessage: null,
     prevObjective: null,
     prevObjectiveSource: null,
     isPrevObjectiveShown: false,
@@ -67,6 +73,8 @@ export const INITIAL_STATE = (set, get, store) => ({
     getSystemError: () => get().systemError,
     setActionList: actionList => set({ actionList }),
     getActionList: () => get().actionList,
+    setLastFetchedActionListObjective: lastFetchedActionListObjective => set({ lastFetchedActionListObjective }),
+    getLastFetchedActionListObjective: () => get().lastFetchedActionListObjective,
     setIsChatVisible: isChatVisible => set({ isChatVisible }),
     getIsChatVisible: () => get().isChatVisible,
     setSession: session => set({ session }),
@@ -123,6 +131,21 @@ export const INITIAL_STATE = (set, get, store) => ({
 
     setActionListChatHistory: actionListChatHistory => set({ actionListChatHistory }),
     getActionListChatHistory: () => get().actionListChatHistory,
+
+    setInitialSwitchChatHistory: initialSwitchChatHistory => set({ initialSwitchChatHistory }),
+    getInitialSwitchChatHistory: () => get().initialSwitchChatHistory,
+
+    setSelectedFlowType: selectedFlowType => set({ selectedFlowType }),
+    getSelectedFlowType: () => get().selectedFlowType,
+
+    setCommonFlowChatHistory: commonFlowChatHistory => set({ commonFlowChatHistory }),
+    getCommonFlowChatHistory: () => get().commonFlowChatHistory,
+
+    setCommonFlowIntroMessage: commonFlowIntroMessage => set({ commonFlowIntroMessage }),
+    getCommonFlowIntroMessage: () => get().commonFlowIntroMessage,
+
+    setDurationIntroMessage: durationIntroMessage => set({ durationIntroMessage }),
+    getDurationIntroMessage: () => get().durationIntroMessage,
 
     setProjectId: projectId => set({ projectId }),
     getProjectId: () => get().projectId,
