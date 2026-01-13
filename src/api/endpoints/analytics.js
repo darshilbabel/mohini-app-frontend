@@ -29,7 +29,7 @@ export const trackResourceDownload = (resourceId) => {
 }
 
 /**
- * Track solution/MIP download analytics
+ * Track MIP download analytics
  * Fire-and-forget - does not block download and silently ignores errors
  * @param {string} projectId - The project ID from create-project API response
  */

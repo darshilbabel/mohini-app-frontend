@@ -37,6 +37,7 @@ import { buildWebSocketUrl } from "../../../../../utils/helpers";
 import ChatMessage from "./components/chat-message/ChatMessage";
 import { getOrTextTranslation } from "../question script/secondpage_tanslation";
 import TextareaWithVoice from "../../../components/textarea-with-mic";
+import Disclaimer from "./components/Disclaimer";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -105,7 +106,7 @@ function ActionItems({
   const wss_protocol = "wss://"
   const sessionId = useAICreationSessionStore.getState().getSession();
 
-  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setActionListChatHistory: setActionListChatHistoryStore, setSelectedObjective: setSelectedObjectiveStore } = useAICreationSessionStore.getState()
+  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setActionListChatHistory: setActionListChatHistoryStore, setSelectedObjective: setSelectedObjectiveStore, setErrorText: setErrorTextStore } = useAICreationSessionStore.getState()
   const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en"
   const language = preferredLanguage.value || "en";
 
@@ -165,6 +166,8 @@ function ActionItems({
 
       useAICreationSessionStore.getState().setSelectedObjective(message?.extra_content?.query)
 
+      // Update the store so the useEffect doesn't refetch
+      useAICreationSessionStore.getState().setLastFetchedActionListObjective(message?.extra_content?.query);
       fetchActionList(true, message?.extra_content?.query)
     }
   }, [])
@@ -286,6 +289,7 @@ function ActionItems({
 
         if (action_list?.length > 0) {
 
+          setErrorTextStore("")
           setActionList(action_list);
           setActionListStore(action_list)
 
@@ -305,6 +309,8 @@ function ActionItems({
         useAICreationSessionStore.getState().getSystemError() ||
           t("common.pleaseTryAgainLater")
       );
+
+      setErrorTextStore(error?.response?.data?.message || t("common.pleaseTryAgainLater"))
       console.error(error);
     } finally {
       handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, false);
@@ -313,7 +319,16 @@ function ActionItems({
 
 
   useEffect(() => {
-    fetchActionList();
+    // Only fetch if objective has actually changed to a different value
+    // Use JSON.stringify to compare arrays/objects by value, not reference
+    const currentObjectiveStr = JSON.stringify(objective);
+    const lastFetchedObjective = useAICreationSessionStore.getState().getLastFetchedActionListObjective();
+    const lastFetchedStr = JSON.stringify(lastFetchedObjective);
+    
+    if (objective && currentObjectiveStr !== lastFetchedStr) {
+      useAICreationSessionStore.getState().setLastFetchedActionListObjective(objective);
+      fetchActionList();
+    }
   }, [objective]);
 
 
@@ -608,6 +623,7 @@ function ActionItems({
                       wrapperStyles: "md:!w-[100%]",
                     }}
                   />
+                  <Disclaimer text={t('disclaimer.actionsText')} />
                   {isSelectActionItems && !!actionList && actionList?.length > 0 && (
                     <>
                       <SuggestOrAddCta
@@ -713,16 +729,17 @@ function ActionItems({
 
 
             {isSelectActionItems ? (
-              <div className="mt-5">
-                <ChatBox
-                  textInputRef={textInputRef}
-                  textMessage={textMessage}
-                  handleOnInputText={handleOnInputText}
-                  handleSendMessage={handleSendMessage}
-                  setUseTextbox={setUseTextbox}
-                  isReadOnly={false}
-                />
-              </div>
+              <></>
+              // <div className="mt-5">
+              //   <ChatBox
+              //     textInputRef={textInputRef}
+              //     textMessage={textMessage}
+              //     handleOnInputText={handleOnInputText}
+              //     handleSendMessage={handleSendMessage}
+              //     setUseTextbox={setUseTextbox}
+              //     isReadOnly={false}
+              //   />
+              // </div>
             ) : (
               // <></>
               <div className={`div35 label1`}>

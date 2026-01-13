@@ -17,10 +17,14 @@ import SelectObjective from "./mitra-pages/SelectObjective";
 import Popup from "../../../../components/Popup/index";
 import PrivacyPolicyPopup from "../../../../components/TnC/privacyPolicyPopup";
 import FAQ from "./mitra-pages/components/FAQ";
+import CommonFlow from "./mitra-pages/CommonFlow";
 /* constants */
 import { ACTIVE_TABS } from "../../constants/mitra.constants";
 import { LOADER_KEYS } from "../../constants/common";
 import { useAICreationSessionStore } from "store";
+import InitialSwitch from "./mitra-pages/InitialSwitch";
+import { getTranslatedIntroMessageApi } from "../../../../api/endpoints/ai";
+import { bot_routes, FLOW_TYPES } from "../../../../configure";
 
 function MainPage() {
   const { t } = useTranslation("ai_creation_translation");
@@ -36,6 +40,10 @@ function MainPage() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [acceptedTnc, setAcceptedTnc] = useState(
     sessionStorage.getItem("acceptedTnc") || "ONGOING"
+  );
+  const [introMessage, setIntroMessage] = useState(null);
+  const [selectedFlowType, setSelectedFlowType] = useState(
+    useAICreationSessionStore.getState().getSelectedFlowType() || null
   );
 
   useEffect(() => {
@@ -65,6 +73,7 @@ function MainPage() {
     [LOADER_KEYS.LOAD_WEEKS_SELECTION]: false,
     [LOADER_KEYS.LOAD_TITLE_GENERATION]: false,
     [LOADER_KEYS.APPLICATION_RESET]: false,
+    [LOADER_KEYS.LOAD_INTRO_MESSAGE]: true,
   });
   const [userDetail, setUserDetail] = useState({
     name: sessionStorage.getItem("name"),
@@ -77,7 +86,8 @@ function MainPage() {
 
   const [currentPage, setCurrentPage] = useState(
     useAICreationSessionStore.getState().getCurrentPage() || {
-      1: true,
+      0: true,
+      1: false,
       2: false,
       3: false,
       4: false,
@@ -88,7 +98,7 @@ function MainPage() {
   const audioRef = useRef();
   const scrollContainerRef = useRef(null);
 
-  const { setIsReadOnly: setIsReadOnlyStore, setUserText: setUserTextStore, setCurrentPage: setCurrentPageStore } = useAICreationSessionStore.getState()
+  const { setIsReadOnly: setIsReadOnlyStore, setUserText: setUserTextStore, setCurrentPage: setCurrentPageStore, setSelectedFlowType: setSelectedFlowTypeStore } = useAICreationSessionStore.getState()
 
   useEffect(() => {
     setUserDetail({
@@ -109,6 +119,10 @@ function MainPage() {
   useEffect(() => {
     setCurrentPageStore(currentPage)
   }, [currentPage]);
+
+  useEffect(() => {
+    setSelectedFlowTypeStore(selectedFlowType)
+  }, [selectedFlowType]);
 
   function handleSpeakerOn(messageToUse, audioId) {
     if (!messageToUse || !audioId) return;
@@ -131,6 +145,7 @@ function MainPage() {
     if (key <= 1) return;
     setIsReadOnly(true);
     setCurrentPage((prevValue) => ({
+      0: false,
       1: false,
       2: false,
       3: false,
@@ -144,6 +159,7 @@ function MainPage() {
     if (key >= 5) return;
     setIsReadOnly(true);
     setCurrentPage((prevValue) => ({
+      0: false,
       1: false,
       2: false,
       3: false,
@@ -156,6 +172,7 @@ function MainPage() {
   function setCurrentPageValue(key) {
     if (key >= 5) return;
     setCurrentPage((prevValue) => ({
+      0: false,
       1: false,
       2: false,
       3: false,
@@ -216,9 +233,13 @@ function MainPage() {
 
   const handleDiscardClearStorage = () => {
     setIsPopupOpen(false);
+    setActiveTab(ACTIVE_TABS.CONVERSATION);
   };
 
   const togglePopup = () => {
+    if(isPopupOpen) {
+      setActiveTab(ACTIVE_TABS.CONVERSATION);
+    }
     setIsPopupOpen(!isPopupOpen);
   };
 
@@ -226,6 +247,43 @@ function MainPage() {
     setAcceptedTnc(true);
     sessionStorage.setItem("acceptedTnc", "true");
   };
+
+  const handleFlowTypeSelected = (flowType) => {
+    setSelectedFlowType(flowType);
+    if (flowType === FLOW_TYPES.MIP) {
+      // For MIP, move to DefineChallenge page
+      setCurrentPage({
+        0: false,
+        1: true,
+        2: false,
+        3: false,
+        4: false,
+        5: false,
+      });
+    }
+  };
+
+  const handleIntroMessage = async () => {
+
+    try {
+      handleLoaderState(LOADER_KEYS.LOAD_INTRO_MESSAGE, true);
+      const response = await getTranslatedIntroMessageApi({
+        language: "en",
+        company_bot__route: bot_routes.initial_switch_bot,
+      })
+      setIntroMessage(response?.[0]?.alt_introductory_message);
+    } catch (error) {
+      handleLoaderState(LOADER_KEYS.LOAD_INTRO_MESSAGE, false);
+      console.error({ error });
+    } finally {
+      handleLoaderState(LOADER_KEYS.LOAD_INTRO_MESSAGE, false);
+    }
+    
+  }
+
+  useEffect(() => {
+    handleIntroMessage();
+  }, []);
 
   useEffect(() => {
     const language = useAICreationSessionStore.getState().getPreferredLanguage() || {};
@@ -235,13 +293,44 @@ function MainPage() {
   function getCurrentPageView() {
     const components = [];
 
-    // Determine which pages should be shown based on currentPage
+    const isInitialSwitchSection = currentPage["0"];
     const isDefineChallengeSection = currentPage["1"];
     const isSelectObjectiveSection = currentPage["2"];
     const isSelectActionItems = currentPage["3"];
     const isWeeksSelectionSection = currentPage["4"];
     const isTitleGenerationSection = currentPage["5"];
-    // Show DefineChallenge if on page 1 or any later page
+
+    const isCommonFlow = selectedFlowType && 
+      (selectedFlowType === FLOW_TYPES.LFA || 
+       selectedFlowType === FLOW_TYPES.LCF || 
+       selectedFlowType === FLOW_TYPES.FREE_FLOW);
+
+    components.push(
+      <InitialSwitch 
+        key="initial-switch" 
+        handleLoaderState={handleLoaderState} 
+        getLoaderState={getLoaderState} 
+        introMessage={introMessage} 
+        handleScrollIntoView={handleScrollIntoView}
+        onFlowTypeSelected={handleFlowTypeSelected}
+        isInitialSwitchSection={isInitialSwitchSection && !isCommonFlow}
+      />
+    );
+
+    if (isCommonFlow) {
+      // Render CommonFlow component for LFA, LCF, FREE_FLOW
+      components.push(
+        <CommonFlow
+          key="common-flow"
+          flowType={selectedFlowType}
+          handleScrollIntoView={handleScrollIntoView}
+        />
+      );
+      
+      return components;
+    }
+
+    // MIP Flow - Show DefineChallenge if on page 1 or any later page
     if (
       isDefineChallengeSection ||
       isSelectObjectiveSection ||
@@ -370,7 +459,7 @@ function MainPage() {
     return components;
   }
 
-  if (getLoaderState(LOADER_KEYS.APPLICATION_RESET)) {
+  if (getLoaderState(LOADER_KEYS.APPLICATION_RESET) || getLoaderState(LOADER_KEYS.LOAD_INTRO_MESSAGE)) {
     return <ShowLoader showFirstLoader={true} loadingText={t("common.loadingText")} />;
   }
 

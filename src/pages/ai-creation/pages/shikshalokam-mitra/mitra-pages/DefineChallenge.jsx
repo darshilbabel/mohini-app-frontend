@@ -1,26 +1,21 @@
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 /* hooks */
 import useVoiceRecord from "../../text-voice/useVoiceRecord";
 import { useAudio } from "../../../../../hooks/useAudio";
 /* utils and api services */
-import { clearMitraSessionStorage, ShowLoader } from "../MainPage";
+import { clearMitraSessionStorage } from "../MainPage";
 import {
   getNewSessionID,
-  saveUserChatsInDB,
 } from "../../../../../api/endpoints/chat_flow";
 
 import { getAI4BharatAudioApi } from "api/endpoints/ai";
 
 /* components */
 import ChatBox from "./components/ChatBox";
-import WelcomeCard from "./components/WelcomeCard";
-import InitialConversationCard from "./components/InitialConversationCard";
 import ChatWindow from "./components/ChatWindow";
-import Notification, {
-  showNotification,
-} from "../../../../../components/ToastMessage/TotastMessage";
+import LoadingChat from "./components/LoadingChat";
+import Notification from "../../../../../components/ToastMessage/TotastMessage";
 /* constants */
 import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 import { FIRST_BOT_MESSAGE } from "../../../constants/mitra-chat";
@@ -30,9 +25,6 @@ import { useAICreationSessionStore } from "store";
 import { useSiteDataLocalStore } from "store";
 import { API_ENDPOINTS } from "constants/urls";
 import { apiClient } from "api/client";
-
-const sessionRoute = "/guided_guest";
-
 
 const wss_protocol =
   window.location.protocol === "https:" ? "wss://" : "wss://";
@@ -52,7 +44,6 @@ const DefineChallenge = ({
   handleScrollIntoView,
   scrollRef,
 }) => {
-  const { t } = useTranslation("ai_creation_translation");
   const [profileToUse, setProfileToUse] = useState(
     useAICreationSessionStore.getState().getProfileId() || null
   );
@@ -101,7 +92,7 @@ const DefineChallenge = ({
 
   const { recordings, HiddenRecorder } = useVoiceRecord();
 
-  const { stopAllAudio, audioRef } = useAudio();
+  const { audioRef } = useAudio();
 
 
   const handleOnStopSpeaking = async () => {
@@ -139,116 +130,6 @@ const DefineChallenge = ({
     setIntroEndContext: setIntroEndContextStore,
   } = useAICreationSessionStore.getState()
 
-
-  function compareById(a, b) {
-    return a.id - b.id;
-  }
-
-  function quickSort(arr, compare) {
-    if (arr?.length <= 1) {
-      return arr;
-    }
-
-    const pivot = arr[0];
-    const left = [];
-    const right = [];
-
-    for (let i = 1; i < arr?.length; i++) {
-      if (compare(arr[i], pivot) < 0) {
-        left.push(arr[i]);
-      } else {
-        right.push(arr[i]);
-      }
-    }
-
-    return [...quickSort(left, compare), pivot, ...quickSort(right, compare)];
-  }
-
-  async function getCompanyChatApi(currentSession) {
-    const resp = await apiClient.get(`/${API_ENDPOINTS.GET_COMPANY_CHAT}?session=${currentSession}`, {});
-    return resp;
-  }
-
-  async function handleCompanyChatCall(currentSession) {
-    const storedChatHistory = useAICreationSessionStore.getState().getChatHistory();
-    if (storedChatHistory && storedChatHistory?.length >= 1) {
-      return;
-    }
-
-    setIsLocalLoading(true);
-    setIsFetchingOldIntro(true);
-
-    try {
-      const resp = await getCompanyChatApi(currentSession);
-
-      const newChatSessionDetail = [];
-
-      let sortedResult = quickSort(resp?.data?.results, compareById);
-
-      if (introMessageRef.current) {
-        const temp_intro = introMessageRef.current;
-        setSentences((prev) => [
-          ...prev,
-          {
-            message: temp_intro,
-            source: "bot",
-            isNarrated: true,
-            id: "intro_msg_id",
-          },
-        ]);
-
-        newChatSessionDetail.push({
-          msg: temp_intro,
-          source: "bot",
-          updated_at: "intro_msg_id",
-        });
-
-        introMessageRef.current = "";
-      }
-
-      sortedResult.forEach((chats) => {
-        let messageToUse = chats?.message;
-        if (chats?.translated_message && chats?.translated_message !== "") {
-          messageToUse = chats?.translated_message;
-        }
-        const chatMessage = {
-          message: chats?.sender?.id === 1 ? messageToUse : chats?.message,
-          source: chats?.sender?.id === 1 ? "bot" : "user",
-          isNarrated: true,
-          id: chats?.id,
-        };
-
-        setSentences((prev) => [...prev, chatMessage]);
-
-        newChatSessionDetail.push({
-          msg: chats?.sender?.id === 1 ? messageToUse : chats?.message,
-          source: chats?.sender?.id === 1 ? "bot" : "user",
-          updated_at: chats?.id,
-        });
-      });
-
-      const newChatHistoryItems = newChatSessionDetail.map((item) => ({
-        msg: item.msg,
-        source: item.source,
-        updated_at: item.updated_at,
-      }));
-
-      setChatHistory((prev) => {
-        const existingMessages = new Set(prev.map((msg) => msg.msg));
-        const filteredItems = newChatHistoryItems.filter(
-          (item) => !existingMessages.has(item.msg)
-        );
-        return [...prev, ...filteredItems];
-      });
-
-      lastBotMessageIndex.current += newChatSessionDetail.length;
-    } catch (error) {
-      console.error("Error fetching company chat data:", error);
-    } finally {
-      setIsLocalLoading(false);
-      setIsFetchingOldIntro(false);
-    }
-  }
 
   useEffect(() => {
     async function createUserProfile() {
@@ -506,45 +387,6 @@ const DefineChallenge = ({
     }
   }, []);
 
-  const setReadData = useCallback(async () => {
-    let storedRoute = "/mitra-create";
-    let data = await getTranslatedIntroMessage(storedRoute);
-    let message = data[0]?.alt_introductory_message;
-
-    if (
-      message &&
-      !!message?.trim() &&
-      chatHistory[chatHistory?.length - 1]?.msg !== message
-    ) {
-      setIntroEndContextStore(message)
-      saveUserChatsInDB(message, useAICreationSessionStore.getState().getSession(), "bot");
-
-      setSentences((prevSentences) => [
-        ...prevSentences,
-        {
-          message,
-          source: "bot",
-          isNarrated: false,
-          id: new Date().valueOf(),
-          validation: "",
-          shouldMoveForward: "no",
-          problemStatement: "",
-        },
-      ]);
-
-      setChatHistory((prevChatHistory) => [
-        ...prevChatHistory,
-        {
-          msg: message,
-          source: "bot",
-          updated_at: new Date().valueOf(),
-          validation: "",
-          shouldMoveForward: "no",
-          problemStatement: "",
-        },
-      ]);
-    }
-  }, [chatHistory, setChatHistory, setSentences]);
 
   useEffect(() => {
     const botName = useAICreationSessionStore.getState().getBotName();
@@ -622,7 +464,10 @@ const DefineChallenge = ({
 
           let data = await getTranslatedIntroMessage(storedRoute);
           setSystemErrorStore(data[0]?.error_message)
-          let message = FIRST_BOT_MESSAGE;
+          let message = data[0]?.alt_introductory_message;
+          if (!message) {
+            message = FIRST_BOT_MESSAGE;
+          }
           const botName = data[0]?.name || "Bot";
           // localStorage.setItem("botName", botName);
           setBotNameStore(botName)
@@ -875,7 +720,6 @@ const DefineChallenge = ({
     }
   };
 
-  const isTyping = !!textMessage.trim();
 
   useEffect(() => {
     let unnarratedMessages = sentences.filter((x) => !x?.isNarrated);
@@ -947,30 +791,14 @@ const DefineChallenge = ({
     }
   };
 
-  const isWelcomeScreen = useMemo(() => {
-    return !!(
-      chatHistory &&
-      chatHistory.length === 1 &&
-      chatHistory[0]?.source === BOT
-    );
-  }, [chatHistory]);
+
 
   return (
     <>
-      {(isLocalLoading || isIntroLoading) && <ShowLoader />}
       <HiddenRecorder />
       <Notification />
-      {isWelcomeScreen ? (
-        <div>
-          <WelcomeCard />
-          <InitialConversationCard
-            textInputRef={textInputRef}
-            textMessage={textMessage}
-            handleOnInputText={handleOnInputText}
-            setUseTextbox={setUseTextbox}
-            handleSendMessage={handleSendMessage}
-          />
-        </div>
+      {(isLocalLoading || isIntroLoading) ? (
+        <LoadingChat />
       ) : (
         <div className={isDefineChallengeSection ? "flex flex-col h-full" : ""}>
           <ChatWindow

@@ -44,8 +44,8 @@
         "shikshalokamLogoAlt": "ShikshaLokam Logo"
     },
     "startMipPopup": {
-        "headerText": "Start New MIP",
-        "bodyText": "Are you sure you want to start a new MIP? This will clear all your current progress.",
+        "headerText": "Start New Chat",
+        "bodyText": "Are you sure you want to start a new chat? This will clear all your current progress.",
         "confirmButtonText": "Yes, Start New"
     },
     "defineChallenge": {
@@ -59,12 +59,17 @@
     "selectObjective": {
         "title": "Objectives",
         "enterObjective": "Enter your objective",
-        "selectObjective": "Select one to get started.",
-        "theseAreSomeObjectives":  "These are some objectives that could help address your challenge.",
+        "selectObjective": "Please select one or more of these. You can also add your objective to this list.",
+        "theseAreSomeObjectives":  "Here are some objectives that can help address your challenge.",
         "emptyObjective": "Please enter an objective!",
         "enterObjectivePlaceholder": "Enter objectives",
         "goBack": "Go back to Objectives List",
-        "showPrevious": "Show Previous Objective List"
+        "showPrevious": "Show Previous Objective List",
+        "craftYourOwnObjectives": "Craft your own objectives",
+        "addEditObjectives": "Add, edit, or remove objectives as needed.",
+        "pleaseAddAtLeastOneObjective": "Please add at least one objective before proceeding.",
+        "writeObjectiveHere": "Write objective here...",
+        "addObjective": "Add Objective"
     },
     "actionItems": {
         "title": "Action List",
@@ -93,5 +98,9 @@
         "youCanEditIt": "You can edit it if you'd like.",
         "aiGeneratedTitle": "[AI-generated title]",
         "createMicroImprovementPlan": "Create Improvement Plan"
+    },
+    "disclaimer": {
+        "objectivesText": "Mitra uses AI to generate objectives and insights. While it aims to be accurate and helpful, it may occasionally make mistakes. Please review outputs before use.",
+        "actionsText": "Mitra uses AI to generate actions and insights. While it aims to be accurate and helpful, it may occasionally make mistakes. Please review outputs before use."
     }
 }
