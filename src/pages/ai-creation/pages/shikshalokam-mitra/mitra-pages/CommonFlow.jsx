@@ -88,7 +88,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
         pendingMessageRef.current = null;
       }, 100);
     }
-  }, []);
+  }, [profileId, accessToken, botRoute, storageFlow]);
 
   const onWebSocketMessage = useCallback(
     (event) => {

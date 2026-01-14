@@ -13,7 +13,8 @@ import { getNewSessionID } from '../../../../../api/endpoints/chat_flow';
 
 const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected, isInitialSwitchSection }) => {
   const textInputRef = useRef(null);
-  const hasConnectedRef = useRef(false);
+  const isConnectedRef = useRef(false); // Track real connection state
+  const hasAttemptedConnectionRef = useRef(false); // Track if connection was ever attempted
   const pendingMessageRef = useRef(null); // Store pending message to send after websocket connects
   const [textMessage, setTextMessage] = useState('');
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
@@ -66,6 +67,8 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
   }, []);
 
   const onWebSocketOpen = useCallback(() => {
+    isConnectedRef.current = true;
+    
     const currentSessionId = useAICreationSessionStore.getState().getSession();
     sendSocketMessage({
       type: 'authenticate',
@@ -86,6 +89,17 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
         pendingMessageRef.current = null;
       }, 100); // Small delay to ensure authentication is processed
     }
+  }, []);
+
+  const onWebSocketClose = useCallback(() => {
+    isConnectedRef.current = false;
+  }, []);
+
+  const onWebSocketError = useCallback(() => {
+    isConnectedRef.current = false;
+    // Clear pending message on error to prevent stale sends
+    pendingMessageRef.current = null;
+    setIsWaitingForBot(false);
   }, []);
 
   const onWebSocketMessage = useCallback(
@@ -152,6 +166,8 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
     {
       onOpen: onWebSocketOpen,
       onMessage: onWebSocketMessage,
+      onClose: onWebSocketClose,
+      onError: onWebSocketError,
       autoConnect: false,
       reconnect: false,
     }
@@ -159,9 +175,10 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
 
   useEffect(() => {
     return () => {
-      if (hasConnectedRef.current) {
+      if (hasAttemptedConnectionRef.current) {
         disconnect();
-        hasConnectedRef.current = false;
+        isConnectedRef.current = false;
+        hasAttemptedConnectionRef.current = false;
       }
     };
   }, []);
@@ -198,9 +215,10 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
     setIsWaitingForBot(true);
     setIsWelcomeScreen(false);
 
-    if (!hasConnectedRef.current) {
+    if (!isConnectedRef.current) {
+      // Not connected - store message and connect (or reconnect)
       pendingMessageRef.current = textMessage;
-      hasConnectedRef.current = true;
+      hasAttemptedConnectionRef.current = true;
       connectToWebSocket();
     } else {
       sendSocketMessage({
