@@ -5,7 +5,7 @@ import { handleAI4BharatTTSRequest } from "../../apiServices/ai4bharat_services"
 
 import { setLanguage } from "../../../../i18n";
 /* components */
-import DefineChallenge from "./mitra-pages/DefineChallenge";
+import StateMachineDefineChallenge from "./mitra-pages/StateMachineDefineChallenge";
 import Sidebar from "./mitra-pages/components/Sidebar";
 import ConversationWrapperCard from "./mitra-pages/components/ConversationWrapperCard";
 import Footer from "../../../shikshagraha-repository/common/Footer";
@@ -339,7 +339,7 @@ function MainPage() {
       isTitleGenerationSection
     ) {
       components.push(
-        <DefineChallenge
+        <StateMachineDefineChallenge
           key="first"
           handleLoaderState={handleLoaderState}
           getLoaderState={getLoaderState}

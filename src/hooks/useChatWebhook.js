@@ -10,7 +10,6 @@ export const useChatWebhook = (url, options = {}) => {
 
   const [isConnected, setIsConnected] = useState(false)
 
-
   const connect = useCallback(() => {
     if (!url) return
 
@@ -43,7 +42,6 @@ export const useChatWebhook = (url, options = {}) => {
       }
 
       ws.current.onclose = event => {
-
         setIsConnected(false)
         if (onClose) onClose(event)
 
@@ -88,9 +86,6 @@ export const useChatWebhook = (url, options = {}) => {
     return () => {
       if (reconnectTimeout.current) {
         clearTimeout(reconnectTimeout.current)
-      }
-      if (ws.current) {
-        ws.current.close()
       }
     }
   }, [connect])
