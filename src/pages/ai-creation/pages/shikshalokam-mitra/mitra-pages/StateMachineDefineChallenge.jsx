@@ -38,7 +38,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
 
   const { setChatLanguage } = useSiteDataLocalStore.getState()
   const { setSystemError: setSystemErrorStore, setProfileId, setFirstName, setCompany: setCompanyStore, setSession: setSessionStore, setChatHistory, setIsChatVisible, setIntroMessage: setIntroMessageStore, setBotName, setUserProblemStatement: setUserProblemStatementStore, getChatHistory, getPreferredLanguage } = useAICreationSessionStore.getState()
-  const { setStateMachineLength, setStrandStep, getStrandStep } = useChatDataSessionStore.getState()
+  const { getStateMachineLength, setStateMachineLength, setStrandStep, getStrandStep } = useChatDataSessionStore.getState()
 
   const [textMessage, setTextMessage] = useState("")
   const [isStreamingComplete, setIsStreamingComplete] = useState(true)
@@ -130,7 +130,8 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
       }
 
       const strand_step = getStrandStep()
-      if (Number.isInteger(strand_step) && Number.isInteger(stateMachineLength) && strand_step >= stateMachineLength) {
+      const state_machine_length = getStateMachineLength()
+      if (Number.isInteger(strand_step) && Number.isInteger(state_machine_length) && strand_step >= state_machine_length) {
         setShouldMoveForward("yes")
       }
     } else {

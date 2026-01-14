@@ -64,6 +64,8 @@ export const INITIAL_STATE = (set, get, store) => ({
 
   setStateMachineLength: stateMachineLength => set({ stateMachineLength }),
 
+  getStateMachineLength: () => get().stateMachineLength,
+
   setProjectId: projectId => set({ projectId }),
 
   setTaskId: taskId => set({ taskId }),
