@@ -90,7 +90,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
       setUserProblemStatementStore(userProblemStatement)
       if (message?.msg !== "") {
         if (message?.step && Number.isInteger(message?.step)) setStrandStep(message?.step)
-        const chat_history = [...getChatHistory()]
+        const chat_history = structuredClone(getChatHistory())
         if (chat_history.length > 0 && chat_history[chat_history.length - 1]?.source === BOT) {
           if (message?.msg) {
             chat_history[chat_history.length - 1].msg += message?.msg
@@ -345,8 +345,6 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
     lastBotMessageIndex.current = chatHistory?.length - 1
   }, [chatHistory])
 
-  useEffect(() => {}, [])
-
   useEffect(() => {
     if (recordings?.length && chatHistory[chatHistory?.length - 1]?.source !== BOT) {
       let chat_history = [...getChatHistory()]
@@ -357,7 +355,6 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
       }
       setChatHistory(chat_history)
     }
-    return () => {}
   }, [recordings, chatHistory])
 
   useEffect(() => {
@@ -442,7 +439,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
         return
       }
 
-      const chat_history = [...getChatHistory()]
+      const chat_history = structuredClone(getChatHistory())
       if (chatHistory[chatHistory?.length - 1]?.source === BOT) {
         const lastMessage = chat_history[chat_history?.length - 1]
         lastMessage.msg += " " + sentence
@@ -551,7 +548,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
 
   useEffect(() => {
     if (!!appendix?.length && Array.isArray(chatHistory) && chatHistory.length && chatHistory[chatHistory?.length - 1].source === BOT) {
-      const chat_history = [...getChatHistory()]
+      const chat_history = structuredClone(getChatHistory())
       const lastMessage = chat_history[chat_history?.length - 1]
       lastMessage.appendixURL = appendix
       lastMessage.hasAppendix = true
