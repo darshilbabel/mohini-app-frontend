@@ -36,6 +36,8 @@ export const INITIAL_STATE = (set, get, store) => ({
 
   getFlow: () => get().flow,
 
+  getStrandStep: () => get().strandStep,
+
   setSessionId: sessionId => set({ sessionId }),
 
   getSessionId: () => get().sessionId,
@@ -61,6 +63,8 @@ export const INITIAL_STATE = (set, get, store) => ({
   setSelectedType: selectedType => set({ selectedType }),
 
   setStateMachineLength: stateMachineLength => set({ stateMachineLength }),
+
+  getStateMachineLength: () => get().stateMachineLength,
 
   setProjectId: projectId => set({ projectId }),
 

@@ -1,6 +1,6 @@
-import { getDomainDetail } from "./utils";
+import { getDomainDetail } from "./utils"
 
-import ROUTES from "./url";
+import ROUTES from "./url"
 
 export const lang_codes = {
   kn: "kn-IN",
@@ -16,8 +16,8 @@ export const lang_codes = {
   ta: "ta-IN",
   bn: "bn-IN",
   id: "id-ID",
-  enus: "en-US"
-};
+  enus: "en-US",
+}
 
 export const bot_routes = {
   normal: "/",
@@ -38,7 +38,8 @@ export const bot_routes = {
   lfa_bot: "/lfa-bot",
   lcf_bot: "/lcf-bot",
   free_flow_bot: "/free-flow-bot",
-};
+  define_challenges: "/define-challenges",
+}
 
 // Flow types for initial switch validation
 export const FLOW_TYPES = {
@@ -46,7 +47,7 @@ export const FLOW_TYPES = {
   LFA: "LFA",
   LCF: "LCF",
   FREE_FLOW: "FREE_FLOW",
-};
+}
 
 export const bot_websocket = {
   normal: "/ws/shikshalokam_new/",
@@ -58,31 +59,30 @@ export const bot_websocket = {
   listening_activity: "/ws/common/",
   parent_perception_survey: "/ws/common/",
   creation: "/ws/common/",
-};
-
+}
 
 export const lang_routes = {
   en: "/",
   hi: "/hindi",
-};
+}
 
 export const company_list = {
   shikshalokam: "shikshalokam",
-};
+}
 
 export const company_host_list = {
   shikshalokam: "demo.shikshalokam.org",
-};
+}
 
 export const company_reroute_list = {
-  shikshalokam: "https://demo.shikshalokam.org"+ROUTES.LOGIN,
-};
+  shikshalokam: "https://demo.shikshalokam.org" + ROUTES.LOGIN,
+}
 
 export const company_register_list = {
   shikshalokam: ROUTES.SHIKSHALOKAM,
-};
+}
 
-export const all_companies = Object.keys(company_list);
+export const all_companies = Object.keys(company_list)
 
 export const available_languages = {
   [lang_codes.kn]: "Kannada (India)",
@@ -98,7 +98,7 @@ export const available_languages = {
   [lang_codes.ta]: "Tamil (India)",
   [lang_codes.bn]: "Bangla (India)",
   [lang_codes.id]: "Bahasa (Indonesia)",
-};
+}
 
 let init_config = {
   company_logo: "",
@@ -107,13 +107,12 @@ let init_config = {
   company_subdomain: "",
   company_name: "",
   preferredLanguage: lang_codes.en,
-  collab_logo: 'https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/shikshalokam-logo.png',
-  allowed_languages: [lang_codes.en]
-};
-
+  collab_logo: "https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/shikshalokam-logo.png",
+  allowed_languages: [lang_codes.en],
+}
 
 const getConfiguration = () => {
-  const result = getDomainDetail();
+  const result = getDomainDetail()
 
   try {
     switch (result.subdomain) {
@@ -121,24 +120,24 @@ const getConfiguration = () => {
       case "":
         return {
           ...init_config,
-          company_logo: 'https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/shikshalokam-logo.png',
+          company_logo: "https://mohini-static.shikshalokam.org/fe-images/PNG/Shikshalokam/shikshalokam-logo.png",
           after_login_url: ROUTES.STORY_LIST,
           websocket_url: "demo",
           company_subdomain: company_list.demo,
           company_name: "Demo",
-          collab_logo: '/images/shikshalokam_logo_pdf.png',
+          collab_logo: "/images/shikshalokam_logo_pdf.png",
           host: company_host_list.demo,
           reroute: company_reroute_list.demo,
           register_url: company_register_list.demo,
           preferredLanguage: lang_codes.en,
           allowed_languages: [lang_codes.hi, lang_codes.en],
-        };
+        }
       default:
-        return init_config;
+        return init_config
     }
   } catch (error) {
-    console.error({ error });
+    console.error({ error })
   }
-};
+}
 
-export default getConfiguration;
+export default getConfiguration

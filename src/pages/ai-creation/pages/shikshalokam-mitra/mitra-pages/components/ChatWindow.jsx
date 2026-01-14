@@ -7,7 +7,6 @@ function ChatWindow({
   isTalking,
   handleOnSpeaking,
   handleOnStopSpeaking,
-  botNameToDisplay,
   isStreamingComplete,
   setNotMute,
   userDetail,
@@ -156,7 +155,6 @@ function ChatWindow({
           >
             <div className={`div36 ${chat?.source === "user" && "div37"}`}>
               <ChatMessage
-                botNameToDisplay={botNameToDisplay}
                 userType={chat?.source}
                 message={`${chat?.msg}`}
                 name={"You"}
