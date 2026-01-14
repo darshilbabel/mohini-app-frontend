@@ -14,9 +14,9 @@ import { compareFlowTypesEquality } from '../../../utils/common_flow';
 
 const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected, isInitialSwitchSection }) => {
   const textInputRef = useRef(null);
-  const isConnectedRef = useRef(false); // Track real connection state
-  const hasAttemptedConnectionRef = useRef(false); // Track if connection was ever attempted
-  const pendingMessageRef = useRef(null); // Store pending message to send after websocket connects
+  const isConnectedRef = useRef(false); 
+  const hasAttemptedConnectionRef = useRef(false);
+  const pendingMessageRef = useRef(null);
   const [textMessage, setTextMessage] = useState('');
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [isSessionReady, setIsSessionReady] = useState(false);
@@ -88,7 +88,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
           context: '',
         });
         pendingMessageRef.current = null;
-      }, 100); // Small delay to ensure authentication is processed
+      }, 100);
     }
   }, []);
 
@@ -98,7 +98,6 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
 
   const onWebSocketError = useCallback(() => {
     isConnectedRef.current = false;
-    // Clear pending message on error to prevent stale sends
     pendingMessageRef.current = null;
     setIsWaitingForBot(false);
   }, []);

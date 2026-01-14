@@ -41,7 +41,6 @@ export const bot_routes = {
   define_challenges: "/define-challenges",
 }
 
-// Flow types for initial switch validation
 export const FLOW_TYPES = {
   MIP: "mip",
   LFA: "lfa",

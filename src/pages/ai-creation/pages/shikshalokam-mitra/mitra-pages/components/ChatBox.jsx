@@ -192,7 +192,6 @@ function ChatBox({
                       target: { value: transcriptResult }, 
                       preventDefault: () => {} 
                     });
-                    // Adjust textarea height after transcription is set
                     setTimeout(() => {
                       adjustTextareaHeight();
                     }, 0);

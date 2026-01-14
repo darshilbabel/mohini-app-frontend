@@ -55,7 +55,6 @@ export const shouldShowLanguageButton = languageButtonSelect => {
 }
 
 export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wssProtocol = 'wss://' }) {
-  // Handle SSO code path
   if (searchParams.get("code")) {
     // NOTE: revert this code after testing
     // return `${wssProtocol}${window.location.host}/ws/chat/company/`;
@@ -77,7 +76,6 @@ export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wss
     [sessionFlowName.Lcf]: bot_websocket.lcf,
   }
 
-  // Type-based flow to websocket mapping
   const normalTypeConfig = {
     normal: {
       [sessionFlowName.LoginMiStory]: bot_websocket.normal,

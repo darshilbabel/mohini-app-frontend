@@ -11,7 +11,6 @@ export const useChatWebhook = (url, options = {}) => {
   const [isConnected, setIsConnected] = useState(false)
 
   const connect = useCallback(() => {
-
     if (!url) return
 
     if (ws.current && (ws.current.readyState === WebSocket.CONNECTING || ws.current.readyState === WebSocket.OPEN)) {
