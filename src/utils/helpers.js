@@ -71,7 +71,10 @@ export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wss
     [sessionFlowName.LoginDiscussion]: bot_websocket.shikshalokam_chaupal,
     [sessionFlowName.ListeningActivity]: bot_websocket.listening_activity,
     [sessionFlowName.ParentPerceptionSurvey]: bot_websocket.parent_perception_survey,
-    [sessionFlowName.Creation]: bot_websocket.creation
+    [sessionFlowName.Creation]: bot_websocket.creation,
+    [sessionFlowName.FreeFlow]: bot_websocket.free_flow,
+    [sessionFlowName.Lfa]: bot_websocket.lfa,
+    [sessionFlowName.Lcf]: bot_websocket.lcf,
   }
 
   // Type-based flow to websocket mapping

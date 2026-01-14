@@ -43,10 +43,10 @@ export const bot_routes = {
 
 // Flow types for initial switch validation
 export const FLOW_TYPES = {
-  MIP: "MIP",
-  LFA: "LFA",
-  LCF: "LCF",
-  FREE_FLOW: "FREE_FLOW",
+  MIP: "mip",
+  LFA: "lfa",
+  LCF: "lcf",
+  FREE_FLOW: "free_flow",
 }
 
 export const bot_websocket = {
@@ -59,6 +59,9 @@ export const bot_websocket = {
   listening_activity: "/ws/common/",
   parent_perception_survey: "/ws/common/",
   creation: "/ws/common/",
+  free_flow: "/ws/free_flow/",
+  lfa: "/ws/free_flow/",
+  lcf: "/ws/free_flow/",
 }
 
 export const lang_routes = {

@@ -10,6 +10,7 @@ import { buildWebSocketUrl } from 'utils/helpers';
 import { sessionFlowName } from '../../../../ShikshalokamVoiceChat/enum';
 import { bot_routes, FLOW_TYPES } from '../../../../../configure';
 import { getNewSessionID } from '../../../../../api/endpoints/chat_flow';
+import { compareFlowTypesEquality } from '../../../utils/common_flow';
 
 const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected, isInitialSwitchSection }) => {
   const textInputRef = useRef(null);
@@ -136,17 +137,17 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
         
         setIsWaitingForBot(false);
         
-        if (validation === FLOW_TYPES.MIP) {
+        if (compareFlowTypesEquality(validation, FLOW_TYPES.MIP)) {
           useAICreationSessionStore.getState().setSelectedFlowType(FLOW_TYPES.MIP);
           onFlowTypeSelectedRef.current?.(FLOW_TYPES.MIP);
         } else if (
-          validation === FLOW_TYPES.LFA || 
-          validation === FLOW_TYPES.LCF || 
-          validation === FLOW_TYPES.FREE_FLOW
+          compareFlowTypesEquality(validation, FLOW_TYPES.LFA) || 
+          compareFlowTypesEquality(validation, FLOW_TYPES.LCF) || 
+          compareFlowTypesEquality(validation, FLOW_TYPES.FREE_FLOW)
         ) {
           // Other flows - use CommonFlow
-          useAICreationSessionStore.getState().setSelectedFlowType(validation);
-          onFlowTypeSelectedRef.current?.(validation);
+          useAICreationSessionStore.getState().setSelectedFlowType(validation?.toLowerCase());
+          onFlowTypeSelectedRef.current?.(validation?.toLowerCase());
         }
       }
     },

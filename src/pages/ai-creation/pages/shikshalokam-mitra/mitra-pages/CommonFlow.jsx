@@ -127,7 +127,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
-      storageFlow: sessionFlowName.Creation,
+      storageFlow,
       selectedType: '',
     }),
     {
@@ -137,6 +137,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       reconnect: false,
     }
   );
+
 
   useEffect(() => {
     return () => {
