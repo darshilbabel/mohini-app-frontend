@@ -13,7 +13,9 @@ import { getNewSessionID } from '../../../../../api/endpoints/chat_flow';
 
 const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected, isInitialSwitchSection }) => {
   const textInputRef = useRef(null);
-  const hasConnectedRef = useRef(false);
+  const isConnectedRef = useRef(false); // Track real connection state
+  const hasAttemptedConnectionRef = useRef(false); // Track if connection was ever attempted
+  const pendingMessageRef = useRef(null); // Store pending message to send after websocket connects
   const [textMessage, setTextMessage] = useState('');
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [isSessionReady, setIsSessionReady] = useState(false);
@@ -22,7 +24,6 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
   const handleScrollIntoViewRef = useRef(handleScrollIntoView);
   const onFlowTypeSelectedRef = useRef(onFlowTypeSelected);
 
-  // Keep refs up to date
   useEffect(() => {
     handleScrollIntoViewRef.current = handleScrollIntoView;
     onFlowTypeSelectedRef.current = onFlowTypeSelected;
@@ -40,15 +41,11 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
 
   const {
     profileId,
-    getSession,
-    getPreferredLanguage,
     setSession: setSessionStore,
   } = useAICreationSessionStore.getState();
 
   const [searchParams] = useSearchParams();
   const storageFlow = sessionFlowName.Creation;
-  const [sessionId, setSessionId] = useState(getSession());
-  const chatLanguage = getPreferredLanguage() || 'en';
   const accessToken = sessionStorage.getItem("accToken");
 
   useEffect(() => {
@@ -57,9 +54,6 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
       if (!currentSessionId) {
         const session = await getNewSessionID();
         setSessionStore(session);
-        setSessionId(session);
-      } else {
-        setSessionId(currentSessionId);
       }
 
       const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {};
@@ -72,8 +66,9 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
     initializeSession();
   }, []);
 
-  // Use stable callbacks that read from refs to prevent websocket reconnection
   const onWebSocketOpen = useCallback(() => {
+    isConnectedRef.current = true;
+    
     const currentSessionId = useAICreationSessionStore.getState().getSession();
     sendSocketMessage({
       type: 'authenticate',
@@ -84,7 +79,28 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
       bot_route: bot_routes.initial_switch_bot,
       flow_name: storageFlow,
     });
-  }, []); // Empty deps - reads from store directly
+
+    if (pendingMessageRef.current) {
+      setTimeout(() => {
+        sendSocketMessage({
+          text: pendingMessageRef.current,
+          context: '',
+        });
+        pendingMessageRef.current = null;
+      }, 100); // Small delay to ensure authentication is processed
+    }
+  }, []);
+
+  const onWebSocketClose = useCallback(() => {
+    isConnectedRef.current = false;
+  }, []);
+
+  const onWebSocketError = useCallback(() => {
+    isConnectedRef.current = false;
+    // Clear pending message on error to prevent stale sends
+    pendingMessageRef.current = null;
+    setIsWaitingForBot(false);
+  }, []);
 
   const onWebSocketMessage = useCallback(
     (event) => {
@@ -134,7 +150,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
         }
       }
     },
-    [] // Empty deps - uses refs for callback access
+    []
   );
 
   const {
@@ -146,26 +162,26 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
       searchParams,
       storageFlow,
       selectedType: '',
-      wssProtocol: 'wss://',
     }),
     {
       onOpen: onWebSocketOpen,
       onMessage: onWebSocketMessage,
+      onClose: onWebSocketClose,
+      onError: onWebSocketError,
       autoConnect: false,
+      reconnect: false,
     }
   );
 
   useEffect(() => {
-    if (!isSessionReady || hasConnectedRef.current) return;
-    
-    hasConnectedRef.current = true;
-    connectToWebSocket();
-
     return () => {
-      disconnect();
-      hasConnectedRef.current = false;
+      if (hasAttemptedConnectionRef.current) {
+        disconnect();
+        isConnectedRef.current = false;
+        hasAttemptedConnectionRef.current = false;
+      }
     };
-  }, [isSessionReady]);
+  }, []);
 
   useEffect(() => {
     if (initialSwitchChatHistory?.length > 0) {
@@ -177,7 +193,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
     event?.preventDefault();
     event?.stopPropagation();
 
-    if (!textMessage.trim()) return;
+    if (!textMessage.trim() || !isSessionReady) return;
 
     const newMessage = {
       msg: textMessage,
@@ -199,10 +215,17 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
     setIsWaitingForBot(true);
     setIsWelcomeScreen(false);
 
-    sendSocketMessage({
-      text: textMessage,
-      context: '',
-    });
+    if (!isConnectedRef.current) {
+      // Not connected - store message and connect (or reconnect)
+      pendingMessageRef.current = textMessage;
+      hasAttemptedConnectionRef.current = true;
+      connectToWebSocket();
+    } else {
+      sendSocketMessage({
+        text: textMessage,
+        context: '',
+      });
+    }
 
     handleScrollIntoView?.();
     setTextMessage('');

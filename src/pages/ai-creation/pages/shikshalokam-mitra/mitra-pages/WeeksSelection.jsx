@@ -159,7 +159,6 @@ function WeeksSelection({
       searchParams,
       storageFlow,
       selectedType: "",
-      wssProtocol: "wss://",
     }),
     {
       onOpen: onWebSocketOpen,
