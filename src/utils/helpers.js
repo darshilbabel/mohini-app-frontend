@@ -54,7 +54,7 @@ export const shouldShowLanguageButton = languageButtonSelect => {
   return languageButtonSelect && ![null, ""].includes(languageButtonSelect)
 }
 
-export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wssProtocol }) {
+export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wssProtocol = 'wss://' }) {
   // Handle SSO code path
   if (searchParams.get("code")) {
     // NOTE: revert this code after testing

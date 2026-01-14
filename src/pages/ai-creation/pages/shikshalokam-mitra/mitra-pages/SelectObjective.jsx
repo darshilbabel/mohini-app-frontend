@@ -147,7 +147,6 @@ function SelectObjective({
   const [searchParams] = useSearchParams()
   const storageFlow = sessionFlowName.Creation;
   const selectedType = ""
-  const wss_protocol = "wss://"
   const sessionId = useAICreationSessionStore.getState().getSession();
   const chatLanguage = useAICreationSessionStore.getState().getPreferredLanguage();
   let accessToken = sessionStorage.getItem("accToken");
@@ -299,14 +298,12 @@ function SelectObjective({
   const {
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
-    isFreshConnection,
     disconnect
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
       storageFlow,
       selectedType,
-      wssProtocol: wss_protocol,
     }),
     {
       onOpen: onWebSocketOpen,
@@ -327,46 +324,6 @@ function SelectObjective({
   }, [disconnect])
 
 
-  
-
-  function handleSendMessage(event) {
-    if (event) {
-      event.preventDefault()
-      event.stopPropagation()
-    }
-
-    if (!textMessage.trim()) return
-
-
-    const newMessage = {
-      msg: textMessage,
-      source: "user",
-      updated_at: Date.now(),
-    }
-
-    setObjectiveChatHistory(prev => [...prev, newMessage])
-
-    // Update store - get current value first, then set new value
-    const currentStoreHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
-    useAICreationSessionStore.getState().setObjectiveChatHistory([...currentStoreHistory, newMessage])
-
-    if(hasClickedOnAddmore) {
-      handleInputSend(textMessage)
-      setIsOwnObjective(true)
-      setHasClickedOnAddmore(false)
-    }
-    else {
-      sendSocketMessage({
-        text: textMessage,
-        context: "",
-        // asr_audio: asrAudio,
-      })
-    }
-    
-
-    handleScrollIntoView();
-    setTextMessage("")
-  }
 
   useEffect(() => {
 
@@ -836,18 +793,7 @@ function SelectObjective({
 
           {isSelectObjectiveSection ? (
             <></>
-            // <div className="mt-5">
-            //   <ChatBox
-            //     textInputRef={textInputRef}
-            //     textMessage={textMessage}
-            //     handleOnInputText={handleOnInputText}
-            //     setUseTextbox={setUseTextbox}
-            //     handleSendMessage={handleSendMessage}
-            //     isReadOnly={false}
-            //   />
-            // </div>
           ) : !isOwnObjective && (
-            // <></>
             <div className={`div35 label1`}>
               <div className={`div36 div37`}>
                 <ChatMessage 
@@ -869,7 +815,6 @@ export function FinalObjectivePage({
   handleContinueClick,
   errorText,
   setErrorText,
-  hasClickedOnAddmore,
   isSelectObjectiveSection,
   setHasClickedOnAddmore,
 }) {

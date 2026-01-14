@@ -48,22 +48,6 @@ export const FLOW_TYPES = {
   FREE_FLOW: "FREE_FLOW",
 };
 
-// Mapping of flow types to their bot routes and flow names
-export const FLOW_CONFIG = {
-  [FLOW_TYPES.LFA]: {
-    bot_route: "/lfa-bot",
-    flow_name: "lfa",
-  },
-  [FLOW_TYPES.LCF]: {
-    bot_route: "/lcf-bot",
-    flow_name: "lcf",
-  },
-  [FLOW_TYPES.FREE_FLOW]: {
-    bot_route: "/free-flow-bot",
-    flow_name: "free_flow",
-  },
-};
-
 export const bot_websocket = {
   normal: "/ws/shikshalokam_new/",
   guest_normal: "/ws/guided_guest/",

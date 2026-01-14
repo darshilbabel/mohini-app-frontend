@@ -192,6 +192,10 @@ function ChatBox({
                       target: { value: transcriptResult }, 
                       preventDefault: () => {} 
                     });
+                    // Adjust textarea height after transcription is set
+                    setTimeout(() => {
+                      adjustTextareaHeight();
+                    }, 0);
                   }
                 }
               } catch (error) {
@@ -272,6 +276,26 @@ function ChatBox({
       textInputRef.current.style.height = "24px"
       textInputRef.current.style.overflowY = "hidden"
     }
+  }
+
+  const adjustTextareaHeight = () => {
+    if (!textInputRef?.current) return
+    
+    const el = textInputRef.current
+    const minHeight = 24
+    const maxHeight = 100
+    
+    el.style.height = "auto"
+    
+    if (!el.value) {
+      el.style.height = `${minHeight}px`
+      el.style.overflowY = "hidden"
+      return
+    }
+    
+    const nextHeight = Math.min(el.scrollHeight, maxHeight)
+    el.style.height = `${nextHeight}px`
+    el.style.overflowY = nextHeight >= maxHeight ? "auto" : "hidden"
   }
 
   return (

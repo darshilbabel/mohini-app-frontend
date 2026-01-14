@@ -66,7 +66,6 @@ const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
 // const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
@@ -305,7 +304,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       searchParams,
       storageFlow,
       selectedType,
-      wssProtocol: wss_protocol,
     }),
     {
       onOpen: onWebSocketOpen,
