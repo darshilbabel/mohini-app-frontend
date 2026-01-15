@@ -95,25 +95,36 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       const data = JSON.parse(event.data);
       const message = data?.text;
 
-      if (message?.msg && message?.source === 'bot') {
-        const newMessage = {
-          msg: message.msg,
-          source: 'bot',
-          updated_at: Date.now(),
-        };
+      if (message?.source === 'bot') {
+        setCommonFlowChatHistory((prevChatHistory) => {
+          const updatedChatHistory = [...prevChatHistory];
 
-        setCommonFlowChatHistory((prev) => [...prev, newMessage]);
+          if (
+            updatedChatHistory.length > 0 &&
+            updatedChatHistory[updatedChatHistory.length - 1]?.source === 'bot'
+          ) {
+            if (message?.msg) {
+              updatedChatHistory[updatedChatHistory.length - 1].msg += message?.msg;
+            }
+          } else {
+            updatedChatHistory.push({
+              msg: message?.msg || '',
+              source: 'bot',
+              updated_at: Date.now(),
+            });
+          }
 
-        const currentStoreHistory =
           useAICreationSessionStore
             .getState()
-            .getCommonFlowChatHistory();
+            .setCommonFlowChatHistory(updatedChatHistory);
 
-        useAICreationSessionStore
-          .getState()
-          .setCommonFlowChatHistory([...currentStoreHistory, newMessage]);
+          return updatedChatHistory;
+        });
 
-        setIsWaitingForBot(false);
+        if (message?.finish_reason === 'stop') {
+          setIsWaitingForBot(false);
+        }
+
         handleScrollIntoViewRef.current?.();
       }
     },
