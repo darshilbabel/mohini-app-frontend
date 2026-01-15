@@ -7,16 +7,24 @@ import BotMessage from './components/chat-message/BotMessage';
 import { useAICreationSessionStore } from 'store';
 import { useChatWebhook } from 'hooks/useChatWebhook';
 import { buildWebSocketUrl } from 'utils/helpers';
-import { FLOW_TYPES, FLOW_CONFIG, bot_routes } from '../../../../../configure';
 import { getTranslatedIntroMessageApi } from '../../../../../api/endpoints/ai';
 import { sessionFlowName } from '../../../../ShikshalokamVoiceChat/enum';
+import { getBotConfigForFlow } from '../../../utils/common_flow';
 
 const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const textInputRef = useRef(null);
+  const hasConnectedRef = useRef(false);
+  const pendingMessageRef = useRef(null);
   const [textMessage, setTextMessage] = useState('');
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [introMessage, setIntroMessage] = useState(null);
   const [isLoadingIntro, setIsLoadingIntro] = useState(true);
+
+  const handleScrollIntoViewRef = useRef(handleScrollIntoView);
+
+  useEffect(() => {
+    handleScrollIntoViewRef.current = handleScrollIntoView;
+  }, [handleScrollIntoView]);
 
   const localChatHistory = useAICreationSessionStore.getState().getCommonFlowChatHistory();
 
@@ -24,31 +32,13 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     localChatHistory?.length ? localChatHistory : []
   );
 
-  const {
-    profileId,
-    getSession,
-  } = useAICreationSessionStore.getState();
+  const { profileId } = useAICreationSessionStore.getState();
 
   const [searchParams] = useSearchParams();
-  const sessionId = getSession();
   const accessToken = sessionStorage.getItem('accToken');
 
-  const flowConfig = FLOW_CONFIG[flowType] || FLOW_CONFIG[FLOW_TYPES.FREE_FLOW];
-  const storageFlow = flowConfig.flow_name;
-  const botRoute = flowConfig.bot_route;
-
-  const getBotRouteForIntro = () => {
-    switch (flowType) {
-      case FLOW_TYPES.LFA:
-        return bot_routes.lfa_bot;
-      case FLOW_TYPES.LCF:
-        return bot_routes.lcf_bot;
-      case FLOW_TYPES.FREE_FLOW:
-        return bot_routes.free_flow_bot;
-      default:
-        return bot_routes.free_flow_bot;
-    }
-  };
+  const storageFlow = getBotConfigForFlow(flowType).flow_name;
+  const botRoute = getBotConfigForFlow(flowType).route;
 
   useEffect(() => {
     const fetchIntroMessage = async () => {
@@ -56,7 +46,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
         setIsLoadingIntro(true);
         const response = await getTranslatedIntroMessageApi({
           language: 'en',
-          company_bot__route: getBotRouteForIntro(),
+          company_bot__route: botRoute,
         });
         const message = response?.[0]?.alt_introductory_message;
         setIntroMessage(message);
@@ -78,17 +68,27 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   }, [flowType]);
 
   const onWebSocketOpen = useCallback(() => {
-
+    const currentSessionId = useAICreationSessionStore.getState().getSession();
     sendSocketMessage({
       type: 'authenticate',
-      sessionid: sessionId,
+      sessionid: currentSessionId,
       profileid: profileId,
       access_token: accessToken,
       route: 'en',
       bot_route: botRoute,
       flow_name: storageFlow,
     });
-  }, [sessionId, profileId, accessToken, botRoute, storageFlow]);
+
+    if (pendingMessageRef.current) {
+      setTimeout(() => {
+        sendSocketMessage({
+          text: pendingMessageRef.current,
+          context: '',
+        });
+        pendingMessageRef.current = null;
+      }, 100);
+    }
+  }, [profileId, accessToken, botRoute, storageFlow]);
 
   const onWebSocketMessage = useCallback(
     (event) => {
@@ -114,10 +114,10 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
           .setCommonFlowChatHistory([...currentStoreHistory, newMessage]);
 
         setIsWaitingForBot(false);
-        handleScrollIntoView?.();
+        handleScrollIntoViewRef.current?.();
       }
     },
-    [handleScrollIntoView]
+    []
   );
 
   const {
@@ -127,24 +127,26 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
-      storageFlow: sessionFlowName.Creation,
+      storageFlow,
       selectedType: '',
-      wssProtocol: 'wss://',
     }),
     {
       onOpen: onWebSocketOpen,
       onMessage: onWebSocketMessage,
       autoConnect: false,
+      reconnect: false,
     }
   );
 
-  useEffect(() => {
-    connectToWebSocket();
 
+  useEffect(() => {
     return () => {
-      disconnect();
+      if (hasConnectedRef.current) {
+        disconnect();
+        hasConnectedRef.current = false;
+      }
     };
-  }, [connectToWebSocket, disconnect]);
+  }, []);
 
   const handleSendMessage = (event) => {
     event?.preventDefault();
@@ -171,10 +173,16 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
 
     setIsWaitingForBot(true);
 
-    sendSocketMessage({
-      text: textMessage,
-      context: '',
-    });
+    if (!hasConnectedRef.current) {
+      pendingMessageRef.current = textMessage;
+      hasConnectedRef.current = true;
+      connectToWebSocket();
+    } else {
+      sendSocketMessage({
+        text: textMessage,
+        context: '',
+      });
+    }
 
     handleScrollIntoView?.();
     setTextMessage('');

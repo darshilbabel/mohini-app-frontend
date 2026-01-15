@@ -41,28 +41,11 @@ export const bot_routes = {
   define_challenges: "/define-challenges",
 }
 
-// Flow types for initial switch validation
 export const FLOW_TYPES = {
-  MIP: "MIP",
-  LFA: "LFA",
-  LCF: "LCF",
-  FREE_FLOW: "FREE_FLOW",
-}
-
-// Mapping of flow types to their bot routes and flow names
-export const FLOW_CONFIG = {
-  [FLOW_TYPES.LFA]: {
-    bot_route: "/lfa-bot",
-    flow_name: "lfa",
-  },
-  [FLOW_TYPES.LCF]: {
-    bot_route: "/lcf-bot",
-    flow_name: "lcf",
-  },
-  [FLOW_TYPES.FREE_FLOW]: {
-    bot_route: "/free-flow-bot",
-    flow_name: "free_flow",
-  },
+  MIP: "mip",
+  LFA: "lfa",
+  LCF: "lcf",
+  FREE_FLOW: "free_flow",
 }
 
 export const bot_websocket = {
@@ -75,6 +58,9 @@ export const bot_websocket = {
   listening_activity: "/ws/common/",
   parent_perception_survey: "/ws/common/",
   creation: "/ws/common/",
+  free_flow: "/ws/free_flow/",
+  lfa: "/ws/free_flow/",
+  lcf: "/ws/free_flow/",
 }
 
 export const lang_routes = {

@@ -41,6 +41,9 @@ export const sessionFlowName = {
   ListeningActivity: "listening-activity",
   ParentPerceptionSurvey: "parent_perception_survey",
   Creation: "creation",
+  Lfa: "lfa",
+  Lcf: "lcf",
+  FreeFlow: "free_flow",
 };
 
 export const PTM_CONVERSATION_STATUS_TYPE = {

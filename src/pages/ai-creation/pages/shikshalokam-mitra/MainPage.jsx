@@ -25,6 +25,7 @@ import { useAICreationSessionStore } from "store";
 import InitialSwitch from "./mitra-pages/InitialSwitch";
 import { getTranslatedIntroMessageApi } from "../../../../api/endpoints/ai";
 import { bot_routes, FLOW_TYPES } from "../../../../configure";
+import { compareFlowTypesEquality } from "../../utils/common_flow";
 
 function MainPage() {
   const { t } = useTranslation("ai_creation_translation");
@@ -250,7 +251,7 @@ function MainPage() {
 
   const handleFlowTypeSelected = (flowType) => {
     setSelectedFlowType(flowType);
-    if (flowType === FLOW_TYPES.MIP) {
+    if (compareFlowTypesEquality(flowType, FLOW_TYPES.MIP)) {
       // For MIP, move to DefineChallenge page
       setCurrentPage({
         0: false,
@@ -301,9 +302,9 @@ function MainPage() {
     const isTitleGenerationSection = currentPage["5"];
 
     const isCommonFlow = selectedFlowType && 
-      (selectedFlowType === FLOW_TYPES.LFA || 
-       selectedFlowType === FLOW_TYPES.LCF || 
-       selectedFlowType === FLOW_TYPES.FREE_FLOW);
+      (compareFlowTypesEquality(selectedFlowType, FLOW_TYPES.LFA) || 
+       compareFlowTypesEquality(selectedFlowType, FLOW_TYPES.LCF) || 
+       compareFlowTypesEquality(selectedFlowType, FLOW_TYPES.FREE_FLOW));
 
     components.push(
       <InitialSwitch 

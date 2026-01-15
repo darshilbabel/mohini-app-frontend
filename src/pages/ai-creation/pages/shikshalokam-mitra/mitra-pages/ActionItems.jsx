@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 /* icons */
@@ -28,7 +28,6 @@ import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 import "../stylesheet/chatStyle.css";
 import { useAICreationSessionStore } from "store";
 import ChatWindow from "./components/ChatWindow";
-import ChatBox from "./components/ChatBox";
 import { useSearchParams } from "react-router-dom";
 import { sessionFlowName } from "../../../../ShikshalokamVoiceChat/enum";
 import { bot_routes } from "../../../../../configure";
@@ -45,12 +44,9 @@ function ActionItems({
   isBotTalking,
   handleSpeakerOn,
   handleSpeakerOff,
-  setIsLoading,
   isLoading,
   handleGoBack,
   setCurrentPageValue,
-  handleGoForward,
-  setChatHistory,
   errorText,
   setErrorText,
   isSelectActionItems,
@@ -89,9 +85,7 @@ function ActionItems({
     return false;
   });
 
-  const textInputRef = useRef(null);
   const [textMessage, setTextMessage] = useState("");
-  const [useTextbox, setUseTextbox] = useState(false);
   const [goBack, setGoBack] = useState(false)
   const [showSelectedActionLoader, setShowSelectedActionLoader] = useState(false)
 
@@ -103,7 +97,6 @@ function ActionItems({
   const [searchParams] = useSearchParams()
   const storageFlow = sessionFlowName.Creation;
   const selectedType = ""
-  const wss_protocol = "wss://"
   const sessionId = useAICreationSessionStore.getState().getSession();
 
   const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setActionListChatHistory: setActionListChatHistoryStore, setSelectedObjective: setSelectedObjectiveStore, setErrorText: setErrorTextStore } = useAICreationSessionStore.getState()
@@ -181,14 +174,12 @@ function ActionItems({
   const {
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
-    isFreshConnection,
     disconnect
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
       storageFlow,
       selectedType,
-      wssProtocol: wss_protocol,
     }),
     {
       onOpen: onWebSocketOpen,
