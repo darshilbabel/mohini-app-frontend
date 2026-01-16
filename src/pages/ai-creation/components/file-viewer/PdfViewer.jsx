@@ -18,23 +18,6 @@ import { trackSolutionDownload } from "api/endpoints/analytics";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-function useMedia() {
-  const possibleKeys = Object.keys(sessionStorage);
-
-  for (const key of possibleKeys) {
-    try {
-      const parsed = JSON.parse(sessionStorage.getItem(key));
-      if (parsed?.state?.media) {
-        return parsed.state.media;
-      }
-    } catch {
-    }
-  }
-
-  return [];
-}
-
-
 function PdfViewer({
   url = "",
   fileName,
@@ -49,7 +32,7 @@ function PdfViewer({
     isDownloadVisible = true,
     showBotMessage = true,
   } = visibilityConfig;
-  const media = useMedia();
+  const media = useAICreationSessionStore((state) => state.media);
 
   const [totalPages, setTotalPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
