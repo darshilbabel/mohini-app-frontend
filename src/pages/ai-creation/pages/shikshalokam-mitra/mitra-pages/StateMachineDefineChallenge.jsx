@@ -135,7 +135,20 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
       if (Number.isInteger(strand_step) && Number.isInteger(state_machine_length) && strand_step >= state_machine_length && Array.isArray(chat_history) && chat_history.length && chat_history[chat_history.length - 1]?.source === BOT && isStreamingComplete) {
         setIsParaphraseLoading(true)
         paraphraseChatConversation(session).then(resp => {
-          setUserProblemStatement(resp.problem_statement)
+          setUserProblemStatement(resp.comprehensive_paragraph)
+
+          const chat_history_updated = [...chat_history]
+          chat_history_updated.push({
+            "msg": resp.comprehensive_paragraph,
+            "updated_at": Date.now(),
+            "problemStatement": "",
+            "shouldMoveForward": "yes",
+            "source": BOT,
+            "validation": ""
+          })
+          setChatHistory(chat_history_updated)
+        }).catch(err => {
+          console.error(err)
         }).finally(() => {
           setIsParaphraseLoading(false)
           setShouldMoveForward("yes")
