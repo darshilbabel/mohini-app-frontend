@@ -226,3 +226,11 @@ export async function validateActionList(user_input, user_objective, problem_sta
         throw error;
     }
 }
+
+export async function paraphraseChatConversation(session_id) {
+    const response = await axiosInstance.post(API_ENDPOINTS.PARAPHRASE, {
+        session_id
+    });
+
+    return response?.data?.paraphrased_output;
+}
