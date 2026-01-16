@@ -16,6 +16,7 @@ function ChatWindow({
   isDefineChallengeSection,
   scrollRef,
   page,
+  isParaphraseLoading = false,
 }) {
 
 
@@ -180,9 +181,15 @@ function ChatWindow({
                 userDetail={userDetail}
               />
             </div>
-            {getShowLoadingChat(i) && <><LoadingChat /></>}
+            {getShowLoadingChat(i) && <LoadingChat />}
           </li>
         ))}
+        {/* Show paraphrase loader once at the end of the chat list */}
+        {isParaphraseLoading && (
+          <li className="div35 label1">
+            <LoadingChat />
+          </li>
+        )}
       </ul>
       <div id="last-chat-boundary" className="div38" />
     </div>
