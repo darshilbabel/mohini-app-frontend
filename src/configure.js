@@ -58,9 +58,9 @@ export const bot_websocket = {
   listening_activity: "/ws/common/",
   parent_perception_survey: "/ws/common/",
   creation: "/ws/common/",
-  free_flow: "/ws/free_flow/",
-  lfa: "/ws/free_flow/",
-  lcf: "/ws/free_flow/",
+  free_flow: "/ws/common/",
+  lfa: "/ws/common/",
+  lcf: "/ws/common/",
 }
 
 export const lang_routes = {
