@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Document, Page, pdfjs } from "react-pdf";
 import { handleShareFile, handleDownloadFile } from "../../utils/file";
+import FileActionDropdown from "../file-viewer/FileActionDropdown";
 import {
   FILE_TYPES,
   DEFAULT_FILE_WIDTH,
@@ -14,6 +15,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 import BotMessage from "../../pages/shikshalokam-mitra/mitra-pages/components/chat-message/BotMessage";
 import { useAICreationSessionStore } from "store";
 import { trackSolutionDownload } from "api/endpoints/analytics";
+
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function PdfViewer({
@@ -24,11 +26,13 @@ function PdfViewer({
   visibilityConfig = {},
 }) {
   const { t } = useTranslation("ai_creation_translation");
+
   const {
     isShareVisible = true,
     isDownloadVisible = true,
     showBotMessage = true,
   } = visibilityConfig;
+  const media = useAICreationSessionStore((state) => state.media);
 
   const [totalPages, setTotalPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
@@ -36,14 +40,35 @@ function PdfViewer({
   const [error, setError] = useState(null);
   const [pageWidth, setPageWidth] = useState(DEFAULT_FILE_WIDTH);
 
-  const isShareButtonVisible = isShareVisible && !!url?.length;
-  const isDownloadButtonVisible = isDownloadVisible && !!url?.length;
+  const isShareButtonVisible = isShareVisible && media.length > 0;
+  const isDownloadButtonVisible = isDownloadVisible && media.length > 0;
+
   const projectId = useAICreationSessionStore((state) => state.projectId);
 
-  const handleDownload = () => {
-    trackSolutionDownload(projectId);
-    handleDownloadFile(url, fileName, fileExtension, (error) => setError(error));
-  };
+
+  const handleDownloadSelect = (media) => {
+  const extension = media.file_name.split(".").pop();
+
+  trackSolutionDownload(projectId);
+  handleDownloadFile(
+    media.url,
+    media.file_name,
+    extension,
+    setError
+  );
+};
+
+const handleShareSelect = (media) => {
+  const extension = media.file_name.split(".").pop();
+
+  handleShareFile(
+    media.url,
+    media.file_name,
+    extension,
+    media.media_type,
+    setError
+  );
+};
 
   function onDocumentLoadSuccess({ numPages }) {
     setTotalPages(numPages);
@@ -51,8 +76,8 @@ function PdfViewer({
     setError(null);
   }
 
-  function onDocumentLoadError(error) {
-    console.error("Error loading PDF:", error);
+  function onDocumentLoadError(err) {
+    console.error("Error loading PDF:", err);
     setError("Failed to load PDF. Please try again.");
     setLoading(false);
   }
@@ -76,10 +101,9 @@ function PdfViewer({
 
     updateWidth();
     window.addEventListener("resize", updateWidth);
-    return () => {
-      window.removeEventListener("resize", updateWidth);
-    };
+    return () => window.removeEventListener("resize", updateWidth);
   }, []);
+
 
   return (
     <div className="flex flex-col items-center">
@@ -115,41 +139,34 @@ function PdfViewer({
             onLoadError={onDocumentLoadError}
             loading={<div>Loading PDF...</div>}
           >
-            <div>
-              <BotMessage primaryMessage={"Here is your Improvement plan"} />
-            </div>
+            {showBotMessage && (
+              <BotMessage primaryMessage="Here is your Improvement plan" />
+            )}
+
             <div className="flex flex-row-reverse gap-2.5 my-5">
               {isDownloadButtonVisible && (
-                <button
-                  onClick={handleDownload}
-                  className="w-[106px] h-[35px] flex items-center justify-center gap-[8px] rounded-md border border-[#572E91] p-2 bg-[#572E91] font-['Manrope'] font-medium text-sm leading-none text-white"
-                >
-                  <BsDownload />
-                  {t("common.download")}
-                </button>
+                <FileActionDropdown
+                  label={t("common.download")}
+                  icon={BsDownload}
+                  options={media}
+                  onSelect={handleDownloadSelect}
+                />
               )}
+
               {isShareButtonVisible && (
-                <button
-                  onClick={() =>
-                    handleShareFile(
-                      url,
-                      fileName,
-                      FILE_EXTENSIONS.PDF,
-                      FILE_TYPES.PDF,
-                      (error) => setError(error)
-                    )
-                  }
-                  className="w-[79px] h-[35px] flex items-center justify-center gap-[8px] rounded-md border border-[#572E91] p-2 bg-[#572E91] font-['Manrope'] font-medium text-sm leading-none text-white"
-                >
-                  <IoShareSocialOutline />
-                  {t("common.share")}
-                </button>
+                <FileActionDropdown
+                  label={t("common.share")}
+                  icon={IoShareSocialOutline}
+                  options={media}
+                  onSelect={handleShareSelect}
+                />
               )}
             </div>
+
             <Page
               pageNumber={pageNumber}
-              renderTextLayer={true}
-              renderAnnotationLayer={true}
+              renderTextLayer
+              renderAnnotationLayer
               width={pageWidth}
             />
           </Document>
