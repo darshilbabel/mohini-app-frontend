@@ -1,17 +1,17 @@
 import { bot_routes } from "../../../../../configure"
-import { clearMitraSessionStorage, ShowLoader } from "../MainPage"
+import { clearMitraSessionStorage } from "../MainPage"
 import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants"
-import { createUserProfileApi, getTranslatedIntroMessageApi, getSessionDetailsApi, getCompanyBotApi, getChatSessionApi } from "../../../../../api/endpoints"
+import { createUserProfileApi, getTranslatedIntroMessageApi, getSessionDetailsApi, getCompanyBotApi, getChatSessionApi, paraphraseChatConversation } from "../../../../../api/endpoints"
 import { DEFAULT_COMPANY_SLUG } from "../../../../../constants/session"
 import { FIRST_BOT_MESSAGE } from "../../../constants/mitra-chat"
 import { getAI4BharatAudioApi } from "api/endpoints/ai"
 import { URL_PARAMS } from "../../../../../constants/urls"
 import { useAudio } from "../../../../../hooks/useAudio"
-import { useCallback, useEffect, useRef, useState, useMemo } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useChatDataSessionStore } from "../../../../../store"
 import { useChatWebhook } from "../../../../../hooks/useChatWebhook"
 import { useNavigate } from "react-router-dom"
-import { useSiteDataLocalStore, useAICreationSessionStore } from "store"
+import { useSiteDataLocalStore, useAICreationSessionStore } from "../../../../../store"
 import ChatBox from "./components/ChatBox"
 import ChatWindow from "./components/ChatWindow"
 import env from "../../../../../utils/env"
@@ -34,12 +34,12 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
   const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
   const profileId = useAICreationSessionStore(state => state.profileId)
   const session = useAICreationSessionStore(state => state.session)
-  const stateMachineLength = useChatDataSessionStore(state => state.stateMachineLength)
-
   const { setChatLanguage } = useSiteDataLocalStore.getState()
   const { setSystemError: setSystemErrorStore, setProfileId, setFirstName, setCompany: setCompanyStore, setSession: setSessionStore, setChatHistory, setIsChatVisible, setIntroMessage: setIntroMessageStore, setBotName, setUserProblemStatement: setUserProblemStatementStore, getChatHistory, getPreferredLanguage } = useAICreationSessionStore.getState()
   const { getStateMachineLength, setStateMachineLength, setStrandStep, getStrandStep } = useChatDataSessionStore.getState()
+  const { setUserProblemStatement } = useAICreationSessionStore.getState()
 
+  const [isParaphraseLoading, setIsParaphraseLoading] = useState(false)
   const [textMessage, setTextMessage] = useState("")
   const [isStreamingComplete, setIsStreamingComplete] = useState(true)
   const [audioCache, setAudioCache] = useState({})
@@ -131,8 +131,15 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
 
       const strand_step = getStrandStep()
       const state_machine_length = getStateMachineLength()
-      if (Number.isInteger(strand_step) && Number.isInteger(state_machine_length) && strand_step >= state_machine_length) {
-        setShouldMoveForward("yes")
+      const chat_history = getChatHistory()
+      if (Number.isInteger(strand_step) && Number.isInteger(state_machine_length) && strand_step >= state_machine_length && Array.isArray(chat_history) && chat_history.length && chat_history[chat_history.length - 1]?.source === BOT && isStreamingComplete) {
+        setIsParaphraseLoading(true)
+        paraphraseChatConversation(session).then(resp => {
+          setUserProblemStatement(resp.problem_statement)
+        }).finally(() => {
+          setIsParaphraseLoading(false)
+          setShouldMoveForward("yes")
+        })
       }
     } else {
       setIsStreamingComplete(false)
@@ -590,8 +597,8 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
         <LoadingChat />
       ) : (
         <div className={isDefineChallengeSection ? "flex flex-col h-full" : ""}>
-          <ChatWindow isTalking={isTalking} handleOnSpeaking={handleOnSpeaking} handleOnStopSpeaking={handleOnStopSpeaking} isStreamingComplete={isStreamingComplete} setNotMute={setNotMute} userDetail={userDetail} chatHistory={chatHistory} isReadOnly={isReadOnly} hasStartedListening={hasStartedListening} hasOverRideId={hasOverRideId} isDefineChallengeSection={true} scrollRef={scrollRef} />
-          {isDefineChallengeSection && (
+          <ChatWindow isTalking={isTalking} handleOnSpeaking={handleOnSpeaking} handleOnStopSpeaking={handleOnStopSpeaking} isStreamingComplete={isStreamingComplete} setNotMute={setNotMute} userDetail={userDetail} chatHistory={chatHistory} isReadOnly={isReadOnly} hasStartedListening={hasStartedListening} hasOverRideId={hasOverRideId} isDefineChallengeSection={true} scrollRef={scrollRef} isParaphraseLoading={isParaphraseLoading} />
+          {(isDefineChallengeSection && !isParaphraseLoading) && (
             <div className="mt-auto">
               <ChatBox textInputRef={textInputRef} textMessage={textMessage} handleOnInputText={handleOnInputText} setUseTextbox={setUseTextbox} handleSendMessage={handleSendMessage} isReadOnly={!isDefineChallengeSection} />
             </div>

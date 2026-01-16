@@ -36,6 +36,7 @@ export const API_ENDPOINTS = {
   VALIDATE_OBJECTIVE: "api/shikshalokam/validate-objective/",
   VALIDATE_ACTIONS: "api/shikshalokam/validate-actions/",
   VALIDATE_TITLE: "api/shikshalokam/validate-title/",
+  PARAPHRASE: "api/shikshalokam/paraphrase/"
 }
 
 export const URL_PARAMS = {
