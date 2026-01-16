@@ -540,10 +540,7 @@ function SelectObjective({
     state => state.selectedObjective
   ) || null;
 
-  if (getLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST) && !prevObjectiveList?.length) {
-    return <></>;
-  }
-  else if(getLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST) && prevObjectiveList?.length) {
+  if (getLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST)) {
     return <LoadingChat />
   }
 
