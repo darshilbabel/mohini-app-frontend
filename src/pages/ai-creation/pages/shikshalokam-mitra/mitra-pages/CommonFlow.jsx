@@ -95,30 +95,42 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       const data = JSON.parse(event.data);
       const message = data?.text;
 
-      if (message?.msg && message?.source === 'bot') {
-        const newMessage = {
-          msg: message.msg,
-          source: 'bot',
-          updated_at: Date.now(),
-        };
+      if (message?.source === 'bot') {
+        setCommonFlowChatHistory((prevChatHistory) => {
+          const lastIndex = prevChatHistory.length - 1;
+          const lastMessage = prevChatHistory[lastIndex];
 
-        setCommonFlowChatHistory((prev) => [...prev, newMessage]);
+          if (lastIndex >= 0 && lastMessage?.source === 'bot') {
+            if (message?.msg) {
+              const updatedLastMessage = { ...lastMessage, msg: lastMessage.msg + message.msg };
+              return [...prevChatHistory.slice(0, lastIndex), updatedLastMessage];
+            }
+            return prevChatHistory;
+          } else {
+            return [
+              ...prevChatHistory,
+              {
+                msg: message?.msg || '',
+                source: 'bot',
+                updated_at: Date.now(),
+              },
+            ];
+          }
+        });
 
-        const currentStoreHistory =
-          useAICreationSessionStore
-            .getState()
-            .getCommonFlowChatHistory();
+        if (message?.finish_reason === 'stop') {
+          setIsWaitingForBot(false);
+        }
 
-        useAICreationSessionStore
-          .getState()
-          .setCommonFlowChatHistory([...currentStoreHistory, newMessage]);
-
-        setIsWaitingForBot(false);
         handleScrollIntoViewRef.current?.();
       }
     },
     []
   );
+
+  useEffect(() => {
+    useAICreationSessionStore.getState().setCommonFlowChatHistory(commonFlowChatHistory);
+  }, [commonFlowChatHistory]);
 
   const {
     sendMessage: sendSocketMessage,
@@ -161,16 +173,6 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     };
 
     setCommonFlowChatHistory((prev) => [...prev, newMessage]);
-
-    const currentStoreHistory =
-      useAICreationSessionStore
-        .getState()
-        .getCommonFlowChatHistory();
-
-    useAICreationSessionStore
-      .getState()
-      .setCommonFlowChatHistory([...currentStoreHistory, newMessage]);
-
     setIsWaitingForBot(true);
 
     if (!hasConnectedRef.current) {
