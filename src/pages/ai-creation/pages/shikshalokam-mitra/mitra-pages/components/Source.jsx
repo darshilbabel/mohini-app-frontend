@@ -29,7 +29,6 @@ const Source = ({ source = {}, customClassNames = {} }) => {
 
 
           const sourceUrl = item?.currentSource?.url;
-          console.log({item}, "debugging vishnu")
 
           return (
             <Card
