@@ -5,9 +5,7 @@ import { GrShare } from "react-icons/gr"
 const SourcePopup = ({ isOpen, onClose, sourcesData = {} }) => {
   const { label, chunksList, currentSource } = sourcesData || {}
 
-
   const sourceUrl = currentSource?.url || ""
-
 
   // Group chunks by chunk text and collect all highlight phrases
   const uniqueChunks = React.useMemo(() => {
@@ -20,7 +18,7 @@ const SourcePopup = ({ isOpen, onClose, sourcesData = {} }) => {
       if (!chunkMap.has(chunkText)) {
         chunkMap.set(chunkText, {
           chunk: chunkText,
-          highlights: []
+          highlights: [],
         })
       }
       if (item.highlight_text) {
@@ -82,8 +80,6 @@ const SourcePopup = ({ isOpen, onClose, sourcesData = {} }) => {
 
     return result
   }
-
-  console.log("SOURCEURL", {sourceUrl})
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>

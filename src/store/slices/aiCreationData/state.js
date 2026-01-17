@@ -9,6 +9,7 @@ export const INITIAL_STATE = (set, get, store) => ({
     actionItemSource: null,
     selectedAction: null,
     userProblemStatement: null,
+    paraphrasedProblemStatement: null,
     selectedObjective: null,
     profileId: null,
     systemError: null,
@@ -45,6 +46,8 @@ export const INITIAL_STATE = (set, get, store) => ({
     projectId: null,
 
   
+    setParaphrasedProblemStatement: paraphrasedProblemStatement => set({ paraphrasedProblemStatement }),
+
     setMedia: media => set({ media }),
     getMedia: () => get().media,
     setPreferredLanguage: preferredLanguage => set({ preferredLanguage }),
