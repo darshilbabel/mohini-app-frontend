@@ -2,6 +2,7 @@ import { useMemo, useEffect, useRef } from "react";
 import ChatMessage from "./chat-message/ChatMessage";
 import LoadingChat from "./LoadingChat";
 import { useAICreationSessionStore } from "../../../../../../store";
+import Source from "./Source";
 
 function ChatWindow({
   isTalking,
@@ -28,6 +29,30 @@ function ChatWindow({
   const selectedWeek = useAICreationSessionStore.getState().getSelectedWeek();
   const selectedFlowType = useAICreationSessionStore.getState().getSelectedFlowType();
   const errorText = useAICreationSessionStore.getState().getErrorText();
+
+  function formatSources(sources = []) {
+
+    let return_obj = {}
+
+    for (const source of sources) {
+      const organization = source?.organization?.name;
+      if (!organization) {
+        continue;
+      }
+      if (!return_obj[organization]) {
+        return_obj[organization] = [{
+          currentSource: {...source}
+        }];
+      }
+      else {
+        return_obj[organization].push({
+          currentSource: {...source}
+        });
+      }
+    }
+
+    return return_obj;
+  }
 
 
   const getShowLoadingChat = (indexNumber) => {
@@ -154,7 +179,7 @@ function ChatWindow({
             key={i}
             className={`div35 ${chat?.source === "user" ? "label1" : "label1"}`}
           >
-            <div className={`div36 ${chat?.source === "user" && "div37"}`}>
+            <div className={`div36 ${chat?.source === "user" ? "div37": "flex-column pb-14 !items-start"}`}>
               <ChatMessage
                 userType={chat?.source}
                 message={`${chat?.msg}`}
@@ -180,6 +205,11 @@ function ChatWindow({
                 validation={chat?.validation}
                 userDetail={userDetail}
               />
+              {
+                chat?.sources && Array.isArray(chat?.sources) && chat?.sources.length && (
+                  <Source source={formatSources(chat?.sources)} />
+                )
+              }
             </div>
             {getShowLoadingChat(i) && <LoadingChat />}
           </li>

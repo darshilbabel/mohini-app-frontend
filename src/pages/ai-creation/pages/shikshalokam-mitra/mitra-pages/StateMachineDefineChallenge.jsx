@@ -35,9 +35,8 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
   const profileId = useAICreationSessionStore(state => state.profileId)
   const session = useAICreationSessionStore(state => state.session)
   const { setChatLanguage } = useSiteDataLocalStore.getState()
-  const { setSystemError: setSystemErrorStore, setProfileId, setFirstName, setCompany: setCompanyStore, setSession: setSessionStore, setChatHistory, setIsChatVisible, setIntroMessage: setIntroMessageStore, setBotName, setUserProblemStatement: setUserProblemStatementStore, getChatHistory, getPreferredLanguage } = useAICreationSessionStore.getState()
+  const { setSystemError: setSystemErrorStore, setProfileId, setFirstName, setCompany: setCompanyStore, setSession: setSessionStore, setChatHistory, setIsChatVisible, setIntroMessage: setIntroMessageStore, setBotName, setUserProblemStatement: setUserProblemStatementStore, getChatHistory, getPreferredLanguage, setParaphrasedProblemStatement } = useAICreationSessionStore.getState()
   const { getStateMachineLength, setStateMachineLength, setStrandStep, getStrandStep } = useChatDataSessionStore.getState()
-  const { setUserProblemStatement } = useAICreationSessionStore.getState()
 
   const [isParaphraseLoading, setIsParaphraseLoading] = useState(false)
   const [textMessage, setTextMessage] = useState("")
@@ -135,7 +134,8 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
       if (Number.isInteger(strand_step) && Number.isInteger(state_machine_length) && strand_step >= state_machine_length && Array.isArray(chat_history) && chat_history.length && chat_history[chat_history.length - 1]?.source === BOT && isStreamingComplete) {
         setIsParaphraseLoading(true)
         paraphraseChatConversation(session).then(resp => {
-          setUserProblemStatement(resp.comprehensive_paragraph)
+          setUserProblemStatementStore(resp?.comprehensive_paragraph)
+          setParaphrasedProblemStatement(resp?.problem_statement)
 
           const chat_history_updated = [...chat_history]
           chat_history_updated.push({

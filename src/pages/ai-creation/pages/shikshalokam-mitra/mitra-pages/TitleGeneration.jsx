@@ -23,7 +23,6 @@ import ROUTES from "../../../../../url";
 import "../stylesheet/chatStyle.css";
 import { useNavigate } from "react-router-dom";
 import { useAICreationSessionStore } from "store";
-import { rootPath } from "utils/constants";
 import TextareaWithVoice from "../../../components/textarea-with-mic";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
@@ -180,14 +179,10 @@ function TitleGeneration({
       try {
         const response = await updateChatSession(session, field_to_update);
         if (response) {
-          const user_problem_statement = useAICreationSessionStore.getState().getUserProblemStatement();
+          const user_problem_statement = useAICreationSessionStore.getState().getParaphrasedProblemStatement();
           const project_duration = useAICreationSessionStore.getState().getSelectedWeek();
           const user_objective = useAICreationSessionStore.getState().getSelectedObjective();
-          const user_action_list =
-            useAICreationSessionStore.getState().getSelectedAction()[0]?.actionSteps?.map(step => step?.step);
-          // const access_token = getEncodedSessionStorage(
-          //   process.env.REACT_APP_ACCESS_TOKEN_KEY
-          // );
+          const user_action_list = useAICreationSessionStore.getState().getSelectedAction()[0]?.actionSteps?.map(step => step?.step);
           const access_token = sessionStorage.getItem(process.env.REACT_APP_ACCESS_TOKEN_KEY)
           const objective_chunk = useAICreationSessionStore.getState().getSelectedObjectiveSource() || null;
           const action_chunk = useAICreationSessionStore.getState().getSelectedActionSource() || null;
@@ -247,7 +242,6 @@ function TitleGeneration({
   }
 
   return (
-    <>
       <div>
         <BotMessage primaryMessage={t("titleGeneration.hereIsTheTitle")} secondaryMessage={t("titleGeneration.youCanEditIt")} />
         {(!fetchError || fetchError === "") && (
@@ -285,7 +279,6 @@ function TitleGeneration({
           </>
         )}
       </div>
-    </>
   )
 }
 

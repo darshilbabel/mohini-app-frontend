@@ -23,6 +23,13 @@ export async function getObjectiveList(user_input, language, profile_id) {
             user_input,
             language,
             profile_id
+        }, {
+            'axios-retry': {
+                retries: 3,
+                retryCondition: (error) => {
+                    return error.response?.status === 500;
+                }
+            }
         });
 
         return response?.data;
@@ -39,6 +46,13 @@ export async function getActionList(user_problem_statement, user_objective, lang
             user_objective,
             language,
             profile_id
+        }, {
+            'axios-retry': {
+                retries: 3,
+                retryCondition: (error) => {
+                    return error.response?.status === 500;
+                }
+            }
         });
 
         return response?.data;
