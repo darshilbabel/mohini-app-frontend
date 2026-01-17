@@ -53,12 +53,12 @@ const Card = ({ className = "", label, title, description, sourceUrl, show = "",
         {description}
       </div>
       <div className="flex justify-end gap-2">
-        <button onClick={showSourcePopup} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
+        {show && <button onClick={showSourcePopup} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
           Show
-        </button>
-        <button onClick={() => handleCopySourceUrl(sourceUrl)} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
+        </button>}
+        {sourceUrl && <button onClick={() => handleCopySourceUrl(sourceUrl)} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
             Source URL  
-          </button>
+          </button>}
       </div>
     </div>
   );

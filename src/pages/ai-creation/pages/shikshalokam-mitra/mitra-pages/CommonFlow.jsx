@@ -8,8 +8,8 @@ import { useAICreationSessionStore } from 'store';
 import { useChatWebhook } from 'hooks/useChatWebhook';
 import { buildWebSocketUrl } from 'utils/helpers';
 import { getTranslatedIntroMessageApi } from '../../../../../api/endpoints/ai';
-import { sessionFlowName } from '../../../../ShikshalokamVoiceChat/enum';
 import { getBotConfigForFlow } from '../../../utils/common_flow';
+import { ToastContainer } from "react-toastify";
 
 const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const textInputRef = useRef(null);
@@ -95,6 +95,8 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       const data = JSON.parse(event.data);
       const message = data?.text;
 
+      console.log({message}, "message printing event")
+
       if (message?.source === 'bot') {
         setCommonFlowChatHistory((prevChatHistory) => {
           const lastIndex = prevChatHistory.length - 1;
@@ -102,18 +104,29 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
 
           if (lastIndex >= 0 && lastMessage?.source === 'bot') {
             if (message?.msg) {
-              const updatedLastMessage = { ...lastMessage, msg: lastMessage.msg + message.msg };
+              let updatedLastMessage = { ...lastMessage, msg: lastMessage.msg + message.msg };
+
+              return [...prevChatHistory.slice(0, lastIndex), updatedLastMessage];
+            }
+
+            if (Array.isArray(message?.extra_content?.sources) && message?.extra_content?.sources.length) {
+              let updatedLastMessage = { ...lastMessage };
+              updatedLastMessage["sources"] = message?.extra_content?.sources;
               return [...prevChatHistory.slice(0, lastIndex), updatedLastMessage];
             }
             return prevChatHistory;
           } else {
+            const updatedMessage = {
+              msg: message?.msg || '',
+              source: 'bot',
+              updated_at: Date.now(),
+            }
+            if (Array.isArray(message?.extra_content?.sources) && message?.extra_content?.sources.length) {
+              updatedMessage["sources"] = message?.extra_content?.sources;
+            }
             return [
               ...prevChatHistory,
-              {
-                msg: message?.msg || '',
-                source: 'bot',
-                updated_at: Date.now(),
-              },
+              updatedMessage,
             ];
           }
         });
@@ -193,6 +206,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
 
   return (
     <div className="flex flex-col h-auto">
+      <ToastContainer />
       {isLoadingIntro ? (
         <LoadingChat />
       ) : (
