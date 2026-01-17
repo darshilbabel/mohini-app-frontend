@@ -89,21 +89,30 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
 
     const initial_switch_chat_history = getInitialSwitchChatHistory();
 
+    let timeout_obj = None
     if (Array.isArray(initial_switch_chat_history) && initial_switch_chat_history.length && initial_switch_chat_history[initial_switch_chat_history.length - 1]?.source === USER) {
-      sendSocketMessage({
-        text: initial_switch_chat_history[initial_switch_chat_history.length - 1]?.msg,
-        context: '',
-      });
+      timeout_obj = setTimeout(() => {
+        sendSocketMessage({
+          text: initial_switch_chat_history[initial_switch_chat_history.length - 1]?.msg,
+          context: '',
+        });
+      }, 100);
     }
 
     if (pendingMessageRef.current) {
-      setTimeout(() => {
+      timeout_obj = setTimeout(() => {
         sendSocketMessage({
           text: pendingMessageRef.current,
           context: '',
         });
         pendingMessageRef.current = null;
       }, 100);
+    }
+
+    return () => {
+      if (timeout_obj) {
+        clearTimeout(timeout_obj);
+      }
     }
   }, [profileId, accessToken, botRoute, storageFlow]);
 
