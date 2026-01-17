@@ -27,7 +27,7 @@ export async function getObjectiveList(user_input, language, profile_id) {
             'axios-retry': {
                 retries: 3,
                 retryCondition: (error) => {
-                    return error.response.status === 500;
+                    return error.response?.status === 500;
                 }
             }
         });
@@ -50,7 +50,7 @@ export async function getActionList(user_problem_statement, user_objective, lang
             'axios-retry': {
                 retries: 3,
                 retryCondition: (error) => {
-                    return error.response.status === 500;
+                    return error.response?.status === 500;
                 }
             }
         });
