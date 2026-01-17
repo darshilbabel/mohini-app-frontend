@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ChatBox from './components/ChatBox';
 import ChatWindow from './components/ChatWindow';
@@ -8,8 +8,12 @@ import { useAICreationSessionStore } from 'store';
 import { useChatWebhook } from 'hooks/useChatWebhook';
 import { buildWebSocketUrl } from 'utils/helpers';
 import { getTranslatedIntroMessageApi } from '../../../../../api/endpoints/ai';
-import { getBotConfigForFlow } from '../../../utils/common_flow';
+import { compareFlowTypesEquality, getBotConfigForFlow } from '../../../utils/common_flow';
 import { ToastContainer } from "react-toastify";
+import { FLOW_TYPES } from '../../../../../configure';
+import { CONVERSATION_USER_TYPES } from '../../../constants/mitra.constants';
+
+const { BOT, USER } = CONVERSATION_USER_TYPES;
 
 const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const textInputRef = useRef(null);
@@ -32,13 +36,17 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     localChatHistory?.length ? localChatHistory : []
   );
 
-  const { profileId } = useAICreationSessionStore.getState();
+  const { profileId, getInitialSwitchChatHistory } = useAICreationSessionStore.getState();
 
   const [searchParams] = useSearchParams();
   const accessToken = sessionStorage.getItem('accToken');
 
   const storageFlow = getBotConfigForFlow(flowType).flow_name;
   const botRoute = getBotConfigForFlow(flowType).route;
+
+  const isFreeFlow = useMemo(() => {
+    return compareFlowTypesEquality(flowType, FLOW_TYPES.FREE_FLOW);
+  }, [flowType])
 
   useEffect(() => {
     const fetchIntroMessage = async () => {
@@ -78,6 +86,15 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       bot_route: botRoute,
       flow_name: storageFlow,
     });
+
+    const initial_switch_chat_history = getInitialSwitchChatHistory();
+
+    if (Array.isArray(initial_switch_chat_history) && initial_switch_chat_history.length && initial_switch_chat_history[initial_switch_chat_history.length - 1]?.source === USER) {
+      sendSocketMessage({
+        text: initial_switch_chat_history[initial_switch_chat_history.length - 1]?.msg,
+        context: '',
+      });
+    }
 
     if (pendingMessageRef.current) {
       setTimeout(() => {
@@ -151,6 +168,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
     disconnect,
+    isConnected
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
@@ -174,6 +192,13 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (isFreeFlow && !isConnected) {
+      connectToWebSocket(true)
+      hasConnectedRef.current = true;
+    }
+  }, [isFreeFlow])
 
   const handleSendMessage = (event) => {
     event?.preventDefault();
@@ -213,7 +238,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
         <LoadingChat />
       ) : (
         <>
-          {introMessage && (
+          {!isFreeFlow && introMessage && (
             <BotMessage primaryMessage={introMessage} />
           )}
           
