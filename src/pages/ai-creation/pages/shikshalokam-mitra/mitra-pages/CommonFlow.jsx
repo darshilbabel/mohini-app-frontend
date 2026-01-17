@@ -95,8 +95,6 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       const data = JSON.parse(event.data);
       const message = data?.text;
 
-      console.log({message}, "message printing event")
-
       if (message?.source === 'bot') {
         setCommonFlowChatHistory((prevChatHistory) => {
           const lastIndex = prevChatHistory.length - 1;
@@ -105,6 +103,10 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
           if (lastIndex >= 0 && lastMessage?.source === 'bot') {
             if (message?.msg) {
               let updatedLastMessage = { ...lastMessage, msg: lastMessage.msg + message.msg };
+
+              if (Array.isArray(message?.extra_content?.sources) && message?.extra_content?.sources.length) {
+                updatedLastMessage["sources"] = message?.extra_content?.sources;
+              }
 
               return [...prevChatHistory.slice(0, lastIndex), updatedLastMessage];
             }
