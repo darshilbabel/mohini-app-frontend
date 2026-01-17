@@ -47,6 +47,7 @@ export const INITIAL_STATE = (set, get, store) => ({
 
   
     setParaphrasedProblemStatement: paraphrasedProblemStatement => set({ paraphrasedProblemStatement }),
+    getParaphrasedProblemStatement: () => get().paraphrasedProblemStatement,
 
     setMedia: media => set({ media }),
     getMedia: () => get().media,
