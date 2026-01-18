@@ -610,7 +610,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
         <LoadingChat />
       ) : (
         <div className={isDefineChallengeSection ? "flex flex-col h-auto" : ""}>
-          <ChatWindow isTalking={isTalking} handleOnSpeaking={handleOnSpeaking} handleOnStopSpeaking={handleOnStopSpeaking} isStreamingComplete={isStreamingComplete} setNotMute={setNotMute} userDetail={userDetail} chatHistory={chatHistory} isReadOnly={isReadOnly} hasStartedListening={hasStartedListening} hasOverRideId={hasOverRideId} isParaphraseLoading={isParaphraseLoading} />
+          <ChatWindow isTalking={isTalking} handleOnSpeaking={handleOnSpeaking} handleOnStopSpeaking={handleOnStopSpeaking} isStreamingComplete={isStreamingComplete} setNotMute={setNotMute} userDetail={userDetail} chatHistory={chatHistory} isReadOnly={isReadOnly} hasStartedListening={hasStartedListening} hasOverRideId={hasOverRideId} isParaphraseLoading={isParaphraseLoading} isDefineChallengeSection={isDefineChallengeSection} />
           {(isDefineChallengeSection && !isParaphraseLoading) && (
             <div className="mt-auto">
               <ChatBox textInputRef={textInputRef} textMessage={textMessage} handleOnInputText={handleOnInputText} setUseTextbox={setUseTextbox} handleSendMessage={handleSendMessage} isReadOnly={!isDefineChallengeSection} />
