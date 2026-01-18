@@ -184,8 +184,8 @@ function TitleGeneration({
           const user_objective = useAICreationSessionStore.getState().getSelectedObjective();
           const user_action_list = useAICreationSessionStore.getState().getSelectedAction()[0]?.actionSteps?.map(step => step?.step);
           const access_token = sessionStorage.getItem(process.env.REACT_APP_ACCESS_TOKEN_KEY)
-          const objective_chunk = useAICreationSessionStore.getState().getSelectedObjectiveSource() || null;
-          const action_chunk = useAICreationSessionStore.getState().getSelectedActionSource() || null;
+          const objective_chunk = useAICreationSessionStore.getState().getSelectedObjectiveSource() || [];
+          const action_chunk = useAICreationSessionStore.getState().getSelectedActionSource() || [];
 
           const chunks = {
             objective_chunk,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Header from "../../components/layout/Header";
+import Header from "../../../shikshagraha-repository/listing/Header";
 import Footer from "../../../shikshagraha-repository/common/Footer";
 import FileViewer from "../../components/file-viewer";
 import { useParams } from "react-router-dom";
@@ -19,13 +19,20 @@ const ImprovementPlan = () => {
 
   return (
     <>
+    <div className="container max-w-[1500px] h-full mx-auto py-3">
       <Notification />
-      <Header isBackButton={true} isHeroSection={false} />
+      <Header
+        isHeroSection={false}
+        isBackButton={true}
+      />
       <main className="w-screen h-fit mb-10">
         <FileViewer url={media[0]?.url} fileName={media[0]?.file_name} fileType={media[0]?.media_type} />
       </main>
+    </div>
       <Footer />
-    </>
+      </>
+    
+
   );
 };
 
