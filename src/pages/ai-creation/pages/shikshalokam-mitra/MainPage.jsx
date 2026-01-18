@@ -96,6 +96,11 @@ function MainPage() {
     }
   );
 
+  // Subscribe to initialSwitchChatHistory for reactive updates
+  const initialSwitchChatHistory = useAICreationSessionStore(
+    state => state.initialSwitchChatHistory
+  );
+
   const audioRef = useRef();
   const scrollContainerRef = useRef(null);
 
@@ -467,7 +472,7 @@ function MainPage() {
   return (
     <>
           {acceptedTnc === "ONGOING" && !isLoading && (
-        <PrivacyPolicyPopup tncText={tncTranslation("tncText")} onAccept={handleAcceptTnC} isGuestChat={false} />
+        <PrivacyPolicyPopup tncText={tncTranslation("mitraTncText")} onAccept={handleAcceptTnC} isGuestChat={false} />
       )}
 
 <div className="bg-[#F0F2F5]">
@@ -494,6 +499,7 @@ function MainPage() {
           setIsSidebarOpen={setIsSidebarOpen}
           isMobile={isMobile}
           handleNewMIPClick={handleNewMIPClick}
+          isNewChatDisabled={(initialSwitchChatHistory || []).length === 0}
         />
         {activeTab === ACTIVE_TABS.CONVERSATION && (
           <ConversationWrapperCard
@@ -508,7 +514,7 @@ function MainPage() {
         )}
         {activeTab === ACTIVE_TABS.FAQ && (
           <div className="flex-1 h-full overflow-hidden">
-            <FAQ />
+            <FAQ onBack={() => setActiveTab(ACTIVE_TABS.CONVERSATION)} />
           </div>
         )}
       </main>

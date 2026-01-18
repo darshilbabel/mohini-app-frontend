@@ -144,9 +144,17 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
           compareFlowTypesEquality(validation, FLOW_TYPES.LCF) || 
           compareFlowTypesEquality(validation, FLOW_TYPES.FREE_FLOW)
         ) {
-          // Other flows - use CommonFlow
-          useAICreationSessionStore.getState().setSelectedFlowType(validation?.toLowerCase());
-          onFlowTypeSelectedRef.current?.(validation?.toLowerCase());
+          if (compareFlowTypesEquality(validation, FLOW_TYPES.LCF)) {
+            getNewSessionID().then((newSession) => {
+              useAICreationSessionStore.getState().setSession(newSession);
+              useAICreationSessionStore.getState().setSelectedFlowType(validation?.toLowerCase());
+              onFlowTypeSelectedRef.current?.(validation?.toLowerCase());
+            });
+          } else {
+            // Other flows - use CommonFlow
+            useAICreationSessionStore.getState().setSelectedFlowType(validation?.toLowerCase());
+            onFlowTypeSelectedRef.current?.(validation?.toLowerCase());
+          }
         }
       }
     },

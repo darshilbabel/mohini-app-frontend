@@ -37,6 +37,8 @@ import ChatMessage from "./components/chat-message/ChatMessage";
 import { getOrTextTranslation } from "../question script/secondpage_tanslation";
 import TextareaWithVoice from "../../../components/textarea-with-mic";
 import Disclaimer from "./components/Disclaimer";
+import Guidelines from "./components/Guidelines";
+import Reasons from "./components/Reasons";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -586,6 +588,9 @@ function ActionItems({
                   secondaryMessage={t("actionItems.selectOneToGetStarted")}
                   customClassNames={{ wrapperStyles: "pb-3" }}
                 />
+                <div className="mb-4">
+                  <Guidelines text={t("actionItems.guidelines")} />
+                </div>
                 <div className="bg-white p-3 rounded-2xl">
                   <ActionItemsList
                     language={language}
@@ -608,13 +613,19 @@ function ActionItems({
                     }}
                     hasClickedOnAddmore={hasClickedOnAddmore}
                   />
-                  <Source
-                    source={actionItemSource}
-                    customClassNames={{
-                      wrapperStyles: "md:!w-[100%]",
-                    }}
-                  />
-                  <Disclaimer text={t('disclaimer.actionsText')} />
+                      <Reasons 
+                        reasonList={actionList[selectedIndex]?.actionSteps || []}
+                        customClassNames={{
+                          wrapperStyles: "md:!w-[100%]",
+                        }}
+                      />
+                      <Source
+                        source={actionItemSource}
+                        customClassNames={{
+                          wrapperStyles: "md:!w-[100%]",
+                        }}
+                      />
+                      <Disclaimer text={t('disclaimer.actionsText')}/>
                   {isSelectActionItems && !!actionList && actionList?.length > 0 && (
                     <>
                       <SuggestOrAddCta
@@ -657,6 +668,9 @@ function ActionItems({
                       secondaryMessage={t("actionItems.selectOneToGetStarted")}
                       customClassNames={{ wrapperStyles: "pb-3" }}
                     />
+                    <div className="mb-4">
+                      <Guidelines text={t("actionItems.guidelines")} />
+                    </div>
                     <div className="bg-white p-3 rounded-2xl">
                       <ActionItemsList
                         language={language}
@@ -677,6 +691,12 @@ function ActionItems({
                         }}
                         hasClickedOnAddmore={hasClickedOnAddmore}
 
+                      />
+                      <Reasons 
+                        reasonList={actionList[selectedIndex]?.actionSteps || []}
+                        customClassNames={{
+                          wrapperStyles: "md:!w-[100%]",
+                        }}
                       />
                       <Source
                         source={actionItemSource}

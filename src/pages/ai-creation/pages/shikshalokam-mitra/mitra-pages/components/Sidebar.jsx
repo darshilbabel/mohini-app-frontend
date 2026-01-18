@@ -4,14 +4,17 @@ import { FaRegPlusSquare } from "react-icons/fa";
 import { CgPlayPauseR } from "react-icons/cg";
 import { ACTIVE_TABS } from "../../../../constants/mitra.constants";
 
-function Action({ icon: Icon, text, onClick }) {
+function Action({ icon: Icon, text, onClick, disabled = false }) {
   return (
     <button
-      className="flex items-center gap-3 bg-transparent p-0 border-0 cursor-pointer w-full text-left"
-      onClick={onClick}
+      className={`flex items-center gap-3 bg-transparent p-0 border-0 w-full text-left ${
+        disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+      }`}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
     >
-      <Icon className="w-6 h-6 text-[#555555] flex-shrink-0" />
-      <p className="font-medium text-base leading-[24px] text-[#555555] break-words">
+      <Icon className={`w-6 h-6 flex-shrink-0 ${disabled ? "text-gray-400" : "text-[#555555]"}`} />
+      <p className={`font-medium text-base leading-[24px] break-words ${disabled ? "text-gray-400" : "text-[#555555]"}`}>
         {text}
       </p>
     </button>
@@ -24,6 +27,7 @@ export default function Sidebar({
   setIsSidebarOpen,
   isMobile = false,
   handleNewMIPClick,
+  isNewChatDisabled = false,
 }) {
   const { t } = useTranslation("ai_creation_translation");
   const handleTabClick = (tab) => {
@@ -58,6 +62,7 @@ export default function Sidebar({
             icon={FaRegPlusSquare}
             text={t("sidebar.newMIP")}
             onClick={() => handleTabClick(ACTIVE_TABS.WELCOME)}
+            disabled={isNewChatDisabled}
           />
           <Action
             icon={CgPlayPauseR}
