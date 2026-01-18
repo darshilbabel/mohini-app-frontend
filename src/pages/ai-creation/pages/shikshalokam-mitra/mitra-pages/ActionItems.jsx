@@ -774,6 +774,7 @@ function ActionItems({
               setHasClickedOnAddmore={setHasClickedOnAddmore}
               setWantsToMoveForward={setWantsToMoveForward}
               isFetchingData={isFetchingData}
+              selectedIndex={selectedIndex}
             />
           </div>
         )}
@@ -786,16 +787,14 @@ export default ActionItems;
 
 export function FinalActionPage({
   actionListArray,
-  isBotTalking,
-  handleSpeakerOn,
-  handleSpeakerOff,
   handleContinueClick,
   errorText,
   hasClickedOnAddmore,
   isSelectActionItems,
   setHasClickedOnAddmore,
   setWantsToMoveForward,
-  isFetchingData
+  isFetchingData,
+  selectedIndex
 }) {
   const { t } = useTranslation("ai_creation_translation");
   const [actionList, setActionList] = useState(actionListArray || []);
@@ -834,6 +833,7 @@ export function FinalActionPage({
 
   // isContinueDisabled should be true if all the action.content.step are empty. if even one is non empty then we can enable the button
   const isContinueDisabled = actionList.every((action) => !action.content?.step?.trim()) || isFetchingData;
+  const reasonList = actionList?.map(item => item?.content)
 
 
   return (
@@ -886,6 +886,8 @@ export function FinalActionPage({
           </DragDropContext>
           {isSelectActionItems && (
             <>
+              <Reasons reasonList={reasonList} />
+
               <div className="secondpage-add-div1">
                 <button
                   className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]"
