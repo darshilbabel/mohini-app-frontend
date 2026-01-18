@@ -63,7 +63,9 @@ function ActionItems({
   });
 
   const [visibleCount, setVisibleCount] = useState(false);
-  const [hasClickedOnAddmore, setHasClickedOnAddmore] = useState(false);
+  const [hasClickedOnAddmore, setHasClickedOnAddmore] = useState(() => {
+    return useAICreationSessionStore.getState().getHasClickedActionAddMore() || false;
+  });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState(null);
   const [wantsToMoveForward, setWantsToMoveForward] = useState(false);
@@ -101,7 +103,7 @@ function ActionItems({
   const selectedType = ""
   const sessionId = useAICreationSessionStore.getState().getSession();
 
-  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setActionListChatHistory: setActionListChatHistoryStore, setSelectedObjective: setSelectedObjectiveStore, setErrorText: setErrorTextStore } = useAICreationSessionStore.getState()
+  const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setActionListChatHistory: setActionListChatHistoryStore, setSelectedObjective: setSelectedObjectiveStore, setErrorText: setErrorTextStore, setHasClickedActionAddMore: setHasClickedActionAddMoreStore } = useAICreationSessionStore.getState()
   const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en"
   const language = preferredLanguage.value || "en";
 
@@ -109,6 +111,11 @@ function ActionItems({
   const objective = useAICreationSessionStore(state => state.selectedObjective)
   const accessToken = sessionStorage.getItem("accToken");
   const [isFetchingData, setIsFetchingData] = useState(false)
+
+  // Sync hasClickedOnAddmore with store
+  useEffect(() => {
+    setHasClickedActionAddMoreStore(hasClickedOnAddmore);
+  }, [hasClickedOnAddmore, setHasClickedActionAddMoreStore]);
 
   // ws logic
 
@@ -467,21 +474,12 @@ function ActionItems({
           messageId: "7_1",
         };
 
-        const planName = actionList[selectedIndex]?.plan_name;
+        const planName = actionList[selectedIndex]?.plan_name || t("actionItems.myActionPlan");
 
-        saveUserChatsInDB(planName, currentSession, botMessage?.role)
-          .then(() => {
-            saveUserChatsInDB(
-              planName,
-              currentSession,
-              USER
-            );
-          })
-          .then(() => {
-            setErrorText("");
-            setCurrentPageValue(3);
-            // setIsLoading(false);
-          });
+        await saveUserChatsInDB(planName, currentSession, botMessage?.role);
+        await saveUserChatsInDB(planName, currentSession, USER);
+        setErrorText("");
+        setCurrentPageValue(3);
       }
     } catch (error) {
       const errorMessage =
@@ -570,8 +568,6 @@ function ActionItems({
 
   if(goBack) return <></>;
 
-
-
   return (
     <>
       <div>
@@ -627,7 +623,7 @@ function ActionItems({
                         }}
                       />
                       <Disclaimer text={t('disclaimer.actionsText')}/>
-                  {isSelectActionItems && !!actionList && actionList?.length > 0 && (
+                  {isSelectActionItems && !!actionList && (
                     <>
                       <SuggestOrAddCta
                         showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}

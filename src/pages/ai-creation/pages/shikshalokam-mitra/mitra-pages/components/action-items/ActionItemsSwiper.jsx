@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 const ActionItemsSwiper = ({
   selectedIndex,
@@ -9,6 +10,10 @@ const ActionItemsSwiper = ({
   handleActionListClick,
   hasClickedOnAddmore
 }) => {
+
+  const { t } = useTranslation("ai_creation_translation");
+
+
   const actionItems = useMemo(() => {
     if (isViewMode) {
       return finalActionList?.map((action) => action?.content || "") || [];
@@ -61,7 +66,7 @@ const ActionItemsSwiper = ({
       <button className={`thirdpage-obj-bttn ${swipeDirection ? `swipe-in-${swipeDirection}` : ""}`}>
         {actionList[selectedIndex]?.duration_weeks !== "" && (
           <p className="thirdpage-duration">
-            <span>{hasClickedOnAddmore ? "My Action Plan" : actionList[selectedIndex]?.plan_name}{" "}</span>
+            <span>{hasClickedOnAddmore ? t("actionItems.myActionPlan") : actionList[selectedIndex]?.plan_name}{" "}</span>
             {!hasClickedOnAddmore && (
               <>
                 <span className="thirdpage-week">({actionList[selectedIndex]?.duration_weeks}</span> week{actionList[selectedIndex]?.duration_weeks > 1 ? "s" : ""} recommend)
