@@ -96,7 +96,6 @@ function MainPage() {
     }
   );
 
-  // Subscribe to initialSwitchChatHistory for reactive updates
   const initialSwitchChatHistory = useAICreationSessionStore(
     state => state.initialSwitchChatHistory
   );

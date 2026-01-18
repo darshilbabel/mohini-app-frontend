@@ -18,7 +18,6 @@ export const handleShareFile = async (
 ) => {
     const fullFileName = getFileName(fileName, fileExtension);
     
-    // On desktop, copy URL to clipboard
     if (!isMobileDevice()) {
         try {
             await navigator.clipboard.writeText(url);
@@ -38,7 +37,6 @@ export const handleShareFile = async (
         }
     }
     
-    // On mobile, use Web Share API
     try {
         if (navigator.share) {
             // Fetch the PDF file from the URL
