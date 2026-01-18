@@ -90,6 +90,7 @@
         "action1": "Action 1",
         "action2": "Action 2",
         "goBack": "Go back to Action List",
+        "myActionPlan": "My Action Plan",
         "guidelines": "<strong>Some General Guidelines While You Adopt Them</strong><br/><br/>Please keep the following in mind when defining action steps:<br/><br/>- Action steps should be self-contained units of change which can be executed independently by one or more stakeholders.<br/>- Each step should be accomplishable within a timeframe of <strong>1–4 weeks</strong>.<br/>- Every successive step should build on the previous step, with the final step leading to the accomplishment of the objective(s).<br/><br/>Your list of action steps should include the following sequence:<br/><br/>a. Start with <strong>analysis / assignment of tasks</strong> – understand the current state and identify gaps.<br/>b. <strong>Design & plan</strong> the sequence of improvements and accomplishment of objective(s) using available resources.<br/>c. <strong>Prepare / Mobilize</strong> – training, materials, resources, M&E assets, etc.<br/>d. <strong>Implement & Execute</strong> the action steps in sequence with stakeholder engagement.<br/>e. <strong>Monitor & refine</strong> through feedback and assessment.<br/>f. End with <strong>completion / accomplishment</strong> of the expected outcome."
 
     },

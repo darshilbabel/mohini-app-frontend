@@ -25,7 +25,7 @@ const ImprovementPlan = () => {
         isHeroSection={false}
         isBackButton={true}
       />
-      <main className="w-screen h-fit mb-10">
+      <main className="w-full h-fit mb-10">
         <FileViewer url={media[0]?.url} fileName={media[0]?.file_name} fileType={media[0]?.media_type} />
       </main>
     </div>
