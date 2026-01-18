@@ -37,7 +37,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     localChatHistory?.length ? localChatHistory : []
   );
 
-  const { profileId, getInitialSwitchChatHistory } = useAICreationSessionStore.getState();
+  const { profileId, getInitialSwitchChatHistory, getCommonFlowChatHistory } = useAICreationSessionStore.getState();
 
   const [searchParams] = useSearchParams();
   const accessToken = sessionStorage.getItem('accToken');
@@ -89,8 +89,9 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     });
 
     const initial_switch_chat_history = getInitialSwitchChatHistory();
+    const common_flow_chat_history = getCommonFlowChatHistory();
 
-    if (Array.isArray(initial_switch_chat_history) && initial_switch_chat_history.length && initial_switch_chat_history[initial_switch_chat_history.length - 1]?.source === USER) {
+    if (Array.isArray(initial_switch_chat_history) && initial_switch_chat_history.length && initial_switch_chat_history[initial_switch_chat_history.length - 1]?.source === USER && Array.isArray(common_flow_chat_history) && !common_flow_chat_history.length) {
       const timeout_obj = setTimeout(() => {
         sendSocketMessage({
           text: initial_switch_chat_history[initial_switch_chat_history.length - 1]?.msg,
@@ -208,7 +209,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       connectToWebSocket(true)
       hasConnectedRef.current = true;
     }
-  }, [isFreeFlow])
+  }, [isFreeFlow, isConnected])
 
   const handleSendMessage = (event) => {
     event?.preventDefault();
