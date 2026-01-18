@@ -111,11 +111,6 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       timeoutRef.current.push(timeout_obj);
     }
 
-    return () => {
-      if (timeout_obj) {
-        clearTimeout(timeout_obj);
-      }
-    }
   }, [profileId, accessToken, botRoute, storageFlow]);
 
   const onWebSocketMessage = useCallback(
