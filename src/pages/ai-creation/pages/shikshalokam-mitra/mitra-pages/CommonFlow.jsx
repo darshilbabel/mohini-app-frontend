@@ -13,7 +13,7 @@ import { ToastContainer } from "react-toastify";
 import { FLOW_TYPES } from '../../../../../configure';
 import { CONVERSATION_USER_TYPES } from '../../../constants/mitra.constants';
 
-const { BOT, USER } = CONVERSATION_USER_TYPES;
+const { USER } = CONVERSATION_USER_TYPES;
 
 const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const textInputRef = useRef(null);
@@ -206,7 +206,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
 
   useEffect(() => {
     if (isFreeFlow && !isConnected) {
-      connectToWebSocket(true)
+      connectToWebSocket()
       hasConnectedRef.current = true;
     }
   }, [isFreeFlow, isConnected])
