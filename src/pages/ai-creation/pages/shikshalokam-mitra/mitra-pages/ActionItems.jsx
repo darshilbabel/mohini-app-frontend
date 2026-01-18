@@ -299,11 +299,12 @@ function ActionItems({
       // }
     } catch (error) {
       setFetchError(
-        useAICreationSessionStore.getState().getSystemError() ||
-          t("common.pleaseTryAgainLater")
+       error?.response?.data?.message || useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater")
       );
 
-      setErrorTextStore(error?.response?.data?.message || t("common.pleaseTryAgainLater"))
+      setErrorTextStore(
+       error?.response?.data?.message || useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater")
+      )
       console.error(error);
     } finally {
       handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, false);
