@@ -887,7 +887,7 @@ export function FinalActionPage({
           </DragDropContext>
           {isSelectActionItems && (
             <>
-              <Reasons reasonList={reasonList} />
+              {!hasClickedOnAddmore && <Reasons reasonList={reasonList} />}
 
               <div className="secondpage-add-div1">
                 <button
