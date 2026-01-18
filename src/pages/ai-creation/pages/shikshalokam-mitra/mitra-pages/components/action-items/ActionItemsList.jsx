@@ -3,6 +3,7 @@ import { getActionListTextTranslation } from "../../../question script/thirdpage
 import SwipeTopCounter from "./SwipeTopCounter";
 import ErrorText from "../ErrorText";
 import ActionItemsSwiper from "./ActionItemsSwiper";
+import { useAICreationSessionStore } from "../../../../../../../store";
 
 const ActionItemsList = ({
   language,
@@ -19,13 +20,16 @@ const ActionItemsList = ({
   hasClickedOnAddmore
 }) => {
 
+  const errorText = useAICreationSessionStore.getState().getErrorText();
 
   return (
     <div>
       <p className="secondpage-obj-text">
         {getActionListTextTranslation(language)}
       </p>
-      {visibleCount && !isViewMode && (
+      {actionList?.length > 0 && <>
+      
+        {visibleCount && !isViewMode && (
         <SwipeTopCounter
           selectedIndex={selectedIndex}
           actionList={actionList}
@@ -48,7 +52,9 @@ const ActionItemsList = ({
           )}
         </div>
       )}
-      {!!(fetchError && fetchError !== "") && <ErrorText errorText={fetchError} />}
+      </>}
+      
+      {(!!(fetchError && fetchError !== "") || (errorText && errorText !== "")) && <ErrorText errorText={fetchError || errorText} />}
     </div>
   );
 };

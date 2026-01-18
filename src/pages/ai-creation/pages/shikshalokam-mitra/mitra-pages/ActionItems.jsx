@@ -477,11 +477,17 @@ function ActionItems({
               USER
             );
           })
+          .catch((error) => {
+            console.error(error);
+            setErrorText(error?.response?.data?.message || useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater"));
+            setErrorTextStore(error?.response?.data?.message || useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater"));
+          })
           .then(() => {
             setErrorText("");
             setCurrentPageValue(3);
             // setIsLoading(false);
           });
+     
       }
     } catch (error) {
       const errorMessage =
@@ -570,6 +576,7 @@ function ActionItems({
 
   if(goBack) return <></>;
 
+  console.log({actionList})
 
 
   return (
@@ -627,7 +634,7 @@ function ActionItems({
                         }}
                       />
                       <Disclaimer text={t('disclaimer.actionsText')}/>
-                  {isSelectActionItems && !!actionList && actionList?.length > 0 && (
+                  {isSelectActionItems && !!actionList && (
                     <>
                       <SuggestOrAddCta
                         showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
