@@ -53,7 +53,7 @@
         "confirmButtonText": "Yes, Start New"
     },
     "defineChallenge": {
-        "welcomeCardTitle": "Generate Improvement Project",
+        "welcomeCardTitle": "SG-Commons Program Design AI assistant",
         "welcomeCardDescription": "This guided conversation will help MItra AI understand your challenges, objective and stakeholders. Based on your responses, it will suggest tasks, surveys, and observations to build your complete solution — ready to download as a Word file.",
         "welcomeMessage": " Hello! I'm MItra, your SG-Commons AI assistant. I'm here to help you turn your challenge in the Public School and Education ecosystem into a focused, actionable plan. To get started, please define your challenge statement as clearly as you can.",
         "placeholderDefine": "Describe your challenge here...",
