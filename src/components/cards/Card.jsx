@@ -41,6 +41,7 @@ const Card = ({ className = "", label, title, description, sourceUrl, show = "",
     }
   };
 
+
   return (
     <div
       className={`flex flex-col border-[0.5px] border-solid border-[#572E91] gap-3 pt-2 pr-[10px] pb-2 pl-[10px] rounded-[10px] bg-white w-full my-[10px] mx-0 md:my-0 md:mx-0 shadow-[0px_4px_4px_0px_#0000001A] md:shadow-none ${className}`}
@@ -53,7 +54,7 @@ const Card = ({ className = "", label, title, description, sourceUrl, show = "",
         {description}
       </div>
       <div className="flex justify-end gap-2">
-        {show && showSourcePopup && <button onClick={showSourcePopup} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
+        {show && <button onClick={showSourcePopup} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">
           Show
         </button>}
         {sourceUrl && <button onClick={() => handleCopySourceUrl(sourceUrl)} className="font-semibold text-[12px] leading-none text-[#1D4ED8]">

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ChatBox from './components/ChatBox';
 import ChatWindow from './components/ChatWindow';
@@ -8,13 +8,18 @@ import { useAICreationSessionStore } from 'store';
 import { useChatWebhook } from 'hooks/useChatWebhook';
 import { buildWebSocketUrl } from 'utils/helpers';
 import { getTranslatedIntroMessageApi } from '../../../../../api/endpoints/ai';
-import { getBotConfigForFlow } from '../../../utils/common_flow';
+import { compareFlowTypesEquality, getBotConfigForFlow } from '../../../utils/common_flow';
 import { ToastContainer } from "react-toastify";
+import { FLOW_TYPES } from '../../../../../configure';
+import { CONVERSATION_USER_TYPES } from '../../../constants/mitra.constants';
+
+const { USER } = CONVERSATION_USER_TYPES;
 
 const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const textInputRef = useRef(null);
   const hasConnectedRef = useRef(false);
   const pendingMessageRef = useRef(null);
+  const timeoutRef = useRef([]);
   const [textMessage, setTextMessage] = useState('');
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [introMessage, setIntroMessage] = useState(null);
@@ -32,13 +37,17 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     localChatHistory?.length ? localChatHistory : []
   );
 
-  const { profileId } = useAICreationSessionStore.getState();
+  const { profileId, getInitialSwitchChatHistory, getCommonFlowChatHistory } = useAICreationSessionStore.getState();
 
   const [searchParams] = useSearchParams();
   const accessToken = sessionStorage.getItem('accToken');
 
   const storageFlow = getBotConfigForFlow(flowType).flow_name;
   const botRoute = getBotConfigForFlow(flowType).route;
+
+  const isFreeFlow = useMemo(() => {
+    return compareFlowTypesEquality(flowType, FLOW_TYPES.FREE_FLOW);
+  }, [flowType])
 
   useEffect(() => {
     const fetchIntroMessage = async () => {
@@ -79,15 +88,30 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       flow_name: storageFlow,
     });
 
+    const initial_switch_chat_history = getInitialSwitchChatHistory();
+    const common_flow_chat_history = getCommonFlowChatHistory();
+
+    if (Array.isArray(initial_switch_chat_history) && initial_switch_chat_history.length && initial_switch_chat_history[initial_switch_chat_history.length - 1]?.source === USER && Array.isArray(common_flow_chat_history) && !common_flow_chat_history.length) {
+      const timeout_obj = setTimeout(() => {
+        sendSocketMessage({
+          text: initial_switch_chat_history[initial_switch_chat_history.length - 1]?.msg,
+          context: '',
+        });
+      }, 100);
+      timeoutRef.current.push(timeout_obj);
+    }
+
     if (pendingMessageRef.current) {
-      setTimeout(() => {
+      const timeout_obj = setTimeout(() => {
         sendSocketMessage({
           text: pendingMessageRef.current,
           context: '',
         });
         pendingMessageRef.current = null;
       }, 100);
+      timeoutRef.current.push(timeout_obj);
     }
+
   }, [profileId, accessToken, botRoute, storageFlow]);
 
   const onWebSocketMessage = useCallback(
@@ -151,6 +175,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
     disconnect,
+    isConnected
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
@@ -172,8 +197,19 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
         disconnect();
         hasConnectedRef.current = false;
       }
+      if (timeoutRef.current.length) {
+        timeoutRef.current.forEach(clearTimeout);
+        timeoutRef.current = [];
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (isFreeFlow && !isConnected) {
+      connectToWebSocket()
+      hasConnectedRef.current = true;
+    }
+  }, [isFreeFlow, isConnected])
 
   const handleSendMessage = (event) => {
     event?.preventDefault();
@@ -213,7 +249,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
         <LoadingChat />
       ) : (
         <>
-          {introMessage && (
+          {!isFreeFlow && introMessage && (
             <BotMessage primaryMessage={introMessage} />
           )}
           
