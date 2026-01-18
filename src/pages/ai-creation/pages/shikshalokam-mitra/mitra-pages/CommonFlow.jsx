@@ -19,6 +19,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const textInputRef = useRef(null);
   const hasConnectedRef = useRef(false);
   const pendingMessageRef = useRef(null);
+  const timeoutRef = useRef([]);
   const [textMessage, setTextMessage] = useState('');
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [introMessage, setIntroMessage] = useState(null);
@@ -89,24 +90,25 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
 
     const initial_switch_chat_history = getInitialSwitchChatHistory();
 
-    let timeout_obj = None
     if (Array.isArray(initial_switch_chat_history) && initial_switch_chat_history.length && initial_switch_chat_history[initial_switch_chat_history.length - 1]?.source === USER) {
-      timeout_obj = setTimeout(() => {
+      const timeout_obj = setTimeout(() => {
         sendSocketMessage({
           text: initial_switch_chat_history[initial_switch_chat_history.length - 1]?.msg,
           context: '',
         });
       }, 100);
+      timeoutRef.current.push(timeout_obj);
     }
 
     if (pendingMessageRef.current) {
-      timeout_obj = setTimeout(() => {
+      const timeout_obj = setTimeout(() => {
         sendSocketMessage({
           text: pendingMessageRef.current,
           context: '',
         });
         pendingMessageRef.current = null;
       }, 100);
+      timeoutRef.current.push(timeout_obj);
     }
 
     return () => {
@@ -198,6 +200,10 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       if (hasConnectedRef.current) {
         disconnect();
         hasConnectedRef.current = false;
+      }
+      if (timeoutRef.current.length) {
+        timeoutRef.current.forEach(clearTimeout);
+        timeoutRef.current = [];
       }
     };
   }, []);
