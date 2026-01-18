@@ -10,12 +10,13 @@ import { buildWebSocketUrl } from 'utils/helpers';
 import { sessionFlowName } from '../../../../ShikshalokamVoiceChat/enum';
 import { bot_routes, FLOW_TYPES } from '../../../../../configure';
 import { getNewSessionID } from '../../../../../api/endpoints/chat_flow';
+import { compareFlowTypesEquality } from '../../../utils/common_flow';
 
 const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected, isInitialSwitchSection }) => {
   const textInputRef = useRef(null);
-  const isConnectedRef = useRef(false); // Track real connection state
-  const hasAttemptedConnectionRef = useRef(false); // Track if connection was ever attempted
-  const pendingMessageRef = useRef(null); // Store pending message to send after websocket connects
+  const isConnectedRef = useRef(false); 
+  const hasAttemptedConnectionRef = useRef(false);
+  const pendingMessageRef = useRef(null);
   const [textMessage, setTextMessage] = useState('');
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [isSessionReady, setIsSessionReady] = useState(false);
@@ -87,7 +88,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
           context: '',
         });
         pendingMessageRef.current = null;
-      }, 100); // Small delay to ensure authentication is processed
+      }, 100);
     }
   }, []);
 
@@ -97,7 +98,6 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
 
   const onWebSocketError = useCallback(() => {
     isConnectedRef.current = false;
-    // Clear pending message on error to prevent stale sends
     pendingMessageRef.current = null;
     setIsWaitingForBot(false);
   }, []);
@@ -136,17 +136,35 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
         
         setIsWaitingForBot(false);
         
-        if (validation === FLOW_TYPES.MIP) {
+        if (compareFlowTypesEquality(validation, FLOW_TYPES.MIP)) {
           useAICreationSessionStore.getState().setSelectedFlowType(FLOW_TYPES.MIP);
           onFlowTypeSelectedRef.current?.(FLOW_TYPES.MIP);
         } else if (
-          validation === FLOW_TYPES.LFA || 
-          validation === FLOW_TYPES.LCF || 
-          validation === FLOW_TYPES.FREE_FLOW
+          compareFlowTypesEquality(validation, FLOW_TYPES.LFA) || 
+          compareFlowTypesEquality(validation, FLOW_TYPES.LCF) || 
+          compareFlowTypesEquality(validation, FLOW_TYPES.FREE_FLOW)
         ) {
-          // Other flows - use CommonFlow
-          useAICreationSessionStore.getState().setSelectedFlowType(validation);
-          onFlowTypeSelectedRef.current?.(validation);
+          if (compareFlowTypesEquality(validation, FLOW_TYPES.LCF)) {
+            (async () => {
+              try {
+                const newSession = await getNewSessionID();
+                if (newSession) {
+                  useAICreationSessionStore.getState().setSession(newSession);
+                }
+              } catch (e) {
+                console.error("Failed to refresh session for LCF", e);
+              } finally {
+                useAICreationSessionStore.getState().setSelectedFlowType(
+                  validation?.toLowerCase()
+                );
+                onFlowTypeSelectedRef.current?.(validation?.toLowerCase());
+              }
+            })();
+          } else {
+            // Other flows - use CommonFlow
+            useAICreationSessionStore.getState().setSelectedFlowType(validation?.toLowerCase());
+            onFlowTypeSelectedRef.current?.(validation?.toLowerCase());
+          }
         }
       }
     },

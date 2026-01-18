@@ -37,7 +37,7 @@ const Source = ({ source = {}, customClassNames = {} }) => {
               title={item?.currentSource?.title || item?.text || ""}
               description={source?.description || ""}
               sourceUrl={sourceUrl || ""}
-              show={source?.chunk}
+              show={Array.isArray(item?.chunks) && item?.chunks.length > 0 && !!item?.currentSource}
               showSourcePopup={() => {
                 setSourcePopupData({
                   label: item?.reference || "",

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, ArrowLeft } from "lucide-react";
 import { faqData } from "../../../../constants/faq";
+import { useTranslation } from "react-i18next";
 
 // Single FAQ Accordion Item
 const FAQItem = ({ question, answer, index, isOpen, onToggle }) => {
@@ -77,7 +78,8 @@ const FAQSection = ({ title, questions, sectionIndex, openItems, onToggle }) => 
 };
 
 // Main FAQ Component
-export default function FAQ() {
+export default function FAQ({ onBack }) {
+  const { t } = useTranslation("ai_creation_translation");
   const [openItems, setOpenItems] = useState({});
 
   const handleToggle = (itemKey) => {
@@ -89,6 +91,17 @@ export default function FAQ() {
 
   return (
     <div className="w-full h-full overflow-y-auto bg-white rounded-[20px] p-6 md:p-8">
+      {/* Back Button */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-[#1177FF] hover:text-blue-700 mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-medium">{t("common.back") || "Back"}</span>
+        </button>
+      )}
+
       {/* FAQ Title */}
       <h1 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-8">
         {faqData.faqPageTitle}

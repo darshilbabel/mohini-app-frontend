@@ -1,5 +1,6 @@
 import axios from "axios"
 import env from "utils/env"
+import axiosRetry from 'axios-retry';
 
 class ApiClient {
   constructor(httpClient) {
@@ -32,5 +33,7 @@ const axiosInstance = axios.create({
   baseURL: env.LOCAL_PROXY(),
   params: {},
 })
+
+axiosRetry(axiosInstance, { retries: 0 });
 
 export const apiClient = new ApiClient(axiosInstance)

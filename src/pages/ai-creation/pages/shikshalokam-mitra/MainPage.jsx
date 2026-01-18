@@ -25,6 +25,7 @@ import { useAICreationSessionStore } from "store";
 import InitialSwitch from "./mitra-pages/InitialSwitch";
 import { getTranslatedIntroMessageApi } from "../../../../api/endpoints/ai";
 import { bot_routes, FLOW_TYPES } from "../../../../configure";
+import { compareFlowTypesEquality } from "../../utils/common_flow";
 
 function MainPage() {
   const { t } = useTranslation("ai_creation_translation");
@@ -93,6 +94,10 @@ function MainPage() {
       4: false,
       5: false,
     }
+  );
+
+  const initialSwitchChatHistory = useAICreationSessionStore(
+    state => state.initialSwitchChatHistory
   );
 
   const audioRef = useRef();
@@ -250,7 +255,7 @@ function MainPage() {
 
   const handleFlowTypeSelected = (flowType) => {
     setSelectedFlowType(flowType);
-    if (flowType === FLOW_TYPES.MIP) {
+    if (compareFlowTypesEquality(flowType, FLOW_TYPES.MIP)) {
       // For MIP, move to DefineChallenge page
       setCurrentPage({
         0: false,
@@ -301,9 +306,9 @@ function MainPage() {
     const isTitleGenerationSection = currentPage["5"];
 
     const isCommonFlow = selectedFlowType && 
-      (selectedFlowType === FLOW_TYPES.LFA || 
-       selectedFlowType === FLOW_TYPES.LCF || 
-       selectedFlowType === FLOW_TYPES.FREE_FLOW);
+      (compareFlowTypesEquality(selectedFlowType, FLOW_TYPES.LFA) || 
+       compareFlowTypesEquality(selectedFlowType, FLOW_TYPES.LCF) || 
+       compareFlowTypesEquality(selectedFlowType, FLOW_TYPES.FREE_FLOW));
 
     components.push(
       <InitialSwitch 
@@ -466,7 +471,7 @@ function MainPage() {
   return (
     <>
           {acceptedTnc === "ONGOING" && !isLoading && (
-        <PrivacyPolicyPopup tncText={tncTranslation("tncText")} onAccept={handleAcceptTnC} isGuestChat={false} />
+        <PrivacyPolicyPopup tncText={tncTranslation("mitraTncText")} onAccept={handleAcceptTnC} isGuestChat={false} />
       )}
 
 <div className="bg-[#F0F2F5]">
@@ -493,6 +498,7 @@ function MainPage() {
           setIsSidebarOpen={setIsSidebarOpen}
           isMobile={isMobile}
           handleNewMIPClick={handleNewMIPClick}
+          isNewChatDisabled={(initialSwitchChatHistory || []).length === 0}
         />
         {activeTab === ACTIVE_TABS.CONVERSATION && (
           <ConversationWrapperCard
@@ -507,7 +513,7 @@ function MainPage() {
         )}
         {activeTab === ACTIVE_TABS.FAQ && (
           <div className="flex-1 h-full overflow-hidden">
-            <FAQ />
+            <FAQ onBack={() => setActiveTab(ACTIVE_TABS.CONVERSATION)} />
           </div>
         )}
       </main>

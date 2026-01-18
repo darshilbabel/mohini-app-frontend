@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ChatBox from './components/ChatBox';
 import ChatWindow from './components/ChatWindow';
@@ -8,13 +8,18 @@ import { useAICreationSessionStore } from 'store';
 import { useChatWebhook } from 'hooks/useChatWebhook';
 import { buildWebSocketUrl } from 'utils/helpers';
 import { getTranslatedIntroMessageApi } from '../../../../../api/endpoints/ai';
-import { sessionFlowName } from '../../../../ShikshalokamVoiceChat/enum';
-import { getBotConfigForFlow } from '../../../utils/common_flow';
+import { compareFlowTypesEquality, getBotConfigForFlow } from '../../../utils/common_flow';
+import { ToastContainer } from "react-toastify";
+import { FLOW_TYPES } from '../../../../../configure';
+import { CONVERSATION_USER_TYPES } from '../../../constants/mitra.constants';
+
+const { USER } = CONVERSATION_USER_TYPES;
 
 const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const textInputRef = useRef(null);
   const hasConnectedRef = useRef(false);
   const pendingMessageRef = useRef(null);
+  const timeoutRef = useRef([]);
   const [textMessage, setTextMessage] = useState('');
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [introMessage, setIntroMessage] = useState(null);
@@ -32,13 +37,17 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     localChatHistory?.length ? localChatHistory : []
   );
 
-  const { profileId } = useAICreationSessionStore.getState();
+  const { profileId, getInitialSwitchChatHistory, getCommonFlowChatHistory } = useAICreationSessionStore.getState();
 
   const [searchParams] = useSearchParams();
   const accessToken = sessionStorage.getItem('accToken');
 
   const storageFlow = getBotConfigForFlow(flowType).flow_name;
   const botRoute = getBotConfigForFlow(flowType).route;
+
+  const isFreeFlow = useMemo(() => {
+    return compareFlowTypesEquality(flowType, FLOW_TYPES.FREE_FLOW);
+  }, [flowType])
 
   useEffect(() => {
     const fetchIntroMessage = async () => {
@@ -79,15 +88,30 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       flow_name: storageFlow,
     });
 
+    const initial_switch_chat_history = getInitialSwitchChatHistory();
+    const common_flow_chat_history = getCommonFlowChatHistory();
+
+    if (Array.isArray(initial_switch_chat_history) && initial_switch_chat_history.length && initial_switch_chat_history[initial_switch_chat_history.length - 1]?.source === USER && Array.isArray(common_flow_chat_history) && !common_flow_chat_history.length) {
+      const timeout_obj = setTimeout(() => {
+        sendSocketMessage({
+          text: initial_switch_chat_history[initial_switch_chat_history.length - 1]?.msg,
+          context: '',
+        });
+      }, 100);
+      timeoutRef.current.push(timeout_obj);
+    }
+
     if (pendingMessageRef.current) {
-      setTimeout(() => {
+      const timeout_obj = setTimeout(() => {
         sendSocketMessage({
           text: pendingMessageRef.current,
           context: '',
         });
         pendingMessageRef.current = null;
       }, 100);
+      timeoutRef.current.push(timeout_obj);
     }
+
   }, [profileId, accessToken, botRoute, storageFlow]);
 
   const onWebSocketMessage = useCallback(
@@ -95,39 +119,67 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       const data = JSON.parse(event.data);
       const message = data?.text;
 
-      if (message?.msg && message?.source === 'bot') {
-        const newMessage = {
-          msg: message.msg,
-          source: 'bot',
-          updated_at: Date.now(),
-        };
+      if (message?.source === 'bot') {
+        setCommonFlowChatHistory((prevChatHistory) => {
+          const lastIndex = prevChatHistory.length - 1;
+          const lastMessage = prevChatHistory[lastIndex];
 
-        setCommonFlowChatHistory((prev) => [...prev, newMessage]);
+          if (lastIndex >= 0 && lastMessage?.source === 'bot') {
+            if (message?.msg) {
+              let updatedLastMessage = { ...lastMessage, msg: lastMessage.msg + message.msg };
 
-        const currentStoreHistory =
-          useAICreationSessionStore
-            .getState()
-            .getCommonFlowChatHistory();
+              if (Array.isArray(message?.extra_content?.sources) && message?.extra_content?.sources.length) {
+                updatedLastMessage["sources"] = message?.extra_content?.sources;
+              }
 
-        useAICreationSessionStore
-          .getState()
-          .setCommonFlowChatHistory([...currentStoreHistory, newMessage]);
+              return [...prevChatHistory.slice(0, lastIndex), updatedLastMessage];
+            }
 
-        setIsWaitingForBot(false);
+            if (Array.isArray(message?.extra_content?.sources) && message?.extra_content?.sources.length) {
+              let updatedLastMessage = { ...lastMessage };
+              updatedLastMessage["sources"] = message?.extra_content?.sources;
+              return [...prevChatHistory.slice(0, lastIndex), updatedLastMessage];
+            }
+            return prevChatHistory;
+          } else {
+            const updatedMessage = {
+              msg: message?.msg || '',
+              source: 'bot',
+              updated_at: Date.now(),
+            }
+            if (Array.isArray(message?.extra_content?.sources) && message?.extra_content?.sources.length) {
+              updatedMessage["sources"] = message?.extra_content?.sources;
+            }
+            return [
+              ...prevChatHistory,
+              updatedMessage,
+            ];
+          }
+        });
+
+        if (message?.finish_reason === 'stop') {
+          setIsWaitingForBot(false);
+        }
+
         handleScrollIntoViewRef.current?.();
       }
     },
     []
   );
 
+  useEffect(() => {
+    useAICreationSessionStore.getState().setCommonFlowChatHistory(commonFlowChatHistory);
+  }, [commonFlowChatHistory]);
+
   const {
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
     disconnect,
+    isConnected
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
-      storageFlow: sessionFlowName.Creation,
+      storageFlow,
       selectedType: '',
     }),
     {
@@ -138,14 +190,26 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     }
   );
 
+
   useEffect(() => {
     return () => {
       if (hasConnectedRef.current) {
         disconnect();
         hasConnectedRef.current = false;
       }
+      if (timeoutRef.current.length) {
+        timeoutRef.current.forEach(clearTimeout);
+        timeoutRef.current = [];
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (isFreeFlow && !isConnected) {
+      connectToWebSocket()
+      hasConnectedRef.current = true;
+    }
+  }, [isFreeFlow, isConnected])
 
   const handleSendMessage = (event) => {
     event?.preventDefault();
@@ -160,16 +224,6 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     };
 
     setCommonFlowChatHistory((prev) => [...prev, newMessage]);
-
-    const currentStoreHistory =
-      useAICreationSessionStore
-        .getState()
-        .getCommonFlowChatHistory();
-
-    useAICreationSessionStore
-      .getState()
-      .setCommonFlowChatHistory([...currentStoreHistory, newMessage]);
-
     setIsWaitingForBot(true);
 
     if (!hasConnectedRef.current) {
@@ -190,11 +244,12 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
 
   return (
     <div className="flex flex-col h-auto">
+      <ToastContainer />
       {isLoadingIntro ? (
         <LoadingChat />
       ) : (
         <>
-          {introMessage && (
+          {!isFreeFlow && introMessage && (
             <BotMessage primaryMessage={introMessage} />
           )}
           

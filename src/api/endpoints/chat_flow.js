@@ -23,6 +23,13 @@ export async function getObjectiveList(user_input, language, profile_id) {
             user_input,
             language,
             profile_id
+        }, {
+            'axios-retry': {
+                retries: 3,
+                retryCondition: (error) => {
+                    return error.response?.status === 500;
+                }
+            }
         });
 
         return response?.data;
@@ -39,6 +46,13 @@ export async function getActionList(user_problem_statement, user_objective, lang
             user_objective,
             language,
             profile_id
+        }, {
+            'axios-retry': {
+                retries: 3,
+                retryCondition: (error) => {
+                    return error.response?.status === 500;
+                }
+            }
         });
 
         return response?.data;
@@ -225,4 +239,12 @@ export async function validateActionList(user_input, user_objective, problem_sta
         console.error('Error Validating Action list:', error);
         throw error;
     }
+}
+
+export async function paraphraseChatConversation(session_id) {
+    const response = await axiosInstance.post(API_ENDPOINTS.PARAPHRASE, {
+        session_id
+    });
+
+    return response?.data?.paraphrased_output;
 }

@@ -37,6 +37,8 @@ import ChatMessage from "./components/chat-message/ChatMessage";
 import { getOrTextTranslation } from "../question script/secondpage_tanslation";
 import TextareaWithVoice from "../../../components/textarea-with-mic";
 import Disclaimer from "./components/Disclaimer";
+import Guidelines from "./components/Guidelines";
+import Reasons from "./components/Reasons";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -297,11 +299,12 @@ function ActionItems({
       // }
     } catch (error) {
       setFetchError(
-        useAICreationSessionStore.getState().getSystemError() ||
-          t("common.pleaseTryAgainLater")
+       error?.response?.data?.message || useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater")
       );
 
-      setErrorTextStore(error?.response?.data?.message || t("common.pleaseTryAgainLater"))
+      setErrorTextStore(
+       error?.response?.data?.message || useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater")
+      )
       console.error(error);
     } finally {
       handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, false);
@@ -586,6 +589,9 @@ function ActionItems({
                   secondaryMessage={t("actionItems.selectOneToGetStarted")}
                   customClassNames={{ wrapperStyles: "pb-3" }}
                 />
+                <div className="mb-4">
+                  <Guidelines text={t("actionItems.guidelines")} />
+                </div>
                 <div className="bg-white p-3 rounded-2xl">
                   <ActionItemsList
                     language={language}
@@ -608,13 +614,19 @@ function ActionItems({
                     }}
                     hasClickedOnAddmore={hasClickedOnAddmore}
                   />
-                  <Source
-                    source={actionItemSource}
-                    customClassNames={{
-                      wrapperStyles: "md:!w-[100%]",
-                    }}
-                  />
-                  <Disclaimer text={t('disclaimer.actionsText')} />
+                      <Reasons 
+                        reasonList={actionList[selectedIndex]?.actionSteps || []}
+                        customClassNames={{
+                          wrapperStyles: "md:!w-[100%]",
+                        }}
+                      />
+                      <Source
+                        source={actionItemSource}
+                        customClassNames={{
+                          wrapperStyles: "md:!w-[100%]",
+                        }}
+                      />
+                      <Disclaimer text={t('disclaimer.actionsText')}/>
                   {isSelectActionItems && !!actionList && actionList?.length > 0 && (
                     <>
                       <SuggestOrAddCta
@@ -657,6 +669,9 @@ function ActionItems({
                       secondaryMessage={t("actionItems.selectOneToGetStarted")}
                       customClassNames={{ wrapperStyles: "pb-3" }}
                     />
+                    <div className="mb-4">
+                      <Guidelines text={t("actionItems.guidelines")} />
+                    </div>
                     <div className="bg-white p-3 rounded-2xl">
                       <ActionItemsList
                         language={language}
@@ -677,6 +692,12 @@ function ActionItems({
                         }}
                         hasClickedOnAddmore={hasClickedOnAddmore}
 
+                      />
+                      <Reasons 
+                        reasonList={actionList[selectedIndex]?.actionSteps || []}
+                        customClassNames={{
+                          wrapperStyles: "md:!w-[100%]",
+                        }}
                       />
                       <Source
                         source={actionItemSource}
@@ -754,6 +775,7 @@ function ActionItems({
               setHasClickedOnAddmore={setHasClickedOnAddmore}
               setWantsToMoveForward={setWantsToMoveForward}
               isFetchingData={isFetchingData}
+              selectedIndex={selectedIndex}
             />
           </div>
         )}
@@ -766,16 +788,14 @@ export default ActionItems;
 
 export function FinalActionPage({
   actionListArray,
-  isBotTalking,
-  handleSpeakerOn,
-  handleSpeakerOff,
   handleContinueClick,
   errorText,
   hasClickedOnAddmore,
   isSelectActionItems,
   setHasClickedOnAddmore,
   setWantsToMoveForward,
-  isFetchingData
+  isFetchingData,
+  selectedIndex
 }) {
   const { t } = useTranslation("ai_creation_translation");
   const [actionList, setActionList] = useState(actionListArray || []);
@@ -814,6 +834,7 @@ export function FinalActionPage({
 
   // isContinueDisabled should be true if all the action.content.step are empty. if even one is non empty then we can enable the button
   const isContinueDisabled = actionList.every((action) => !action.content?.step?.trim()) || isFetchingData;
+  const reasonList = actionList?.map(item => item?.content)
 
 
   return (
@@ -866,6 +887,8 @@ export function FinalActionPage({
           </DragDropContext>
           {isSelectActionItems && (
             <>
+              {!hasClickedOnAddmore && <Reasons reasonList={reasonList} />}
+
               <div className="secondpage-add-div1">
                 <button
                   className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]"
