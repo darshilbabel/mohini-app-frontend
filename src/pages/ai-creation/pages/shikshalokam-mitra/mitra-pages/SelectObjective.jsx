@@ -37,6 +37,7 @@ import TextareaWithVoice from "../../../components/textarea-with-mic";
 import { getOrTextTranslation } from "../question script/secondpage_tanslation";
 import Disclaimer from "./components/Disclaimer";
 import Guidelines from "./components/Guidelines";
+import Reasons from "./components/Reasons";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -827,13 +828,15 @@ export function FinalObjectivePage({
   isSelectObjectiveSection,
   setHasClickedOnAddmore,
 }) {
+
   const { t } = useTranslation("ai_creation_translation");
   const [objectiveList, setObjectiveList] = useState(() => {
     // Initialize with generated objectives or empty list
     if (objectiveListArray && objectiveListArray.length > 0) {
       return objectiveListArray.map((obj, index) => ({
         id: `obj-${index}-${Date.now()}`,
-        content: obj?.text || obj || ""
+        content: obj?.text || obj || "",
+        reason: obj?.reason || ""
       }));
     }
     return [{ id: Date.now().toString(), content: "" }];
@@ -914,6 +917,7 @@ export function FinalObjectivePage({
         primaryMessage={t("selectObjective.craftYourOwnObjectives")} 
         secondaryMessage={t("selectObjective.addEditObjectives")} 
       />
+
       <div className="secondpage-obj-fixed">
         <div className="secondpage-obj-div">
           <p className="secondpage-obj-text">{t("selectObjective.title")}</p>
@@ -952,6 +956,9 @@ export function FinalObjectivePage({
 
           {isSelectObjectiveSection && (
             <>
+
+              <Reasons reasonList={objectiveList} />
+
               <div className="secondpage-add-div1">
                 <button
                   className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]"

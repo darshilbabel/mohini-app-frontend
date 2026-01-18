@@ -2,7 +2,11 @@ import { DEFAULT_FILE_NAME, FILE_EXTENSIONS, FILE_TYPES } from "../constants/fil
 import { showNotification } from "../../../components/ToastMessage/TotastMessage";
 
 export const getFileName = (fileName = DEFAULT_FILE_NAME, fileExtension = FILE_EXTENSIONS.PDF) => {
-    return `${fileName}.${fileExtension.toLowerCase()}`;
+    const extensionLower = fileExtension.toLowerCase();
+    if (fileName.toLowerCase().endsWith(`.${extensionLower}`)) {
+        return fileName;
+    }
+    return `${fileName}.${extensionLower}`;
 };
 
 const isMobileDevice = () => {
