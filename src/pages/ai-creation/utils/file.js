@@ -21,8 +21,6 @@ export const handleShareFile = async (
     onError
 ) => {
     const fullFileName = getFileName(fileName, fileExtension);
-
-    console.log({fullFileName, url});
     
     if (!isMobileDevice()) {
         try {
