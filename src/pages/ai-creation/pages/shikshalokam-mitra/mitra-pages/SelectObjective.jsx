@@ -36,6 +36,7 @@ import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
 import TextareaWithVoice from "../../../components/textarea-with-mic";
 import { getOrTextTranslation } from "../question script/secondpage_tanslation";
 import Disclaimer from "./components/Disclaimer";
+import Guidelines from "./components/Guidelines";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -645,12 +646,18 @@ function SelectObjective({
               {separators.length === 0 && (
                 <>
                   <BotMessage primaryMessage={t("selectObjective.theseAreSomeObjectives")} secondaryMessage={t("selectObjective.selectObjective")} />
+                  <div className="mb-4">
+                  <Guidelines text={t("selectObjective.guidelines")} />
+                    
+                  </div>
                   <div className="secondpage-obj-fixed bg-white p-3 rounded-2xl">
                     <div className="mt-3">
                       <p className="secondpage-obj-text">{t("selectObjective.title")}</p>
                       {!!(!fetchError || fetchError === "") && <ObjectivesCard objectiveList={objectiveList} visibleCount={visibleCount} selectedIndices={selectedIndices} handleObjectiveClick={handleObjectiveClick} selectedObjective={selectedObjective} isSelectObjectiveSection={isSelectObjectiveSection} objectiveSource={objectiveSource} />}
                       {!!(fetchError && fetchError !== "") && <ErrorText errorText={fetchError} />}
-                      <Disclaimer text={t('disclaimer.objectivesText')} />
+                      <div className="w-[90%]">
+                        <Disclaimer text={t('disclaimer.objectivesText')} />
+                      </div>
                     </div>
                     {isSelectObjectiveSection && <SuggestOrAddCta showSuggestMoreButton={visibleCount < objectiveList?.length} handleSuggestMore={handleSuggestMore} language={language} handleAddOwnClick={handleAddOwnObjective} showAddOwnButton={true} />}
 
@@ -724,13 +731,18 @@ function SelectObjective({
                   ) : (
                     <div>
                       <BotMessage primaryMessage={t("selectObjective.theseAreSomeObjectives")} secondaryMessage={t("selectObjective.selectObjective")} />
+                      <div className="mb-4">
+                        <Guidelines text={t("selectObjective.guidelines")} />
+                      </div>
                       <div className="secondpage-obj-fixed bg-white p-3 rounded-2xl">
                         <div className="mt-3">
                           <p className="secondpage-obj-text">{t("selectObjective.title")}</p>
 
                           {!!(!fetchError || fetchError === "") && <ObjectivesCard objectiveList={sectionObjectives} visibleCount={visibleCount} selectedIndices={selectedIndices} handleObjectiveClick={handleObjectiveClick} selectedObjective={selectedObjective} isSelectObjectiveSection={isSelectObjectiveSection} objectiveSource={sectionSources} />}
                           {!!(fetchError && fetchError !== "") && <ErrorText errorText={fetchError} />}
-                          <Disclaimer text={t('disclaimer.objectivesText')} />
+                          <div className="w-[90%]">
+                            <Disclaimer text={t('disclaimer.objectivesText')} />
+                          </div>
                         </div>
                         {isSelectObjectiveSection && (
                           <SuggestOrAddCta

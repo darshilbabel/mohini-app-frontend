@@ -1,5 +1,6 @@
 import React from "react";
 import Source from "../Source";
+import Reasons from "../Reasons";
 import { useAICreationSessionStore } from "store";
 
 const ObjectivesCard = ({
@@ -102,7 +103,13 @@ const mappedObjectives = objectiveList.map(obj => {
             ))}
         </>
       )}
-      <Source source={objectiveSource} />
+
+      <div className="flex flex-col gap-2">
+        <Reasons reasonList={objectiveList} />
+        <Source source={objectiveSource} />
+      </div>
+
+
     </div>
   );
 };

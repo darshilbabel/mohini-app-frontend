@@ -8,9 +8,6 @@ export default function WelcomeCard() {
       <h1 className="font-medium text-[24px] leading-[36px] text-center text-[#333333]">
         {t("defineChallenge.welcomeCardTitle")}
       </h1>
-      <p className="font-normal text-base leading-[24px] text-center text-[#555555]">
-        {t("defineChallenge.welcomeCardDescription")}
-      </p>
     </div>
   );
 }

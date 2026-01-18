@@ -253,10 +253,10 @@ function ChatBox({
     isFocused || (textMessage && textMessage.length > 0);
 
   const inputPlaceholderText = useMemo(() => {
-    if (isFetchingData) return t("defineChallenge.placeholderProcessing");
-    if (hasStartedRecording) return t("defineChallenge.placeholderListening");
+    if (isFetchingData) return t("common.placeholderProcessing");
+    if (hasStartedRecording) return t("common.placeholderListening");
     if (placeholder) return placeholder;
-    return t("defineChallenge.placeholderDefine");
+    return t("common.chatPlaceholder");
   }, [hasStartedRecording, isFetchingData, placeholder, t]);
 
   function handleScrollToView() {
