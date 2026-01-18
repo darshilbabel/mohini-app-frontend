@@ -20,7 +20,7 @@ const ActionItemsList = ({
   hasClickedOnAddmore
 }) => {
 
-  const errorText = useAICreationSessionStore.getState().getErrorText();
+  const errorText = useAICreationSessionStore(state => state.errorText);
 
   return (
     <div>
