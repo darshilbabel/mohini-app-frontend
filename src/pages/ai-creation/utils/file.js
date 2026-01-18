@@ -2,16 +2,27 @@ import { DEFAULT_FILE_NAME, FILE_EXTENSIONS, FILE_TYPES } from "../constants/fil
 import { showNotification } from "../../../components/ToastMessage/TotastMessage";
 
 export const getFileName = (fileName = DEFAULT_FILE_NAME, fileExtension = FILE_EXTENSIONS.PDF) => {
-    const extensionLower = fileExtension.toLowerCase();
-    if (fileName.toLowerCase().endsWith(`.${extensionLower}`)) {
+    const ext = (fileExtension || FILE_EXTENSIONS.PDF).replace(/^\./, '').toLowerCase();
+    if (fileName.toLowerCase().endsWith(`.${ext}`)) {
         return fileName;
     }
-    return `${fileName}.${extensionLower}`;
+    return `${fileName}.${ext}`;
 };
 
 const isMobileDevice = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
+
+const notifyUrlCopied = fullFileName =>
+  showNotification({
+    message: `${fullFileName} URL copied to clipboard!`,
+    type: "success",
+    options: {
+      autoClose: 3000,
+      position: "top-center",
+      style: { fontWeight: "bold", color: "#1D1616" },
+    },
+  })
 
 export const handleShareFile = async (
     url = "",
@@ -25,15 +36,7 @@ export const handleShareFile = async (
     if (!isMobileDevice()) {
         try {
             await navigator.clipboard.writeText(url);
-            showNotification({
-                message: `${fullFileName} URL copied to clipboard!`,
-                type: "success",
-                options: { 
-                    autoClose: 3000,
-                    position: "top-center",
-                    style: { fontWeight: "bold", color: "#1D1616" }
-                }
-            });
+            notifyUrlCopied(fullFileName);
             return;
         } catch (clipboardError) {
             onError?.(`Failed to copy ${fullFileName} URL to clipboard.`);
@@ -75,15 +78,8 @@ export const handleShareFile = async (
         } else {
             // Fallback: copy URL to clipboard if Web Share API is not available
             await navigator.clipboard.writeText(url);
-            showNotification({
-                message: `${fullFileName} URL copied to clipboard!`,
-                type: "success",
-                options: { 
-                    autoClose: 3000,
-                    position: "top-center",
-                    style: { fontWeight: "bold", color: "#1D1616" }
-                }
-            });
+            notifyUrlCopied(fullFileName);
+
         }
     } catch (error) {
         // User cancelled the share or error occurred
@@ -92,15 +88,8 @@ export const handleShareFile = async (
             // Fallback: try to copy URL to clipboard
             try {
                 await navigator.clipboard.writeText(url);
-                showNotification({
-                    message: `${fullFileName} URL copied to clipboard!`,
-                    type: "success",
-                    options: { 
-                        autoClose: 3000,
-                        position: "top-center",
-                        style: { fontWeight: "bold", color: "#1D1616" }
-                    }
-                });
+                notifyUrlCopied(fullFileName);
+
             } catch (clipboardError) {
                 onError?.(`Failed to share ${fullFileName}.`);
             }
