@@ -18,7 +18,7 @@ const Reasons = ({ reasonList = [], customClassNames = {} }) => {
         <ol className="list-decimal list-inside space-y-2">
           {reasonList.map((item, index) => (
             <li key={index} className="text-gray-700 text-sm">
-              {item?.reason || "No reason provided"}
+              {item?.reason || item?.content?.reason || "No reason provided"}
             </li>
           ))}
         </ol>
