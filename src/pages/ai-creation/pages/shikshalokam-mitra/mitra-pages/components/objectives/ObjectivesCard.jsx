@@ -77,7 +77,7 @@ const mappedObjectives = objectiveList.map(obj => {
             className="secondpage-obj-selected-button-div"
           >
             <div className="secondpage-obj-line"></div>
-            <button className="secondpage-obj-bttn">{objective}</button>
+            <button className="secondpage-obj-bttn"><span>{mappedObjectives.findIndex(obj => obj.text === objective)+1}.</span> {objective}</button>
           </div>
         ))
       ) : (
@@ -93,7 +93,7 @@ const mappedObjectives = objectiveList.map(obj => {
                 <div className="secondpage-obj-line"></div>
                 
                 <button className="secondpage-obj-bttn">
-                  {obj?.text || ""} {obj?.source_keys?.map((key, index) => (
+                  <span>{objIndex+1}.</span> {obj?.text || ""} {obj?.source_keys?.map((key, index) => (
                   <sup key={index}>
                     [{key}]{" "}
                   </sup>

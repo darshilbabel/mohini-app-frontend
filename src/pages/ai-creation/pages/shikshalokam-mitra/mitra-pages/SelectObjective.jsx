@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 /* utils and api services */
@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import {
   getObjectiveList,
   saveUserChatsInDB,
-  validateObjective,
 } from "../../../../../api/endpoints/chat_flow";
 import { transformSource } from "../../../utils/mitra-chat";
 /* components */
@@ -20,7 +19,6 @@ import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 /* styles */
 import "../stylesheet/chatStyle.css";
 import { useAICreationSessionStore } from "store";
-import ChatBox from "./components/ChatBox";
 import { bot_routes } from "../../../../../configure";
 import { useChatWebhook } from "../../../../../hooks/useChatWebhook";
 import { buildWebSocketUrl } from "../../../../../utils/helpers";
@@ -31,27 +29,15 @@ import ChatMessage from "./components/chat-message/ChatMessage";
 import LoadingChat from "./components/LoadingChat";
 import { IoArrowForward } from "react-icons/io5";
 /* icons for editable objectives */
-import { TbTrashOff } from "react-icons/tb";
-import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
-import TextareaWithVoice from "../../../components/textarea-with-mic";
-import { getOrTextTranslation } from "../question script/secondpage_tanslation";
 import Disclaimer from "./components/Disclaimer";
 import Guidelines from "./components/Guidelines";
-import Reasons from "./components/Reasons";
+import { FinalObjectiveSection } from "./components/objectives/FinalObjectiveSection";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
 function SelectObjective({
   isSelectObjectiveSection,
-  isBotTalking,
-  handleSpeakerOn,
-  handleSpeakerOff,
-  setIsLoading,
-  isLoading,
-  handleGoBack,
-  handleGoForward,
   setCurrentPageValue,
-  setChatHistory,
   errorText,
   setErrorText,
   handleScrollIntoView,
@@ -85,9 +71,6 @@ function SelectObjective({
   });
   const [objectiveSource, setObjectiveSource] = useState([]);
   const [prevObjectiveSource, setPrevObjectiveSource] = useState([]);
-  const textInputRef = useRef(null);
-  const [textMessage, setTextMessage] = useState("");
-  const [useTextbox, setUseTextbox] = useState(false);
   const [isNewlyGeneratedList, setIsNewlyGeneratedList] = useState(() => {
     const storedPrevObjective = useAICreationSessionStore.getState().getPrevObjective();
     if (storedPrevObjective?.length > 0) {
@@ -143,7 +126,7 @@ function SelectObjective({
   const language = preferredLanguage.value || "en";
   const { setObjective: setObjectiveStore, setPrevObjective: setPrevObjectiveStore, setPrevObjectiveSource: setPrevObjectiveSourceStore, setObjectiveSource: setObjectiveSourceStore, setChunks: setChunksStore, setSelectedObjective: setSelectedObjectiveStore, setHasClickedObjAddMore, setIsOwnObjective, setObjectListRetries, setIsPrevObjectiveShown: setIsPrevObjectiveShownStore, setErrorText: setErrorTextStore } = useAICreationSessionStore.getState()
 
-  const { setSelectedWeek: setSelectedWeekStore, profileId, setUserProblemStatement: setUserProblemStatementStore } = useAICreationSessionStore.getState();
+  const { profileId, setUserProblemStatement: setUserProblemStatementStore } = useAICreationSessionStore.getState();
 
 
   const [searchParams] = useSearchParams()
@@ -474,7 +457,7 @@ function SelectObjective({
         chunks
       )
         .then(() => {
-          saveUserChatsInDB(objectivesText, currentSession, "user");
+          saveUserChatsInDB(objectivesText, currentSession, USER);
         })
         .then(() => {
 
@@ -486,57 +469,6 @@ function SelectObjective({
     }
   };
 
-  function handleInputText(e) {
-    // For custom text input, set as a single objective
-    setSelectedObjectives([{ text: e?.target?.value }]);
-  }
-
-  async function handleInputSend(inputText = '') {
-    try {
-      if (!inputText || inputText === "") {
-        setErrorText(t("selectObjective.emptyObjective"));
-        setTimeout(() => {
-          setErrorText("");
-        }, 3000);
-      } else {
-        // setIsLoading(true);
-        const profile_id = useAICreationSessionStore.getState().getProfileId();
-        const validate_response = await validateObjective(
-          inputText,
-          language,
-          profile_id
-        );
-        // setIsLoading(false);
-        if (validate_response?.result) {
-          setHasClickedObjAddMore(true)
-          setSelectedObjectives([{text: inputText}])
-          handleNextClick([{text: inputText}], true);
-        } else {
-          setErrorText(validate_response?.error_message);
-        }
-      }
-    } catch (error) {
-      const errorMessage =
-        useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater");
-
-      setErrorText(errorMessage);
-      setTimeout(() => {
-        setErrorText("");
-      }, 10000);
-      // setIsLoading(false);
-      console.error(error);
-    }
-  }
-
-  function localHandleGoBack(index) {
-    if (isInReadOnlyMode && hasClickedOnAddmore) {
-      setHasClickedOnAddmore(false);
-      setErrorText("");
-      setHasClickedObjAddMore(false)
-    } else {
-      handleGoBack(index);
-    }
-  }
 
   const selectedObjective = useAICreationSessionStore(
     state => state.selectedObjective
@@ -545,13 +477,6 @@ function SelectObjective({
   if (getLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST)) {
     return <LoadingChat />
   }
-
-
-
-  const handleOnInputText = (e) => {
-    e.preventDefault();
-    setTextMessage(e.target.value);
-  };
 
 
   const handleAddOwnObjective = () => {
@@ -632,7 +557,7 @@ function SelectObjective({
       <div>
         <div className="secondpage-bot-div ">
           {hasClickedOnAddmore && chatSections.length === 1 && isSelectObjectiveSection ? (
-            <FinalObjectivePage
+            <FinalObjectiveSection
               objectiveListArray={objectiveList}
               handleContinueClick={(objectives) => handleNextClick(objectives, true)}
               errorText={errorText}
@@ -699,19 +624,7 @@ function SelectObjective({
               );
             }
             if (section.showObjectives) {
-              // This is an objectives section
 
-              
-              // For previous objective lists, just show simple text
-              // if (!isLatestList) {
-              //   return (
-              //     <div key={`objectives-${sectionIndex}`} className="my-4">
-              //       <BotMessage primaryMessage="Previous objectives list" />
-              //     </div>
-              //   );
-              // }
-              
-              // For latest list, show full objectives card
 
               const sectionObjectives = prevObjectiveShown ? prevObjectiveList : objectiveList;
               const sectionSources = prevObjectiveShown ? useAICreationSessionStore.getState().getPrevObjectiveSource() : objectiveSource;
@@ -721,7 +634,7 @@ function SelectObjective({
                   {objectiveListLoading ? (
                     <LoadingChat />
                   ) : hasClickedOnAddmore && sectionIndex === chatSections.length -1 && isSelectObjectiveSection ? (
-                    <FinalObjectivePage
+                    <FinalObjectiveSection
                       objectiveListArray={sectionObjectives}
                       handleContinueClick={(objectives) => handleNextClick(objectives, true)}
                       errorText={errorText}
@@ -810,7 +723,7 @@ function SelectObjective({
               <div className={`div36 div37`}>
                 <ChatMessage 
                   message={Array.isArray(selectedObjective) ? selectedObjective.join(" and ") : selectedObjective} 
-                  userType={CONVERSATION_USER_TYPES.USER} 
+                  userType={USER} 
                 />
               </div>
             </div>
@@ -822,195 +735,6 @@ function SelectObjective({
   )
 }
 
-export function FinalObjectivePage({
-  objectiveListArray,
-  handleContinueClick,
-  errorText,
-  setErrorText,
-  isSelectObjectiveSection,
-  setHasClickedOnAddmore,
-  appendEmptyTextarea = false,
-}) {
 
-  const { t } = useTranslation("ai_creation_translation");
-  const [objectiveList, setObjectiveList] = useState(() => {
-    // Initialize with generated objectives or empty list
-    if (objectiveListArray && objectiveListArray.length > 0) {
-      const mappedObjectives = objectiveListArray.map((obj, index) => ({
-        id: `obj-${index}-${Date.now()}`,
-        content: obj?.text || obj || "",
-        reason: obj?.reason || ""
-      }));
-      if (appendEmptyTextarea) {
-        mappedObjectives.push({ id: Date.now().toString(), content: "" });
-      }
-      return mappedObjectives;
-    }
-    return [{ id: Date.now().toString(), content: "" }];
-  });
-  const [isFetchingData, setIsFetchingData] = useState(false);
-
-  const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en";
-  const language = preferredLanguage.value || "en";
-
-  const handleInputChange = (id, value) => {
-    setObjectiveList((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, content: value } : item))
-    );
-  };
-
-  const handleDelete = (id) => {
-    if (objectiveList && objectiveList.length <= 1) return;
-    setObjectiveList((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const handleAddObjective = () => {
-    setObjectiveList((prev) => [
-      ...prev,
-      { id: Date.now().toString(), content: "" },
-    ]);
-  };
-
-  const handleValidateAndContinue = async () => {
-    try {
-      setIsFetchingData(true);
-      setErrorText("");
-
-      // Get objectives to validate
-      const objectivesToValidate = objectiveList
-        .filter(obj => obj.content?.trim())
-        .map(obj => obj.content.trim());
-
-      const profile_id = useAICreationSessionStore.getState().getProfileId();
-
-      // Validate all objectives
-      const validate_response = await validateObjective(
-        objectivesToValidate,
-        language,
-        profile_id
-      );
-
-      setIsFetchingData(false);
-
-      if (validate_response?.result === "false" || validate_response?.result === false) {
-        setErrorText(validate_response?.error_message || t("common.pleaseTryAgainLater"));
-        return;
-      }
-
-      // If validation passes, proceed with the objectives
-      const objectives = objectiveList
-        .filter(obj => obj.content?.trim())
-        .map(obj => ({ text: obj.content.trim() }));
-      handleContinueClick(objectives);
-
-    } catch (error) {
-      const errorMessage =
-        useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater");
-      setErrorText(errorMessage);
-      setIsFetchingData(false);
-      setTimeout(() => {
-        setErrorText("");
-      }, 10000);
-      console.error("Error validating objectives:", error);
-    }
-  };
-
-  // isContinueDisabled should be true if all the objective contents are empty or fetching data
-  const isContinueDisabled = objectiveList.every((obj) => !obj.content?.trim()) || isFetchingData;
-
-  return (
-    <div className="final-action-page mt-3">
-      <BotMessage 
-        primaryMessage={t("selectObjective.craftYourOwnObjectives")} 
-        secondaryMessage={t("selectObjective.addEditObjectives")} 
-      />
-
-      <div className="secondpage-obj-fixed">
-        <div className="secondpage-obj-div">
-          <p className="secondpage-obj-text">{t("selectObjective.title")}</p>
-          <div className="thirdpage-error-div">
-            <p className="secondpage-valid-text">{t("selectObjective.pleaseAddAtLeastOneObjective")}</p>
-          </div>
-          {errorText && errorText !== "" && <ErrorText errorText={errorText} />}
-          
-          <div>
-            {objectiveList.map((objective, index) => (
-              <div key={objective.id} className="action-box">
-                <TextareaWithVoice 
-                  value={objective.content || ""} 
-                  placeholder={t("selectObjective.writeObjectiveHere")} 
-                  disabled={!isSelectObjectiveSection || isFetchingData} 
-                  onChange={text => handleInputChange(objective.id, text)} 
-                  className="final-action-input" 
-                />
-                {objectiveList.length > 1 && !isFetchingData ? (
-                  <FiTrash2
-                    className="delete-icon"
-                    onClick={e => {
-                      e.stopPropagation();
-                      if (isSelectObjectiveSection) {
-                        handleDelete(objective.id);
-                      }
-                    }}
-                    disabled={!isSelectObjectiveSection || isFetchingData}
-                  />
-                ) : (
-                  <TbTrashOff className="delete-icon-disable" />
-                )}
-              </div>
-            ))}
-          </div>
-
-          {isSelectObjectiveSection && (
-            <>
-
-              <Reasons reasonList={objectiveList} />
-
-              <div className="secondpage-add-div1">
-                <button
-                  className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]"
-                  onClick={() => {
-                    handleAddObjective();
-                  }}
-                  disabled={isFetchingData}
-                >
-                  <FiPlusCircle className="secondpage-plus-icon" />
-                  {t("selectObjective.addObjective")}
-                </button>
-              </div>
-
-              <div className="secondpage-add-div1 mt-0">
-                <p className="secondpage-or-text">{getOrTextTranslation(language)}</p>
-              </div>
-
-              <div className="secondpage-add-div1 mt-0">
-                <button
-                  onClick={() => {
-                    setHasClickedOnAddmore(false);
-                  }}
-                  className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]"
-                  disabled={isFetchingData}
-                >
-                  {t("selectObjective.goBack")}
-                </button>
-              </div>
-
-              <div className="thirdpage-continue-div">
-                <button
-                  className={`thirdpage-select-bttn ${isContinueDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
-                  onClick={handleValidateAndContinue}
-                  disabled={isContinueDisabled}
-                >
-                  {t("common.continue")}
-                  <IoArrowForward className="thirdpage-cont-arrow-icon" />
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default SelectObjective;
