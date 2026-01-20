@@ -112,12 +112,15 @@ export function FinalObjectiveSection({
         }
   
         const profile_id = useAICreationSessionStore.getState().getProfileId();
+        const user_problem_statement = useAICreationSessionStore.getState().getUserProblemStatement();
+
   
         // Validate only selected objectives
         const validate_response = await validateObjective(
           objectivesToValidate,
           language,
-          profile_id
+          profile_id,
+          user_problem_statement
         );
   
         setIsFetchingData(false);
