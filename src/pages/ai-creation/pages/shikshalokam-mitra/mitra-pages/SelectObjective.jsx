@@ -640,6 +640,7 @@ function SelectObjective({
               hasClickedOnAddmore={hasClickedOnAddmore}
               isSelectObjectiveSection={isSelectObjectiveSection}
               setHasClickedOnAddmore={setHasClickedOnAddmore}
+              appendEmptyTextarea={true}
             />
           ) : (
             <>
@@ -728,6 +729,7 @@ function SelectObjective({
                       hasClickedOnAddmore={hasClickedOnAddmore}
                       isSelectObjectiveSection={isSelectObjectiveSection}
                       setHasClickedOnAddmore={setHasClickedOnAddmore}
+                      appendEmptyTextarea={true}
                     />
                   ) : (
                     <div>
@@ -827,17 +829,22 @@ export function FinalObjectivePage({
   setErrorText,
   isSelectObjectiveSection,
   setHasClickedOnAddmore,
+  appendEmptyTextarea = false,
 }) {
 
   const { t } = useTranslation("ai_creation_translation");
   const [objectiveList, setObjectiveList] = useState(() => {
     // Initialize with generated objectives or empty list
     if (objectiveListArray && objectiveListArray.length > 0) {
-      return objectiveListArray.map((obj, index) => ({
+      const mappedObjectives = objectiveListArray.map((obj, index) => ({
         id: `obj-${index}-${Date.now()}`,
         content: obj?.text || obj || "",
         reason: obj?.reason || ""
       }));
+      if (appendEmptyTextarea) {
+        mappedObjectives.push({ id: Date.now().toString(), content: "" });
+      }
+      return mappedObjectives;
     }
     return [{ id: Date.now().toString(), content: "" }];
   });

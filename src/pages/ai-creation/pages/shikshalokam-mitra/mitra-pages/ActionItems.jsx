@@ -589,7 +589,7 @@ function ActionItems({
                   <Guidelines text={t("actionItems.guidelines")} />
                 </div>
                 <div className="bg-white p-3 rounded-2xl">
-                  <ActionItemsList
+                  {/* <ActionItemsList
                     language={language}
                     visibleCount={visibleCount}
                     selectedIndex={selectedIndex}
@@ -609,21 +609,62 @@ function ActionItems({
                       setWantsToMoveForward(true);
                     }}
                     hasClickedOnAddmore={hasClickedOnAddmore}
-                  />
-                      <Reasons 
-                        reasonList={actionList[selectedIndex]?.actionSteps || []}
+                  /> */}
+                  {!isSelectActionItems ? <ActionItemsList
+                    language={language}
+                    visibleCount={visibleCount}
+                    selectedIndex={selectedIndex}
+                    actionList={actionList}
+                    handleLeftArrowClick={handleLeftArrowClick}
+                    handleRightArrowClick={handleRightArrowClick}
+                    fetchError={fetchError}
+                    swipeDirection={swipeDirection}
+                    isViewMode={!isSelectActionItems}
+                    finalActionList={getActionListArray()}
+                    handleActionListClick={() => {
+                      setShowSelectedActionLoader(true)
+
+                      if (selectedIndex !== null) {
+                        updateSelectedActionPlanSources(selectedIndex);
+                      }
+                      setWantsToMoveForward(true);
+                    }}
+                    hasClickedOnAddmore={hasClickedOnAddmore}
+                  /> : <FinalActionPage
+                  actionListArray={getActionListArray()}
+                  isBotTalking={isBotTalking}
+                  handleSpeakerOn={handleSpeakerOn}
+                  handleSpeakerOff={handleSpeakerOff}
+                  handleContinueClick={handleContinueClick}
+                  errorText={errorText}
+                  hasClickedOnAddmore={hasClickedOnAddmore}
+                  isSelectActionItems={isSelectActionItems}
+                  setHasClickedOnAddmore={setHasClickedOnAddmore}
+                  setWantsToMoveForward={setWantsToMoveForward}
+                  isFetchingData={isFetchingData}
+                  selectedIndex={selectedIndex}
+                  handleGoBackToObjectives={handleGoBackToObjectives}
+                  actionItemSource={actionItemSource}
+                />}
+                  <div className="flex flex-col gap-2">
+                      {!isSelectActionItems && <Reasons 
+                        reasonList={getActionListArray()}
                         customClassNames={{
                           wrapperStyles: "md:!w-[100%]",
                         }}
-                      />
-                      <Source
+                      />}
+                      {!isSelectActionItems && <Source
                         source={actionItemSource}
                         customClassNames={{
                           wrapperStyles: "md:!w-[100%]",
                         }}
-                      />
-                      <Disclaimer text={t('disclaimer.actionsText')}/>
-                  {isSelectActionItems && !!actionList && (
+                      />}
+
+                  </div>
+
+                      
+                      {!isSelectActionItems && <Disclaimer text={t('disclaimer.actionsText')}/>}
+                  {/* {isSelectActionItems && !!actionList && (
                     <>
                       <SuggestOrAddCta
                         showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
@@ -638,7 +679,7 @@ function ActionItems({
                         showAddOwnButton={true}
                       />
                     </>
-                  )}
+                  )} */}
                 </div>
               </>
             )}
@@ -669,7 +710,9 @@ function ActionItems({
                       <Guidelines text={t("actionItems.guidelines")} />
                     </div>
                     <div className="bg-white p-3 rounded-2xl">
-                      <ActionItemsList
+                      
+
+                      {!isSelectActionItems ? <ActionItemsList
                         language={language}
                         visibleCount={visibleCount}
                         selectedIndex={selectedIndex}
@@ -688,7 +731,24 @@ function ActionItems({
                         }}
                         hasClickedOnAddmore={hasClickedOnAddmore}
 
-                      />
+                      /> : <FinalActionPage
+                      actionListArray={getActionListArray()}
+                      isBotTalking={isBotTalking}
+                      handleSpeakerOn={handleSpeakerOn}
+                      handleSpeakerOff={handleSpeakerOff}
+                      handleContinueClick={handleContinueClick}
+                      errorText={errorText}
+                      hasClickedOnAddmore={hasClickedOnAddmore}
+                      isSelectActionItems={isSelectActionItems}
+                      setHasClickedOnAddmore={setHasClickedOnAddmore}
+                      setWantsToMoveForward={setWantsToMoveForward}
+                      isFetchingData={isFetchingData}
+                      selectedIndex={selectedIndex}
+                      handleGoBackToObjectives={handleGoBackToObjectives}
+                      actionItemSource={actionItemSource}
+                    />}
+
+
                       <Reasons 
                         reasonList={actionList[selectedIndex]?.actionSteps || []}
                         customClassNames={{
@@ -701,7 +761,7 @@ function ActionItems({
                           wrapperStyles: "md:!w-[100%]",
                         }}
                       />
-                      {isSelectActionItems && !!actionList && actionList?.length > 0 && (
+                      {/* {isSelectActionItems && !!actionList && actionList?.length > 0 && (
                         <>
                           <SuggestOrAddCta
                             showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
@@ -716,7 +776,7 @@ function ActionItems({
                             showAddOwnButton={true}
                           />
                         </>
-                      )}
+                      )} */}
                     </div>
                   </div>
                 );
@@ -791,8 +851,11 @@ export function FinalActionPage({
   setHasClickedOnAddmore,
   setWantsToMoveForward,
   isFetchingData,
-  selectedIndex
+  selectedIndex,
+  handleGoBackToObjectives,
+  actionItemSource
 }) {
+
   const { t } = useTranslation("ai_creation_translation");
   const [actionList, setActionList] = useState(actionListArray || []);
 
@@ -883,7 +946,23 @@ export function FinalActionPage({
           </DragDropContext>
           {isSelectActionItems && (
             <>
-              {!hasClickedOnAddmore && <Reasons reasonList={reasonList} />}
+
+              <div className="flex flex-col gap-2">
+                {!hasClickedOnAddmore && <Reasons reasonList={reasonList} />}
+
+                {!hasClickedOnAddmore && <Source
+                          source={actionItemSource}
+                          customClassNames={{
+                            wrapperStyles: "md:w-[90%]",
+                          }}
+                />}
+              </div>
+            
+
+              <div className="w-full md:w-[90%]">
+                <Disclaimer text={t('disclaimer.actionsText')}/>
+              </div>
+
 
               <div className="secondpage-add-div1">
                 <button
@@ -903,13 +982,14 @@ export function FinalActionPage({
 
               <div className="secondpage-add-div1 mt-0">
                 <button
-                  onClick={() => {
-                    setHasClickedOnAddmore(false)
-                    setWantsToMoveForward(false)
-                  }}
+                  // onClick={() => {
+                  //   setHasClickedOnAddmore(false)
+                  //   setWantsToMoveForward(false)
+                  // }}
+                  onClick={handleGoBackToObjectives}
                   className="flex items-center font-sans font-normal text-base leading-[1.4] text-right text-[#1177FF]"
                 >
-                  {t("actionItems.goBack")}
+                  {t("selectObjective.goBack")}
                 </button>
               </div>
 
