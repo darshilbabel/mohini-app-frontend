@@ -13,7 +13,9 @@
         "chatPlaceholder": "Type here...",
         "placeholderProcessing": "Processing... Please wait",
         "placeholderListening": "Listening... Speak now",
-        "back": "Back"
+        "back": "Back",
+        "selectAll": "Select All",
+        "deselectAll": "Deselect All"
     },
     "sidebar": {
         "newMIP": "New Chat",
@@ -71,7 +73,7 @@
         "showPrevious": "Show Previous Objective List",
         "craftYourOwnObjectives": "Craft your own objectives",
         "addEditObjectives": "Add, edit, or remove objectives as needed.",
-        "pleaseAddAtLeastOneObjective": "Please add at least one objective before proceeding.",
+        "pleaseAddAtLeastOneObjective": "Please remove the objectives you don't need.",
         "writeObjectiveHere": "Write objective here...",
         "addObjective": "Add Objective",
         "guidelines": "<strong>Some General Guidelines</strong><br/><br/>Objectives must adhere to the following principles:<br/><br/>- Objectives must be <strong>ACTIONABLE</strong> and <strong>DIRECTLY SOLVE OR ADDRESS</strong> the stated challenge.<br/>- Objectives should clearly identify <strong>stakeholders</strong> who can execute them.<br/>- Multiple objectives may address different parts of the challenge, but they must remain <strong>cohesive</strong> and <strong>closely related</strong> to one another."

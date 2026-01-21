@@ -32,68 +32,87 @@ export const handleShareFile = async (
     onError
 ) => {
     const fullFileName = getFileName(fileName, fileExtension);
-    
-    if (!isMobileDevice()) {
-        try {
-            await navigator.clipboard.writeText(url);
-            notifyUrlCopied(fullFileName);
-            return;
-        } catch (clipboardError) {
-            onError?.(`Failed to copy ${fullFileName} URL to clipboard.`);
-            return;
-        }
-    }
-    
+
+    console.log("URL:", url);
+    console.log("File name:", fullFileName);
+    console.log("navigator.share:", !!navigator.share);
+    console.log("navigator.canShare:", !!navigator.canShare);
+    console.log("navigator.clipboard:", !!navigator.clipboard);
+    console.log("User agent:", navigator.userAgent);
+    console.log("Is secure context:", window.isSecureContext);
+
     try {
         if (navigator.share) {
-            // Fetch the PDF file from the URL
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error("Failed to fetch PDF");
+            let file;
+
+            try {
+                console.log("Fetching file...");
+                const response = await fetch(url);
+                console.log("Fetch status:", response.status);
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    console.log("Blob type:", blob.type);
+                    console.log("Blob size (bytes):", blob.size);
+
+                    file = new File([blob], fullFileName, {
+                        type: fileType || blob.type,
+                    });
+
+                    console.log("File created:", file);
+                }
+            } catch (e) {
+                console.warn("File fetch failed:", e);
             }
 
-            // Convert the response to a blob
-            const blob = await response.blob();
-
-            // Create a File object from the blob
-            const file = new File([blob], fullFileName, {
-                type: fileType || FILE_TYPES.PDF,
-            });
-
-            // Share the file using Web Share API
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            if (
+                file &&
+                navigator.canShare &&
+                navigator.canShare({ files: [file] })
+            ) {
+                console.log("Sharing FILE...");
                 await navigator.share({
                     files: [file],
                     title: "Improvement Plan",
                     text: "Check out this improvement plan",
                 });
-            } else {
-                // Fallback: share URL if file sharing is not supported
-                await navigator.share({
-                    title: "Improvement Plan",
-                    text: "Check out this improvement plan",
-                    url: url,
-                });
+                console.log("File shared successfully");
+                return;
             }
-        } else {
-            // Fallback: copy URL to clipboard if Web Share API is not available
+
+            console.log("Sharing URL...");
+            await navigator.share({
+                title: "Improvement Plan",
+                text: "Check out this improvement plan",
+                url,
+            });
+            console.log("URL shared successfully");
+            return;
+        }
+
+        console.warn("navigator.share not available, copying URL...");
+        await navigator.clipboard.writeText(url);
+        notifyUrlCopied(fullFileName);
+    } catch (error) {
+        console.error("Share error:", error);
+        console.log("Error name:", error?.name);
+        console.log("Error message:", error?.message);
+
+        if (error?.name === "AbortError") {
+            console.log("User cancelled share");
+            return;
+        }
+
+        try {
+            console.log("Falling back to clipboard...");
             await navigator.clipboard.writeText(url);
             notifyUrlCopied(fullFileName);
-
+        } catch (clipboardError) {
+            console.error("Clipboard failed:", clipboardError);
+            onError?.(`Failed to share ${fullFileName}.`);
         }
-    } catch (error) {
-        // User cancelled the share or error occurred
-        if (error.name !== "AbortError") {
-            console.error("Error sharing PDF:", error);
-            // Fallback: try to copy URL to clipboard
-            try {
-                await navigator.clipboard.writeText(url);
-                notifyUrlCopied(fullFileName);
-
-            } catch (clipboardError) {
-                onError?.(`Failed to share ${fullFileName}.`);
-            }
-        }
+    } finally {
+        console.groupEnd();
     }
 };
 

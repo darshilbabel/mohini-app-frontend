@@ -33,11 +33,12 @@ export function FinalObjectiveSection({
         const mappedObjectives = objectiveListArray.map((obj, index) => ({
           id: `obj-${index}-${timestamp}`,
           content: typeof obj === "string" ? obj : (obj?.text ?? ""),
+          originalContent: obj?.text || "",
           reason: obj?.reason || "",
           isNew: false
         }));
         if (appendEmptyTextarea) {
-          mappedObjectives.push({ id: newItemId, content: "", isNew: true });
+          mappedObjectives.push({ id: newItemId, content: "", originalContent: "", isNew: true });
         }
         return {
           objectiveList: mappedObjectives,
@@ -53,7 +54,7 @@ export function FinalObjectiveSection({
     const [isFetchingData, setIsFetchingData] = useState(false);
 
     const errorTimeoutRef = useRef(null);
-
+    const errorRef = useRef(null);
     
     const setObjectiveList = (updater) => {
       setObjectiveState(prev => ({
@@ -98,41 +99,52 @@ export function FinalObjectiveSection({
       ]);
       setSelectedIds((prev) => new Set([...prev, newId]));
     };
+
+    const handleSelectAllToggle = () => {
+      setSelectedIds(prev => {
+        if (objectiveList.every(obj => prev.has(obj.id))) {
+          return new Set();
+        }
+
+        return new Set(objectiveList.map(obj => obj.id));
+      });
+    };
+
   
     const handleValidateAndContinue = async () => {
       try {
         setIsFetchingData(true);
         setErrorText("");
   
-        const objectivesToValidate = objectiveList
-          .filter(obj => selectedIds.has(obj.id) && obj.content?.trim())
+        const editedObjectivesForValidation = objectiveList
+          .filter(obj => selectedIds.has(obj.id))
+          .filter(obj => {
+            if (obj.isNew) {
+              return obj.content?.trim();
+            }
+            return obj.originalContent?.trim() !== obj.content?.trim();
+          })
           .map(obj => obj.content.trim());
-  
-        if (objectivesToValidate.length === 0) {
-          setErrorText(t("selectObjective.pleaseSelectAtLeastOneObjective") || "Please select at least one objective");
-          setIsFetchingData(false);
-          return;
-        }
   
         const profile_id = useAICreationSessionStore.getState().getProfileId();
         const user_problem_statement = useAICreationSessionStore.getState().getUserProblemStatement();
 
+        if (editedObjectivesForValidation.length > 0) {
+          // Validate only selected objectives
+          const validate_response = await validateObjective(
+            editedObjectivesForValidation,
+            language,
+            profile_id,
+            user_problem_statement
+          );
   
-        // Validate only selected objectives
-        const validate_response = await validateObjective(
-          objectivesToValidate,
-          language,
-          profile_id,
-          user_problem_statement
-        );
+          setIsFetchingData(false);
   
-        setIsFetchingData(false);
-  
-        if (validate_response?.result === "false" || validate_response?.result === false) {
-          setErrorText(validate_response?.error_message || t("common.pleaseTryAgainLater"));
-          return;
+          if (String(validate_response?.result) === "false") {
+            setErrorText(validate_response?.error_message || t("common.pleaseTryAgainLater"));
+            return;
+          }
         }
-  
         // If validation passes, proceed with only SELECTED objectives
         const objectives = objectiveList
           .filter(obj => selectedIds.has(obj.id) && obj.content?.trim())
@@ -159,12 +171,21 @@ export function FinalObjectiveSection({
       };
     }, []);
 
-
+    useEffect(() => {
+      if (errorText && errorRef.current) {
+        errorRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }, [errorText]);
   
     const hasSelectedObjectivesWithContent = objectiveList.some(
       (obj) => selectedIds.has(obj.id) && obj.content?.trim()
     );
     const isContinueDisabled = !hasSelectedObjectivesWithContent || isFetchingData;
+    const allSelected = objectiveList.length > 0 && objectiveList.every(obj => selectedIds.has(obj.id));
+    const someSelected = objectiveList.some(obj => selectedIds.has(obj.id));
   
     return (
       <div className="final-action-page mt-3">
@@ -179,9 +200,34 @@ export function FinalObjectiveSection({
             <div className="thirdpage-error-div">
               <p className="secondpage-valid-text">{t("selectObjective.pleaseAddAtLeastOneObjective")}</p>
             </div>
-            {errorText && errorText !== "" && <ErrorText errorText={errorText} />}
-            
+            {errorText && errorText !== "" && (
+              <div ref={errorRef}>
+                <ErrorText errorText={errorText} />
+              </div>
+            )}
             <div>
+              <div className="flex items-center justify-end mb-3 action-box shadow-none"> 
+                
+                <span className="mr-2 text-sm">
+                  {allSelected
+                    ? (t("common.deselectAll") || "Deselect all")
+                    : (t("common.selectAll") || "Select all")
+                  }
+                </span> 
+                <label className="checkbox-container">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={el => {
+                      if (el) el.indeterminate = !allSelected && someSelected;
+                    }}
+                    onChange={handleSelectAllToggle}
+                    disabled={!isSelectObjectiveSection || isFetchingData}
+                    className="objective-checkbox"
+                  />
+                  <span className="checkmark"></span>
+                </label>
+              </div>
               {objectiveList.map((objective, index) => (
                 <div key={objective.id} className="action-box">
                   <TextareaWithVoice 
