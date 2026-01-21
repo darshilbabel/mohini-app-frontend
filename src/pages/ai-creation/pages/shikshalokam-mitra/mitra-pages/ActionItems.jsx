@@ -870,20 +870,27 @@ export function FinalActionPage({
 
   const { t } = useTranslation("ai_creation_translation");
   const errorRef = useRef(null);
-  
+  const normalizeContent = (content) =>
+  typeof content === "string"
+    ? { step: content }
+    : (content ?? { step: "" });
+
   const [{ actionList, selectedIds }, setActionState] = useState(() => {
     const timestamp = Date.now();
     const newItemId = `new-${timestamp}`;
     
     if (actionListArray && actionListArray.length > 0) {
-      const mappedActions = actionListArray.map((action, index) => ({
-        id: action.id || `action-${index}-${timestamp}`,
-        content: action.content || "",
-        isNew: false,
-        originalContent: action.content || "",
-      }));
+      const mappedActions = actionListArray.map((action, index) => {
+        const normalized = normalizeContent(action.content);
+        return {
+          id: action.id || `action-${index}-${timestamp}`,
+          content: normalized,
+          isNew: false,
+          originalContent: { ...normalized },
+        };
+      });
       if (appendEmptyTextarea) {
-        mappedActions.push({ id: newItemId, content: "", isNew: true, originalContent: "", } );
+        mappedActions.push({ id: newItemId, content: { step: "" }, isNew: true, originalContent: { step: "" }, } );
       }
       return {
         actionList: mappedActions,
@@ -891,7 +898,12 @@ export function FinalActionPage({
       };
     }
     return {
-      actionList: [{ id: newItemId, content: "", isNew: true, originalContent: "", }],
+      actionList: [{
+        id: newItemId,
+        content: { step: "" },
+        isNew: true,
+        originalContent: { step: "" },
+      }],
       selectedIds: new Set([newItemId])
     };
   });
@@ -960,7 +972,7 @@ const handleInputChange = (id, value) => {
     const newId = Date.now().toString();
     setActionList((prev) => [
       ...prev,
-      { id: newId, content: "", originalContent: "", isNew: true }
+      { id: newId, content: { step: "" }, originalContent: { step: "" }, isNew: true }
     ]);
     setSelectedIds((prev) => new Set([...prev, newId]));
   };
@@ -1110,7 +1122,6 @@ const handleInputChange = (id, value) => {
                   onClick={async () => {
                     const success = await handleContinueClick(getSelectedActions());
                     if (success === false) return;
-                    if (!success) return;
                   }}
                   disabled={isContinueDisabled}
                 >

@@ -91,8 +91,12 @@ export const handleShareFile = async (
         }
 
         console.warn("navigator.share not available, copying URL...");
-        await navigator.clipboard.writeText(url);
-        notifyUrlCopied(fullFileName);
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(url);
+            notifyUrlCopied(fullFileName);
+        } else {
+            onError?.(`Sharing not supported on this device.`);
+        }
     } catch (error) {
         console.error("Share error:", error);
         console.log("Error name:", error?.name);
@@ -105,6 +109,9 @@ export const handleShareFile = async (
 
         try {
             console.log("Falling back to clipboard...");
+            if (!navigator.clipboard) {
+                throw new Error("Clipboard API not available");
+            }
             await navigator.clipboard.writeText(url);
             notifyUrlCopied(fullFileName);
         } catch (clipboardError) {
