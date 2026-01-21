@@ -32,7 +32,7 @@ export function FinalObjectiveSection({
       if (objectiveListArray && objectiveListArray.length > 0) {
         const mappedObjectives = objectiveListArray.map((obj, index) => ({
           id: `obj-${index}-${timestamp}`,
-          content: obj?.text || obj || "",
+          content: typeof obj === "string" ? obj : (obj?.text ?? ""),
           reason: obj?.reason || "",
           isNew: false
         }));
