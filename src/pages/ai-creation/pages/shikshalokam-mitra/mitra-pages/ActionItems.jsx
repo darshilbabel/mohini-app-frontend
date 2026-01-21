@@ -3,8 +3,7 @@ import { useTranslation } from "react-i18next";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 /* icons */
 import { PiDotsSixVerticalBold } from "react-icons/pi";
-import { TbTrashOff } from "react-icons/tb";
-import { FiPlusCircle, FiTrash2 } from "react-icons/fi";
+import { FiPlusCircle } from "react-icons/fi";
 import { IoArrowForward } from "react-icons/io5";
 /* utils and api services */
 
@@ -853,11 +852,49 @@ export function FinalActionPage({
   isFetchingData,
   selectedIndex,
   handleGoBackToObjectives,
-  actionItemSource
+  actionItemSource,
+  appendEmptyTextarea = false
 }) {
 
   const { t } = useTranslation("ai_creation_translation");
-  const [actionList, setActionList] = useState(actionListArray || []);
+  
+  const [{ actionList, selectedIds }, setActionState] = useState(() => {
+    const timestamp = Date.now();
+    const newItemId = `new-${timestamp}`;
+    
+    if (actionListArray && actionListArray.length > 0) {
+      const mappedActions = actionListArray.map((action, index) => ({
+        id: action.id || `action-${index}-${timestamp}`,
+        content: action.content || "",
+        isNew: false
+      }));
+      if (appendEmptyTextarea) {
+        mappedActions.push({ id: newItemId, content: "", isNew: true });
+      }
+      return {
+        actionList: mappedActions,
+        selectedIds: appendEmptyTextarea ? new Set([newItemId]) : new Set()
+      };
+    }
+    return {
+      actionList: [{ id: newItemId, content: "", isNew: true }],
+      selectedIds: new Set([newItemId])
+    };
+  });
+
+  const setActionList = (updater) => {
+    setActionState(prev => ({
+      ...prev,
+      actionList: typeof updater === 'function' ? updater(prev.actionList) : updater
+    }));
+  };
+
+  const setSelectedIds = (updater) => {
+    setActionState(prev => ({
+      ...prev,
+      selectedIds: typeof updater === 'function' ? updater(prev.selectedIds) : updater
+    }));
+  };
 
   const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en"
   const language = preferredLanguage.value || "en";
@@ -879,20 +916,36 @@ export function FinalActionPage({
     );
   };
 
-  const handleDelete = (id) => {
-    if (actionList && actionList.length <= 1) return;
-    setActionList((prev) => prev.filter((item) => item.id !== id));
+  const handleCheckboxToggle = (id) => {
+    setSelectedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
   };
 
   const handleAddAction = () => {
+    const newId = Date.now().toString();
     setActionList((prev) => [
       ...prev,
-      { id: Date.now().toString(), content: "" },
+      { id: newId, content: "", isNew: true },
     ]);
+    setSelectedIds((prev) => new Set([...prev, newId]));
   };
 
-  // isContinueDisabled should be true if all the action.content.step are empty. if even one is non empty then we can enable the button
-  const isContinueDisabled = actionList.every((action) => !action.content?.step?.trim()) || isFetchingData;
+  const hasSelectedActionsWithContent = actionList.some(
+    (action) => selectedIds.has(action.id) && action.content?.step?.trim()
+  );
+  const isContinueDisabled = !hasSelectedActionsWithContent || isFetchingData;
+  
+  const getSelectedActions = () => {
+    return actionList.filter(action => selectedIds.has(action.id) && action.content?.step?.trim());
+  };
+  
   const reasonList = actionList?.map(item => item?.content)
 
 
@@ -920,21 +973,16 @@ export function FinalActionPage({
                             </span>
                           </div>
                           <TextareaWithVoice value={action?.content?.step || ""} placeholder={t("actionItems.writeActionHere")} disabled={!isSelectActionItems || isFetchingData} onChange={text => handleInputChange(action.id, text)} className="final-action-input" />
-                          {actionList && actionList.length > 1 && !isFetchingData ? (
-                            <FiTrash2
-                              className="delete-icon"
-                              onClick={e => {
-                                e.stopPropagation()
-                                if (isSelectActionItems) {
-                                  handleDelete(action.id)
-                                }
-                              }}
-                              onMouseDown={e => e.stopPropagation()}
+                          <label className="checkbox-container">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.has(action.id)}
+                              onChange={() => handleCheckboxToggle(action.id)}
                               disabled={!isSelectActionItems || isFetchingData}
+                              className="action-checkbox"
                             />
-                          ) : (
-                            <TbTrashOff className="delete-icon-disable" />
-                          )}
+                            <span className="checkmark"></span>
+                          </label>
                         </div>
                       )}
                     </Draggable>
@@ -997,7 +1045,7 @@ export function FinalActionPage({
                 <button
                   className={`thirdpage-select-bttn ${isContinueDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                   onClick={() => {
-                    handleContinueClick(actionList)
+                    handleContinueClick(getSelectedActions())
                   }}
                   disabled={isContinueDisabled}
                 >
