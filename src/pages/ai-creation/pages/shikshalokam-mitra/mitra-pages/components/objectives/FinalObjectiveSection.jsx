@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAICreationSessionStore } from "../../../../../../../store";
 
@@ -51,6 +51,9 @@ export function FinalObjectiveSection({
     });
     
     const [isFetchingData, setIsFetchingData] = useState(false);
+
+    const errorTimeoutRef = useRef(null);
+
     
     const setObjectiveList = (updater) => {
       setObjectiveState(prev => ({
@@ -141,12 +144,22 @@ export function FinalObjectiveSection({
           useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater");
         setErrorText(errorMessage);
         setIsFetchingData(false);
-        setTimeout(() => {
-          setErrorText("");
+        errorTimeoutRef.current = setTimeout(() => {
+                setErrorText("");
         }, 10000);
         console.error("Error validating objectives:", error);
       }
     };
+
+    useEffect(() => {
+      return () => {
+        if (errorTimeoutRef.current) {
+          clearTimeout(errorTimeoutRef.current);
+        }
+      };
+    }, []);
+
+
   
     const hasSelectedObjectivesWithContent = objectiveList.some(
       (obj) => selectedIds.has(obj.id) && obj.content?.trim()
