@@ -179,7 +179,7 @@ function TitleGeneration({
       try {
         const response = await updateChatSession(session, field_to_update);
         if (response) {
-          const user_problem_statement = useAICreationSessionStore.getState().getParaphrasedProblemStatement();
+          const user_problem_statement = useAICreationSessionStore.getState().getUserProblemStatement();
           const project_duration = useAICreationSessionStore.getState().getSelectedWeek();
           const user_objective = useAICreationSessionStore.getState().getSelectedObjective();
           const user_action_list = useAICreationSessionStore.getState().getSelectedAction()[0]?.actionSteps?.map(step => step?.step);

@@ -3,7 +3,8 @@ import Collapse from "../../../../../../components/Collapse/Collapse";
 
 const Reasons = ({ reasonList = [], customClassNames = {} }) => {
   const hasReasons = useMemo(() => {
-    return reasonList && reasonList.length > 0;
+    const allEmptyReasons = reasonList.every(item => !item?.reason && !item?.content?.reason);
+    return reasonList && reasonList.length > 0 && !allEmptyReasons;
   }, [reasonList]);
 
   if (!hasReasons) return null;
@@ -15,13 +16,13 @@ const Reasons = ({ reasonList = [], customClassNames = {} }) => {
       customClassNames={customClassNames}
     >
       <div className="bg-white">
-        <ol className="list-decimal list-inside space-y-2">
+        <div className="list-decimal list-inside space-y-2">
           {reasonList.map((item, index) => (
-            <li key={index} className="text-gray-700 text-sm">
-              {item?.reason || "No reason provided"}
-            </li>
+            (item?.reason || item?.content?.reason) && <p key={index} className="text-gray-700 text-sm">
+              {index+1}. {item?.reason || item?.content?.reason}
+            </p>
           ))}
-        </ol>
+        </div>
       </div>
     </Collapse>
   );

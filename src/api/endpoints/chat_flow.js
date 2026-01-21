@@ -182,14 +182,15 @@ export async function updateChatSession(session, update_field) {
     }
 }
 
-export async function validateObjective(user_input, language, profile_id) {
+export async function validateObjective(user_input, language, profile_id, user_problem_statement) {
     try {
         const response = await axiosInstance.post(
             `${API_ENDPOINTS.VALIDATE_OBJECTIVE}`,
             {
                 user_input,
                 language,
-                profile_id
+                profile_id,
+                user_problem_statement
             }
         );
 
