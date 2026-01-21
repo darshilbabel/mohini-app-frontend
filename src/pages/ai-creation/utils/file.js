@@ -29,7 +29,8 @@ export const handleShareFile = async (
     fileName = "",
     fileExtension = "",
     fileType = "",
-    onError
+    onError,
+    t
 ) => {
     const fullFileName = getFileName(fileName, fileExtension);
     console.group("handleShareFile");
@@ -40,7 +41,7 @@ export const handleShareFile = async (
     console.log("navigator.clipboard:", !!navigator.clipboard);
     console.log("User agent:", navigator.userAgent);
     console.log("Is secure context:", window.isSecureContext);
-
+    
     try {
         if (navigator.share) {
             let file;
@@ -73,8 +74,8 @@ export const handleShareFile = async (
                 console.log("Sharing FILE...");
                 await navigator.share({
                     files: [file],
-                    title: "Improvement Plan",
-                    text: "Check out this improvement plan",
+                    title: t("common.shareTitle") || "Improvement Plan",
+                    text: t("common.shareMessage") || "Check out this improvement plan",
                 });
                 console.log("File shared successfully");
                 return;
@@ -82,8 +83,8 @@ export const handleShareFile = async (
 
             console.log("Sharing URL...");
             await navigator.share({
-                title: "Improvement Plan",
-                text: "Check out this improvement plan",
+                title: t("common.shareTitle") || "Improvement Plan",
+                text: t("common.shareMessage") || "Check out this improvement plan",
                 url,
             });
             console.log("URL shared successfully");

@@ -66,7 +66,8 @@ const handleShareSelect = (media) => {
     media.file_name,
     extension,
     media.media_type,
-    setError
+    setError,
+    t
   );
 };
 

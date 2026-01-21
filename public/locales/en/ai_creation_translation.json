@@ -15,7 +15,9 @@
         "placeholderListening": "Listening... Speak now",
         "back": "Back",
         "selectAll": "Select All",
-        "deselectAll": "Deselect All"
+        "deselectAll": "Deselect All",
+        "shareTitle": "Improvement Plan",
+        "shareMessage": "Check out this improvement plan"
     },
     "sidebar": {
         "newMIP": "New Chat",
