@@ -71,15 +71,18 @@ const mappedObjectives = objectiveList.map(obj => {
     <div className="objective-list-div">
       {!!(!isSelectObjectiveSection && selectedObjectivesArray.length > 0) ? (
         // Show all selected objectives when not in selection mode
-        selectedObjectivesArray.map((objective, idx) => (
-          <div
+        selectedObjectivesArray.map((objective, idx) => {
+
+          const mappedIndex = mappedObjectives.findIndex(obj => obj.text === objective);
+          return (<div
             key={`selected-objective-${idx}`}
             className="secondpage-obj-selected-button-div"
           >
             <div className="secondpage-obj-line"></div>
-            <button className="secondpage-obj-bttn">{objective}</button>
+            <button className="secondpage-obj-bttn">{mappedIndex !== -1 && <span>{mappedIndex + 1}.</span>} {objective}</button>
           </div>
-        ))
+          )
+})
       ) : (
         <>
           {(Array.isArray(mappedObjectives) ? mappedObjectives : [])
@@ -93,7 +96,7 @@ const mappedObjectives = objectiveList.map(obj => {
                 <div className="secondpage-obj-line"></div>
                 
                 <button className="secondpage-obj-bttn">
-                  {obj?.text || ""} {obj?.source_keys?.map((key, index) => (
+                  <span>{objIndex+1}.</span> {obj?.text || ""} {obj?.source_keys?.map((key, index) => (
                   <sup key={index}>
                     [{key}]{" "}
                   </sup>
