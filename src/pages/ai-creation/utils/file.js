@@ -32,7 +32,7 @@ export const handleShareFile = async (
     onError
 ) => {
     const fullFileName = getFileName(fileName, fileExtension);
-
+    console.group("handleShareFile");
     console.log("URL:", url);
     console.log("File name:", fullFileName);
     console.log("navigator.share:", !!navigator.share);

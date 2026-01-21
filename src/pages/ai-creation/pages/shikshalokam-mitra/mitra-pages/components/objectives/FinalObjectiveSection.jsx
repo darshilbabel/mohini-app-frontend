@@ -137,9 +137,7 @@ export function FinalObjectiveSection({
             profile_id,
             user_problem_statement
           );
-  
-          setIsFetchingData(false);
-  
+    
           if (String(validate_response?.result) === "false") {
             setErrorText(validate_response?.error_message || t("common.pleaseTryAgainLater"));
             return;
@@ -155,11 +153,12 @@ export function FinalObjectiveSection({
         const errorMessage =
           useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater");
         setErrorText(errorMessage);
-        setIsFetchingData(false);
         errorTimeoutRef.current = setTimeout(() => {
                 setErrorText("");
         }, 10000);
         console.error("Error validating objectives:", error);
+      } finally {
+        setIsFetchingData(false);
       }
     };
 

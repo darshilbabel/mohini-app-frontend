@@ -458,13 +458,10 @@ function ActionItems({
           profile_id
         );
 
-        setIsFetchingData(false)
-
         // setIsLoading(false);
 
         if (String(validate_response?.result) === "false") {
           setErrorText(validate_response?.error_message);
-          setIsFetchingData(false);
           return false;
         }
       }
@@ -506,6 +503,7 @@ function ActionItems({
       handleLoaderState(LOADER_KEYS.LOAD_WEEKS_SELECTION, false);
       console.error(error);
     } finally {
+      setIsFetchingData(false);
       handleLoaderState(LOADER_KEYS.LOAD_WEEKS_SELECTION, false);
     }
   };
@@ -893,7 +891,7 @@ export function FinalActionPage({
       };
     }
     return {
-      actionList: [{ id: newItemId, content: "", isNew: true }],
+      actionList: [{ id: newItemId, content: "", isNew: true, originalContent: "", }],
       selectedIds: new Set([newItemId])
     };
   });
@@ -1111,6 +1109,7 @@ const handleInputChange = (id, value) => {
                   className={`thirdpage-select-bttn ${isContinueDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                   onClick={async () => {
                     const success = await handleContinueClick(getSelectedActions());
+                    if (success === false) return;
                     if (!success) return;
                   }}
                   disabled={isContinueDisabled}
