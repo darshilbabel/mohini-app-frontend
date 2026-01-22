@@ -138,12 +138,13 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
 
           const chat_history_updated = [...chat_history]
           const lastIndex = chat_history_updated.length - 1
-          if (lastIndex >= 0) {
+          const paraphrase = resp?.comprehensive_paragraph?.trim()
+          if (lastIndex >= 0 && paraphrase) {
             chat_history_updated[lastIndex] = {
               ...chat_history_updated[lastIndex],
-              msg: chat_history_updated[lastIndex].msg + "\n\n" + resp.comprehensive_paragraph,
+              msg: `${chat_history_updated[lastIndex].msg}\n\n${paraphrase}`,
               updated_at: Date.now(),
-              shouldMoveForward: "yes"
+              shouldMoveForward: "yes",
             }
           }
           setChatHistory(chat_history_updated)
