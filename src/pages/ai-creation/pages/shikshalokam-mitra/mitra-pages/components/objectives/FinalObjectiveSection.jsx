@@ -189,6 +189,7 @@ export function FinalObjectiveSection({
     return (
       <div className="final-action-page mt-3">
         <BotMessage 
+          showChatStyle
           primaryMessage={t("selectObjective.craftYourOwnObjectives")} 
           secondaryMessage={t("selectObjective.addEditObjectives")} 
         />

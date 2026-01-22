@@ -12,7 +12,7 @@ import { bot_routes, FLOW_TYPES } from '../../../../../configure';
 import { getNewSessionID } from '../../../../../api/endpoints/chat_flow';
 import { compareFlowTypesEquality } from '../../../utils/common_flow';
 
-const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected, isInitialSwitchSection }) => {
+const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected, isInitialSwitchSection, acceptedTnc }) => {
   const textInputRef = useRef(null);
   const isConnectedRef = useRef(false); 
   const hasAttemptedConnectionRef = useRef(false);
@@ -206,6 +206,12 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
       setIsWelcomeScreen(false);
     }
   }, [initialSwitchChatHistory]);
+
+  useEffect(() => {
+    if (acceptedTnc === true && textInputRef?.current) {
+      textInputRef.current.focus();
+    }
+  }, [acceptedTnc]);
 
   const handleSendMessage = (event) => {
     event?.preventDefault();

@@ -592,6 +592,7 @@ function ActionItems({
             {separators.length === 0 && (
               <>
                 <BotMessage
+                  showChatStyle
                   primaryMessage={t("actionItems.takeActionItems")}
                   secondaryMessage={t("actionItems.selectOneToGetStarted")}
                   customClassNames={{ wrapperStyles: "pb-3" }}
@@ -713,6 +714,7 @@ function ActionItems({
                 return (
                   <div key={`action-list-${sectionIndex}`}>
                     <BotMessage
+                      showChatStyle
                       primaryMessage={t("actionItems.takeActionItems")}
                       secondaryMessage={t("actionItems.selectOneToGetStarted")}
                       customClassNames={{ wrapperStyles: "pb-3" }}

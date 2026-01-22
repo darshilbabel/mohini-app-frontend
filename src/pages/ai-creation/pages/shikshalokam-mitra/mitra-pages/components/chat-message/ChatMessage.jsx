@@ -25,7 +25,7 @@ function ChatMessage({
   const isUserConversation = userType && userType === USER;
 
   return (
-    <div>
+    <div className="w-full">
       {isBotConversation && (
         <BotMessage
           isShowImages={isShowImages}

@@ -173,13 +173,13 @@ function ChatWindow({
           : {}
       }
     >
-      <ul className="div34">
+      <div className="div34">
         {chatsToShow?.map((chat, i) => (
-          <li
+          <div
             key={i}
             className={`div35 ${chat?.source === "user" ? "label1" : "label1"}`}
           >
-            <div className={`div36 ${chat?.source === "user" ? "div37": "flex-column pb-14 !items-start"} ${i === chatsToShow.length - 1 ? "pb-0" : ""}`}>
+            <div className={`div36 ${chat?.source === "user w-full" ? "div37": "flex-column !items-start"} ${i === chatsToShow.length - 1 ? "pb-0" : ""}`}>
               <ChatMessage
                 userType={chat?.source}
                 message={`${chat?.msg}`}
@@ -212,16 +212,16 @@ function ChatWindow({
               }
             </div>
             {getShowLoadingChat(i) && <LoadingChat />}
-          </li>
+          </div>
         ))}
         {/* Show paraphrase loader once at the end of the chat list */}
         {isParaphraseLoading && (
-          <li className="div35 label1">
+          <div className="div35 label1">
             <LoadingChat />
-          </li>
+          </div>
         )}
-      </ul>
-      <div id="last-chat-boundary" className="div38" />
+      </div>
+      <div id="last-chat-boundary" />
     </div>
   );
 }
