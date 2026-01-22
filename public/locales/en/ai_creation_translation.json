@@ -17,7 +17,9 @@
         "selectAll": "Select All",
         "deselectAll": "Deselect All",
         "shareTitle": "Improvement Plan",
-        "shareMessage": "Check out this improvement plan"
+        "shareMessage": "Check out this improvement plan",
+        "you": "You",
+        "defaultBotName": "MItra"
     },
     "sidebar": {
         "newMIP": "New Chat",
@@ -75,7 +77,7 @@
         "showPrevious": "Show Previous Objective List",
         "craftYourOwnObjectives": "Craft your own objectives",
         "addEditObjectives": "Add, edit, or remove objectives as needed.",
-        "pleaseAddAtLeastOneObjective": "Please remove the objectives you don't need.",
+        "pleaseAddAtLeastOneObjective": "Please select one or more of these. You can also add your objective to this list.",
         "writeObjectiveHere": "Write objective here...",
         "addObjective": "Add Objective",
         "guidelines": "<strong>Some General Guidelines</strong><br/><br/>Objectives must adhere to the following principles:<br/><br/>- Objectives must be <strong>ACTIONABLE</strong> and <strong>DIRECTLY SOLVE OR ADDRESS</strong> the stated challenge.<br/>- Objectives should clearly identify <strong>stakeholders</strong> who can execute them.<br/>- Multiple objectives may address different parts of the challenge, but they must remain <strong>cohesive</strong> and <strong>closely related</strong> to one another."
@@ -88,7 +90,7 @@
         "addEachStep": "Add each step you'd like to take.",
         "editReorderDeleteActions": "You can edit, reorder, delete actions, or add your own to create the perfect plan!",
         "selectOneToGetStarted": "Select one to get started.",
-        "pleaseAddAtLeastOneAction": "Please add at least one action before proceeding.",
+        "pleaseAddAtLeastOneAction": "Please select at least one action before proceeding.",
         "writeActionHere": "Write action here...",
         "addAction": "Add Action",
         "action1": "Action 1",

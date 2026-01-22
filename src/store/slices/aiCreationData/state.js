@@ -1,4 +1,5 @@
 export const INITIAL_STATE = (set, get, store) => ({
+    botName: null,
     media: [],
     preferredLanguage: {},
     isReadOnly: null,
@@ -17,7 +18,7 @@ export const INITIAL_STATE = (set, get, store) => ({
     isChatVisible: null,
     session: null,
     introMessage: null,
-    botName: null,
+    botMessageName: null,
     firstName: null,
     objective: null,
     objectiveSource: null,
@@ -45,6 +46,8 @@ export const INITIAL_STATE = (set, get, store) => ({
     isOwnObjective: false,
     projectId: null,
 
+    setBotMessageName: botName => set({ botName }),
+    getBotMessageName: () => get().botName,
     setMedia: media => set({ media }),
     getMedia: () => get().media,
     setPreferredLanguage: preferredLanguage => set({ preferredLanguage }),
