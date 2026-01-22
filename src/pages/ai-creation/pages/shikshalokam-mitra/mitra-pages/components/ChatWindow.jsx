@@ -179,7 +179,7 @@ function ChatWindow({
             key={i}
             className={`div35 ${chat?.source === "user" ? "label1" : "label1"}`}
           >
-            <div className={`div36 ${chat?.source === "user" ? "div37": "flex-column pb-14 !items-start"}`}>
+            <div className={`div36 ${chat?.source === "user" ? "div37": "flex-column pb-14 !items-start"} ${i === chatsToShow.length - 1 ? "pb-0" : ""}`}>
               <ChatMessage
                 userType={chat?.source}
                 message={`${chat?.msg}`}

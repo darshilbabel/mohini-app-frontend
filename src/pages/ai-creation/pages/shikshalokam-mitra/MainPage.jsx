@@ -103,7 +103,7 @@ function MainPage() {
   const audioRef = useRef();
   const scrollContainerRef = useRef(null);
 
-  const { setIsReadOnly: setIsReadOnlyStore, setUserText: setUserTextStore, setCurrentPage: setCurrentPageStore, setSelectedFlowType: setSelectedFlowTypeStore } = useAICreationSessionStore.getState()
+  const { setIsReadOnly: setIsReadOnlyStore, setUserText: setUserTextStore, setCurrentPage: setCurrentPageStore, setSelectedFlowType: setSelectedFlowTypeStore, setBotName: setBotNameStore } = useAICreationSessionStore.getState()
 
   useEffect(() => {
     setUserDetail({
@@ -276,7 +276,9 @@ function MainPage() {
         language: "en",
         company_bot__route: bot_routes.initial_switch_bot,
       })
+
       setIntroMessage(response?.[0]?.alt_introductory_message);
+      setBotNameStore(response?.[0]?.name);
     } catch (error) {
       handleLoaderState(LOADER_KEYS.LOAD_INTRO_MESSAGE, false);
       console.error({ error });

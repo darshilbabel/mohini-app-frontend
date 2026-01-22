@@ -1,4 +1,5 @@
 export const INITIAL_STATE = (set, get, store) => ({
+    botName: null,
     media: [],
     preferredLanguage: {},
     isReadOnly: null,
@@ -45,6 +46,8 @@ export const INITIAL_STATE = (set, get, store) => ({
     isOwnObjective: false,
     projectId: null,
 
+    setBotName: botName => set({ botName }),
+    getBotName: () => get().botName,
     setMedia: media => set({ media }),
     getMedia: () => get().media,
     setPreferredLanguage: preferredLanguage => set({ preferredLanguage }),

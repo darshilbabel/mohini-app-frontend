@@ -3,6 +3,9 @@ import BotImage from "./BotImage";
 import Speaker from "./Speaker";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { FaUser } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
+import { useAICreationSessionStore } from "../../../../../../../store";
 
 const BotMessage = ({
   isShowImages = false,
@@ -16,8 +19,12 @@ const BotMessage = ({
   secondaryMessage = "",
   chatId,
   customClassNames = {},
+  showChatStyle = false,
 }) => {
+  const { t } = useTranslation("ai_creation_translation");
   const { wrapperStyles = "" } = customClassNames;
+
+  const botName = useAICreationSessionStore(state => state.botName);
 
   const markdownComponents = {
     ul: ({ children }) => (
@@ -34,6 +41,59 @@ const BotMessage = ({
       <li className="leading-6">{children}</li>
     ),
   };
+
+  if (showChatStyle) {
+    return (
+      <div className={`flex flex-col items-start relative py-4 ${wrapperStyles}`}>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-[#4A3B94] flex items-center justify-center">
+            <FaUser className="text-white text-lg" />
+          </div>
+          <span className="font-semibold text-sm text-[#101010]">{botName ?? t("common.defaultBotName")}</span>
+        </div>
+        
+        <div 
+          id={chatId} 
+          className="bg-[#F6F2FE] rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%] ml-10"
+        >
+          {!!(isShowImages || isShowBotSpeaker) && (
+            <div className="div42 mb-2">
+              {isShowImages && <BotImage />}
+              {isShowBotSpeaker && (
+                <Speaker
+                  isPlaying={isPlaying}
+                  handleOnStopSpeaking={handleOnStopSpeaking}
+                  handleOnSpeaking={handleOnSpeaking}
+                  disableStopButton={disableStopButton}
+                  disableSpeakButton={disableSpeakButton}
+                />
+              )}
+            </div>
+          )}
+
+          {!!primaryMessage?.length && (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={markdownComponents}
+              className="text-[#101010] font-medium text-base leading-6"
+            >
+              {primaryMessage}
+            </ReactMarkdown>
+          )}
+
+          {!!secondaryMessage?.length && (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={markdownComponents}
+              className="text-[#101010] font-normal text-sm leading-6"
+            >
+              {secondaryMessage}
+            </ReactMarkdown>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex items-start relative py-7 ${wrapperStyles}`}>

@@ -17,6 +17,7 @@ function ChatMessage({
   userDetail,
   isShowImages = false,
   isShowBotSpeaker = false,
+  showChatStyle = true,
 }) {
   let sanitizedContent = DOMPurify.sanitize(message);
 
@@ -36,6 +37,7 @@ function ChatMessage({
           disableSpeakButton={!isStreamingComplete}
           primaryMessage={sanitizedContent}
           chatId={chatId}
+          showChatStyle={showChatStyle}
         />
       )}
       {isUserConversation && (
@@ -44,6 +46,7 @@ function ChatMessage({
           userDetail={userDetail}
           message={sanitizedContent}
           chatId={chatId}
+          showChatStyle={showChatStyle}
         />
       )}
     </div>
