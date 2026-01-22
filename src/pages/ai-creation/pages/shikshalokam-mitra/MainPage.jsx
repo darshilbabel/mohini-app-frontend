@@ -103,7 +103,7 @@ function MainPage() {
   const audioRef = useRef();
   const scrollContainerRef = useRef(null);
 
-  const { setIsReadOnly: setIsReadOnlyStore, setUserText: setUserTextStore, setCurrentPage: setCurrentPageStore, setSelectedFlowType: setSelectedFlowTypeStore, setBotName: setBotNameStore } = useAICreationSessionStore.getState()
+  const { setIsReadOnly: setIsReadOnlyStore, setUserText: setUserTextStore, setCurrentPage: setCurrentPageStore, setSelectedFlowType: setSelectedFlowTypeStore, setBotMessageName: setBotMessageNameStore } = useAICreationSessionStore.getState()
 
   useEffect(() => {
     setUserDetail({
@@ -278,7 +278,7 @@ function MainPage() {
       })
 
       setIntroMessage(response?.[0]?.alt_introductory_message);
-      setBotNameStore(response?.[0]?.name);
+      setBotMessageNameStore(response?.[0]?.name);
     } catch (error) {
       handleLoaderState(LOADER_KEYS.LOAD_INTRO_MESSAGE, false);
       console.error({ error });

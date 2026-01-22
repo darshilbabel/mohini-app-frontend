@@ -24,7 +24,7 @@ const BotMessage = ({
   const { t } = useTranslation("ai_creation_translation");
   const { wrapperStyles = "" } = customClassNames;
 
-  const botName = useAICreationSessionStore(state => state.botName);
+  const botMessageName = useAICreationSessionStore(state => state.botMessageName);
 
   const markdownComponents = {
     ul: ({ children }) => (
@@ -49,7 +49,7 @@ const BotMessage = ({
           <div className="w-8 h-8 rounded-full bg-[#4A3B94] flex items-center justify-center">
             <FaUser className="text-white text-lg" />
           </div>
-          <span className="font-semibold text-sm text-[#101010]">{botName ?? t("common.defaultBotName")}</span>
+          <span className="font-semibold text-sm text-[#101010]">{botMessageName ?? t("common.defaultBotName")}</span>
         </div>
         
         <div 
