@@ -572,7 +572,7 @@ function SelectObjective({
               {/* Only show initial objectives if there are no separators (no regenerations) */}
               {separators.length === 0 && (
                 <>
-                  <BotMessage primaryMessage={t("selectObjective.theseAreSomeObjectives")} secondaryMessage={t("selectObjective.selectObjective")} />
+                  <BotMessage showChatStyle primaryMessage={t("selectObjective.theseAreSomeObjectives")} secondaryMessage={t("selectObjective.selectObjective")} />
                   <div className="mb-4">
                   <Guidelines text={t("selectObjective.guidelines")} />
                     
@@ -646,7 +646,7 @@ function SelectObjective({
                     />
                   ) : (
                     <div>
-                      <BotMessage primaryMessage={t("selectObjective.theseAreSomeObjectives")} secondaryMessage={t("selectObjective.selectObjective")} />
+                      <BotMessage showChatStyle primaryMessage={t("selectObjective.theseAreSomeObjectives")} secondaryMessage={t("selectObjective.selectObjective")} />
                       <div className="mb-4">
                         <Guidelines text={t("selectObjective.guidelines")} />
                       </div>

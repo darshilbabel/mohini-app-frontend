@@ -321,6 +321,7 @@ function MainPage() {
         handleScrollIntoView={handleScrollIntoView}
         onFlowTypeSelected={handleFlowTypeSelected}
         isInitialSwitchSection={isInitialSwitchSection && !isCommonFlow}
+        acceptedTnc={acceptedTnc}
       />
     );
 
@@ -504,11 +505,7 @@ function MainPage() {
         />
         {activeTab === ACTIVE_TABS.CONVERSATION && (
           <ConversationWrapperCard
-            scrollRef={
-              currentPage["1"] && chatHistory?.length > 0
-                ? null
-                : scrollContainerRef
-            }
+            scrollRef={scrollContainerRef}
           >
             {getCurrentPageView()}
           </ConversationWrapperCard>

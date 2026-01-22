@@ -46,8 +46,8 @@ export const INITIAL_STATE = (set, get, store) => ({
     isOwnObjective: false,
     projectId: null,
 
-    setBotMessageName: botName => set({ botName }),
-    getBotMessageName: () => get().botName,
+    setBotMessageName: botMessageName => set({ botMessageName }),
+    getBotMessageName: () => get().botMessageName,
     setMedia: media => set({ media }),
     getMedia: () => get().media,
     setPreferredLanguage: preferredLanguage => set({ preferredLanguage }),

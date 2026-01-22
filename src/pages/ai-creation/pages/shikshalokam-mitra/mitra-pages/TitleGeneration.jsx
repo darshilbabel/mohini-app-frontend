@@ -243,9 +243,9 @@ function TitleGeneration({
 
   return (
       <div>
-        <BotMessage primaryMessage={t("titleGeneration.hereIsTheTitle")} secondaryMessage={t("titleGeneration.youCanEditIt")} />
+        <BotMessage showChatStyle primaryMessage={t("titleGeneration.hereIsTheTitle")} secondaryMessage={t("titleGeneration.youCanEditIt")} />
         {(!fetchError || fetchError === "") && (
-          <div className="secondpage-textbox-container sm:w-full md:w-1/2 lg:w-1/2">
+          <div className="secondpage-textbox-container w-[75%] ml-[46px]">
             <TextareaWithVoice
               value={inputText}
               onChange={(val, isRec) => {
@@ -274,7 +274,7 @@ function TitleGeneration({
         )}
         {(isApiCalling || isLocalLoading) && (
           <>
-            <UserMessage message={t("titleGeneration.createMicroImprovementPlan")} />
+            <UserMessage showChatStyle message={t("titleGeneration.createMicroImprovementPlan")} />
             <LoadingChat />
           </>
         )}

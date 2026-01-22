@@ -234,7 +234,7 @@ function WeeksSelection({
 
   return (
     <div>
-      {introMessage && <BotMessage primaryMessage={introMessage} />}
+      {introMessage && <BotMessage showChatStyle primaryMessage={introMessage} />}
 
       <div className="flex flex-col h-auto">
         {durationChatHistory.length > 0 && (
