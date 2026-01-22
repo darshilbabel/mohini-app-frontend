@@ -137,14 +137,15 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
           setUserProblemStatementStore(resp?.comprehensive_paragraph)
 
           const chat_history_updated = [...chat_history]
-          chat_history_updated.push({
-            "msg": resp.comprehensive_paragraph,
-            "updated_at": Date.now(),
-            "problemStatement": "",
-            "shouldMoveForward": "yes",
-            "source": BOT,
-            "validation": ""
-          })
+          const lastIndex = chat_history_updated.length - 1
+          if (lastIndex >= 0) {
+            chat_history_updated[lastIndex] = {
+              ...chat_history_updated[lastIndex],
+              msg: chat_history_updated[lastIndex].msg + "\n\n" + resp.comprehensive_paragraph,
+              updated_at: Date.now(),
+              shouldMoveForward: "yes"
+            }
+          }
           setChatHistory(chat_history_updated)
         }).catch(err => {
           console.error(err)

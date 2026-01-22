@@ -97,10 +97,10 @@ function ChatBox({
   }, []);
 
   useEffect(() => {
-    if (textInputRef?.current && !disabled && !isReadOnly) {
-      textInputRef.current.focus();
-    }
-  }, []);
+  if (textInputRef?.current && !disabled && !isReadOnly) {
+    textInputRef.current.focus();
+  }
+  }, [autoFocus, disabled, isReadOnly]);
 
   const stopRecording = () => {
     if (mediaRecorder) {
