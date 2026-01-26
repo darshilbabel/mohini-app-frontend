@@ -48,7 +48,7 @@ export async function getActionList(user_problem_statement, user_objective, lang
             profile_id
         }, {
             'axios-retry': {
-                retries: 3,
+                retries: 5,
                 retryCondition: (error) => {
                     return error.response?.status === 500;
                 }
