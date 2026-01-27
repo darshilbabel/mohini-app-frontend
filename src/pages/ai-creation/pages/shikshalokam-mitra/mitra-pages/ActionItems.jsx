@@ -654,6 +654,7 @@ function ActionItems({
                       setWantsToMoveForward(true);
                     }}
                     hasClickedOnAddmore={hasClickedOnAddmore}
+                    isSelectActionItems={isSelectActionItems}
                   /> : <FinalActionPage
                   actionListArray={getActionListArray()}
                   isBotTalking={isBotTalking}
@@ -755,6 +756,7 @@ function ActionItems({
                           setWantsToMoveForward(true);
                         }}
                         hasClickedOnAddmore={hasClickedOnAddmore}
+                        isSelectActionItems={isSelectActionItems}
 
                       /> : <FinalActionPage
                       actionListArray={getActionListArray()}

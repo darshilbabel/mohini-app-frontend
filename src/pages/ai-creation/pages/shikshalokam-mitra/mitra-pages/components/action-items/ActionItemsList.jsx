@@ -17,7 +17,8 @@ const ActionItemsList = ({
   isViewMode = false,
   finalActionList = [],
   handleActionListClick,
-  hasClickedOnAddmore
+  hasClickedOnAddmore,
+  isSelectActionItems
 }) => {
 
   const errorText = useAICreationSessionStore(state => state.errorText);
@@ -50,7 +51,7 @@ const ActionItemsList = ({
         </div>
       </>}
       
-      {(!!(fetchError && fetchError !== "") || (errorText && errorText !== "")) && <ErrorText errorText={fetchError || errorText} />}
+      {(isSelectActionItems && (!!(fetchError && fetchError !== "") || (errorText && errorText !== ""))) && <ErrorText errorText={fetchError || errorText} />}
     </div>
   );
 };
