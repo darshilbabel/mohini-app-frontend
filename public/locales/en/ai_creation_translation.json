@@ -77,10 +77,18 @@
         "showPrevious": "Show Previous Objective List",
         "craftYourOwnObjectives": "Craft your own objectives",
         "addEditObjectives": "Add, edit, or remove objectives as needed.",
-        "pleaseAddAtLeastOneObjective": "Please select one or more of these. You can also add your objective to this list.",
+        "pleaseAddAtLeastOneObjective": "Please select one or more of these. You can also add or edit your objective.",
         "writeObjectiveHere": "Write objective here...",
         "addObjective": "Add Objective",
-        "guidelines": "<strong>Some General Guidelines</strong><br/><br/>Objectives must adhere to the following principles:<br/><br/>- Objectives must be <strong>ACTIONABLE</strong> and <strong>DIRECTLY SOLVE OR ADDRESS</strong> the stated challenge.<br/>- Objectives should clearly identify <strong>stakeholders</strong> who can execute them.<br/>- Multiple objectives may address different parts of the challenge, but they must remain <strong>cohesive</strong> and <strong>closely related</strong> to one another."
+        "guidelines": "<strong>Some General Guidelines</strong><br/><br/>Objectives must adhere to the following principles:<br/><br/>- Objectives must be <strong>ACTIONABLE</strong> and <strong>DIRECTLY SOLVE OR ADDRESS</strong> the stated challenge.<br/>- Objectives should clearly identify <strong>stakeholders</strong> who can execute them.<br/>- Multiple objectives may address different parts of the challenge, but they must remain <strong>cohesive</strong> and <strong>closely related</strong> to one another.",
+        "loadingStatusMessages": [
+            "Accessing knowledge base...",
+            "Generating responses...",
+            "Cross checking responses...",
+            "Regenerating better quality responses...",
+            "Finalizing the objectives...",
+            "Verifying output..."
+        ]
     },
     "actionItems": {
         "title": "Action List",
@@ -95,8 +103,15 @@
         "addAction": "Add Action",
         "goBack": "Go back to Action List",
         "myActionPlan": "My Action Plan",
-        "guidelines": "<strong>Some General Guidelines While You Adopt Them</strong><br/><br/>Please keep the following in mind when defining action steps:<br/><br/>- Action steps should be self-contained units of change which can be executed independently by one or more stakeholders.<br/>- Each step should be accomplishable within a timeframe of <strong>1–4 weeks</strong>.<br/>- Every successive step should build on the previous step, with the final step leading to the accomplishment of the objective(s).<br/><br/>Your list of action steps should include the following sequence:<br/><br/>a. Start with <strong>analysis / assignment of tasks</strong> – understand the current state and identify gaps.<br/>b. <strong>Design & plan</strong> the sequence of improvements and accomplishment of objective(s) using available resources.<br/>c. <strong>Prepare / Mobilize</strong> – training, materials, resources, M&E assets, etc.<br/>d. <strong>Implement & Execute</strong> the action steps in sequence with stakeholder engagement.<br/>e. <strong>Monitor & refine</strong> through feedback and assessment.<br/>f. End with <strong>completion / accomplishment</strong> of the expected outcome."
-
+        "guidelines": "<strong>Some General Guidelines While You Adopt Them</strong><br/><br/>Please keep the following in mind when defining action steps:<br/><br/>- Action steps should be self-contained units of change which can be executed independently by one or more stakeholders.<br/>- Each step should be accomplishable within a timeframe of <strong>1–4 weeks</strong>.<br/>- Every successive step should build on the previous step, with the final step leading to the accomplishment of the objective(s).<br/><br/>Your list of action steps should include the following sequence:<br/><br/>a. Start with <strong>analysis / assignment of tasks</strong> – understand the current state and identify gaps.<br/>b. <strong>Design & plan</strong> the sequence of improvements and accomplishment of objective(s) using available resources.<br/>c. <strong>Prepare / Mobilize</strong> – training, materials, resources, M&E assets, etc.<br/>d. <strong>Implement & Execute</strong> the action steps in sequence with stakeholder engagement.<br/>e. <strong>Monitor & refine</strong> through feedback and assessment.<br/>f. End with <strong>completion / accomplishment</strong> of the expected outcome.",
+        "loadingStatusMessages": [
+            "Accessing knowledge base...",
+            "Generating responses...",
+            "Cross checking responses...",
+            "Regenerating better quality responses...",
+            "Finalizing the action steps...",
+            "Verifying output..."
+        ]
     },
     "weeksSelection": {
         "howManyWeeks": "How many weeks would you like to dedicate to this improvement?",

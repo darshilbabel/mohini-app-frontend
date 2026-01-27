@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import LoadingChat from "./LoadingChat";
 
 const defaultStatusMessages = [
-  "Analyzing requirements…",
-  "Processing…",
-  "Generating output…",
-  "Refining…",
-  "Finalizing output…"
+  "Accessing knowledge base...",
+  "Generating responses...",
+  "Cross checking responses...",
+  "Regenerating better quality responses...",
+  "Finalizing...",
+  "Verifying output..."
 ];
 
 function LoadingWithStatus({ 

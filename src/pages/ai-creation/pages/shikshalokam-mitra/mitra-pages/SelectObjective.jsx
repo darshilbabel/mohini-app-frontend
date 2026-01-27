@@ -32,6 +32,7 @@ import { IoArrowForward } from "react-icons/io5";
 import Disclaimer from "./components/Disclaimer";
 import Guidelines from "./components/Guidelines";
 import { FinalObjectiveSection } from "./components/objectives/FinalObjectiveSection";
+import LoadingWithStatus from "./components/LoadingWithStatus";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -474,8 +475,10 @@ function SelectObjective({
     state => state.selectedObjective
   ) || null;
 
+  const objectiveLoadingStatusMessages = t("selectObjective.loadingStatusMessages", { returnObjects: true });
+  
   if (getLoaderState(LOADER_KEYS.FETCH_OBJECTIVE_LIST)) {
-    return <LoadingChat />
+    return <LoadingWithStatus statusMessages={objectiveLoadingStatusMessages} />
   }
 
 

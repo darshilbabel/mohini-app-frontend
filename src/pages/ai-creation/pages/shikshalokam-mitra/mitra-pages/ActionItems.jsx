@@ -427,6 +427,21 @@ function ActionItems({
 
       setIsFetchingData(true)
 
+      const store = useAICreationSessionStore.getState();
+      const setSelectedActionSource = store.setSelectedActionSource;
+      const finalSources = [];
+      const seen = new Set();
+
+      action_to_store?.forEach(action => {
+        (action.content?.sources || []).forEach(src => {
+          if (src?.url && !seen.has(src.url)) {
+            seen.add(src.url);
+            finalSources.push(src);
+          }
+        });
+      });
+
+      setSelectedActionSource(finalSources);
 
       const actionListToStore = [
         {
@@ -509,15 +524,11 @@ function ActionItems({
     }
   };
 
+  const actionLoadingStatusMessages = t("actionItems.loadingStatusMessages", { returnObjects: true });
+
   if (getLoaderState(LOADER_KEYS.FETCH_ACTION_LIST)) {
-    return <LoadingWithStatus />
+    return <LoadingWithStatus statusMessages={actionLoadingStatusMessages} />
   }
-
-
-  const handleOnInputText = (e) => {
-    e.preventDefault();
-    setTextMessage(e.target.value);
-  };
 
   // Find all separator messages
   const separators = [];
@@ -826,7 +837,7 @@ function ActionItems({
               // <></>
               <div className={`div35 label1`}>
               <div className={`div36 div37`}>
-                {hasClickedOnAddmore ? <ChatMessage message="My Action Plan" userType={CONVERSATION_USER_TYPES.USER} /> : <ChatMessage message={actionList[selectedIndex]?.plan_name} userType={CONVERSATION_USER_TYPES.USER} />}
+                {hasClickedOnAddmore ? <ChatMessage message="My Action Plan" userType={CONVERSATION_USER_TYPES.USER} /> : <ChatMessage message={actionList[selectedIndex]?.plan_name || t("actionItems.myActionPlan")} userType={CONVERSATION_USER_TYPES.USER} />}
               </div>
             </div>
             )}
