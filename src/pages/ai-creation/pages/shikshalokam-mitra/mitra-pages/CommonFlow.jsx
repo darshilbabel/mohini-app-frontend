@@ -250,7 +250,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       ) : (
         <>
           {!isFreeFlow && introMessage && (
-            <BotMessage primaryMessage={introMessage} />
+            <BotMessage primaryMessage={introMessage} showChatStyle />
           )}
           
             {commonFlowChatHistory.length > 0 && (

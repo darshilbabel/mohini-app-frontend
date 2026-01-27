@@ -27,7 +27,7 @@ const ActionItemsList = ({
       <p className="secondpage-obj-text">
         {getActionListTextTranslation(language)}
       </p>
-      {actionList?.length > 0 && <>
+      {(actionList?.length > 0 || finalActionList?.length > 0) && <>
       
         {visibleCount && !isViewMode && (
         <SwipeTopCounter
@@ -37,9 +37,7 @@ const ActionItemsList = ({
           handleRightArrowClick={handleRightArrowClick}
         />
       )}
-      {(!fetchError || fetchError === "") && (
         <div className="thirdpage-obj-container">
-          {selectedIndex !== null && (
             <ActionItemsSwiper
               selectedIndex={selectedIndex}
               actionList={actionList}
@@ -49,9 +47,7 @@ const ActionItemsList = ({
               handleActionListClick={handleActionListClick}
               hasClickedOnAddmore={hasClickedOnAddmore}
             />
-          )}
         </div>
-      )}
       </>}
       
       {(!!(fetchError && fetchError !== "") || (errorText && errorText !== "")) && <ErrorText errorText={fetchError || errorText} />}
