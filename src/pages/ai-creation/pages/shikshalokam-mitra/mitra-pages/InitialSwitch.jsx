@@ -144,27 +144,8 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
           compareFlowTypesEquality(validation, FLOW_TYPES.LCF) || 
           compareFlowTypesEquality(validation, FLOW_TYPES.FREE_FLOW)
         ) {
-          if (compareFlowTypesEquality(validation, FLOW_TYPES.LCF)) {
-            (async () => {
-              try {
-                const newSession = await getNewSessionID();
-                if (newSession) {
-                  useAICreationSessionStore.getState().setSession(newSession);
-                }
-              } catch (e) {
-                console.error("Failed to refresh session for LCF", e);
-              } finally {
-                useAICreationSessionStore.getState().setSelectedFlowType(
-                  validation?.toLowerCase()
-                );
-                onFlowTypeSelectedRef.current?.(validation?.toLowerCase());
-              }
-            })();
-          } else {
-            // Other flows - use CommonFlow
             useAICreationSessionStore.getState().setSelectedFlowType(validation?.toLowerCase());
             onFlowTypeSelectedRef.current?.(validation?.toLowerCase());
-          }
         }
       }
     },
