@@ -207,7 +207,9 @@ function ChatWindow({
               />
               {
                 chat?.sources && Array.isArray(chat?.sources) && chat?.sources.length && (
-                  <Source source={formatSources(chat?.sources)} />
+                  <div className="mb-4 w-full">
+                    <Source source={formatSources(chat?.sources)} />
+                  </div>
                 )
               }
             </div>

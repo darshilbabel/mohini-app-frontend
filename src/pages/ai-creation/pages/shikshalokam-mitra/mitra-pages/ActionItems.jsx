@@ -38,6 +38,7 @@ import TextareaWithVoice from "../../../components/textarea-with-mic";
 import Disclaimer from "./components/Disclaimer";
 import Guidelines from "./components/Guidelines";
 import Reasons from "./components/Reasons";
+import LoadingWithStatus from "./components/LoadingWithStatus";
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -242,8 +243,7 @@ function ActionItems({
   }
 
   const defaultActionList = [
-    {id: "0", content: t("actionItems.action1")},
-    {id: "1", content: t("actionItems.action2")}
+    {id: "0", content: ""},
   ];
 
   const handleRightArrowClick = () => {
@@ -264,11 +264,6 @@ function ActionItems({
       }
       return prevIndex;
     });
-  };
-
-  const handleSuggestMore = () => {
-    setVisibleCount(true);
-    handleScrollIntoView();
   };
 
   async function fetchActionList(createNew = false, newObjective) {
@@ -309,9 +304,15 @@ function ActionItems({
        error?.response?.data?.message || useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater")
       );
 
+      setActionList([])
+      setActionListStore([])
+      setActionItemSource({})
+      setActionItemSourceStore({})
+
       setErrorTextStore(
        error?.response?.data?.message || useAICreationSessionStore.getState().getSystemError() || t("common.pleaseTryAgainLater")
       )
+      setErrorText(error?.response?.data?.message || "")
       console.error(error);
     } finally {
       handleLoaderState(LOADER_KEYS.FETCH_ACTION_LIST, false);
@@ -426,6 +427,21 @@ function ActionItems({
 
       setIsFetchingData(true)
 
+      const store = useAICreationSessionStore.getState();
+      const setSelectedActionSource = store.setSelectedActionSource;
+      const finalSources = [];
+      const seen = new Set();
+
+      action_to_store?.forEach(action => {
+        (action.content?.sources || []).forEach(src => {
+          if (src?.url && !seen.has(src.url)) {
+            seen.add(src.url);
+            finalSources.push(src);
+          }
+        });
+      });
+
+      setSelectedActionSource(finalSources);
 
       const actionListToStore = [
         {
@@ -508,15 +524,11 @@ function ActionItems({
     }
   };
 
+  const actionLoadingStatusMessages = t("actionItems.loadingStatusMessages", { returnObjects: true });
+
   if (getLoaderState(LOADER_KEYS.FETCH_ACTION_LIST)) {
-    return <LoadingChat />
+    return <LoadingWithStatus statusMessages={actionLoadingStatusMessages} />
   }
-
-
-  const handleOnInputText = (e) => {
-    e.preventDefault();
-    setTextMessage(e.target.value);
-  };
 
   // Find all separator messages
   const separators = [];
@@ -642,6 +654,7 @@ function ActionItems({
                       setWantsToMoveForward(true);
                     }}
                     hasClickedOnAddmore={hasClickedOnAddmore}
+                    isSelectActionItems={isSelectActionItems}
                   /> : <FinalActionPage
                   actionListArray={getActionListArray()}
                   isBotTalking={isBotTalking}
@@ -743,6 +756,7 @@ function ActionItems({
                           setWantsToMoveForward(true);
                         }}
                         hasClickedOnAddmore={hasClickedOnAddmore}
+                        isSelectActionItems={isSelectActionItems}
 
                       /> : <FinalActionPage
                       actionListArray={getActionListArray()}
@@ -825,7 +839,7 @@ function ActionItems({
               // <></>
               <div className={`div35 label1`}>
               <div className={`div36 div37`}>
-                {hasClickedOnAddmore ? <ChatMessage message="My Action Plan" userType={CONVERSATION_USER_TYPES.USER} /> : <ChatMessage message={actionList[selectedIndex]?.plan_name} userType={CONVERSATION_USER_TYPES.USER} />}
+                {hasClickedOnAddmore ? <ChatMessage message="My Action Plan" userType={CONVERSATION_USER_TYPES.USER} /> : <ChatMessage message={actionList[selectedIndex]?.plan_name || t("actionItems.myActionPlan")} userType={CONVERSATION_USER_TYPES.USER} />}
               </div>
             </div>
             )}
@@ -891,12 +905,16 @@ export function FinalActionPage({
           originalContent: { ...normalized },
         };
       });
+      
+      const allIds = mappedActions.map(action => action.id);
+      
       if (appendEmptyTextarea) {
         mappedActions.push({ id: newItemId, content: { step: "" }, isNew: true, originalContent: { step: "" }, } );
+        allIds.push(newItemId);
       }
       return {
         actionList: mappedActions,
-        selectedIds: appendEmptyTextarea ? new Set([newItemId]) : new Set()
+        selectedIds: new Set(allIds)
       };
     }
     return {

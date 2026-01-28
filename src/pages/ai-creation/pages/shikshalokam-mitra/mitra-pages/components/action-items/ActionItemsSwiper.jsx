@@ -12,8 +12,7 @@ const ActionItemsSwiper = ({
 }) => {
 
   const { t } = useTranslation("ai_creation_translation");
-
-
+  
   const actionItems = useMemo(() => {
     if (isViewMode) {
       return finalActionList?.map((action) => action?.content || "") || [];
@@ -58,16 +57,14 @@ const ActionItemsSwiper = ({
     });
   }, [actionItems, isViewMode]);
 
-
-
   return (
     <div key={selectedIndex} className={`thirdpage-obj-selected-button-div ${swipeDirection === "left" ? "swipe-left" : swipeDirection === "right" ? "swipe-right" : ""}`} onClick={handleActionListClick}>
       <div className="secondpage-obj-line"></div>
       <button className={`thirdpage-obj-bttn ${swipeDirection ? `swipe-in-${swipeDirection}` : ""}`}>
         {actionList[selectedIndex]?.duration_weeks !== "" && (
           <p className="thirdpage-duration">
-            <span>{hasClickedOnAddmore ? t("actionItems.myActionPlan") : actionList[selectedIndex]?.plan_name}{" "}</span>
-            {!hasClickedOnAddmore && (
+            <span>{actionList[selectedIndex]?.plan_name ?? t("actionItems.myActionPlan")}{" "}</span>
+            {!hasClickedOnAddmore && actionList[selectedIndex]?.duration_weeks && (
               <>
                 <span className="thirdpage-week">({actionList[selectedIndex]?.duration_weeks}</span> week{actionList[selectedIndex]?.duration_weeks > 1 ? "s" : ""} recommend)
               </>
