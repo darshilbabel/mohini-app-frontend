@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import { FaUser } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { useAICreationSessionStore } from "../../../../../../../store";
+import rehypeRaw from "rehype-raw";
 
 const BotMessage = ({
   isShowImages = false,
@@ -74,6 +75,7 @@ const BotMessage = ({
           {!!primaryMessage?.length && (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]} 
               components={markdownComponents}
               className="text-[#101010] font-medium text-base leading-6"
             >
@@ -84,6 +86,7 @@ const BotMessage = ({
           {!!secondaryMessage?.length && (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]} 
               components={markdownComponents}
               className="text-[#101010] font-normal text-sm leading-6"
             >
@@ -116,6 +119,7 @@ const BotMessage = ({
         {!!primaryMessage?.length && (
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]} 
             components={markdownComponents}
             className="text-black font-medium text-base leading-6"
           >
@@ -126,6 +130,7 @@ const BotMessage = ({
         {!!secondaryMessage?.length && (
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]} 
             components={markdownComponents}
             className="text-black font-normal text-sm leading-6"
           >
