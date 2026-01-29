@@ -8,10 +8,10 @@ import { useAICreationSessionStore } from 'store';
 import { useChatWebhook } from 'hooks/useChatWebhook';
 import { buildWebSocketUrl } from 'utils/helpers';
 import { getTranslatedIntroMessageApi } from '../../../../../api/endpoints/ai';
-import { compareFlowTypesEquality, getBotConfigForFlow } from '../../../utils/common_flow';
+import { getBotConfigForFlow } from '../../../utils/common_flow';
 import { ToastContainer } from "react-toastify";
-import { FLOW_TYPES } from '../../../../../configure';
 import { CONVERSATION_USER_TYPES } from '../../../constants/mitra.constants';
+import { getNewSessionID } from '../../../../../api/endpoints';
 
 const { USER } = CONVERSATION_USER_TYPES;
 
@@ -45,9 +45,16 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const storageFlow = getBotConfigForFlow(flowType).flow_name;
   const botRoute = getBotConfigForFlow(flowType).route;
 
-  const isFreeFlow = useMemo(() => {
-    return compareFlowTypesEquality(flowType, FLOW_TYPES.FREE_FLOW);
-  }, [flowType])
+  const generateNewSession = async () => {
+    try {
+      const newSession = await getNewSessionID();
+      if (newSession) {
+        useAICreationSessionStore.getState().setSession(newSession);
+      }
+    } catch (e) {
+      console.error("Failed to refresh session for LCF", e);
+    } 
+  }
 
   useEffect(() => {
     const fetchIntroMessage = async () => {
@@ -58,6 +65,9 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
           company_bot__route: botRoute,
         });
         const message = response?.[0]?.alt_introductory_message;
+        if(message) {
+          generateNewSession();
+        }
         setIntroMessage(message);
         useAICreationSessionStore.getState().setCommonFlowIntroMessage(message);
       } catch (error) {
@@ -91,7 +101,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     const initial_switch_chat_history = getInitialSwitchChatHistory();
     const common_flow_chat_history = getCommonFlowChatHistory();
 
-    if (Array.isArray(initial_switch_chat_history) && initial_switch_chat_history.length && initial_switch_chat_history[initial_switch_chat_history.length - 1]?.source === USER && Array.isArray(common_flow_chat_history) && !common_flow_chat_history.length) {
+    if (!introMessage && Array.isArray(initial_switch_chat_history) && initial_switch_chat_history.length && initial_switch_chat_history[initial_switch_chat_history.length - 1]?.source === USER && Array.isArray(common_flow_chat_history) && !common_flow_chat_history.length) {
       const timeout_obj = setTimeout(() => {
         sendSocketMessage({
           text: initial_switch_chat_history[initial_switch_chat_history.length - 1]?.msg,
@@ -101,7 +111,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       timeoutRef.current.push(timeout_obj);
     }
 
-    if (pendingMessageRef.current) {
+    if (!introMessage && pendingMessageRef.current) {
       const timeout_obj = setTimeout(() => {
         sendSocketMessage({
           text: pendingMessageRef.current,
@@ -112,7 +122,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       timeoutRef.current.push(timeout_obj);
     }
 
-  }, [profileId, accessToken, botRoute, storageFlow]);
+  }, [profileId, accessToken, botRoute, storageFlow, introMessage]);
 
   const onWebSocketMessage = useCallback(
     (event) => {
@@ -205,11 +215,11 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   }, []);
 
   useEffect(() => {
-    if (isFreeFlow && !isConnected) {
+    if (!isConnected && !isLoadingIntro) {
       connectToWebSocket()
       hasConnectedRef.current = true;
     }
-  }, [isFreeFlow, isConnected])
+  }, [isConnected, isLoadingIntro])
 
   const handleSendMessage = (event) => {
     event?.preventDefault();
@@ -249,7 +259,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
         <LoadingChat />
       ) : (
         <>
-          {!isFreeFlow && introMessage && (
+          {introMessage && (
             <BotMessage primaryMessage={introMessage} showChatStyle />
           )}
           
