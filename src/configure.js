@@ -31,8 +31,6 @@ export const bot_routes = {
   mitra_create: "/mitra-create",
   parent_perception_survey: "/pppi_bot",
   mitra_duration: "/mitra-duration",
-  mitra_objective_list: "/mitra-objective-list",
-  mitra_action_list: "/mitra-action-list",
   initial_switch_bot: "/initial_switch_bot",
   free_flow: "/free-flow",
   lfa_bot: "/lfa-bot",

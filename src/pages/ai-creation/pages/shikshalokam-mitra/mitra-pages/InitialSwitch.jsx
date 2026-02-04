@@ -175,7 +175,6 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
   useEffect(() => {
     return () => {
       if (hasAttemptedConnectionRef.current) {
-        disconnect();
         isConnectedRef.current = false;
         hasAttemptedConnectionRef.current = false;
       }
@@ -187,6 +186,12 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
       setIsWelcomeScreen(false);
     }
   }, [initialSwitchChatHistory]);
+
+  useEffect(() => {
+    return () => {
+      disconnect()
+    }
+  }, [])
 
   useEffect(() => {
     if (acceptedTnc === true && textInputRef?.current) {

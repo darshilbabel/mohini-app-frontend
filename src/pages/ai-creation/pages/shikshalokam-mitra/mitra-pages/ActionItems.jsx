@@ -90,7 +90,6 @@ function ActionItems({
     return false;
   });
 
-  const [textMessage, setTextMessage] = useState("");
   const [goBack, setGoBack] = useState(false)
   const [showSelectedActionLoader, setShowSelectedActionLoader] = useState(false)
 
@@ -99,148 +98,18 @@ function ActionItems({
   const [actionListChatHistory, setActionListChatHistory] = useState(
     !!localChatHistory?.length ? localChatHistory : []
   );
-  const [searchParams] = useSearchParams()
-  const storageFlow = sessionFlowName.Creation;
-  const selectedType = ""
-  const sessionId = useAICreationSessionStore.getState().getSession();
 
   const { setActionList: setActionListStore, setActionItemSource: setActionItemSourceStore, setSelectedAction: setSelectedActionStore, setActionListChatHistory: setActionListChatHistoryStore, setSelectedObjective: setSelectedObjectiveStore, setErrorText: setErrorTextStore, setHasClickedActionAddMore: setHasClickedActionAddMoreStore } = useAICreationSessionStore.getState()
   const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || "en"
   const language = preferredLanguage.value || "en";
 
-  const { profileId, selectedAction } = useAICreationSessionStore.getState();
   const objective = useAICreationSessionStore(state => state.selectedObjective)
-  const accessToken = sessionStorage.getItem("accToken");
   const [isFetchingData, setIsFetchingData] = useState(false)
 
   // Sync hasClickedOnAddmore with store
   useEffect(() => {
     setHasClickedActionAddMoreStore(hasClickedOnAddmore);
   }, [hasClickedOnAddmore, setHasClickedActionAddMoreStore]);
-
-  // ws logic
-
-  const onWebSocketClose = useCallback(() => {
-  }, [])
-
-  const onWebSocketOpen = useCallback(() => {
-    sendSocketMessage({
-      type: "authenticate",
-      sessionid: sessionId,
-      profileid: profileId,
-      access_token: accessToken,
-      route: "en",
-      bot_route: bot_routes.mitra_action_list,
-      flow_name: storageFlow,
-    })
-  }, [sessionId, profileId, accessToken, preferredLanguage, storageFlow])
-
-  const onWebSocketMessage = useCallback((event) => {
-    const data = JSON.parse(event.data)
-    const message = data?.text
-  
-    if (message?.msg && message?.source === "bot") {
-      const newMessage = {
-        msg: message.msg,
-        source: "bot",
-        updated_at: Date.now(),
-      }
-      
-      setActionListChatHistory(prev => [...prev, newMessage])
-      
-      // Update store - get current value first, then set new value
-      const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
-      useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
-      
-      handleScrollIntoView();
-    }
-    else if(message?.source === "bot" && message?.extra_content?.should_move_forward === "yes" && message?.extra_content?.validation === "CREATE_NEW") {
-
-      const newMessage = {
-        msg: "",
-        source: "SEPARATOR",
-        updated_at: Date.now(),
-      }
-      
-      setActionListChatHistory(prev => [...prev, newMessage])
-      // Update store - get current value first, then set new value
-      const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
-      useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
-
-      useAICreationSessionStore.getState().setSelectedObjective(message?.extra_content?.query)
-
-      // Update the store so the useEffect doesn't refetch
-      useAICreationSessionStore.getState().setLastFetchedActionListObjective(message?.extra_content?.query);
-      fetchActionList(true, message?.extra_content?.query)
-    }
-  }, [])
-
-  const onWebSocketError = useCallback((error) => {
-  }, [])
-
-  const onFinalReconnectAttempt = useCallback(() => {
-  }, [])
-
-  const {
-    sendMessage: sendSocketMessage,
-    connect: connectToWebSocket,
-    disconnect
-  } = useChatWebhook(
-    buildWebSocketUrl({
-      searchParams,
-      storageFlow,
-      selectedType,
-    }),
-    {
-      onOpen: onWebSocketOpen,
-      onMessage: onWebSocketMessage,
-      onClose: onWebSocketClose,
-      onError: onWebSocketError,
-      onFinalReconnectAttempt,
-      autoConnect: false,
-    }
-  )
-
-  useEffect(() => {
-    connectToWebSocket();
-
-
-    return () => {
-      disconnect();
-    }
-  }, [disconnect])
-
-  
-
-  function handleSendMessage(event) {
-    if (event) {
-      event.preventDefault()
-      event.stopPropagation()
-    }
-
-    if (!textMessage.trim()) return
-
-    const newMessage = {
-      msg: textMessage,
-      source: "user",
-      updated_at: Date.now(),
-    }
-
-    setActionListChatHistory(prev => [...prev, newMessage])
-
-    // Update store - get current value first, then set new value
-    const currentStoreHistory = useAICreationSessionStore.getState().getActionListChatHistory()
-    useAICreationSessionStore.getState().setActionListChatHistory([...currentStoreHistory, newMessage])
-    
-    sendSocketMessage({
-      text: textMessage,
-      context: "",
-      // asr_audio: asrAudio,
-    })
-
-    handleScrollIntoView();
-    setTextMessage("")
-  }
 
   const defaultActionList = [
     {id: "0", content: ""},
@@ -592,7 +461,6 @@ function ActionItems({
   if(goBack) return <></>;
 
   return (
-    <>
       <div>
         {(!hasClickedOnAddmore &&
           !wantsToMoveForward &&
@@ -613,27 +481,6 @@ function ActionItems({
                   <Guidelines text={t("actionItems.guidelines")} />
                 </div>
                 <div className="bg-white p-3 rounded-2xl">
-                  {/* <ActionItemsList
-                    language={language}
-                    visibleCount={visibleCount}
-                    selectedIndex={selectedIndex}
-                    actionList={actionList}
-                    handleLeftArrowClick={handleLeftArrowClick}
-                    handleRightArrowClick={handleRightArrowClick}
-                    fetchError={fetchError}
-                    swipeDirection={swipeDirection}
-                    isViewMode={!isSelectActionItems}
-                    finalActionList={getActionListArray()}
-                    handleActionListClick={() => {
-                      setShowSelectedActionLoader(true)
-
-                      if (selectedIndex !== null) {
-                        updateSelectedActionPlanSources(selectedIndex);
-                      }
-                      setWantsToMoveForward(true);
-                    }}
-                    hasClickedOnAddmore={hasClickedOnAddmore}
-                  /> */}
                   {!isSelectActionItems ? <ActionItemsList
                     language={language}
                     visibleCount={visibleCount}
@@ -686,25 +533,7 @@ function ActionItems({
                       />}
 
                   </div>
-
-                      
                       {!isSelectActionItems && <Disclaimer text={t('disclaimer.actionsText')}/>}
-                  {/* {isSelectActionItems && !!actionList && (
-                    <>
-                      <SuggestOrAddCta
-                        showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
-                        additionCTAText={t("selectObjective.goBack")}
-                        handleAdditionalCTAClick={handleGoBackToObjectives}
-                        handleSuggestMore={handleSuggestMore}
-                        handleAddOwnClick={() => setHasClickedOnAddmore(true)}
-                        language={language}
-                        showSuggestMoreButton={
-                          !visibleCount && actionList?.length > 1
-                        }
-                        showAddOwnButton={true}
-                      />
-                    </>
-                  )} */}
                 </div>
               </>
             )}
@@ -788,22 +617,6 @@ function ActionItems({
                           wrapperStyles: "md:!w-[100%]",
                         }}
                       />
-                      {/* {isSelectActionItems && !!actionList && actionList?.length > 0 && (
-                        <>
-                          <SuggestOrAddCta
-                            showAdditionalCTA={!useAICreationSessionStore.getState().getIsOwnObjective()}
-                            additionCTAText={t("selectObjective.goBack")}
-                            handleAdditionalCTAClick={handleGoBackToObjectives}
-                            handleSuggestMore={handleSuggestMore}
-                            handleAddOwnClick={() => setHasClickedOnAddmore(true)}
-                            language={language}
-                            showSuggestMoreButton={
-                              !visibleCount && actionList?.length > 1
-                            }
-                            showAddOwnButton={true}
-                          />
-                        </>
-                      )} */}
                     </div>
                   </div>
                 );
@@ -863,7 +676,6 @@ function ActionItems({
           </div>
         )}
       </div>
-    </>
   );
 }
 
@@ -875,10 +687,7 @@ export function FinalActionPage({
   errorText,
   hasClickedOnAddmore,
   isSelectActionItems,
-  setHasClickedOnAddmore,
-  setWantsToMoveForward,
   isFetchingData,
-  selectedIndex,
   handleGoBackToObjectives,
   actionItemSource,
   appendEmptyTextarea = false

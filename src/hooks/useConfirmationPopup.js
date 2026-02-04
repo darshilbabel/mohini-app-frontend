@@ -34,8 +34,30 @@ export const useConfirmationPopup = () => {
     }
   }
 
+  const commonsNetworkReconnectionPopup = async (yesButtonAction, noButtonAction) => {
+    const result = await Swal.fire({
+      title: t("popUpChanges"),
+      showCancelButton: true,
+      confirmButtonText: t("confirmChanges"),
+      cancelButtonText: t("denyButton"),
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: "bg-[var(--primary-color)]",
+        cancelButton: "bg-white text-[var(--primary-color)] shadow-[0_2px_6px_#0003]"
+      }
+    })
+
+    if (result.isConfirmed && yesButtonAction) {
+      yesButtonAction()
+    } else if (result.isConfirmed === false && noButtonAction) {
+      noButtonAction()
+    }
+  }
+
   return {
     showGuestPopup,
     showConfirmationPopup,
+    commonsNetworkReconnectionPopup
   }
+
 }

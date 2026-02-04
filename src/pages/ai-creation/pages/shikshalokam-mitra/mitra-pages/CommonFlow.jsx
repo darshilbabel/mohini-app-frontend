@@ -1,17 +1,19 @@
-import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { buildWebSocketUrl } from 'utils/helpers';
+import { clearMitraSessionStorage } from "../MainPage"
+import { CONVERSATION_USER_TYPES } from '../../../constants/mitra.constants';
+import { getBotConfigForFlow } from '../../../utils/common_flow';
+import { getNewSessionID } from '../../../../../api/endpoints';
+import { getTranslatedIntroMessageApi } from '../../../../../api/endpoints/ai';
+import { ToastContainer } from "react-toastify";
+import { useAICreationSessionStore } from 'store';
+import { useChatWebhook } from 'hooks/useChatWebhook';
+import { useConfirmationPopup } from "../../../../../hooks/useConfirmationPopup"
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import BotMessage from './components/chat-message/BotMessage';
 import ChatBox from './components/ChatBox';
 import ChatWindow from './components/ChatWindow';
 import LoadingChat from './components/LoadingChat';
-import BotMessage from './components/chat-message/BotMessage';
-import { useAICreationSessionStore } from 'store';
-import { useChatWebhook } from 'hooks/useChatWebhook';
-import { buildWebSocketUrl } from 'utils/helpers';
-import { getTranslatedIntroMessageApi } from '../../../../../api/endpoints/ai';
-import { getBotConfigForFlow } from '../../../utils/common_flow';
-import { ToastContainer } from "react-toastify";
-import { CONVERSATION_USER_TYPES } from '../../../constants/mitra.constants';
-import { getNewSessionID } from '../../../../../api/endpoints';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 
 const { USER } = CONVERSATION_USER_TYPES;
 
@@ -24,6 +26,8 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [introMessage, setIntroMessage] = useState(null);
   const [isLoadingIntro, setIsLoadingIntro] = useState(true);
+  const { commonsNetworkReconnectionPopup } = useConfirmationPopup()
+  const navigate = useNavigate()
 
   const handleScrollIntoViewRef = useRef(handleScrollIntoView);
 
@@ -37,7 +41,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     localChatHistory?.length ? localChatHistory : []
   );
 
-  const { profileId, getInitialSwitchChatHistory, getCommonFlowChatHistory } = useAICreationSessionStore.getState();
+  const { profileId, getInitialSwitchChatHistory, getCommonFlowChatHistory, setCommonFlowChatHistory: setCommonFlowChatHistoryStore } = useAICreationSessionStore.getState();
 
   const [searchParams] = useSearchParams();
   const accessToken = sessionStorage.getItem('accToken');
@@ -85,6 +89,31 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       fetchIntroMessage();
     }
   }, [flowType]);
+
+  function onFinalReconnectAttempt() {
+    function onYesButtonClick() {
+      try {
+        let chat_history = getCommonFlowChatHistory();
+        if (Array.isArray(chat_history)) {
+          chat_history = chat_history.filter((chat, index) => !(index == chat_history.length - 1 && chat.source === "user"))
+        }
+        setCommonFlowChatHistoryStore(chat_history)
+
+        window.location.reload()
+      } catch (error) {
+        console.error("Error cleaning chat history before reload:", error)
+        window.location.reload()
+      }
+    }
+
+    function onNoButtonClick() {
+      clearMitraSessionStorage()
+      navigate("/")
+      window.location.reload()
+    }
+
+    commonsNetworkReconnectionPopup(onYesButtonClick, onNoButtonClick)
+  }
 
   const onWebSocketOpen = useCallback(() => {
     const currentSessionId = useAICreationSessionStore.getState().getSession();
@@ -197,9 +226,9 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
       onMessage: onWebSocketMessage,
       autoConnect: false,
       reconnect: false,
+      onFinalReconnectAttempt
     }
   );
-
 
   useEffect(() => {
     return () => {

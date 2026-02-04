@@ -19,9 +19,6 @@ import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 /* styles */
 import "../stylesheet/chatStyle.css";
 import { useAICreationSessionStore } from "store";
-import { bot_routes } from "../../../../../configure";
-import { useChatWebhook } from "../../../../../hooks/useChatWebhook";
-import { buildWebSocketUrl } from "../../../../../utils/helpers";
 import { sessionFlowName } from "../../../../ShikshalokamVoiceChat/enum";
 import { useSearchParams } from "react-router-dom";
 import ChatWindow from "./components/ChatWindow";
@@ -204,117 +201,8 @@ function SelectObjective({
     }
   }
 
-
-  const onWebSocketClose = useCallback(() => {
-  }, [])
-
-  const onWebSocketOpen = useCallback(() => {
-    sendSocketMessage({
-      type: "authenticate",
-      sessionid: sessionId,
-      profileid: profileId,
-      access_token: accessToken,
-      route: "en",
-      bot_route: bot_routes.mitra_objective_list,
-      flow_name: storageFlow,
-    })
-  }, [sessionId, profileId, accessToken, chatLanguage, storageFlow])
-
-  const onWebSocketMessage = useCallback((event) => {
-
-    const data = JSON.parse(event.data)
-    const message = data?.text
-  
-    if (message?.msg && message?.source === "bot") {
-      const newMessage = {
-        msg: message.msg,
-        source: "bot",
-        updated_at: Date.now(),
-      }
-      
-      setObjectiveChatHistory(prev => [...prev, newMessage])
-      
-      // Update store - get current value first, then set new value
-      const currentStoreHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
-      useAICreationSessionStore.getState().setObjectiveChatHistory([...currentStoreHistory, newMessage])
-      
-      handleScrollIntoView();
-    }
-    else if(message?.source === "bot" && message?.extra_content?.should_move_forward === "yes" && message?.extra_content?.validation === "CREATE_NEW") {
-
-      // Get current objective list from store to avoid stale closure
-      const currentObjectiveList = useAICreationSessionStore.getState().getObjective() || []
-      const currentObjectiveSource = useAICreationSessionStore.getState().getObjectiveSource()
-
-      // Store the objective list data IN the separator message
-      const newMessage = {
-        msg: "",
-        source: "SEPARATOR",
-        updated_at: Date.now(),
-        objectiveListData: {
-          objectives: currentObjectiveList,
-          sources: currentObjectiveSource
-        }
-      }
-      
-      setObjectiveChatHistory(prev => [...prev, newMessage])
-      // Update store - get current value first, then set new value
-      const currentStoreHistory = useAICreationSessionStore.getState().getObjectiveChatHistory()
-      useAICreationSessionStore.getState().setObjectiveChatHistory([...currentStoreHistory, newMessage])
-
-      setPrevObjectiveStore(currentObjectiveList)
-      setPrevObjectiveList(currentObjectiveList)
-      setPrevObjectiveSourceStore(currentObjectiveSource)
-      setObjectListRetries(useAICreationSessionStore.getState().getObjectListRetries() + 1)
-      setPrevObjectiveShown(false)
-      setIsPrevObjectiveShownStore(false)
-      setSelectedObjectiveStore(null)
-
-      setUserProblemStatementStore(message?.extra_content?.query)
-      fetchObjectiveList(true, message?.extra_content?.query)
-    }
-  }, [])
-
-  const onWebSocketError = useCallback((error) => {
-  }, [])
-
-  const onFinalReconnectAttempt = useCallback(() => {
-  }, [])
-
-  const {
-    sendMessage: sendSocketMessage,
-    connect: connectToWebSocket,
-    disconnect
-  } = useChatWebhook(
-    buildWebSocketUrl({
-      searchParams,
-      storageFlow,
-      selectedType,
-    }),
-    {
-      onOpen: onWebSocketOpen,
-      onMessage: onWebSocketMessage,
-      onClose: onWebSocketClose,
-      onError: onWebSocketError,
-      onFinalReconnectAttempt,
-      autoConnect: false,
-    }
-  )
-
   useEffect(() => {
-    connectToWebSocket();
-
-    return () => {
-      disconnect();
-    }
-  }, [disconnect])
-
-
-
-  useEffect(() => {
-
     const storedObjective = useAICreationSessionStore.getState().getObjective();
-
 
     if(!storedObjective)
       fetchObjectiveList();
