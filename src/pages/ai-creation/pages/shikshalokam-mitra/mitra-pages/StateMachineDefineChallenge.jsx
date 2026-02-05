@@ -18,6 +18,7 @@ import env from "../../../../../utils/env"
 import Notification from "../../../../../components/ToastMessage/TotastMessage"
 import useVoiceRecord from "../../text-voice/useVoiceRecord"
 import LoadingChat from "./components/LoadingChat"
+import { useConfirmationPopup } from "../../../../../hooks/useConfirmationPopup"
 
 const wss_protocol = "wss://"
 
@@ -61,6 +62,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
   const textInputRef = useRef(null)
 
   const { recordings, HiddenRecorder } = useVoiceRecord()
+  const { commonsNetworkReconnectionPopup } = useConfirmationPopup()
 
   const { audioRef } = useAudio()
 
@@ -75,7 +77,33 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
     autoConnect: false,
     reconnectAttempts: env.WEBSOCKET_RETRY_NUM(),
     onMessage: onWebSocketMessage,
+    onFinalReconnectAttempt
   })
+
+  function onFinalReconnectAttempt() {
+    function onYesButtonClick() {
+      try {
+        let chat_history = getChatHistory()
+        if (Array.isArray(chat_history)) {
+          chat_history = chat_history.filter((chat, index) => !(index == chat_history.length - 1 && chat.source === "user"))
+        }
+        setChatHistory(chat_history)
+
+        window.location.reload()
+      } catch (error) {
+        console.error("Error cleaning chat history before reload:", error)
+        window.location.reload()
+      }
+    }
+
+    function onNoButtonClick() {
+      clearMitraSessionStorage()
+      navigate("/")
+      window.location.reload()
+    }
+
+    commonsNetworkReconnectionPopup(onYesButtonClick, onNoButtonClick)
+  }
 
   function onWebSocketMessage(e) {
     const data = JSON.parse(e.data)

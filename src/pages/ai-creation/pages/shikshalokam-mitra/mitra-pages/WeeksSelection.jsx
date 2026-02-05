@@ -16,9 +16,11 @@ import "../stylesheet/chatStyle.css";
 import { useAICreationSessionStore } from "store";
 import { useChatWebhook } from "hooks/useChatWebhook";
 import { buildWebSocketUrl } from "utils/helpers";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { sessionFlowName } from "../../../../ShikshalokamVoiceChat/enum";
 import { bot_routes } from "../../../../../configure";
+import { useConfirmationPopup } from "../../../../../hooks/useConfirmationPopup"
+import { clearMitraSessionStorage } from "../MainPage"
 
 const { BOT, USER } = CONVERSATION_USER_TYPES;
 
@@ -29,12 +31,16 @@ function WeeksSelection({
   setCurrentPageValue,
 }) {
   const textInputRef = useRef(null);
+  const navigate = useNavigate()
   const [textMessage, setTextMessage] = useState("");
   const [isWeekSectionLoader, setIsWeekSectionLoader] = useState(false);
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [useTextbox, setUseTextbox] = useState(false);
   const [introMessage, setIntroMessage] = useState(null);
   const [isLoadingIntro, setIsLoadingIntro] = useState(true);
+  const { commonsNetworkReconnectionPopup } = useConfirmationPopup()
+
+  const { getDurationChatHistory, setDurationChatHistoryStore } = useAICreationSessionStore.getState()
 
   const { t } = useTranslation("ai_creation_translation");
 
@@ -101,6 +107,31 @@ function WeeksSelection({
     return () => clearTimeout(timeout);
   }, [isWeeksSelectionSection]);
 
+  function onFinalReconnectAttempt() {
+    function onYesButtonClick() {
+      try {
+        let chat_history = getDurationChatHistory();
+        if (Array.isArray(chat_history)) {
+          chat_history = chat_history.filter((chat, index) => !(index == chat_history.length - 1 && chat.source === "user"))
+        }
+        setDurationChatHistoryStore(chat_history)
+
+        window.location.reload()
+      } catch (error) {
+        console.error("Error cleaning chat history before reload:", error)
+        window.location.reload()
+      }
+    }
+
+    function onNoButtonClick() {
+      clearMitraSessionStorage()
+      navigate("/")
+      window.location.reload()
+    }
+
+    commonsNetworkReconnectionPopup(onYesButtonClick, onNoButtonClick)
+  }
+
   const onWebSocketOpen = useCallback(() => {
     sendSocketMessage({
       type: "authenticate",
@@ -153,7 +184,7 @@ function WeeksSelection({
   const {
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
-    disconnect
+    disconnect,
   } = useChatWebhook(
     buildWebSocketUrl({
       searchParams,
@@ -164,6 +195,7 @@ function WeeksSelection({
       onOpen: onWebSocketOpen,
       onMessage: onWebSocketMessage,
       autoConnect: false,
+      onFinalReconnectAttempt
     }
   );
 
@@ -189,14 +221,9 @@ function WeeksSelection({
 
     setDurationChatHistory((prev) => [...prev, newMessage]);
 
-    const currentStoreHistory =
-      useAICreationSessionStore
-        .getState()
-        .getDurationChatHistory();
+    const currentStoreHistory = useAICreationSessionStore.getState().getDurationChatHistory();
 
-    useAICreationSessionStore
-      .getState()
-      .setDurationChatHistory([...currentStoreHistory, newMessage]);
+    useAICreationSessionStore.getState().setDurationChatHistory([...currentStoreHistory, newMessage]);
 
     setIsWaitingForBot(true);
 
