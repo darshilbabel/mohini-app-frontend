@@ -320,4 +320,3 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
 };
 
 export default CommonFlow;
-

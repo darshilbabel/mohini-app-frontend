@@ -17,9 +17,21 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
   const isConnectedRef = useRef(false); 
   const hasAttemptedConnectionRef = useRef(false);
   const pendingMessageRef = useRef(null);
+
+  const initialSwitchChatHistory = useAICreationSessionStore(state => state.initialSwitchChatHistory);
+  const profileId = useAICreationSessionStore(state => state.profileId);
+  const session = useAICreationSessionStore(state => state.session);
+  const preferredLanguage = useAICreationSessionStore(state => state.preferredLanguage);
+
+  // Setters from store
+  const { getSession, setSession: setSessionStore, setInitialSwitchChatHistory, getInitialSwitchChatHistory, setSelectedFlowType } = useAICreationSessionStore.getState();
+
   const [textMessage, setTextMessage] = useState('');
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
   const [isSessionReady, setIsSessionReady] = useState(false);
+  const [isWelcomeScreen, setIsWelcomeScreen] = useState(
+    !initialSwitchChatHistory?.length
+  );
 
   // Use refs to store callback dependencies to prevent websocket reconnection
   const handleScrollIntoViewRef = useRef(handleScrollIntoView);
@@ -30,34 +42,17 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
     onFlowTypeSelectedRef.current = onFlowTypeSelected;
   }, [handleScrollIntoView, onFlowTypeSelected]);
 
-  const localChatHistory = useAICreationSessionStore.getState().getInitialSwitchChatHistory();
-
-  const [initialSwitchChatHistory, setInitialSwitchChatHistory] = useState(
-    localChatHistory?.length ? localChatHistory : []
-  );
-
-  const [isWelcomeScreen, setIsWelcomeScreen] = useState(
-    !localChatHistory?.length
-  );
-
-  const {
-    profileId,
-    setSession: setSessionStore,
-  } = useAICreationSessionStore.getState();
-
   const [searchParams] = useSearchParams();
   const storageFlow = sessionFlowName.Creation;
   const accessToken = sessionStorage.getItem("accToken");
 
   useEffect(() => {
     const initializeSession = async () => {
-      let currentSessionId = useAICreationSessionStore.getState().getSession();
-      if (!currentSessionId) {
-        const session = await getNewSessionID();
-        setSessionStore(session);
+      if (!session) {
+        const newSession = await getNewSessionID();
+        setSessionStore(newSession);
       }
 
-      const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage() || {};
       const language = preferredLanguage?.value || "en";
       sessionStorage.setItem("route", JSON.stringify(language));
       
@@ -70,7 +65,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
   const onWebSocketOpen = useCallback(() => {
     isConnectedRef.current = true;
     
-    const currentSessionId = useAICreationSessionStore.getState().getSession();
+    const currentSessionId = getSession();
     sendSocketMessage({
       type: 'authenticate',
       sessionid: currentSessionId,
@@ -114,16 +109,8 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
           updated_at: Date.now(),
         };
 
-        setInitialSwitchChatHistory((prev) => [...prev, newMessage]);
-
-        const currentStoreHistory =
-          useAICreationSessionStore
-            .getState()
-            .getInitialSwitchChatHistory();
-
-        useAICreationSessionStore
-          .getState()
-          .setInitialSwitchChatHistory([...currentStoreHistory, newMessage]);
+        const currentStoreHistory = getInitialSwitchChatHistory();
+        setInitialSwitchChatHistory([...currentStoreHistory, newMessage]);
 
         setIsWaitingForBot(false);
         handleScrollIntoViewRef.current?.();
@@ -137,14 +124,14 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
         setIsWaitingForBot(false);
         
         if (compareFlowTypesEquality(validation, FLOW_TYPES.MIP)) {
-          useAICreationSessionStore.getState().setSelectedFlowType(FLOW_TYPES.MIP);
+          setSelectedFlowType(FLOW_TYPES.MIP);
           onFlowTypeSelectedRef.current?.(FLOW_TYPES.MIP);
         } else if (
           compareFlowTypesEquality(validation, FLOW_TYPES.LFA) || 
           compareFlowTypesEquality(validation, FLOW_TYPES.LCF) || 
           compareFlowTypesEquality(validation, FLOW_TYPES.FREE_FLOW)
         ) {
-            useAICreationSessionStore.getState().setSelectedFlowType(validation?.toLowerCase());
+            setSelectedFlowType(validation?.toLowerCase());
             onFlowTypeSelectedRef.current?.(validation?.toLowerCase());
         }
       }
@@ -211,16 +198,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
       updated_at: Date.now(),
     };
 
-    setInitialSwitchChatHistory((prev) => [...prev, newMessage]);
-
-    const currentStoreHistory =
-      useAICreationSessionStore
-        .getState()
-        .getInitialSwitchChatHistory();
-
-    useAICreationSessionStore
-      .getState()
-      .setInitialSwitchChatHistory([...currentStoreHistory, newMessage]);
+    setInitialSwitchChatHistory([...initialSwitchChatHistory, newMessage]);
 
     setIsWaitingForBot(true);
     setIsWelcomeScreen(false);
