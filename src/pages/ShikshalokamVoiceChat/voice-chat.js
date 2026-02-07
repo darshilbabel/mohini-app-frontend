@@ -124,9 +124,18 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const editorContainerRef = useRef(null)
   const endPageToScrollRef = useRef(null)
   const isIntroPlayed = useRef(false)
+  const hasFetchedBotInfo = useRef(false)
+  const chatHistoryRef = useRef([])
+  const hasHydratedRef = useRef(false)
+  const hasBootstrappedRef = useRef(false)
+
+  
 
   // ========== Other Hooks ==========
   const [chatHistory, setChatHistory, removeChatHistory, getChatHistory] = useSmartChatStorage()
+  useEffect(() => {
+    chatHistoryRef.current = chatHistory
+  }, [])
   const [searchParams] = useSearchParams()
   const { t } = useTranslation()
 
@@ -192,9 +201,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         }
         setChatHistory(chat_history)
 
-        if (chat_history?.length === 1) {
-          setShowHomepage(true)
-        }
 
         window.location.reload()
       } catch (error) {
@@ -251,6 +257,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     const message = data["text"]
     if (message.source === "bot") {
       setIsStreamingComplete(false)
+      setIsLoading(false)
       setSentences(prevSentences => {
         const updatedSentences = [...prevSentences]
         const lastSentence = updatedSentences[updatedSentences.length - 1]
@@ -291,6 +298,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       handleScrollToView()
       setTalking(0)
       setIsStreamingComplete(true)
+      setIsLoading(false)
     }
   }, [])
 
@@ -334,9 +342,26 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }, [storageFlow])
 
   const isInitialising = useMemo(() => {
-    console.log("state_tracker", "sessionId", sessionId, "chatHistory", chatHistory)
-    return !sessionId || chatHistory?.length === 0
-  }, [sessionId, chatHistory])
+    if (chatHistory?.length > 0) return false
+    if (sentences?.length > 0 || introMessage) return false
+    // No session → still initializing
+    if (!sessionId && shouldFetchIntro) return true
+
+    // Intro is still being fetched or requested
+
+    /**
+     * chatHistory can be empty in valid cases:
+     * - intro-only flows
+     * - guest flows
+     * - before first user message
+     *
+     * So we only block if BOTH chatHistory and introMessage are missing
+     */
+    if (shouldFetchIntro || isIntroLoading) return true
+
+
+    return false
+  }, [sessionId, shouldFetchIntro, isIntroLoading, chatHistory,introMessage, sentences])
 
   // ========================================================================
   // SECTION: Helper Functions (Must be defined before callbacks that use them)
@@ -505,7 +530,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       words.splice(1, 0, firstName)
       message = words.join(" ")
     }
-    if (message && !!message?.trim() && chatHistory[chatHistory?.length - 1]?.msg !== message && !sentences.some(msg => msg.message === message)) {
+    if (message && !!message?.trim() && chatHistory[chatHistory?.length - 1]?.msg !== message && !introMessage) {
       setIntroMessage(message)
       setSentences(prev => [
         ...prev,
@@ -598,11 +623,13 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    */
   const fetchBotInfo = async () => {
     if (!languageToUse) return
+    if (hasFetchIntro && hasFetchedBotInfo.current) return
+
 
     setIsIntroLoading(true)
-    if (!isSpecialFlow) {
-      setIsLoading(true)
-    }
+    // if (!isSpecialFlow) {
+    //   setIsLoading(true)
+    // }
 
     try {
       let storedRoute = getSessionRoute()
@@ -638,7 +665,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     } finally {
       setHasFetchIntro(true)
       setShouldFetchIntro(false)
-      setIsLoading(false)
+      setIsIntroLoading(false)
+      // setIsLoading(false)
     }
   }
 
@@ -655,7 +683,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     setLlmError("")
     handleOnStopSpeaking()
     setIsChatVisible(true)
-    setShowHomepage(false)
+    // setShowHomepage(false)
     setNotMute(true)
     if (audioRef.current) {
       audioRef.current.pause()
@@ -666,6 +694,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (!textMessage.trim()) return
 
     const chat_history = handleMessagesForUser(textMessage)
+    setIsLoading(true)
+    setIsStreamingComplete(false)
     if (chat_history.filter(chat => chat.source === "user").length == 1 || !isSocketConnected) {
       connectToWebSocket()
       sendSocketMessage({
@@ -690,6 +720,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       context: "",
       asr_audio: asrAudio,
     })
+    // setIsLoading(false) 
 
     setAsrAudio(null)
     handleScrollToView()
@@ -707,8 +738,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    */
   const handleCompanyChatCall = useCallback(async () => {
     try {
-      const storedChatHistory = chatHistory
+      const storedChatHistory = chatHistoryRef.current
       if (storedChatHistory.length >= 1) {
+        setIsLoading(false)
+        setIsFetchingOldIntro(false)
         return
       }
 
@@ -727,7 +760,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         const newChatHistoryItems = []
 
         // Use Set with IDs for reliable duplicate detection
-        const existingChatIds = new Set(chatHistory.map(msg => msg.updated_at))
+        const existingChatIds = new Set(chatHistoryRef.current.map(msg => msg.updated_at))
 
         // Add intro message if it exists and not already in history
         if (intro_message && !existingChatIds.has("intro_msg_id")) {
@@ -767,7 +800,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
         if (newChatHistoryItems.length > 0) {
           console.log("filteredItems: ", newChatHistoryItems)
-          setChatHistory([...chatHistory, ...newChatHistoryItems])
+          setChatHistory([...chatHistoryRef.current, ...newChatHistoryItems])
           lastBotMessageIndex.current += newChatHistoryItems.length
         }
       } catch (error) {
@@ -787,6 +820,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       }
     }
   }, [introMessage, sessionId])
+
+
+  useEffect(() => {
+  chatHistoryRef.current = chatHistory
+}, [chatHistory])
 
   /**
    * Handles chat session button clicks from sidebar
@@ -854,14 +892,17 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   )
 
   useEffect(() => {
-    if (chatHistory.length > 1) {
-      setShowHomepage(false)
-      setIsOldChatOpen(true)
-      setIsNewChatOpen(false)
-    } else {
-      setShowHomepage(true)
+    if (!hasHydratedRef.current) {
+      hasHydratedRef.current = true
     }
-  }, [chatHistory])
+  const hasUserMessage = chatHistory.some(msg => msg.source === "user")
+
+  if (!hasUserMessage) {
+    setShowHomepage(true)
+  } else {
+    setShowHomepage(false)
+  }
+}, [chatHistory])
 
   // ========================================================================
   // SECTION: Variable Definitions
@@ -1032,13 +1073,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    */
   useEffect(() => {
     const handleLanguageSelect = language => {
-      if (chatHistory && !chatHistory.length) {
+      if (chatHistory && !chatHistory.length && !sentences.length) {
         stopAllAudio()
         isIntroPlayed.current = false
-        // setIsLoading(true)
-        setIntroMessage(null)
-        setChatHistory([])
-        setSentences([])
         setLangProgress("IN_PROGRESS")
         setAudioCache({})
         setLanguage(language)
@@ -1148,7 +1185,20 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Enables intro message fetching for public/guest flows
    */
   useEffect(() => {
+    if (hasBootstrappedRef.current) return
+
+    hasBootstrappedRef.current = true
+    console.log("BOOTSTRAP: chat route entered")
+
+    // This guarantees first-entry initialization
+    setIsNewChatOpen(true)
+    setShouldFetchIntro(true)
+    setIsStreamingComplete(true)
+  }, [])
+
+  useEffect(() => {
     if (isShikshalokamPublicType) {
+      // setIsNewChatOpen(true)
       setShouldFetchIntro(true)
       setIsStreamingComplete(true)
     }
@@ -1162,9 +1212,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (shouldShowChatHistoryFeature) {
       if (isOldChatOpen === true) {
         setShouldFetchIntro(true)
-        setShowHomepage(false)
       } else if (isNewChatOpen === true) {
-        setShowHomepage(true)
       }
     } else {
       removeChatHistory()
@@ -1194,22 +1242,44 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * ! The useEffect is deprecated as LoginMiStory is not being used anymore.
    */
   useEffect(() => {
-    if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow)) {
-      setIsIntroLoading(true)
-      console.log("state_tracker", "fetching bot info")
-      fetchBotInfo()
-        .then(() => {
-          if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
-            handleCompanyChatCall(sessionId)
+    if (
+      chatHistory?.length === 0 && 
+      shouldFetchIntro && 
+      // isNewChatOpen && 
+      (profileToUse || isSpecialFlow) &&
+      !hasFetchedBotInfo.current &&
+      languageToUse &&
+      sessionId
+    ) {
+      const fetchData = async () => {
+        hasFetchedBotInfo.current = true
+        // setIsIntroLoading(true)
+        console.log("state_tracker", "fetching bot info")
+        
+        try {
+          await fetchBotInfo()
+          if (sessionId &&(!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow))) {
+            await handleCompanyChatCall()
           }
-        })
-        .finally(() => {
+        } catch (error) {
+          console.error("Error fetching bot info:", error)
+          hasFetchedBotInfo.current = false 
+        } finally {
           setIsIntroLoading(false)
-        })
+        }
+      }
+      
+      fetchData()
     }
+  }, [shouldFetchIntro, isNewChatOpen, profileToUse, isSpecialFlow, storageFlow])
 
-    return () => {}
-  }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage])
+  useEffect(() => {
+    // When streaming finishes, loader must be off
+    if (isStreamingComplete) {
+      setIsLoading(false)
+    }
+  }, [isStreamingComplete])
+// Removed: accessToken, languageToUse (these were causing re-renders)
 
   /**
    * Set language progress to complete when intro message loads
@@ -2153,6 +2223,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     setLlmError("")
     setSessionId(null)
     setStrandStep(null)
+    hasFetchedBotInfo.current = false
     const session = await getSessionDetails()
     setSessionId(session.sessionid)
     setIsChatVisible(false)
@@ -3136,7 +3207,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         </div>
         <Notification />
 
-        {(!showFileInput || showFileInput === null) && !isLoading && !isEndStoryLoading && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
+        {(!showFileInput || showFileInput === null) && !isLoading && !isEndStoryLoading && (llmError === "" || !llmError) && (
+          introMessage ||
+          chatHistory.some(msg => msg.source === "user")
+        ) && (
           <form
             className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
             onSubmit={event => {
