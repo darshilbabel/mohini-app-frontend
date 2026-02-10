@@ -3,6 +3,7 @@ import ChatMessage from "./chat-message/ChatMessage";
 import LoadingChat from "./LoadingChat";
 import { useAICreationSessionStore } from "../../../../../../store";
 import Source from "./Source";
+import { handleDownloadFile } from "../../../../utils/file";
 
 function ChatWindow({
   isTalking,
@@ -174,48 +175,56 @@ function ChatWindow({
       }
     >
       <div className="div34">
-        {chatsToShow?.map((chat, i) => (
-          <div
-            key={i}
-            className={`div35 ${chat?.source === "user" ? "label1" : "label1"}`}
-          >
-            <div className={`div36 ${chat?.source === "user" ? "": "flex-column !items-start"} ${i === chatsToShow.length - 1 ? "pb-0" : ""}`}>
-              <ChatMessage
-                userType={chat?.source}
-                message={`${chat?.msg}`}
-                name={"You"}
-                recording={chat?.recording}
-                hasAppendix={chat?.recording}
-                appendixURL={chat?.appendixURL}
-                isTalking={
-                  chat.source === "bot" &&
-                  !isStreamingComplete &&
-                  i === chatHistory.length - 1
+        {chatsToShow?.map((chat, i) => {
+          const fileName = chat?.file_url?.split("/").pop()?.split(".")[0];
+          return (
+            <div
+              key={i}
+              className={`div35 ${chat?.source === "user" ? "label1" : "label1"}`}
+            >
+              <div className={`div36 ${chat?.source === "user" ? "": "flex-column !items-start"} ${i === chatsToShow.length - 1 ? "pb-0" : ""}`}>
+                <ChatMessage
+                  userType={chat?.source}
+                  message={`${chat?.msg}`}
+                  name={"You"}
+                  recording={chat?.recording}
+                  hasAppendix={chat?.recording}
+                  appendixURL={chat?.appendixURL}
+                  isTalking={
+                    chat.source === "bot" &&
+                    !isStreamingComplete &&
+                    i === chatHistory.length - 1
+                  }
+                  handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                  handleOnSpeaking={() => {
+                    setNotMute(false);
+                    handleOnSpeaking(`${chat?.msg}`, chat?.updated_at);
+                  }}
+                  isAnyPlaying={!!hasOverRideId || isTalking}
+                  isPlaying={hasOverRideId === chat?.updated_at}
+                  isStreamingComplete={isStreamingComplete}
+                  setNotMute={setNotMute}
+                  chatId={chat?.updated_at}
+                  validation={chat?.validation}
+                  userDetail={userDetail}
+                />
+                {
+                  chat?.sources && Array.isArray(chat?.sources) && chat?.sources.length && (
+                    <div className="mb-4 w-full">
+                      <Source source={formatSources(chat?.sources)} />
+                    </div>
+                  )
                 }
-                handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                handleOnSpeaking={() => {
-                  setNotMute(false);
-                  handleOnSpeaking(`${chat?.msg}`, chat?.updated_at);
-                }}
-                isAnyPlaying={!!hasOverRideId || isTalking}
-                isPlaying={hasOverRideId === chat?.updated_at}
-                isStreamingComplete={isStreamingComplete}
-                setNotMute={setNotMute}
-                chatId={chat?.updated_at}
-                validation={chat?.validation}
-                userDetail={userDetail}
-              />
-              {
-                chat?.sources && Array.isArray(chat?.sources) && chat?.sources.length && (
+                {chat?.file_url && (
                   <div className="mb-4 w-full">
-                    <Source source={formatSources(chat?.sources)} />
+                    <button className="h-[35px] flex items-center justify-center gap-[8px] rounded-md border border-[#572E91] px-3 bg-[#572E91] font-medium text-sm leading-none text-white w-full md:w-[200px]" onClick={() => handleDownloadFile(chat?.file_url, fileName, chat?.file_url?.split(".").pop())}>Download</button>
                   </div>
-                )
-              }
+                )}
+              </div>
+              {getShowLoadingChat(i) && <LoadingChat />}
             </div>
-            {getShowLoadingChat(i) && <LoadingChat />}
-          </div>
-        ))}
+        )
+})}
         {/* Show paraphrase loader once at the end of the chat list */}
         {isParaphraseLoading && (
           <div className="div35 label1">
