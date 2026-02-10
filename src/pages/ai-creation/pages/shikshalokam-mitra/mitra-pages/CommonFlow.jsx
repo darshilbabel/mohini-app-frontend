@@ -171,6 +171,10 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
                 updatedLastMessage["sources"] = message?.extra_content?.sources;
               }
 
+              if(message?.extra_content?.file_url) {
+                updatedLastMessage["file_url"] = message?.extra_content?.file_url;
+              }
+
               return [...prevChatHistory.slice(0, lastIndex), updatedLastMessage];
             }
 
@@ -179,6 +183,12 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
               updatedLastMessage["sources"] = message?.extra_content?.sources;
               return [...prevChatHistory.slice(0, lastIndex), updatedLastMessage];
             }
+
+            if(message?.extra_content?.file_url) {
+              let updatedLastMessage = { ...lastMessage, file_url: message?.extra_content?.file_url };
+              return [...prevChatHistory.slice(0, lastIndex), updatedLastMessage];
+            }
+
             return prevChatHistory;
           } else {
             const updatedMessage = {
@@ -188,6 +198,9 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
             }
             if (Array.isArray(message?.extra_content?.sources) && message?.extra_content?.sources.length) {
               updatedMessage["sources"] = message?.extra_content?.sources;
+            }
+            if(message?.extra_content?.file_url) {
+              updatedMessage["file_url"] = message?.extra_content?.file_url;
             }
             return [
               ...prevChatHistory,
