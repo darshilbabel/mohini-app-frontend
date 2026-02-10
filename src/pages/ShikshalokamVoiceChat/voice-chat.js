@@ -334,8 +334,28 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }, [storageFlow])
 
   const isInitialising = useMemo(() => {
-    return !sessionId
-  }, [sessionId])
+    if (chatHistory?.length > 0) return false
+    if (sentences?.length > 0 || introMessage) return false
+    // No session → still initializing
+    if (!sessionId && shouldFetchIntro) return true
+
+    
+
+    // Intro is still being fetched or requested
+
+    /**
+     * chatHistory can be empty in valid cases:
+     * - intro-only flows
+     * - guest flows
+     * - before first user message
+     *
+     * So we only block if BOTH chatHistory and introMessage are missing
+     */
+    if (shouldFetchIntro || isIntroLoading) return true
+
+
+    return false
+  }, [sessionId, shouldFetchIntro, isIntroLoading, chatHistory,introMessage, sentences])
 
   // ========================================================================
   // SECTION: Helper Functions (Must be defined before callbacks that use them)
@@ -714,8 +734,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         return
       }
 
-      console.log("chatHistory length inside company call:", chatHistory.length)
-      console.log("handleCompanyChatCall")
       // setIsFetchingOldIntro(true)
 
       try {
@@ -769,8 +787,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         }
 
         if (newChatHistoryItems.length > 0) {
-          console.log("filteredItems: ", newChatHistoryItems)
-          console.log("newChatHistoryItems before set:", newChatHistoryItems)
           setChatHistory([...chatHistory, ...newChatHistoryItems])
           lastBotMessageIndex.current += newChatHistoryItems.length
         }
@@ -1181,37 +1197,43 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Loads existing conversation when user selects from history
    */
   useEffect(() => {
-    if (!(isOldChatOpen === true && !hasFetchIntro && isSpecialFlow && chatHistory?.length === 0 && sentences?.length === 0)) {
-      return
-    }
-    console.log("INTRO EFFECT TRIGGERED AFTER RESET", {
-      chatLength: chatHistory?.length,
-      shouldFetchIntro,
-      isNewChatOpen,
-      profileToUse,
-      isSpecialFlow
-    })
+    if (chatHistory?.length === 0 && isNewChatOpen &&
+      (profileToUse || isSpecialFlow)) {
+      const controller = new AbortController()
+      const signal = controller.signal
 
-    const controller = new AbortController()
-    const signal = controller.signal
+      const fetchData = async () => {
+        try {
+          setIsIntroLoading(true)
 
-    async function loadOldChat() {
-      try {
-        await handleChatSessionButtonClick({ key: null }, signal)
-      } catch (error) {
-        if (error.name === "CanceledError" || error.name === "AbortError") {
-          return
+          await fetchBotInfo(signal)
+
+          if (
+            sessionId &&
+            (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow))
+          ) {
+            await handleCompanyChatCall(signal)
+          }
+        } catch (error) {
+          if (
+            error.name === "CanceledError" ||
+            error.name === "AbortError"
+          ) {
+            return
+          }
+          console.error("Error fetching bot info:", error)
+        } finally {
+          setIsIntroLoading(false)
         }
-        console.error(error)
+      }
+
+      fetchData()
+
+      return () => {
+        controller.abort()
       }
     }
-
-    loadOldChat()
-
-    return () => {
-      controller.abort()
-    }
-  }, [isOldChatOpen, hasFetchIntro, isSpecialFlow])
+  }, [shouldFetchIntro, profileToUse, isNewChatOpen, storageFlow])
 
   // ========================================================================
   // SECTION: Language & Bot Setup (Execution Order: 5 - When Profile Ready)
@@ -1225,46 +1247,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   /**
    * ! The useEffect is deprecated as LoginMiStory is not being used anymore.
    */
-  useEffect(() => {
-    // if (!(chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow))) {
-    //   return
-    // }
-    if (!(chatHistory?.length === 0 && isNewChatOpen)) {
-      return
-    }
-
-    const controller = new AbortController()
-    const signal = controller.signal
-
-    async function initBot() {
-      try {
-        setIsIntroLoading(true)
-
-        // await fetchBotInfo(signal)
-        const intro = await fetchBotInfo(signal)
-
-        console.log("introMessage AFTER fetchBotInfo:", introMessage)
-
-        console.log("COMPANY CHAT CALL TRIGGERED")
-        if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
-          await handleCompanyChatCall(signal, intro)
-        }
-      } catch (error) {
-        if (error.name === "CanceledError" || error.name === "AbortError") {
-          return
-        }
-        console.error(error)
-      } finally {
-        setIsIntroLoading(false)
-      }
-    }
-
-    initBot()
-
-    return () => {
-      controller.abort()
-    }
-  }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow])
 
   /**
    * Set language progress to complete when intro message loads
