@@ -334,28 +334,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }, [storageFlow])
 
   const isInitialising = useMemo(() => {
-    if (chatHistory?.length > 0) return false
-    if (sentences?.length > 0 || introMessage) return false
-    // No session → still initializing
-    if (!sessionId && shouldFetchIntro) return true
-
-    
-
-    // Intro is still being fetched or requested
-
-    /**
-     * chatHistory can be empty in valid cases:
-     * - intro-only flows
-     * - guest flows
-     * - before first user message
-     *
-     * So we only block if BOTH chatHistory and introMessage are missing
-     */
-    if (shouldFetchIntro || isIntroLoading) return true
-
-
-    return false
-  }, [sessionId, shouldFetchIntro, isIntroLoading, chatHistory,introMessage, sentences])
+    console.log("state_tracker", "sessionId", sessionId, "chatHistory", chatHistory)
+    return !sessionId || chatHistory?.length === 0
+  }, [sessionId, chatHistory])
 
   // ========================================================================
   // SECTION: Helper Functions (Must be defined before callbacks that use them)
