@@ -1294,7 +1294,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             data: {
               story: story_id,
             },
-          }, mediaSignalRef.current.signal)
+            signal: mediaSignalRef.current.signal
+          })
 
           for (let item of Object.values(data?.results || [])) {
             if (item.include_in_story) {
@@ -2269,7 +2270,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       setIsLoading(true)
       setIsPdfDownloading(true)
 
-      const story = await getStoryBySessionAPI(sessionid, accessToken)
+      const story = await getStoryBySessionAPI(sessionid)
 
       const story_media = story[0]?.story_media
       const pdfMedia = story_media?.filter(media => media.media_type === "application/pdf") || []
