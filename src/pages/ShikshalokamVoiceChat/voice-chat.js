@@ -125,6 +125,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const endPageToScrollRef = useRef(null)
   const isIntroPlayed = useRef(false)
 
+  const companyBotSignalRef = useRef(new AbortController())
+
   // ========== Other Hooks ==========
   const [chatHistory, setChatHistory, removeChatHistory, getChatHistory] = useSmartChatStorage()
   const [searchParams] = useSearchParams()
@@ -597,7 +599,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Fetches bot configuration and intro message for current session
    * Initializes bot name, state machine length, and intro message
    */
-  const fetchBotInfo = async (signal) => {
+  const fetchBotInfo = async () => {
     if (!languageToUse) return
 
     setIsIntroLoading(true)
@@ -611,7 +613,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         company__slug: companySlug,
         target_language: languageToUse,
         route: storedRoute,
-      })
+      }, { signal:  companyBotSignalRef.current.signal })
       const bots = response?.results
 
       if (!bots || bots.length === 0) {
@@ -813,7 +815,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         currentSession = sessionId
         try {
           // await fetchBotInfo(signal)
-          const intro = await fetchBotInfo(signal)
+          const intro = await fetchBotInfo()
           await handleCompanyChatCall(signal, intro)
         } catch (error) {
           console.error(error)
@@ -1193,7 +1195,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setIsIntroLoading(true)
         console.log("state_tracker", "fetching bot info")
         
-        fetchBotInfo(signal)
+        fetchBotInfo()
           .then(() => {
             if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
               handleCompanyChatCall(companyChatSignal)
@@ -1207,6 +1209,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       return () => {
         controller.abort()
         companyChatController.abort()
+        companyBotSignalRef.current.abort()
       }
     }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage])
 

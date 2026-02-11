@@ -53,9 +53,10 @@ export const getChatSessionApi = async data => {
   return response
 }
 
-export const getCompanyBotApi = async data => {
+export const getCompanyBotApi = async (data, { signal }) => {
   const response = await apiClient.get(API_ENDPOINTS.GET_COMPANY_BOT, {
     params: data,
+    signal
   })
   return response.data
 }
