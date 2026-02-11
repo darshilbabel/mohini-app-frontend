@@ -1179,21 +1179,20 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    */
   useEffect(() => {
     if (chatHistory?.length === 0 && isNewChatOpen &&
-      (profileToUse || isSpecialFlow)) {
+      (profileToUse || isSpecialFlow)) {  
       const controller = new AbortController()
       const signal = controller.signal
 
       const fetchData = async () => {
         try {
           setIsIntroLoading(true)
-
-          await fetchBotInfo(signal)
+          const intro = await fetchBotInfo(signal)
 
           if (
             sessionId &&
             (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow))
           ) {
-            await handleCompanyChatCall(signal)
+            await handleCompanyChatCall(signal, intro)
           }
         } catch (error) {
           if (
