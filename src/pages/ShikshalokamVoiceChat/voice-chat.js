@@ -334,8 +334,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }, [storageFlow])
 
   const isInitialising = useMemo(() => {
-    return !sessionId
-  }, [sessionId])
+    console.log("state_tracker", "sessionId", sessionId, "chatHistory", chatHistory)
+    return !sessionId || chatHistory?.length === 0
+  }, [sessionId, chatHistory])
 
   // ========================================================================
   // SECTION: Helper Functions (Must be defined before callbacks that use them)
@@ -714,8 +715,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         return
       }
 
-      console.log("chatHistory length inside company call:", chatHistory.length)
-      console.log("handleCompanyChatCall")
       // setIsFetchingOldIntro(true)
 
       try {
@@ -769,8 +768,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         }
 
         if (newChatHistoryItems.length > 0) {
-          console.log("filteredItems: ", newChatHistoryItems)
-          console.log("newChatHistoryItems before set:", newChatHistoryItems)
           setChatHistory([...chatHistory, ...newChatHistoryItems])
           lastBotMessageIndex.current += newChatHistoryItems.length
         }
@@ -1180,38 +1177,77 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Fetch chat session when old chat is opened
    * Loads existing conversation when user selects from history
    */
-  useEffect(() => {
-    if (!(isOldChatOpen === true && !hasFetchIntro && isSpecialFlow && chatHistory?.length === 0 && sentences?.length === 0)) {
-      return
-    }
-    console.log("INTRO EFFECT TRIGGERED AFTER RESET", {
-      chatLength: chatHistory?.length,
-      shouldFetchIntro,
-      isNewChatOpen,
-      profileToUse,
-      isSpecialFlow
-    })
-
-    const controller = new AbortController()
-    const signal = controller.signal
-
-    async function loadOldChat() {
-      try {
-        await handleChatSessionButtonClick({ key: null }, signal)
-      } catch (error) {
-        if (error.name === "CanceledError" || error.name === "AbortError") {
-          return
-        }
-        console.error(error)
+    useEffect(() => {
+      if (isOldChatOpen === true && !hasFetchIntro && isSpecialFlow && chatHistory?.length === 0 && sentences?.length === 0) {
+        handleChatSessionButtonClick({ key: null })
       }
-    }
+    }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences])
 
-    loadOldChat()
 
-    return () => {
-      controller.abort()
-    }
-  }, [isOldChatOpen, hasFetchIntro, isSpecialFlow])
+    useEffect(() => {
+      const controller = new AbortController()
+      const signal = controller.signal
+      const companyChatController = new AbortController()
+      const companyChatSignal = companyChatController.signal
+      if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow)) {
+        setIsIntroLoading(true)
+        console.log("state_tracker", "fetching bot info")
+        
+        fetchBotInfo(signal)
+          .then(() => {
+            if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
+              handleCompanyChatCall(companyChatSignal)
+            }
+          })
+          .finally(() => {
+            setIsIntroLoading(false)
+          })
+      }
+
+      return () => {
+        controller.abort()
+        companyChatController.abort()
+      }
+    }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage])
+
+
+  // useEffect(() => {
+  //   if (chatHistory?.length === 0 && isNewChatOpen &&
+  //     (profileToUse || isSpecialFlow)) {  
+  //     const controller = new AbortController()
+  //     const signal = controller.signal
+
+  //     const fetchData = async () => {
+  //       try {
+  //         setIsIntroLoading(true)
+  //         const intro = await fetchBotInfo(signal)
+
+  //         if (
+  //           sessionId &&
+  //           (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow))
+  //         ) {
+  //           await handleCompanyChatCall(signal, intro)
+  //         }
+  //       } catch (error) {
+  //         if (
+  //           error.name === "CanceledError" ||
+  //           error.name === "AbortError"
+  //         ) {
+  //           return
+  //         }
+  //         console.error("Error fetching bot info:", error)
+  //       } finally {
+  //         setIsIntroLoading(false)
+  //       }
+  //     }
+
+  //     fetchData()
+
+  //     return () => {
+  //       controller.abort()
+  //     }
+  //   }
+  // }, [shouldFetchIntro, profileToUse, isNewChatOpen, storageFlow])
 
   // ========================================================================
   // SECTION: Language & Bot Setup (Execution Order: 5 - When Profile Ready)
@@ -1225,46 +1261,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   /**
    * ! The useEffect is deprecated as LoginMiStory is not being used anymore.
    */
-  useEffect(() => {
-    // if (!(chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow))) {
-    //   return
-    // }
-    if (!(chatHistory?.length === 0 && isNewChatOpen)) {
-      return
-    }
-
-    const controller = new AbortController()
-    const signal = controller.signal
-
-    async function initBot() {
-      try {
-        setIsIntroLoading(true)
-
-        // await fetchBotInfo(signal)
-        const intro = await fetchBotInfo(signal)
-
-        console.log("introMessage AFTER fetchBotInfo:", introMessage)
-
-        console.log("COMPANY CHAT CALL TRIGGERED")
-        if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
-          await handleCompanyChatCall(signal, intro)
-        }
-      } catch (error) {
-        if (error.name === "CanceledError" || error.name === "AbortError") {
-          return
-        }
-        console.error(error)
-      } finally {
-        setIsIntroLoading(false)
-      }
-    }
-
-    initBot()
-
-    return () => {
-      controller.abort()
-    }
-  }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow])
 
   /**
    * Set language progress to complete when intro message loads
