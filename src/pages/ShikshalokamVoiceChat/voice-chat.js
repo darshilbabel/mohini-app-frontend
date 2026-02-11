@@ -1177,43 +1177,77 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Fetch chat session when old chat is opened
    * Loads existing conversation when user selects from history
    */
-  useEffect(() => {
-    if (chatHistory?.length === 0 && isNewChatOpen &&
-      (profileToUse || isSpecialFlow)) {  
+    useEffect(() => {
+      if (isOldChatOpen === true && !hasFetchIntro && isSpecialFlow && chatHistory?.length === 0 && sentences?.length === 0) {
+        handleChatSessionButtonClick({ key: null })
+      }
+    }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences])
+
+
+    useEffect(() => {
       const controller = new AbortController()
       const signal = controller.signal
-
-      const fetchData = async () => {
-        try {
-          setIsIntroLoading(true)
-          const intro = await fetchBotInfo(signal)
-
-          if (
-            sessionId &&
-            (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow))
-          ) {
-            await handleCompanyChatCall(signal, intro)
-          }
-        } catch (error) {
-          if (
-            error.name === "CanceledError" ||
-            error.name === "AbortError"
-          ) {
-            return
-          }
-          console.error("Error fetching bot info:", error)
-        } finally {
-          setIsIntroLoading(false)
-        }
+      const companyChatController = new AbortController()
+      const companyChatSignal = companyChatController.signal
+      if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow)) {
+        setIsIntroLoading(true)
+        console.log("state_tracker", "fetching bot info")
+        
+        fetchBotInfo(signal)
+          .then(() => {
+            if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
+              handleCompanyChatCall(companyChatSignal)
+            }
+          })
+          .finally(() => {
+            setIsIntroLoading(false)
+          })
       }
-
-      fetchData()
 
       return () => {
         controller.abort()
+        companyChatController.abort()
       }
-    }
-  }, [shouldFetchIntro, profileToUse, isNewChatOpen, storageFlow])
+    }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage])
+
+
+  // useEffect(() => {
+  //   if (chatHistory?.length === 0 && isNewChatOpen &&
+  //     (profileToUse || isSpecialFlow)) {  
+  //     const controller = new AbortController()
+  //     const signal = controller.signal
+
+  //     const fetchData = async () => {
+  //       try {
+  //         setIsIntroLoading(true)
+  //         const intro = await fetchBotInfo(signal)
+
+  //         if (
+  //           sessionId &&
+  //           (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow))
+  //         ) {
+  //           await handleCompanyChatCall(signal, intro)
+  //         }
+  //       } catch (error) {
+  //         if (
+  //           error.name === "CanceledError" ||
+  //           error.name === "AbortError"
+  //         ) {
+  //           return
+  //         }
+  //         console.error("Error fetching bot info:", error)
+  //       } finally {
+  //         setIsIntroLoading(false)
+  //       }
+  //     }
+
+  //     fetchData()
+
+  //     return () => {
+  //       controller.abort()
+  //     }
+  //   }
+  // }, [shouldFetchIntro, profileToUse, isNewChatOpen, storageFlow])
 
   // ========================================================================
   // SECTION: Language & Bot Setup (Execution Order: 5 - When Profile Ready)
