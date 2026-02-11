@@ -126,6 +126,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const isIntroPlayed = useRef(false)
 
   const companyBotSignalRef = useRef(new AbortController())
+  const companyChatSignalRef = useRef(new AbortController())
+  const storySignalRef = useRef(new AbortController())
+  const mediaSignalRef = useRef(new AbortController())
 
   // ========== Other Hooks ==========
   const [chatHistory, setChatHistory, removeChatHistory, getChatHistory] = useSmartChatStorage()
@@ -608,6 +611,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
 
     try {
+      companyBotSignalRef.current = new AbortController()
       let storedRoute = getSessionRoute()
       const response = await getCompanyBotApi({
         company__slug: companySlug,
@@ -710,7 +714,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Fetches company chat history for the current session
    * Transforms and batches chat messages to avoid duplicates
    */
-  const handleCompanyChatCall = useCallback(async (signal, introOverride) => {
+  const handleCompanyChatCall = useCallback(async (introOverride) => {
     try {
       const storedChatHistory = chatHistory
       if (storedChatHistory.length >= 1) {
@@ -720,7 +724,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       // setIsFetchingOldIntro(true)
 
       try {
-        const resp = await getCompanyChatApi(sessionId, signal)
+        companyChatSignalRef.current = new AbortController()
+        const resp = await getCompanyChatApi(sessionId, companyChatSignalRef.current.signal)
         const sortedResult = quickSort(resp?.data?.results, compareById)
 
         const intro_message = introOverride ?? introMessage
@@ -796,7 +801,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Loads selected chat session or fetches intro for new session
    */
   const handleChatSessionButtonClick = useCallback(
-    async ({ key }, signal) => {
+    async ({ key }) => {
       lastBotMessageIndex.current = -1
       let key_num
       let currentSession
@@ -816,7 +821,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         try {
           // await fetchBotInfo(signal)
           const intro = await fetchBotInfo()
-          await handleCompanyChatCall(signal, intro)
+          await handleCompanyChatCall(intro)
         } catch (error) {
           console.error(error)
           // setIsIntroLoading(false)
@@ -1187,10 +1192,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
 
     useEffect(() => {
-      const controller = new AbortController()
-      const signal = controller.signal
-      const companyChatController = new AbortController()
-      const companyChatSignal = companyChatController.signal
       if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && (profileToUse || isSpecialFlow)) {
         setIsIntroLoading(true)
         console.log("state_tracker", "fetching bot info")
@@ -1198,7 +1199,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         fetchBotInfo()
           .then(() => {
             if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
-              handleCompanyChatCall(companyChatSignal)
+              handleCompanyChatCall()
             }
           })
           .finally(() => {
@@ -1207,63 +1208,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       }
 
       return () => {
-        controller.abort()
-        companyChatController.abort()
         companyBotSignalRef.current.abort()
+        companyChatSignalRef.current.abort()
       }
     }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage])
-
-
-  // useEffect(() => {
-  //   if (chatHistory?.length === 0 && isNewChatOpen &&
-  //     (profileToUse || isSpecialFlow)) {  
-  //     const controller = new AbortController()
-  //     const signal = controller.signal
-
-  //     const fetchData = async () => {
-  //       try {
-  //         setIsIntroLoading(true)
-  //         const intro = await fetchBotInfo(signal)
-
-  //         if (
-  //           sessionId &&
-  //           (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow))
-  //         ) {
-  //           await handleCompanyChatCall(signal, intro)
-  //         }
-  //       } catch (error) {
-  //         if (
-  //           error.name === "CanceledError" ||
-  //           error.name === "AbortError"
-  //         ) {
-  //           return
-  //         }
-  //         console.error("Error fetching bot info:", error)
-  //       } finally {
-  //         setIsIntroLoading(false)
-  //       }
-  //     }
-
-  //     fetchData()
-
-  //     return () => {
-  //       controller.abort()
-  //     }
-  //   }
-  // }, [shouldFetchIntro, profileToUse, isNewChatOpen, storageFlow])
 
   // ========================================================================
   // SECTION: Language & Bot Setup (Execution Order: 5 - When Profile Ready)
   // These effects fetch bot information and set up language-specific configuration
   // ========================================================================
-
-  /**
-   * Fetch bot information and intro message for new chat sessions
-   * Initializes bot name, intro message, and calls company chat API
-   */
-  /**
-   * ! The useEffect is deprecated as LoginMiStory is not being used anymore.
-   */
 
   /**
    * Set language progress to complete when intro message loads
@@ -1287,12 +1240,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   useEffect(() => {
     if (!sessionId) return
 
-    const controller = new AbortController()
-    const signal = controller.signal
-
     async function fetchStory() {
       try {
-        const story_data = await getStoryBySessionAPI(sessionId, signal)
+        storySignalRef.current = new AbortController()
+        const story_data = await getStoryBySessionAPI(sessionId, storySignalRef.current.signal)
 
         if (story_data && story_data?.length > 0 && story_data[0]) {
           setStoryData(story_data[0])
@@ -1319,7 +1270,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     fetchStory()
 
     return () => {
-      controller.abort()
+      storySignalRef.current.abort()
     }
   }, [sessionId])
 
@@ -1338,11 +1289,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setIsImageUploading(true)
 
         try {
+          mediaSignalRef.current = new AbortController()
           const data = await getStoryAllMedia({
             data: {
               story: story_id,
             },
-          })
+          }, mediaSignalRef.current.signal)
 
           for (let item of Object.values(data?.results || [])) {
             if (item.include_in_story) {
@@ -1360,7 +1312,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
     fetchMedia()
 
-    return () => {}
+    return () => {
+      mediaSignalRef.current.abort()
+    }
   }, [accessToken, storyData])
 
   /**
@@ -2222,10 +2176,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     setLlmError("")
     setSessionId(null)
     setStrandStep(null)
-    setHasFetchIntro(false)
-    setShouldFetchIntro(true)
-    setIntroMessage(null)
-    setSentences([])
     const session = await getSessionDetails()
     setSessionId(session.sessionid)
     setIsChatVisible(false)
