@@ -64,7 +64,6 @@ const cookies = new Cookies()
 
 // TODO: After testing, revert this to the original code
 // const wss_protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-const wss_protocol = "wss://"
 
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
@@ -164,6 +163,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const ipState = useUserStorage()(state => state.ipState)
   const ipZipCode = useUserStorage()(state => state.ipZipCode)
   const ipFetched = useUserStorage()(state => state.ipFetched)
+
+  console.log({storageFlow,searchParams, selectedType})
 
   // chat data actions
   const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()

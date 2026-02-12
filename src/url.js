@@ -20,6 +20,11 @@ const ROUTES = {
   SHIKSHALOKAM_YLC_HOME_PAGE: "/ylc/start",
   SSO_FLOW: "/sso",
   TERMS_AND_CONDITIONS: "/tnc",
+  SHIKSHAGRAHA_REPOSITORY_MITRA_AI_ASSISTANT: "/mitra-chat",
+  MITRA_CHAT: "/mitra-chat",
+  IMPROVEMENT_PLAN: "/improvement-plan",
+  LOGIN: "/login",
+  EXPLORE: "/explore"
 }
 
 export default ROUTES

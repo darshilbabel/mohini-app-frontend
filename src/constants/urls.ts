@@ -25,6 +25,21 @@ export const API_ENDPOINTS = {
   TEXT_TRANSLITERATE: "/api/text_transliterate/",
   UPDATE_PROJECT_STATUS: "/api/shikshalokam/update-project-status/",
   END_STORY_V2: "/api/end-story/v2/",
+  // mitra chat
+  PARAPHRASE_API: "api/paraphrase/",
+  OBJECTIVE_API: "api/shikshalokam/generate-objective/",
+  ACTION_LIST_API: "api/shikshalokam/generate-action-list/",
+  TITLE_API: "api/shikshalokam/generate-title/",
+  SAVE_COMPANY_CHAT: "api/save-company-chat/",
+  GET_COMPANY_CHAT: "api/companychat/",
+  GENERATE_SESSION_ID: "api/generate-session/",
+  CREATE_CHAT_SESSION: "api/create-chatsession/",
+  CHAT_SESSION: "api/chatsession/",
+  CREATE_PROJECT: "api/create-project/",
+  VALIDATE_OBJECTIVE: "api/shikshalokam/validate-objective/",
+  VALIDATE_ACTIONS: "api/shikshalokam/validate-actions/",
+  VALIDATE_TITLE: "api/shikshalokam/validate-title/",
+  PARAPHRASE: "api/shikshalokam/paraphrase/"
 }
 
 export const URL_PARAMS = {

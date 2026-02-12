@@ -5,6 +5,8 @@ export const SESSION_USECASE_TYPE = {
   ParentPerceptionSurvey: "parent_perception_survey",
 }
 
+export const DEFAULT_COMPANY_SLUG = "shikshalokamstaging"
+
 export const sessionFlowName = {
   GuestDiscussion: "guest-discussion",
   LoginDiscussion: "login-discussion",

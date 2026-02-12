@@ -8,7 +8,7 @@ import "./privacyPolicyPopup.css";
 import { useTranslation } from "react-i18next";
 
 
-const PrivacyPolicyPopup = ({ tncText, onAccept, onDecline, useStaticText=false }) => {
+const PrivacyPolicyPopup = ({ tncText, onAccept, onDecline, useStaticText=false, isGuestChat = true }) => {
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -32,7 +32,7 @@ const PrivacyPolicyPopup = ({ tncText, onAccept, onDecline, useStaticText=false 
                 </div>
             </div>
             <div className="tnc-buttons">
-                {(onAccept)&& <button className="tnc-button accept" onClick={onAccept}>
+                {(onAccept)&& <button className={`tnc-button accept ${!isGuestChat && '!bg-blue-600'}`} onClick={onAccept}>
                   {useStaticText? 'स्वीकार करें' : t('tncConfirm')}
                 </button>}
                 {(onDecline)&& <button className="tnc-button decline" onClick={onDecline}>
@@ -49,6 +49,8 @@ PrivacyPolicyPopup.propTypes = {
   tncText: PropTypes.string.isRequired,
   onAccept: PropTypes.func,
   onDecline: PropTypes.func,
+  useStaticText: PropTypes.bool,
+  isGuestChat: PropTypes.bool,
 };
 
 export default PrivacyPolicyPopup;

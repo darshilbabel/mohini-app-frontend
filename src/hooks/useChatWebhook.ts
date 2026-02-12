@@ -107,9 +107,6 @@ export function useChatWebhook(url: string, options: UseChatWebhookOptions = {})
       if (reconnectTimeout.current) {
         clearTimeout(reconnectTimeout.current)
       }
-      if (ws.current) {
-        ws.current.close()
-      }
     }
   }, [connect])
 

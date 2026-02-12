@@ -26,10 +26,33 @@ export const languageValueMap = {
 
 export const languageList = [
   { label: "English", value: "en", excludeFor: [] },
-  { label: "हिंदी", value: "hi", excludeFor: [sessionFlowName.megaPTM, sessionFlowName.YLC] },
-  { label: "ಕನ್ನಡ", value: "kn", excludeFor: [sessionFlowName.megaPTM, SESSION_USECASE_TYPE.ListeningActivity, SESSION_USECASE_TYPE.ParentPerceptionSurvey] },
-  { label: "తెలుగు", value: "te", excludeFor: [SESSION_USECASE_TYPE.ListeningActivity, sessionFlowName.YLC, SESSION_USECASE_TYPE.ParentPerceptionSurvey] },
-]
+  { label: "हिंदी", value: "hi", excludeFor: [SESSION_USECASE_TYPE.MEGA_PTM, SESSION_USECASE_TYPE.YLC] },
+  { label: "ಕನ್ನಡ", value: "kn", excludeFor: [
+      SESSION_USECASE_TYPE.MEGA_PTM,  SESSION_USECASE_TYPE.ListeningActivity, SESSION_USECASE_TYPE.ParentPerceptionSurvey
+    ] 
+  },
+  { label: "తెలుగు", value: "te", excludeFor: [
+      SESSION_USECASE_TYPE.ListeningActivity, SESSION_USECASE_TYPE.YLC, SESSION_USECASE_TYPE.ParentPerceptionSurvey
+    ] 
+  },
+];
+
+export const sessionFlowName = {
+  GuestDiscussion: "guest-discussion",
+  LoginDiscussion: "login-discussion",
+  GuestMiStory: "guest-mi-story",
+  LoginMiStory: "login",
+  SsoFlow: "guest-mi-story",
+  Reflection: "reflection",
+  megaPTM: "megaPTM",
+  YLC: "YLC",
+  ListeningActivity: "listening-activity",
+  ParentPerceptionSurvey: "parent_perception_survey",
+  Creation: "creation",
+  Lfa: "lfa",
+  Lcf: "lcf",
+  FreeFlow: "free_flow",
+};
 
 export const PTM_CONVERSATION_STATUS_TYPE = {
   COMPLETED: "COMPLETED",
