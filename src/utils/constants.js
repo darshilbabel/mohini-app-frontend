@@ -1,5 +1,5 @@
 // utils/constants.js
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
+import { sessionFlowName } from "../constants/session"
 import { SESSION_USECASE_TYPE } from "constants/session"
 import env from "./env"
 

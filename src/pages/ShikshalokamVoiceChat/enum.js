@@ -1,5 +1,4 @@
 import { SESSION_USECASE_TYPE } from "constants/session"
-import { sessionFlowName } from "../../constants/session"
 
 export const modelLabel = {
   models: [
@@ -36,23 +35,6 @@ export const languageList = [
     ] 
   },
 ];
-
-export const sessionFlowName = {
-  GuestDiscussion: "guest-discussion",
-  LoginDiscussion: "login-discussion",
-  GuestMiStory: "guest-mi-story",
-  LoginMiStory: "login",
-  SsoFlow: "guest-mi-story",
-  Reflection: "reflection",
-  megaPTM: "megaPTM",
-  YLC: "YLC",
-  ListeningActivity: "listening-activity",
-  ParentPerceptionSurvey: "parent_perception_survey",
-  Creation: "creation",
-  Lfa: "lfa",
-  Lcf: "lcf",
-  FreeFlow: "free_flow",
-};
 
 export const PTM_CONVERSATION_STATUS_TYPE = {
   COMPLETED: "COMPLETED",

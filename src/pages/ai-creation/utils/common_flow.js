@@ -1,5 +1,5 @@
 import { bot_routes, FLOW_TYPES } from "../../../configure";
-import { sessionFlowName } from "../../ShikshalokamVoiceChat/enum";
+import { sessionFlowName } from "../../../constants/session";
 
 export const getBotConfigForFlow = (flowType) => {
     switch (flowType) {

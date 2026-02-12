@@ -1,5 +1,4 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { SESSION_USECASE_TYPE } from "constants/session"
 import { sessionFlowName } from "./constants/session"
 import { useRoutes, Navigate } from "react-router-dom"
 import { UserProvider } from "./context/user"

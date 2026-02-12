@@ -17,7 +17,7 @@ import { useAICreationSessionStore } from "store";
 import { useChatWebhook } from "hooks/useChatWebhook";
 import { buildWebSocketUrl } from "utils/helpers";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { sessionFlowName } from "../../../../ShikshalokamVoiceChat/enum";
+import { sessionFlowName } from "../../../../../constants/session";
 import { bot_routes } from "../../../../../configure";
 import { useConfirmationPopup } from "../../../../../hooks/useConfirmationPopup"
 import { clearMitraSessionStorage } from "../MainPage"
