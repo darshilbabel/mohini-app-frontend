@@ -115,6 +115,7 @@ export const getStoryAllMedia = async ({
   data = {
     story: "",
   },
+  signal,
 }) => {
   try {
     // if (!token) {
@@ -126,6 +127,7 @@ export const getStoryAllMedia = async ({
         Authorization: token,
       },
       params: data,
+      signal: signal,
     }
 
     const response = await apiClient.get(API_ENDPOINTS.STORY_MEDIA, config)
