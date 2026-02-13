@@ -25,7 +25,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
   // Use refs to store callback dependencies to prevent websocket reconnection
   const handleScrollIntoViewRef = useRef(handleScrollIntoView);
   const onFlowTypeSelectedRef = useRef(onFlowTypeSelected);
-  const { showConfirmationPopup } = useConfirmationPopup()
+  const { commonsNetworkReconnectionPopup } = useConfirmationPopup()
 
   useEffect(() => {
     handleScrollIntoViewRef.current = handleScrollIntoView;
@@ -45,6 +45,8 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
   const {
     profileId,
     setSession: setSessionStore,
+    getInitialSwitchChatHistory,
+    setInitialSwitchChatHistory : setInitialSwitchChatHistoryStore,
   } = useAICreationSessionStore.getState();
 
   const [searchParams] = useSearchParams();
@@ -157,10 +159,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
   const onFinalReconnectAttempt = useCallback(() => {
     function onYesButtonClick() {
       try {
-        let chat_history =
-          useAICreationSessionStore
-            .getState()
-            .getInitialSwitchChatHistory();
+        let chat_history = getInitialSwitchChatHistory();
 
         if (Array.isArray(chat_history) && chat_history.length) {
           const lastIndex = chat_history.length - 1;
@@ -171,9 +170,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
           });
         }
 
-        useAICreationSessionStore
-          .getState()
-          .setInitialSwitchChatHistory(chat_history);
+        setInitialSwitchChatHistoryStore(chat_history);
 
         window.location.reload();
       } catch (error) {
@@ -187,7 +184,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
       window.location.reload();
     }
 
-    showConfirmationPopup(onYesButtonClick, onNoButtonClick);
+    commonsNetworkReconnectionPopup(onYesButtonClick, onNoButtonClick);
   }, []);
 
   const {

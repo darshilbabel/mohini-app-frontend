@@ -31,7 +31,6 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const navigate = useNavigate()
 
   const handleScrollIntoViewRef = useRef(handleScrollIntoView);
-  const { showConfirmationPopup } = useConfirmationPopup()
   
 
   useEffect(() => {
@@ -96,11 +95,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const onFinalReconnectAttempt = useCallback(() => {
     function onYesButtonClick() {
       try {
-        let chat_history =
-          useAICreationSessionStore
-            .getState()
-            // .getInitialSwitchChatHistory();
-            .getCommonFlowChatHistory(); 
+        let chat_history = getCommonFlowChatHistory(); 
 
         if (Array.isArray(chat_history) && chat_history.length) {
           const lastIndex = chat_history.length - 1;
@@ -111,10 +106,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
           });
         }
 
-        useAICreationSessionStore
-          .getState()
-          // .setInitialSwitchChatHistory(chat_history);
-          .setCommonFlowChatHistory(chat_history); 
+        setCommonFlowChatHistoryStore(chat_history);
 
         window.location.reload();
       } catch (error) {
@@ -124,11 +116,12 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     }
 
     function onNoButtonClick() {
-      useAICreationSessionStore.getState().reset();
+      clearMitraSessionStorage()
+      navigate("/")
       window.location.reload();
     }
 
-    showConfirmationPopup(onYesButtonClick, onNoButtonClick);
+    commonsNetworkReconnectionPopup(onYesButtonClick, onNoButtonClick);
   }, []);
 
   const onWebSocketOpen = useCallback(() => {
