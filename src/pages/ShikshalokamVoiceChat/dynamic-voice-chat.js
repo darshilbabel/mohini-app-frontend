@@ -1275,7 +1275,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
       return
     }
 
-    console.log("callEndStory condition", isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING")
     console.log({ isStreamingComplete, stateMachineLength, strandStep, noStoryFound, llmError, acceptedTnc })
 
     if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
@@ -2408,109 +2407,107 @@ const DynamicVoiceChat = ({ type = "" }) => {
           )}
           {isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading && !isLoading && !isPdfDownloading && storyData?.id !== "" && !([sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken) && (
             <>
-              <div className="div13">
-                <ChatMessage
-                  botNameToDisplay={botNameToDisplay}
-                  userType="bot"
-                  message={(() => {
-                    const flow = storageFlow
-                    return flow && [sessionFlowName.GuestMiStory].includes(flow) ? t("evidenceStory") : t("evidence")
-                  })()}
-                  isTalking={false}
-                  handleOnStopSpeaking={() => handleOnStopSpeaking()}
-                  handleOnSpeaking={() => {
-                    const flow = storageFlow
-                    const message_to_use = flow && [sessionFlowName.GuestMiStory].includes(flow) ? t("evidenceStory") : t("evidence")
-                    handleOnSpeaking(message_to_use, "upload-img-id", { msg: message_to_use, updated_at: "upload-img-id", source: "bot" })
-                  }}
-                  isAnyPlaying={!!hasOverRideId || isTalking}
-                  isPlaying={hasOverRideId === "upload-img-id"}
-                  isStreamingComplete={isStreamingComplete}
-                  setNotMute={setIsMute}
-                  chatId={"upload-img-id"}
-                  isStaticMessage={true}
-                />
-                {flowInfo && flowInfo.image_config && (
-                  <>
-                    <div className="div14">
-                      <label className="clickable-label" htmlFor="file-upload">
-                        <GrGallery className="icon-1" />
-                        <span className="div16">{t("upload")}</span>
-                        <input
-                          id="file-upload"
-                          type="file"
-                          accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic"
-                          // multiple
-                          onChange={e => {
-                            setIsLoading(true)
-                            handleMultipleUploads(e, storyData, files, sessionId, flowInfo.image_config.max_images, flowInfo.image_config.image_size_mb)
-                              .then(uploadedFiles => {
-                                if (uploadedFiles && uploadedFiles.error) {
-                                  setFileErrorText(uploadedFiles.error)
-                                }
-                                if (uploadedFiles && uploadedFiles.files) {
-                                  setFiles(uploadedFiles.files)
-                                }
-                              })
-                              .catch(error => {
-                                console.error(error)
-                                setFileErrorText(t("somethingWentWrong") || "Upload failed")
-                              })
-                              .finally(() => {
-                                setIsLoading(false)
-                              })
-                          }}
-                          onClick={e => {
-                            if (files?.length >= 10) {
-                              setFileErrorText(fileExceedText)
-                            } else {
-                              setFileErrorText("")
-                            }
-                          }}
-                          disabled={isLoading || isImageUploading || (fileErrorText !== "" && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
-                          className="div17"
-                        />
-                      </label>
-                    </div>
+              {(flowInfo && flowInfo.image_config) && 
+                <div className="div13">
+                  <ChatMessage
+                    botNameToDisplay={botNameToDisplay}
+                    userType="bot"
+                    message={(() => {
+                      const flow = storageFlow
+                      return flow && [sessionFlowName.GuestMiStory].includes(flow) ? t("evidenceStory") : t("evidence")
+                    })()}
+                    isTalking={false}
+                    handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                    handleOnSpeaking={() => {
+                      const flow = storageFlow
+                      const message_to_use = flow && [sessionFlowName.GuestMiStory].includes(flow) ? t("evidenceStory") : t("evidence")
+                      handleOnSpeaking(message_to_use, "upload-img-id", { msg: message_to_use, updated_at: "upload-img-id", source: "bot" })
+                    }}
+                    isAnyPlaying={!!hasOverRideId || isTalking}
+                    isPlaying={hasOverRideId === "upload-img-id"}
+                    isStreamingComplete={isStreamingComplete}
+                    setNotMute={setIsMute}
+                    chatId={"upload-img-id"}
+                    isStaticMessage={true}
+                  />
+                  <div className="div14">
+                    <label className="clickable-label" htmlFor="file-upload">
+                      <GrGallery className="icon-1" />
+                      <span className="div16">{t("upload")}</span>
+                      <input
+                        id="file-upload"
+                        type="file"
+                        accept="image/jpeg, image/png, image/svg+xml, image/webp, image/heif, image/heic"
+                        // multiple
+                        onChange={e => {
+                          setIsLoading(true)
+                          handleMultipleUploads(e, storyData, files, sessionId, flowInfo.image_config.max_images, flowInfo.image_config.image_size_mb)
+                            .then(uploadedFiles => {
+                              if (uploadedFiles && uploadedFiles.error) {
+                                setFileErrorText(uploadedFiles.error)
+                              }
+                              if (uploadedFiles && uploadedFiles.files) {
+                                setFiles(uploadedFiles.files)
+                              }
+                            })
+                            .catch(error => {
+                              console.error(error)
+                              setFileErrorText(t("somethingWentWrong") || "Upload failed")
+                            })
+                            .finally(() => {
+                              setIsLoading(false)
+                            })
+                        }}
+                        onClick={e => {
+                          if (files?.length >= 10) {
+                            setFileErrorText(fileExceedText)
+                          } else {
+                            setFileErrorText("")
+                          }
+                        }}
+                        disabled={isLoading || isImageUploading || (fileErrorText !== "" && fileErrorText !== fileSizeText && fileErrorText === fileExceedText)}
+                        className="div17"
+                      />
+                    </label>
+                  </div>
+                  <div className="div18">
+                    <p className="li-message">{t("photosLimitMsgDyn", { image_limit: flowInfo.image_config.max_images })}</p>
+                  </div>
+                  {isImageUploading && (
                     <div className="div18">
-                      <p className="li-message">{t("photosLimitMsgDyn", { image_limit: flowInfo.image_config.max_images })}</p>
+                      <p className="li-3">{t("uploadLoadMsg")}</p>
                     </div>
-                    {isImageUploading && (
-                      <div className="div18">
-                        <p className="li-3">{t("uploadLoadMsg")}</p>
-                      </div>
-                    )}
-                  </>
-                )}
+                  )}
 
-                {files?.length > 0 ? (
-                  <div className="div18">
-                    <h4 className="h4-1">{t("uploadedFiles")}:</h4>
-                    <ul>
-                      {fileErrorText && <li className="li-1">{fileErrorText}</li>}
-                      {files.map((file, index) => (
-                        <li key={index} className="li-2">
-                          {file.name.slice(0, 20)}
-                          {file.name.length > 20 && "..."}
-                          <button
-                            className="button-1"
-                            onClick={() => {
-                              setFiles(files.filter(f => f.id !== file.id))
-                              partialMediaUpdate(file?.id, false)
-                            }}
-                          >
-                            <RxCross2 />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <div className="div18">
-                    <ul>{fileErrorText && <li className="li-1">{fileErrorText}</li>}</ul>
-                  </div>
-                )}
-              </div>
+                  {files?.length > 0 ? (
+                    <div className="div18">
+                      <h4 className="h4-1">{t("uploadedFiles")}:</h4>
+                      <ul>
+                        {fileErrorText && <li className="li-1">{fileErrorText}</li>}
+                        {files.map((file, index) => (
+                          <li key={index} className="li-2">
+                            {file.name.slice(0, 20)}
+                            {file.name.length > 20 && "..."}
+                            <button
+                              className="button-1"
+                              onClick={() => {
+                                setFiles(files.filter(f => f.id !== file.id))
+                                partialMediaUpdate(file?.id, false)
+                              }}
+                            >
+                              <RxCross2 />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="div18">
+                      <ul>{fileErrorText && <li className="li-1">{fileErrorText}</li>}</ul>
+                    </div>
+                  )}
+                </div>
+              }
 
               {![sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) && (
                 <div className="div19">
