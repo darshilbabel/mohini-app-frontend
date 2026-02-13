@@ -13,6 +13,7 @@ import BotMessage from './components/chat-message/BotMessage';
 import ChatBox from './components/ChatBox';
 import ChatWindow from './components/ChatWindow';
 import LoadingChat from './components/LoadingChat';
+import env from "../../../../../../src/utils/env";
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 
 const { USER } = CONVERSATION_USER_TYPES;
@@ -30,6 +31,8 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
   const navigate = useNavigate()
 
   const handleScrollIntoViewRef = useRef(handleScrollIntoView);
+  const { showConfirmationPopup } = useConfirmationPopup()
+  
 
   useEffect(() => {
     handleScrollIntoViewRef.current = handleScrollIntoView;
@@ -90,30 +93,43 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     }
   }, [flowType]);
 
-  function onFinalReconnectAttempt() {
+  const onFinalReconnectAttempt = useCallback(() => {
     function onYesButtonClick() {
       try {
-        let chat_history = getCommonFlowChatHistory();
-        if (Array.isArray(chat_history)) {
-          chat_history = chat_history.filter((chat, index) => !(index == chat_history.length - 1 && chat.source === "user"))
-        }
-        setCommonFlowChatHistoryStore(chat_history)
+        let chat_history =
+          useAICreationSessionStore
+            .getState()
+            // .getInitialSwitchChatHistory();
+            .getCommonFlowChatHistory(); 
 
-        window.location.reload()
+        if (Array.isArray(chat_history) && chat_history.length) {
+          const lastIndex = chat_history.length - 1;
+
+          chat_history = chat_history.filter((_, index) => {
+            if (index !== lastIndex) return true;
+            return chat_history[index]?.source !== "user";
+          });
+        }
+
+        useAICreationSessionStore
+          .getState()
+          // .setInitialSwitchChatHistory(chat_history);
+          .setCommonFlowChatHistory(chat_history); 
+
+        window.location.reload();
       } catch (error) {
-        console.error("Error cleaning chat history before reload:", error)
-        window.location.reload()
+        console.error("Error cleaning chat history before reload:", error);
+        window.location.reload();
       }
     }
 
     function onNoButtonClick() {
-      clearMitraSessionStorage()
-      navigate("/")
-      window.location.reload()
+      useAICreationSessionStore.getState().reset();
+      window.location.reload();
     }
 
-    commonsNetworkReconnectionPopup(onYesButtonClick, onNoButtonClick)
-  }
+    showConfirmationPopup(onYesButtonClick, onNoButtonClick);
+  }, []);
 
   const onWebSocketOpen = useCallback(() => {
     const currentSessionId = useAICreationSessionStore.getState().getSession();
@@ -224,9 +240,10 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
     {
       onOpen: onWebSocketOpen,
       onMessage: onWebSocketMessage,
+      onFinalReconnectAttempt,
       autoConnect: false,
-      reconnect: false,
-      onFinalReconnectAttempt
+      reconnect: true,
+      reconnectAttempts: env.WEBSOCKET_RETRY_NUM(),
     }
   );
 
