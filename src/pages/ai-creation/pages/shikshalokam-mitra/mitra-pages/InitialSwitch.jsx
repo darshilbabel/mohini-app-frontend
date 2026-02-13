@@ -164,10 +164,9 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
         if (Array.isArray(chat_history) && chat_history.length) {
           const lastIndex = chat_history.length - 1;
 
-          chat_history = chat_history.filter((_, index) => {
-            if (index !== lastIndex) return true;
-            return chat_history[index]?.source !== "user";
-          });
+          if (chat_history[chat_history.length - 1]?.source === "user") {
+            chat_history = chat_history.slice(0, -1);
+          }
         }
 
         setInitialSwitchChatHistoryStore(chat_history);

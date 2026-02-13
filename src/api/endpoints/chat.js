@@ -61,7 +61,7 @@ export const getCompanyBotApi = async (data, { signal } = {}) => {
   return response.data
 }
 
-export const getStoryBySessionAPI = async (sessionID, signal) => {
+export const getStoryBySessionAPI = async (sessionID, { signal } = {}) => {
   const res = await apiClient.get(API_ENDPOINTS.GET_STORY, {
     params: {
       session: sessionID,

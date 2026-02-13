@@ -19,7 +19,7 @@ import Popup from "../../../../components/Popup/index";
 import PrivacyPolicyPopup from "../../../../components/TnC/privacyPolicyPopup";
 import FAQ from "./mitra-pages/components/FAQ";
 import CommonFlow from "./mitra-pages/CommonFlow";
-import Notification, { showNotification } from "../../../../../src/components/ToastMessage/TotastMessage"
+import Notification, { showNotification } from "../../../../components/ToastMessage/TotastMessage"
 
 /* constants */
 import { ACTIVE_TABS } from "../../constants/mitra.constants";
@@ -119,9 +119,7 @@ function MainPage() {
     const checkNetworkSpeed = () => {
       if (connection) {
         const { effectiveType } = connection;
-
-        console.log("Check network inside", effectiveType);
-
+        
         if (
           effectiveType &&
           (effectiveType === "2g" || effectiveType === "3g") &&

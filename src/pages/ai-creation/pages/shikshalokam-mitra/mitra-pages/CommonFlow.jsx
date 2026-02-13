@@ -13,7 +13,7 @@ import BotMessage from './components/chat-message/BotMessage';
 import ChatBox from './components/ChatBox';
 import ChatWindow from './components/ChatWindow';
 import LoadingChat from './components/LoadingChat';
-import env from "../../../../../../src/utils/env";
+import env from "../../../../../utils/env";
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 
 const { USER } = CONVERSATION_USER_TYPES;

@@ -193,7 +193,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       try {
         let chat_history = getChatHistory()
         if (Array.isArray(chat_history)) {
-          chat_history = chat_history.filter((chat, index) => !(index == chat_history.length - 1 && chat.source === "user"))
+          chat_history = chat_history.filter((chat, index) => !(index === chat_history.length - 1 && chat.source === "user"))
         }
         setChatHistory(chat_history)
 
@@ -2270,7 +2270,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       setIsLoading(true)
       setIsPdfDownloading(true)
 
-      const story = await getStoryBySessionAPI(sessionid)
+      const story = await getStoryBySessionAPI(sessionid, accessToken)
 
       const story_media = story[0]?.story_media
       const pdfMedia = story_media?.filter(media => media.media_type === "application/pdf") || []
