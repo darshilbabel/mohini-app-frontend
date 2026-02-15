@@ -64,7 +64,6 @@ export const handleS3Upload = async (file, fileName, folderStructure, storyData,
         method: "PUT",
         headers: {
           "Content-Type": file.type,
-          "x-amz-acl": "public-read",
         },
         body: file,
       })

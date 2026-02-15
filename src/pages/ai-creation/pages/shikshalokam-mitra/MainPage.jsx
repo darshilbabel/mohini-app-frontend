@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 /* api services and utils */
 import { handleAI4BharatTTSRequest } from "../../apiServices/ai4bharat_services";
 
@@ -18,6 +19,8 @@ import Popup from "../../../../components/Popup/index";
 import PrivacyPolicyPopup from "../../../../components/TnC/privacyPolicyPopup";
 import FAQ from "./mitra-pages/components/FAQ";
 import CommonFlow from "./mitra-pages/CommonFlow";
+import Notification, { showNotification } from "../../../../components/ToastMessage/TotastMessage"
+
 /* constants */
 import { ACTIVE_TABS } from "../../constants/mitra.constants";
 import { LOADER_KEYS } from "../../constants/common";
@@ -104,6 +107,77 @@ function MainPage() {
   const scrollContainerRef = useRef(null);
 
   const { setIsReadOnly: setIsReadOnlyStore, setUserText: setUserTextStore, setCurrentPage: setCurrentPageStore, setSelectedFlowType: setSelectedFlowTypeStore, setBotMessageName: setBotMessageNameStore } = useAICreationSessionStore.getState()
+
+  useEffect(() => {
+    const connection =
+      navigator.connection ||
+      navigator.mozConnection ||
+      navigator.webkitConnection;
+
+    let toastId = null;
+
+    const checkNetworkSpeed = () => {
+      if (connection) {
+        const { effectiveType } = connection;
+        
+        if (
+          effectiveType &&
+          (effectiveType === "2g" || effectiveType === "3g") &&
+          navigator.onLine
+        ) {
+          if (toastId) {
+            toast.dismiss(toastId);
+          }
+
+          const message = tncTranslation("networkWarning");
+
+          toastId = showNotification({
+            message: message,
+            type: "warning",
+            options: {
+              position: "top-center",
+              style: { fontWeight: "bold", color: "#1D1616" },
+            },
+          });
+        }
+      }
+    };
+
+    const handleOffline = () => {
+      if (toastId) {
+        toast.dismiss(toastId);
+      }
+
+      toastId = toast.error(tncTranslation("offlineNetwork"), {
+        position: "top-center",
+        style: { fontWeight: "bold", color: "#fff" },
+      });
+    };
+
+    const handleOnline = () => {
+      if (toastId) {
+        toast.dismiss(toastId);
+      }
+
+      toastId = toast.success(tncTranslation("onlineNetwork"), {
+        position: "top-center",
+        style: { fontWeight: "bold", color: "#1D1616" },
+      });
+
+      checkNetworkSpeed();
+    };
+
+    checkNetworkSpeed();
+    connection?.addEventListener("change", checkNetworkSpeed);
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      connection?.removeEventListener("change", checkNetworkSpeed);
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, [tncTranslation]);
 
   useEffect(() => {
     setUserDetail({
@@ -292,6 +366,8 @@ function MainPage() {
     handleIntroMessage();
   }, []);
 
+  
+
   useEffect(() => {
     const language = useAICreationSessionStore.getState().getPreferredLanguage() || {};
     setLanguage(language.value);
@@ -476,6 +552,8 @@ function MainPage() {
           {acceptedTnc === "ONGOING" && !isLoading && (
         <PrivacyPolicyPopup tncText={tncTranslation("mitraTncText")} onAccept={handleAcceptTnC} isGuestChat={false} />
       )}
+
+      <Notification /> 
 
 <div className="bg-[#F0F2F5]">
     <div className="container max-w-[1500px] h-full mx-auto py-3">

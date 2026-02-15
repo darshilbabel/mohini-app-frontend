@@ -34,15 +34,17 @@ export const getStoryById = async ({ token, data = { id: "" } }: TgetStoryByIdPa
 type TgetStoryAllMediaParams = {
   token: string
   data: { story: string }
+  signal: AbortSignal
 }
 
-export const getStoryAllMedia = async ({ token, data = { story: "" } }: TgetStoryAllMediaParams) => {
+export const getStoryAllMedia = async ({ token, data = { story: "" }, signal }: TgetStoryAllMediaParams) => {
   try {
     const config = {
       headers: {
         Authorization: token,
       },
       params: data,
+      signal,
     }
 
     const response = await apiClient.get(API_ENDPOINTS.STORY_MEDIA, config)

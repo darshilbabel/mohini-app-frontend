@@ -11,7 +11,8 @@ import { sessionFlowName } from '../../../../../constants/session';
 import { bot_routes, FLOW_TYPES } from '../../../../../configure';
 import { getNewSessionID } from '../../../../../api/endpoints/chat_flow';
 import { compareFlowTypesEquality } from '../../../utils/common_flow';
-
+import env from "../../../../../../src/utils/env";
+import { useConfirmationPopup } from "../../../../../../src/hooks/useConfirmationPopup";
 const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected, isInitialSwitchSection, acceptedTnc }) => {
   const textInputRef = useRef(null);
   const isConnectedRef = useRef(false); 
@@ -24,6 +25,7 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
   // Use refs to store callback dependencies to prevent websocket reconnection
   const handleScrollIntoViewRef = useRef(handleScrollIntoView);
   const onFlowTypeSelectedRef = useRef(onFlowTypeSelected);
+  const { commonsNetworkReconnectionPopup } = useConfirmationPopup()
 
   useEffect(() => {
     handleScrollIntoViewRef.current = handleScrollIntoView;
@@ -43,6 +45,8 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
   const {
     profileId,
     setSession: setSessionStore,
+    getInitialSwitchChatHistory,
+    setInitialSwitchChatHistory : setInitialSwitchChatHistoryStore,
   } = useAICreationSessionStore.getState();
 
   const [searchParams] = useSearchParams();
@@ -152,6 +156,36 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
     []
   );
 
+  const onFinalReconnectAttempt = useCallback(() => {
+    function onYesButtonClick() {
+      try {
+        let chat_history = getInitialSwitchChatHistory();
+
+        if (Array.isArray(chat_history) && chat_history.length) {
+          const lastIndex = chat_history.length - 1;
+
+          if (chat_history[chat_history.length - 1]?.source === "user") {
+            chat_history = chat_history.slice(0, -1);
+          }
+        }
+
+        setInitialSwitchChatHistoryStore(chat_history);
+
+        window.location.reload();
+      } catch (error) {
+        console.error("Error cleaning chat history before reload:", error);
+        window.location.reload();
+      }
+    }
+
+    function onNoButtonClick() {
+      useAICreationSessionStore.getState().reset();
+      window.location.reload();
+    }
+
+    commonsNetworkReconnectionPopup(onYesButtonClick, onNoButtonClick);
+  }, []);
+
   const {
     sendMessage: sendSocketMessage,
     connect: connectToWebSocket,
@@ -167,8 +201,10 @@ const InitialSwitch = ({ introMessage, handleScrollIntoView, onFlowTypeSelected,
       onMessage: onWebSocketMessage,
       onClose: onWebSocketClose,
       onError: onWebSocketError,
+      onFinalReconnectAttempt,
       autoConnect: false,
-      reconnect: false,
+      reconnect: true,
+      reconnectAttempts: env.WEBSOCKET_RETRY_NUM(),
     }
   );
 
