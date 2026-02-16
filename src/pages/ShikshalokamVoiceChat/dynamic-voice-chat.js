@@ -798,18 +798,19 @@ const DynamicVoiceChat = ({ type = "" }) => {
     sentence => {
       if (isRecognizing || hasStartedListening || !shouldSendMessage) return
 
-      const lastMessage = chatHistory[chatHistory?.length - 1]
+      const chat_history = structuredClone(chatHistory)
+      const lastMessage = chat_history[chatHistory?.length - 1]
       if (lastMessage?.msg === sentence && lastMessage?.source === "bot") {
         return
       }
 
-      if (chatHistory[chatHistory?.length - 1]?.source === "bot") {
-        const lastMessage = chatHistory[chatHistory?.length - 1]
+      if (chat_history[chatHistory?.length - 1]?.source === "bot") {
+        const lastMessage = chat_history[chatHistory?.length - 1]
         lastMessage.msg += " " + sentence
-        setChatHistory([...chatHistory])
+        setChatHistory([...chat_history])
       } else {
         setChatHistory([
-          ...chatHistory,
+          ...chat_history,
           createMessage({
             msg: sentence,
             source: "bot",
@@ -858,7 +859,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const fileExceedText = t("fileExceedText")
   const fileSizeText = t("fileSizeText")
   let isMobile = useCustomMediaQuery("(max-width: 500px)")
-  let chatToAddLength = isMobile ? 10 : 10
 
   // ========================================================================
   // SECTION: Lifecycle & Browser Events (Execution Order: 1 - On Mount)
