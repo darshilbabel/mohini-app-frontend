@@ -34,10 +34,10 @@ export const getStoryById = async ({ token, data = { id: "" } }: TgetStoryByIdPa
 type TgetStoryAllMediaParams = {
   token: string
   data: { story: string }
-  signal: AbortSignal
+  signal: AbortSignal | undefined
 }
 
-export const getStoryAllMedia = async ({ token, data = { story: "" }, signal }: TgetStoryAllMediaParams) => {
+export const getStoryAllMedia = async ({ token, data = { story: "" }, signal = undefined }: TgetStoryAllMediaParams) => {
   try {
     const config = {
       headers: {

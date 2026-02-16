@@ -1,4 +1,4 @@
-import { SESSION_USECASE_TYPE } from "constants/session"
+import { SESSION_USECASE_TYPE, sessionFlowName } from "constants/session"
 
 export const modelLabel = {
   models: [
@@ -25,9 +25,9 @@ export const languageValueMap = {
 
 export const languageList = [
   { label: "English", value: "en", excludeFor: [] },
-  { label: "हिंदी", value: "hi", excludeFor: [SESSION_USECASE_TYPE.MEGA_PTM, SESSION_USECASE_TYPE.YLC] },
+  { label: "हिंदी", value: "hi", excludeFor: [sessionFlowName.megaPTM, SESSION_USECASE_TYPE.YLC] },
   { label: "ಕನ್ನಡ", value: "kn", excludeFor: [
-      SESSION_USECASE_TYPE.MEGA_PTM,  SESSION_USECASE_TYPE.ListeningActivity, SESSION_USECASE_TYPE.ParentPerceptionSurvey
+      sessionFlowName.megaPTM,  SESSION_USECASE_TYPE.ListeningActivity, SESSION_USECASE_TYPE.ParentPerceptionSurvey
     ] 
   },
   { label: "తెలుగు", value: "te", excludeFor: [

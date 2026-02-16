@@ -53,7 +53,12 @@ export const getChatSessionApi = async data => {
   return response
 }
 
-export const getCompanyBotApi = async (data, { signal } = {}) => {
+export const getCompanyBotApi = async (data, options = {}) => {
+  let signal
+  if (options) {
+    signal = options["signal"]
+  }
+
   const response = await apiClient.get(API_ENDPOINTS.GET_COMPANY_BOT, {
     params: data,
     signal
@@ -61,7 +66,12 @@ export const getCompanyBotApi = async (data, { signal } = {}) => {
   return response.data
 }
 
-export const getStoryBySessionAPI = async (sessionID, { signal } = {}) => {
+export const getStoryBySessionAPI = async (sessionID, options = {}) => {
+  let signal
+  if (options) {
+    signal = options["signal"]
+  }
+
   const res = await apiClient.get(API_ENDPOINTS.GET_STORY, {
     params: {
       session: sessionID,
