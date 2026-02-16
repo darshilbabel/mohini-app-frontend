@@ -3,10 +3,8 @@ import { useLocalStorage } from "react-use";
 import { useUserDispatcher } from "../../context/user";
 import USER_ACTIONS from "../../context/user/user-actions";
 import Cookies from "universal-cookie";
-import axiosInstance from "../../utils/axios";
 import getConfiguration, { company_list } from "../../configure";
 import { Link } from "react-router-dom";
-import ROUTES from "../../url";
 import { logoutApi } from "api/endpoints/auth";
 
 const logout_api_url = `/api/logout/`;

@@ -34,7 +34,6 @@ import { useConfirmationPopup } from "hooks/useConfirmationPopup"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import axiosInstance from "../../utils/axios"
 import Cookies from "universal-cookie"
 import DOMPurify from "dompurify"
 import EditorJS from "@editorjs/editorjs"
@@ -58,6 +57,7 @@ import useUrlFlow from "../../hooks/useUrlFlow"
 import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord"
 import WaveSurferPlayer from "../interview-text-voice/voice-player"
+import { apiClient } from "../../api/client"
 
 const cookies = new Cookies()
 
@@ -430,9 +430,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
       if (accessToken) {
         clearFromStorage()
         navigate(-1)
+      } else {
+        window.location.reload()
       }
     } finally {
-      window.location.reload()
       setIsLoading(false)
       setIsSaving(false)
     }
@@ -823,7 +824,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   useEffect(() => {
     if (!isFlowInfoError) return
 
-    if (flowInfoError.response.status === 404) {
+    if (flowInfoError?.response?.status === 404) {
       clearFromStorage()
       navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
     }
@@ -1072,7 +1073,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
           setState(data?.profile_address[0]?.state)
           setIsNewChatOpen(true)
         } else {
-          navigate(ROUTES.EXIT_ROUTE)
           clearFromStorage()
           navigate(-1)
         }
@@ -1231,7 +1231,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   useEffect(() => {
     const fetchMedia = async () => {
       if (storyData && storyData?.id !== "") {
-        if (accessToken || accessToken) {
+        if (accessToken) {
           openModal()
         }
         const story_id = storyData?.id
@@ -1404,13 +1404,13 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Updates latest user message with voice recording data
    */
   useEffect(() => {
-    if (!!recordings?.length && chatHistory[chatHistory?.length - 1]?.source !== "bot") {
+    const lastMsg = chatHistory[chatHistory?.length - 1]
+    if (!!recordings?.length && lastMsg?.source !== "bot") {
       const updatedChatHistory = [...chatHistory]
       updatedChatHistory[chatHistory?.length - 1] = {
         ...updatedChatHistory[chatHistory?.length - 1],
         recording: recordings[recordings?.length - 1],
       }
-      console.log("state_tracker", updatedChatHistory)
       setChatHistory(updatedChatHistory)
     }
     return () => {}
@@ -1726,9 +1726,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   block.style.webkitUserSelect = "none"
                   block.style.mozUserSelect = "none"
                   block.style.msUserSelect = "none"
-                } else if (isPrevBlockAnswer === false && prevBlock?.querySelector(".ce-header")?.innerText.toLowerCase().startsWith("q")) {
-                  paragraphEl.classList.add("answer-paragraph")
                 }
+                // TODO: Needs to be removed if everything above is working fine
+                //  else if (isPrevBlockAnswer === false && prevBlock?.querySelector(".ce-header")?.innerText.toLowerCase().startsWith("q")) {
+                //   paragraphEl.classList.add("answer-paragraph")
+                // }
               }
             })
           }, 500)
@@ -1965,9 +1967,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   }
 
   async function getCompanyChatApi(currentSession) {
-    const resp = await axiosInstance({
-      url: `/api/companychat/?session=${currentSession}`,
-    })
+    const resp = await apiClient.get(`/api/companychat/?session=${currentSession}`)
     return resp
   }
 
@@ -2221,17 +2221,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
 
     return <PdfDownloader key={new Date().getTime()} storyData={storyData} isShikshalokam={true} downloadTriggered={triggerDownload} handleDownloadStop={handleDownloadStop} storyMediaArr={files} currentState={currentState} current_company={current_company} />
-  }
-
-  const handleSelectedTypeNameChanges = e => {
-    function changeSelectedValue(value, e) {
-      if (value === "") value = selectedLabel?.types[0]?.value
-      setSelectedType(value)
-      resetChat(e)
-    }
-
-    let { value } = e?.target
-    changeSelectedValue(value, e)
   }
 
   function handleAcceptTnC() {
