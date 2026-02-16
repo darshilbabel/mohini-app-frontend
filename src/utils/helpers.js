@@ -72,8 +72,8 @@ export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wss
     [sessionFlowName.ParentPerceptionSurvey]: bot_websocket.parent_perception_survey,
     [sessionFlowName.Creation]: bot_websocket.creation,
     [sessionFlowName.FreeFlow]: bot_websocket.free_flow,
-    [sessionFlowName.Lfa]: bot_websocket.lfa,
-    [sessionFlowName.Lcf]: bot_websocket.lcf,
+    [sessionFlowName.LFA]: bot_websocket.lfa,
+    [sessionFlowName.LCF]: bot_websocket.lcf,
   }
 
   const normalTypeConfig = {

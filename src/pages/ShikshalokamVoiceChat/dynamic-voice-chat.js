@@ -984,8 +984,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   useEffect(() => {
     if (!profileToUse) setCompanySlug("shikshalokamstaging")
-    const profile = getProfileUserApi(profileToUse, accessToken)
-    setCompanySlug(profile?.company?.slug)
+
+    const company_slug = getProfileUserApi(profileToUse, accessToken).then(profile => profile?.company?.slug)
+    setCompanySlug(company_slug)
   }, [profileToUse])
 
   /**
@@ -1051,10 +1052,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
         if (response) {
           const data = response.profile_details
-          const preferredLanguage = preferredLanguage || {}
+          const userPreferredLanguage = preferredLanguage || {}
           let language = LANGUAGE_ENUMS.ENGLISH
-          if (preferredLanguage) {
-            language = preferredLanguage.value
+          if (userPreferredLanguage) {
+            language = userPreferredLanguage.value
           } else if (languageToUse) {
             language = languageToUse
           }

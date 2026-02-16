@@ -7,11 +7,7 @@ import { apiClient } from "../client"
  */
 export const getSessionDetailsApi = async () => {
   try {
-    const response = await apiClient.get(API_ENDPOINTS.GENERATE_SESSION, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    const response = await apiClient.get(API_ENDPOINTS.GENERATE_SESSION)
     return response.data
   } catch (error) {
     return error?.response?.data

@@ -83,7 +83,7 @@ export const getProfileUserApi = async (profileId, accessToken) => {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`
     }
-    const response = await apiClient.get(`${API_ENDPOINTS.PROFILE_USER}${profileId}/`, headers)
+    const response = await apiClient.get(`${API_ENDPOINTS.PROFILE_USER}${profileId}/`, { headers })
     return response.data
   } catch (error) {
     return error?.response?.data

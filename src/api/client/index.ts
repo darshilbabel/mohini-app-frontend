@@ -6,6 +6,7 @@ type TAPIConfig = {
     Authorization?: string
   }
   params?: Record<string, string>
+  signal?: AbortSignal
 }
 
 class ApiClient {
