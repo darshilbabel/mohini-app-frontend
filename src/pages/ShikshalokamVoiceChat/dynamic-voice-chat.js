@@ -251,7 +251,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     if (message.source === "bot") {
       setIsStreamingComplete(false)
       setSentences(prevSentences => {
-        const updatedSentences = [...prevSentences]
+        const updatedSentences = structuredClone(prevSentences)
         const lastSentence = updatedSentences[updatedSentences.length - 1]
 
         if (lastSentence?.source === "bot") {
@@ -1417,21 +1417,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   }, [recordings, chatHistory])
 
   /**
-   * Attach appendix URLs to bot messages when available
-   * Adds supplementary content links to bot responses
-   */
-  useEffect(() => {
-    if (!!appendix?.length && chatHistory[chatHistory?.length - 1].source === "bot") {
-      const lastMessage = chatHistory[chatHistory?.length - 1]
-      lastMessage.appendixURL = appendix
-      lastMessage.hasAppendix = true
-      setChatHistory([...chatHistory])
-      setAppendix([])
-    }
-    return () => {}
-  }, [appendix, chatHistory])
-
-  /**
    * Reset recognition text and trigger state after processing
    * Manages voice recognition cleanup after message processing
    */
@@ -1727,7 +1712,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   block.style.mozUserSelect = "none"
                   block.style.msUserSelect = "none"
                 }
-                // TODO: Needs to be removed if everything above is working fine
                 //  else if (isPrevBlockAnswer === false && prevBlock?.querySelector(".ce-header")?.innerText.toLowerCase().startsWith("q")) {
                 //   paragraphEl.classList.add("answer-paragraph")
                 // }
@@ -2070,18 +2054,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   }
 
   const isTyping = !!textMessage.trim()
-
-  const handleFirstMessage = ({ message, category }) => {
-    try {
-      if (category === "special") {
-        window.location.reload()
-        return
-      }
-      handleScrollToView()
-    } catch (error) {
-      console.error({ error })
-    }
-  }
 
   const handleOnSpeaking = async (text, id, staticMsg, hasClickedOnSpeaker = false) => {
     try {
