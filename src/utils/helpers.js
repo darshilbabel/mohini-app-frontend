@@ -1,8 +1,8 @@
 // utils/helpers.js
-import { languageList } from "../pages/ShikshalokamVoiceChat/enum"
-import { STORAGE_KEYS } from "./constants"
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { bot_websocket } from "configure"
+import { languageList } from "../pages/ShikshalokamVoiceChat/enum"
+import { sessionFlowName } from "../constants/session"
+import { STORAGE_KEYS } from "./constants"
 import env from "./env"
 
 /**
@@ -58,10 +58,10 @@ export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wss
   if (searchParams.get("code")) {
     // NOTE: revert this code after testing
     // return `${wssProtocol}${window.location.host}/ws/chat/company/`;
-    return `${wssProtocol}${env.WEBSOCKET_HOST()}/ws/chat/company/`
+    return `${env.WS_PROTOCOL()}://${env.WEBSOCKET_HOST()}/ws/chat/company/`
   }
 
-  const baseUrl = `${wssProtocol}${env.WEBSOCKET_HOST()}`
+  const baseUrl = `${env.WS_PROTOCOL()}://${env.WEBSOCKET_HOST()}`
   const currentFlow = storageFlow
 
   // Direct flow to websocket mapping
@@ -72,8 +72,8 @@ export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wss
     [sessionFlowName.ParentPerceptionSurvey]: bot_websocket.parent_perception_survey,
     [sessionFlowName.Creation]: bot_websocket.creation,
     [sessionFlowName.FreeFlow]: bot_websocket.free_flow,
-    [sessionFlowName.Lfa]: bot_websocket.lfa,
-    [sessionFlowName.Lcf]: bot_websocket.lcf,
+    [sessionFlowName.LFA]: bot_websocket.lfa,
+    [sessionFlowName.LCF]: bot_websocket.lcf,
   }
 
   const normalTypeConfig = {

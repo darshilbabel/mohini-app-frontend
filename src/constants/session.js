@@ -6,3 +6,20 @@ export const SESSION_USECASE_TYPE = {
 }
 
 export const DEFAULT_COMPANY_SLUG = "shikshalokamstaging"
+
+export const sessionFlowName = {
+  GuestDiscussion: "guest-discussion",
+  LoginDiscussion: "login-discussion",
+  GuestMiStory: "guest-mi-story",
+  LoginMiStory: "login",
+  SsoFlow: "guest-mi-story",
+  Reflection: "reflection",
+  megaPTM: "megaPTM",
+  YLC: "YLC",
+  ListeningActivity: "listening-activity",
+  ParentPerceptionSurvey: "parent_perception_survey",
+  Creation: "creation",
+  LFA: "lfa",
+  LCF: "lcf",
+  FreeFlow: "free_flow",
+}

@@ -5,11 +5,7 @@ import HttpApi from "i18next-http-backend"
 import { useSiteDataLocalStore } from "store"
 import env from "./utils/env"
 
-// const preferredLanguage = JSON.parse(localStorage.getItem('preferred_language'))?.value;
-
 const chatLanguageLocal = useSiteDataLocalStore.getState().getChatLanguage()
-// const { chatLanguage: chatLanguageSession } = useSiteDataSessionStore.getState();
-
 const languageToUse = chatLanguageLocal || LANGUAGE_ENUMS.ENGLISH
 
 i18n

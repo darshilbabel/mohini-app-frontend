@@ -6,11 +6,12 @@ import { FaArrowLeft, FaPowerOff } from "react-icons/fa6"
 import "./shikshaChatStyle.css"
 import { useTranslation } from "react-i18next"
 import { setLanguage } from "../../i18n"
-import { LANGUAGE_ENUMS, sessionFlowName } from "./enum"
+import { LANGUAGE_ENUMS } from "./enum"
+import { sessionFlowName } from "../../constants/session"
 import { clearFromStorage } from "../../services/storage_service"
 import { useSiteStorage, useChatStorage } from "hooks/useStorage"
 
-const Sidebar = ({ isOpen, toggle, isMobileFirst = false, showLogout = true, showScrollbarContent, resetChat, setIsResetCalled, languageToUse, showGuestPopup, stopAllAudio }) => {
+const Sidebar = ({ isOpen, toggle, isMobileFirst = false, showLogout = true, showScrollbarContent, resetChat, setIsResetCalled, showGuestPopup, stopAllAudio }) => {
   const navigate = useNavigate()
   const { t } = useTranslation()
 

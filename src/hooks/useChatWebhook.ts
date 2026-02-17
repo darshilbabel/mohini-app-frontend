@@ -1,12 +1,30 @@
 import { useRef, useState, useCallback, useEffect } from "react"
 
-export const useChatWebhook = (url, options = {}) => {
-  const { onFinalReconnectAttempt, onOpen, onMessage, onError, onClose, reconnect = true, reconnectInterval = 3000, reconnectAttempts = 5, autoConnect = true } = options
+type UseChatWebhookOptions = {
+  onFinalReconnectAttempt?: () => unknown
+  onOpen?: (event: Event) => unknown
+  onMessage?: (event: MessageEvent) => unknown
+  onError?: (event: Event) => unknown
+  onClose?: (event: CloseEvent) => unknown
+  reconnect?: boolean
+  reconnectInterval?: number
+  reconnectAttempts?: number
+  autoConnect?: boolean
+}
 
-  const ws = useRef(null)
+type UseChatWebhookReturn = {
+  isConnected: boolean
+  connect: () => void
+  disconnect: () => void
+  sendMessage: (message: string | object) => void
+}
+
+export function useChatWebhook(url: string, options: UseChatWebhookOptions = {}): UseChatWebhookReturn {
+  const { onFinalReconnectAttempt, onOpen, onMessage, onError, onClose, reconnect = true, reconnectInterval = 3000, reconnectAttempts = 5, autoConnect = true } = options
+  const ws = useRef<null | WebSocket>(null)
   const reconnectCount = useRef(1)
-  const reconnectTimeout = useRef(null)
-  const socketQueue = useRef([])
+  const reconnectTimeout = useRef<null | NodeJS.Timeout>(null)
+  const socketQueue = useRef<any[]>([])
 
   const [isConnected, setIsConnected] = useState(false)
 
@@ -21,10 +39,12 @@ export const useChatWebhook = (url, options = {}) => {
       ws.current = new WebSocket(url)
 
       ws.current.onopen = event => {
+        if (!ws.current) return
+
         setIsConnected(true)
         if (socketQueue.current.length) {
           socketQueue.current.forEach(message => {
-            ws.current.send(typeof message === "string" ? message : JSON.stringify(message))
+            ;(ws.current as WebSocket).send(typeof message === "string" ? message : JSON.stringify(message))
           })
           socketQueue.current = []
         }
@@ -69,7 +89,7 @@ export const useChatWebhook = (url, options = {}) => {
     }
   }, [])
 
-  const sendMessage = useCallback(message => {
+  const sendMessage = useCallback((message: any) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(typeof message === "string" ? message : JSON.stringify(message))
       return true

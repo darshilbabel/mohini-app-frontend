@@ -7,7 +7,7 @@ import ChatWindow from './components/ChatWindow';
 import { useAICreationSessionStore } from 'store';
 import { useChatWebhook } from 'hooks/useChatWebhook';
 import { buildWebSocketUrl } from 'utils/helpers';
-import { sessionFlowName } from '../../../../ShikshalokamVoiceChat/enum';
+import { sessionFlowName } from '../../../../../constants/session';
 import { bot_routes, FLOW_TYPES } from '../../../../../configure';
 import { getNewSessionID } from '../../../../../api/endpoints/chat_flow';
 import { compareFlowTypesEquality } from '../../../utils/common_flow';

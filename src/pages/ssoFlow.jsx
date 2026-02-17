@@ -1,34 +1,26 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect } from "react"
-import { getSessionDetailsApi } from "../api/endpoints/chat"
-import { readElevateProfileApi } from "../api/endpoints/user"
-import { updateReflectionStatusApi } from "../api/endpoints/project"
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
-import ROUTES from "../url"
-import { BiLoader } from "react-icons/bi"
 import "../components/custom-style.css"
 import "../index.css"
+import { BiLoader } from "react-icons/bi"
 import { clearFromStorage } from "../services/storage_service"
+import { getSessionDetailsApi } from "../api/endpoints/chat"
+import { LANGUAGE_ENUMS } from "./ShikshalokamVoiceChat/enum"
+import { readElevateProfileApi } from "../api/endpoints/user"
+import { sessionFlowName } from "../constants/session"
 import { setLanguage } from "../i18n"
-import { LANGUAGE_ENUMS, sessionFlowName } from "./ShikshalokamVoiceChat/enum"
-import { useChatDataLocalStore } from "store"
-import { useSiteDataLocalStore } from "store"
-import { useUserDataLocalStore } from "store"
+import { updateReflectionStatusApi } from "../api/endpoints/project"
 import { URL_PARAMS } from "constants/urls"
+import { useChatDataLocalStore, useSiteDataLocalStore, useUserDataLocalStore } from "store"
+import { useEffect } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import ROUTES from "../url"
 
 function SsoFlow() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
 
-  const { sessionId } = useChatDataLocalStore()
   const { setChatLanguage, setHasSelectedLanguage, setSsoRerouteURL } = useSiteDataLocalStore.getState()
   const { setFlow, setSessionId, setIsNewChatOpen, setProjectId, setTaskId } = useChatDataLocalStore.getState()
   const { setFirstName, setCompanyName, setState, setAcceptedTnC, setAccessToken, setProfileId } = useUserDataLocalStore.getState()
-
-  // useEffect(() => {
-  //   clearFromStorage();
-  // }, []);
 
   useEffect(() => {
     async function fetchProfileDetails() {

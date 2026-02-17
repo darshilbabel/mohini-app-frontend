@@ -1,32 +1,21 @@
-import { useEffect } from "react"
 import { BiTrash } from "react-icons/bi"
 import { GoPlusCircle } from "react-icons/go"
-import { useTranslation } from "react-i18next"
-import { STORE_NAME_CONSTANTS } from "store/constants"
-import { useUserDataLocalStore } from "store"
-import { useChatStorage } from "hooks/useStorage"
+import { handleMultipleUploads } from "../../../utils/story"
 import { updateStoryMediaApi } from "api/endpoints"
+import { useChatStorage } from "hooks/useStorage"
+import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { useUserDataLocalStore } from "store"
 
-const UploadImages = ({
-  storyData,
-  access_token,
-  files,
-  isLoading,
-  setIsLoading,
-  showImages = false,
-  handleMultipleUploads, // Pass this function from parent
-  fileErrorText,
-  setFileErrorText,
-  setFiles,
-}) => {
-  // const [fileErrorText, setFileErrorText] = useState('');
-  // const navigate = useNavigate()
+const UploadImages = ({ storyData, access_token, isLoading, setIsLoading, showImages = false, fileErrorText, setFileErrorText }) => {
   const { t } = useTranslation()
   const fileExceedText = t("fileExceedText")
 
+  const [files, setFiles] = useState([])
+
   const accessToken = useUserDataLocalStore(state => state.access_token)
-  const storageFlow = useChatStorage()(state => state.flow)
   const sessionId = useChatStorage()(state => state.sessionId)
+  const storageFlow = useChatStorage()(state => state.flow)
 
   async function partialMediaUpdate(updateId, include_in_story = false) {
     try {
@@ -83,8 +72,12 @@ const UploadImages = ({
               setIsLoading(true)
 
               try {
-                if (handleMultipleUploads) {
-                  await handleMultipleUploads(e, storyData)
+                const uploadedFiles = await handleMultipleUploads(e, storyData, files, sessionId)
+                if (uploadedFiles && uploadedFiles.error) {
+                  setFileErrorText(uploadedFiles.error)
+                }
+                if (uploadedFiles && uploadedFiles.files) {
+                  setFiles(uploadedFiles.files)
                 }
               } catch (err) {
                 console.error(err)

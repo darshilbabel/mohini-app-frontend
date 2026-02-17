@@ -76,12 +76,14 @@ export const readElevateProfileApi = async accessToken => {
  */
 export const getProfileUserApi = async (profileId, accessToken) => {
   try {
-    const response = await apiClient.get(`${API_ENDPOINTS.PROFILE_USER}${profileId}/`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
+    const headers = {
+      "Content-Type": "application/json",
+    }
+
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`
+    }
+    const response = await apiClient.get(`${API_ENDPOINTS.PROFILE_USER}${profileId}/`, { headers })
     return response.data
   } catch (error) {
     return error?.response?.data

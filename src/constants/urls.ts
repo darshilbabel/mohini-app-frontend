@@ -2,6 +2,8 @@ export const API_ENDPOINTS = {
   ASR: "/api/asr/",
   BOT_VERNACULAR: "/api/bot_vernacular/",
   CREATE_USER_PROFILE: "/api/create-profile/",
+  FLOW_CONNECTION_INFO: "/api/flow-connection-info/",
+  FLOW_LANGUAGES: "/api/flow-languages/",
   GENERATE_SESSION: "/api/generate-session/",
   GET_CHAT_SESSION: "/api/chatsession/",
   GET_COMPANY_BOT: "/api/companybot/",
@@ -22,6 +24,7 @@ export const API_ENDPOINTS = {
   TEXT_TO_SPEECH: "/api/text_to_speech/",
   TEXT_TRANSLITERATE: "/api/text_transliterate/",
   UPDATE_PROJECT_STATUS: "/api/shikshalokam/update-project-status/",
+  END_STORY_V2: "/api/end-story/v2/",
   // mitra chat
   PARAPHRASE_API: "api/paraphrase/",
   OBJECTIVE_API: "api/shikshalokam/generate-objective/",

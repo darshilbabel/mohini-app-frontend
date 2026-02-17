@@ -1,4 +1,3 @@
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
 import { SLICES_STORE_MAP } from "../store"
 import axiosInstance from "../utils/axios"
 import { useChatDataLocalStore, useChatDataSessionStore, useSiteDataLocalStore, useSiteDataSessionStore, useUserDataLocalStore, useUserDataSessionStore } from "../store"
@@ -65,7 +64,6 @@ export const handleS3Upload = async (file, fileName, folderStructure, storyData,
         method: "PUT",
         headers: {
           "Content-Type": file.type,
-          "x-amz-acl": "public-read",
         },
         body: file,
       })
@@ -108,6 +106,7 @@ export const handleS3Upload = async (file, fileName, folderStructure, storyData,
 
 export function clearFromStorage() {
   try {
+    console.log("clearing storage")
     useChatDataLocalStore.setState(useChatDataLocalStore.getInitialState(), true)
     useChatDataSessionStore.setState(useChatDataSessionStore.getInitialState(), true)
 

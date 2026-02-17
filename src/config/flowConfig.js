@@ -1,4 +1,4 @@
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
+import { sessionFlowName } from "../constants/session"
 import ROUTES from "../url"
 import ptmQuestions from "../services/const/questions/ptmQuestions"
 import ylcQuestions, { ylcStoryTextAudio } from "../services/const/questions/ylcQuestions"
@@ -46,6 +46,24 @@ export const FLOW_CONFIG = {
       showDownload: true,
     },
     storyTextAudio: ylcStoryTextAudio,
+  },
+  [sessionFlowName.GuestDiscussion]: {
+    flowName: sessionFlowName.GuestDiscussion,
+    storyActions: {
+      downloadReportText: "reDownloadReportText",
+    },
+  },
+  [sessionFlowName.ListeningActivity]: {
+    flowName: sessionFlowName.ListeningActivity,
+    storyActions: {
+      downloadReportText: "reDownloadReportText",
+    },
+  },
+  [sessionFlowName.LoginDiscussion]: {
+    flowName: sessionFlowName.LoginDiscussion,
+    storyActions: {
+      downloadReportText: "reDownloadReportText",
+    },
   },
 }
 

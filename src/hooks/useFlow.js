@@ -1,33 +1,27 @@
-import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
-import { STORE_NAME_CONSTANTS } from "store/constants"
+import { sessionFlowName } from "../constants/session"
+import { useChatDataLocalStore } from "../store"
+import { useChatStorage, useSiteStorage } from "hooks/useStorage"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { useParams } from "react-router-dom"
 import { useState } from "react"
-import { useChatStorage } from "hooks/useStorage"
-import { useSiteStorage, useStorage } from "hooks/useStorage"
 import ROUTES from "../url"
-import useChatDataLocalStore from "store/slices/chatData/chatDataLocal"
-import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal"
 
-export const useFlow = usecaseType => {
+export const useFlow = () => {
   const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
   const selectedFlow = useChatStorage()(state => state.flow)
+  const [searchParams] = useSearchParams()
   const { setPreviousUrl } = useSiteStorage().getState()
 
   const handleFlowSelection = async stopAllAudio => {
+    if (!selectedFlow) return
+
     setIsLoading(true)
     await stopAllAudio()
 
-    // const flow = useChatDataSessionStore.getState().getFlow();
-
-    let navigateUrl = undefined
-    let replaceUrl = undefined
+    let navigateUrl
 
     setPreviousUrl(window.location.href)
 
-    const accessToken = useSiteDataLocalStore.getState().getAccessToken()
     const flowRoutes = {
       [sessionFlowName.GuestDiscussion]: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT,
       [sessionFlowName.GuestMiStory]: ROUTES.SHIKSHALOKAM_GUEST_MI_STORY,
@@ -42,25 +36,9 @@ export const useFlow = usecaseType => {
       useChatDataLocalStore.getState().setFlow(searchParams.get("flow"))
     }
 
-    // if (accessToken) {
-    //   useChatDataLocalStore.getState().setFlow(flow)
-    //   replaceUrl = "/mohini" + route
-    // } else {
     navigateUrl = route
-    // }
-    if (!navigateUrl) return
 
-    // if (!replaceUrl && !navigateUrl) {
-    //   return
-    // }
-
-    // if (replaceUrl) {
-    //   return window.location.replace(replaceUrl)
-    // }
-    // if (navigateUrl) {
     navigate(navigateUrl)
-    // window.location.reload()
-    // }
     setIsLoading(false)
   }
 

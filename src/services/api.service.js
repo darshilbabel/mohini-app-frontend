@@ -1,5 +1,4 @@
 import { bot_routes } from "../configure"
-// import { sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum";
 import axiosInstance from "../utils/axios"
 
 const postWithoutAuth = async (body, endpoint) => {

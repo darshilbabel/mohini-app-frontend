@@ -16,10 +16,12 @@ export const loginApi = async data => {
 
 export const logoutApi = async () => {
   const accessToken = useUserDataLocalStore.getState().getAccessToken()
-  const headers = {
-    Authorization: `Bearer ${accessToken}`,
+  const headers = {}
+
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`
   }
 
-  const response = await apiClient.post(API_ENDPOINTS.LOGOUT, { headers })
+  const response = await apiClient.post(API_ENDPOINTS.LOGOUT, {}, headers)
   return response.data
 }

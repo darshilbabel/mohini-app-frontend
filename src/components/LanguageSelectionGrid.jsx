@@ -1,51 +1,71 @@
-// components/LanguageSelectionGrid.js
-import { useTranslation } from "react-i18next"
-import { languageList, sessionFlowName } from "../pages/ShikshalokamVoiceChat/enum"
-import { useLocation } from "react-router-dom"
+import { API_ENDPOINTS, URL_PARAMS } from "../constants/urls"
 import { useChatStorage, useSiteStorage } from "hooks/useStorage"
-import { STORE_NAME_CONSTANTS } from "store/constants"
-import { SESSION_USECASE_TYPE } from "constants/session"
-import ROUTES from "../url"
+import { clearFromStorage } from "../services/storage_service"
+import { getFlowLanguagesApi } from "../api/endpoints/flow"
+import { languageList, languageValueMap } from "../pages/ShikshalokamVoiceChat/enum"
+import { sessionFlowName } from "../constants/session"
+import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { useQuery } from "@tanstack/react-query"
 import { useSiteDataLocalStore } from "store"
+import { useTranslation } from "react-i18next"
+import ROUTES from "../url"
+import useUrlFlow from "../hooks/useUrlFlow"
 
-const LanguageSelectionGrid = ({
-  usecaseType,
-  // onLanguageSelect,
-  // setIsLanguageProcessing
-}) => {
+const LanguageSelectionGrid = ({ usecaseType }) => {
   const { t } = useTranslation()
-  const location = useLocation()
   const navigate = useNavigate()
 
   const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
   const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
-  const setFlow = useChatStorage()(state => state.setFlow)
+  const setStorageFlow = useChatStorage()(state => state.setFlow)
   const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
+
+  const { flow: urlFlow } = useUrlFlow()
+
+  const {
+    data: flowLanguages,
+    isError: isFlowLanguagesError,
+    error: flowLanguagesError,
+  } = useQuery({
+    queryKey: [API_ENDPOINTS.FLOW_LANGUAGES, urlFlow],
+    queryFn: () => getFlowLanguagesApi(urlFlow),
+    retry: false,
+    enabled: !!urlFlow && ![sessionFlowName.ParentPerceptionSurvey, sessionFlowName.ListeningActivity].includes(urlFlow),
+  })
+
+  useEffect(() => {
+    if (!isFlowLanguagesError) return
+
+    if (flowLanguagesError?.response?.status === 404) {
+      console.error("Flow not found or inactivate, navigating to home page")
+      clearFromStorage()
+      navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE, { replace: true })
+    }
+  }, [flowLanguagesError, isFlowLanguagesError])
 
   const handleLanguageClick = langValue => {
     setChatLanguage(langValue)
     setHasSelectedLanguage(true)
 
-    const ROUTE_MAP = {
-      [SESSION_USECASE_TYPE.MEGA_PTM]: ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE,
-      [SESSION_USECASE_TYPE.YLC]: ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE,
+    if (!urlFlow) return
+    const route_mapping = {
+      [sessionFlowName.ParentPerceptionSurvey]: ROUTES.SHIKSHALOKAM_PPPI_VOICE_CHAT,
+      [sessionFlowName.ListeningActivity]: ROUTES.SHIKSHALOKAM_GUEST_LISTENING_CHAT,
     }
 
-    const FLOW_MAP = {
-      [SESSION_USECASE_TYPE.MEGA_PTM]: sessionFlowName.megaPTM,
-      [SESSION_USECASE_TYPE.YLC]: sessionFlowName.YLC,
+    if (route_mapping[urlFlow]) {
+      setPreviousUrl(window.location.href)
+      setStorageFlow(urlFlow)
+      navigate(route_mapping[urlFlow])
+      return
     }
 
-    setPreviousUrl(window.location.href)
-    if (ROUTE_MAP[usecaseType]) {
-      setFlow(FLOW_MAP[usecaseType])
-      navigate(ROUTE_MAP[usecaseType])
-    }
+    navigate({
+      pathname: ROUTES.COMMON_CHAT,
+      search: new URLSearchParams({ [URL_PARAMS.FLOW]: urlFlow }).toString(),
+    })
   }
-
-  const searchParams = new URLSearchParams(location.search)
-  const currentFlow = searchParams.get("flow")
 
   return (
     <>
@@ -54,13 +74,20 @@ const LanguageSelectionGrid = ({
       </div>
       <p className="sm:text-xl text-md font-semibold text-center">{t("languageQuestion")}</p>
       <div className="mt-4 mb-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 md:justify-items-center lg:px-[80px] md:px-[20px] sm:px-[20px] px-[10px]">
-        {languageList
-          .filter(lang => !lang.excludeFor.includes(currentFlow) && !lang.excludeFor.includes(usecaseType))
-          .map(lang => (
-            <div key={lang.value} className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center" onClick={() => handleLanguageClick(lang.value)}>
-              <button className="w-full">{lang.label}</button>
+        {flowLanguages &&
+          flowLanguages.languages.map(lang => (
+            <div key={lang} className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center" onClick={() => handleLanguageClick(lang)}>
+              <button className="w-full">{languageValueMap[lang]}</button>
             </div>
           ))}
+        {!flowLanguages &&
+          languageList
+            .filter(lang => !lang.excludeFor.includes(urlFlow || usecaseType))
+            .map(lang => (
+              <div key={lang.value} className="div14-lang w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center" onClick={() => handleLanguageClick(lang.value)}>
+                <button className="w-full">{lang.label}</button>
+              </div>
+            ))}
       </div>
     </>
   )

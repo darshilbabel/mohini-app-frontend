@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 /* utils and api services */
@@ -19,7 +19,7 @@ import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 /* styles */
 import "../stylesheet/chatStyle.css";
 import { useAICreationSessionStore } from "store";
-import { sessionFlowName } from "../../../../ShikshalokamVoiceChat/enum";
+import { sessionFlowName } from "../../../../../constants/session";
 import { useSearchParams } from "react-router-dom";
 import ChatWindow from "./components/ChatWindow";
 import ChatMessage from "./components/chat-message/ChatMessage";
