@@ -1460,6 +1460,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
   }, [hasStartedRecording, stopRecording])
+
+  useEffect(() => {
+    return () => {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(track => track.stop())
+        mediaStreamRef.current = null
+      }
+    }
+  }, [])
   /**
    * Dynamically adjust textarea height based on content
    * Provides better UX by expanding textarea as user types
@@ -1498,13 +1507,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     return () => {
       viewport.removeEventListener("resize", handleKeyboard)
       viewport.removeEventListener("scroll", handleKeyboard)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (inputWrapperRef.current) {
-      inputWrapperRef.current.style.transition = "transform 0.25s ease"
-      inputWrapperRef.current.style.willChange = "transform"
     }
   }, [])
 
