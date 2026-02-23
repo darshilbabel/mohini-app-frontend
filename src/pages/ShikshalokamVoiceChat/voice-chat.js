@@ -1447,8 +1447,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
-  }, [hasStartedRecording, mediaRecorder])
-
+  }, [hasStartedRecording, stopRecording])
   /**
    * Dynamically adjust textarea height based on content
    * Provides better UX by expanding textarea as user types
@@ -1472,8 +1471,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         window.innerHeight - viewport.height - viewport.offsetTop
 
       if (keyboardHeight > 100) {
+        inputWrapperRef.current.style.willChange = "transform"
         inputWrapperRef.current.style.transform =
           `translateY(-${keyboardHeight}px)`
+        inputWrapperRef.current.style.willChange = "auto"
       } else {
         inputWrapperRef.current.style.transform = `translateY(0px)`
       }
@@ -2691,7 +2692,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
   }
 
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop()
     }
@@ -2702,7 +2703,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
 
     setHasStartedRecording(false)
-  }
+  }, [mediaRecorder])
 
   function downloadPdf() {
     let current_company = companyName ? companyName : null
