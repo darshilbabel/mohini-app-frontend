@@ -1433,6 +1433,18 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }, [hasStartedRecording])
 
 
+  const stopRecording = useCallback(() => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop()
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop())
+      mediaStreamRef.current = null
+    }
+    setHasStartedRecording(false)
+  }, [mediaRecorder])
+
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
@@ -1474,9 +1486,9 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         inputWrapperRef.current.style.willChange = "transform"
         inputWrapperRef.current.style.transform =
           `translateY(-${keyboardHeight}px)`
-        inputWrapperRef.current.style.willChange = "auto"
       } else {
         inputWrapperRef.current.style.transform = `translateY(0px)`
+        inputWrapperRef.current.style.willChange = "auto"
       }
     }
 
@@ -2692,18 +2704,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
   }
 
-  const stopRecording = useCallback(() => {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.stop()
-    }
 
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop())
-      mediaStreamRef.current = null
-    }
-
-    setHasStartedRecording(false)
-  }, [mediaRecorder])
 
   function downloadPdf() {
     let current_company = companyName ? companyName : null
