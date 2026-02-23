@@ -116,12 +116,14 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [visibleItemCount, setVisibleItemCount] = useState(10)
 
   // ========== useRef Hooks ==========
+  const inputWrapperRef = useRef(null)
   const textAreaRef = useRef(null)
   const lastBotMessageIndex = useRef(-1)
   const isInitialLoadRef = useRef(true)
   const editorContainerRef = useRef(null)
   const endPageToScrollRef = useRef(null)
   const isIntroPlayed = useRef(false)
+  const mediaStreamRef = useRef(null)
 
   const companyBotSignalRef = useRef(new AbortController())
   const companyChatSignalRef = useRef(new AbortController())
@@ -1430,6 +1432,23 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     return () => clearInterval(intervalId)
   }, [hasStartedRecording])
 
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        if (hasStartedRecording) {
+          stopRecording()
+        }
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [hasStartedRecording, mediaRecorder])
+
   /**
    * Dynamically adjust textarea height based on content
    * Provides better UX by expanding textarea as user types
@@ -1440,6 +1459,41 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`
     }
   }, [textMessage])
+
+  useEffect(() => {
+    const viewport = window.visualViewport
+
+    if (!viewport) return
+
+    const handleKeyboard = () => {
+      if (!inputWrapperRef.current) return
+
+      const keyboardHeight =
+        window.innerHeight - viewport.height - viewport.offsetTop
+
+      if (keyboardHeight > 100) {
+        inputWrapperRef.current.style.transform =
+          `translateY(-${keyboardHeight}px)`
+      } else {
+        inputWrapperRef.current.style.transform = `translateY(0px)`
+      }
+    }
+
+    viewport.addEventListener("resize", handleKeyboard)
+    viewport.addEventListener("scroll", handleKeyboard)
+
+    return () => {
+      viewport.removeEventListener("resize", handleKeyboard)
+      viewport.removeEventListener("scroll", handleKeyboard)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (inputWrapperRef.current) {
+      inputWrapperRef.current.style.transition = "transform 0.25s ease"
+      inputWrapperRef.current.style.willChange = "transform"
+    }
+  }, [])
 
   // ========================================================================
   // SECTION: Chat History & Messages (Execution Order: 8 - During Conversation)
@@ -2562,6 +2616,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then(stream => {
+          mediaStreamRef.current = stream
           const options = {
             mimeType: "audio/webm;codecs=opus",
             audioBitsPerSecond: 16000,
@@ -2637,10 +2692,16 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }
 
   const stopRecording = () => {
-    if (mediaRecorder) {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop()
-      setHasStartedRecording(false)
     }
+
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop())
+      mediaStreamRef.current = null
+    }
+
+    setHasStartedRecording(false)
   }
 
   function downloadPdf() {
@@ -3156,6 +3217,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
         {(!showFileInput || showFileInput === null) && !isLoading && !isEndStoryLoading && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
           <form
+            ref={inputWrapperRef}
             className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
             onSubmit={event => {
               if (!hasStartedListening && !isFetchingData) {
