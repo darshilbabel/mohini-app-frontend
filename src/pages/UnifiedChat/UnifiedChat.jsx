@@ -6,7 +6,7 @@ import { setLanguage } from "../../i18n"
 import { useChatStorage, useUserStorage } from "hooks/useStorage"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { useSiteDataLocalStore } from "store"
+import { useSiteDataSessionStore } from "store"
 import UnifiedVoiceBasedChat from "./UnifiedVoiceBasedChat"
 
 function UnifiedChat({ type }) {
@@ -16,7 +16,7 @@ function UnifiedChat({ type }) {
 
   const { setDeviceId, setProfileId, setHasAcceptedTnc } = useUserStorage().getState()
   const { setSessionId, setFlow, setIsNewChatOpen } = useChatStorage().getState()
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
   const deviceId = useUserStorage()(state => state.device_id)
   const storageFlow = useChatStorage()(state => state.flow)
   const sessionId = useChatStorage()(state => state.sessionId)

@@ -1,6 +1,6 @@
 import React from "react"
 import { useTranslation } from "react-i18next"
-import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal"
+import useSiteDataSessionStore from "store/slices/siteData/siteDataSession"
 
 function FormData({
   selectOptions,

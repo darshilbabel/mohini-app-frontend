@@ -9,7 +9,7 @@ import { useEffect, useMemo } from "react"
 import { useFlow } from "../../hooks/useFlow"
 import { useLanguage } from "../../hooks/useLanguage"
 import { useSearchParams, useNavigate } from "react-router-dom"
-import { useSiteDataLocalStore } from "store"
+import { useSiteDataSessionStore } from "store"
 import { useSiteStorage } from "hooks/useStorage"
 import FlowSelection from "../../components/FlowSelection"
 import Header from "../../components/Header"
@@ -22,9 +22,9 @@ function CommonHomePage({ usecaseType }) {
   const { audioRef, stopAudioTriggered, setStopAudioTriggered, stopAllAudio } = useAudio()
   const { isLoading, setIsLoading, handleFlowSelection } = useFlow()
   const { languageButtonSelect, handleLanguageChange } = useLanguage()
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
-  const hasSelectedLanguage = useSiteDataLocalStore(state => state.hasSelectedLanguage)
-  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
+  const hasSelectedLanguage = useSiteDataSessionStore(state => state.hasSelectedLanguage)
+  const setChatLanguage = useSiteDataSessionStore(state => state.setChatLanguage)
   const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
 
   const ptm_case = sessionFlowName.megaPTM === usecaseType

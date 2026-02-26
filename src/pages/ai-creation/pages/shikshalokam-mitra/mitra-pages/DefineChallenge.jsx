@@ -22,7 +22,7 @@ import { FIRST_BOT_MESSAGE } from "../../../constants/mitra-chat";
 
 import { bot_routes } from "configure";
 import { useAICreationSessionStore } from "store";
-import { useSiteDataLocalStore } from "store";
+import { useSiteDataSessionStore } from "store";
 import { API_ENDPOINTS } from "constants/urls";
 import { apiClient } from "api/client";
 
@@ -86,7 +86,7 @@ const DefineChallenge = ({
   const [shouldMoveForward, setShouldMoveForward] = useState("no");
 
   const [languageToUse, setLanguageToUse] = useState(
-    useSiteDataLocalStore().getChatLanguage() || "en"
+    useSiteDataSessionStore().getChatLanguage() || "en"
   );
   const textInputRef = useRef(null);
 

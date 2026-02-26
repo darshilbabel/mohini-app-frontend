@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom"
 import { setLanguage } from "i18n"
 import { useSiteStorage } from "hooks/useStorage"
 import { STORE_NAME_CONSTANTS } from "store/constants"
-import { useSiteDataLocalStore } from "store"
+import { useSiteDataSessionStore } from "store"
 import { useSearchParams } from "react-router-dom"
 
 // Get default language based on usecase type
@@ -12,9 +12,9 @@ export const useLanguage = () => {
   // const { language: urlLanguage } = useParams()
   const [searchParams] = useSearchParams()
 
-  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
-  const hasSelectedLanguage = useSiteDataLocalStore(state => state.hasSelectedLanguage)
-  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
+  const setChatLanguage = useSiteDataSessionStore(state => state.setChatLanguage)
+  const hasSelectedLanguage = useSiteDataSessionStore(state => state.hasSelectedLanguage)
+  const setHasSelectedLanguage = useSiteDataSessionStore(state => state.setHasSelectedLanguage)
 
   // TODO: Can be deprecated
   /**
