@@ -11,7 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useChatDataSessionStore } from "../../../../../store"
 import { useChatWebhook } from "../../../../../hooks/useChatWebhook"
 import { useNavigate } from "react-router-dom"
-import { useSiteDataLocalStore, useAICreationSessionStore } from "../../../../../store"
+import { useSiteDataSessionStore, useAICreationSessionStore } from "../../../../../store"
 import ChatBox from "./components/ChatBox"
 import ChatWindow from "./components/ChatWindow"
 import env from "../../../../../utils/env"
@@ -32,10 +32,10 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
 
   const chatHistory = useAICreationSessionStore(state => state.chatHistory)
   const firstName = useAICreationSessionStore(state => state.firstName)
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
   const profileId = useAICreationSessionStore(state => state.profileId)
   const session = useAICreationSessionStore(state => state.session)
-  const { setChatLanguage } = useSiteDataLocalStore.getState()
+  const { setChatLanguage } = useSiteDataSessionStore.getState()
   const { setSystemError: setSystemErrorStore, setProfileId, setFirstName, setCompany: setCompanyStore, setSession: setSessionStore, setChatHistory, setIsChatVisible, setIntroMessage: setIntroMessageStore, setBotName, setUserProblemStatement: setUserProblemStatementStore, getChatHistory, getPreferredLanguage } = useAICreationSessionStore.getState()
   const { getStateMachineLength, setStateMachineLength, setStrandStep, getStrandStep } = useChatDataSessionStore.getState()
 

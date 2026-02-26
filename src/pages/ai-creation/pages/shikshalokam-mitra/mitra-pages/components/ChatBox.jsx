@@ -8,7 +8,7 @@ import { handleS3Upload } from "../../../../../../services/storage_service";
 import { ai4BharatASRApi } from "../../../../../../api/endpoints/ai";
 import { showNotification } from "../../../../../../components/ToastMessage/TotastMessage";
 import { useAICreationSessionStore } from "../../../../../../store";
-import { useSiteDataLocalStore } from "../../../../../../store";
+import { useSiteDataSessionStore } from "../../../../../../store";
 
 const formatTime = (secs) => {
   const minutes = Math.floor(secs / 60);
@@ -57,7 +57,7 @@ function ChatBox({
   const [isFetchingData, setIsFetchingData] = useState(false);
   
   const sessionRoute = "/guided_guest";
-  const languageToUse = useSiteDataLocalStore().getChatLanguage() || "en";
+  const languageToUse = useSiteDataSessionStore().getChatLanguage() || "en";
 
   const {
     formStyles = "",

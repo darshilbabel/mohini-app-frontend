@@ -8,7 +8,7 @@ import { useChatStorage, useUserStorage } from "../../hooks/useStorage"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { useSiteDataLocalStore } from "store"
+import { useSiteDataSessionStore } from "store"
 import DynamicVoiceChat from "./dynamic-voice-chat"
 import ROUTES from "../../url"
 import useSmartChatStorage from "../../hooks/useSmartChatStorage"
@@ -22,7 +22,7 @@ function ChatContainer() {
   const [isLoading, setIsLoading] = useState(false)
   const { setFirstName } = useUserStorage().getState()
 
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
   const companyName = useUserStorage()(state => state.companyName)
   const deviceId = useUserStorage()(state => state.device_id)
   const ipCity = useUserStorage()(state => state.ipCity)

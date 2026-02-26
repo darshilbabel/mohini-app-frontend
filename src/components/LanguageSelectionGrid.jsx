@@ -7,7 +7,7 @@ import { sessionFlowName } from "../constants/session"
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { useSiteDataLocalStore } from "store"
+import { useSiteDataSessionStore } from "store"
 import { useTranslation } from "react-i18next"
 import ROUTES from "../url"
 import useUrlFlow from "../hooks/useUrlFlow"
@@ -16,8 +16,8 @@ const LanguageSelectionGrid = ({ usecaseType }) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
-  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
-  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
+  const setChatLanguage = useSiteDataSessionStore(state => state.setChatLanguage)
+  const setHasSelectedLanguage = useSiteDataSessionStore(state => state.setHasSelectedLanguage)
   const setStorageFlow = useChatStorage()(state => state.setFlow)
   const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
 

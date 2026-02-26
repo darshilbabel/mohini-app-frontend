@@ -5,7 +5,7 @@ import { handleS3Upload } from "../../../../services/storage_service";
 import { ai4BharatASRApi } from "../../../../api/endpoints/ai";
 import { showNotification } from "../../../../components/ToastMessage/TotastMessage";
 import { useAICreationSessionStore } from "../../../../store";
-import { useSiteDataLocalStore } from "../../../../store";
+import { useSiteDataSessionStore } from "../../../../store";
 import { useTranslation } from "react-i18next";
 
 /* ---------- helpers (copied AS-IS) ---------- */
@@ -55,7 +55,7 @@ function TextareaWithVoice({
   const [isFetchingData, setIsFetchingData] = useState(false);
 
   const sessionRoute = "/guided_guest";
-  const languageToUse = useSiteDataLocalStore().getChatLanguage() || "en";
+  const languageToUse = useSiteDataSessionStore().getChatLanguage() || "en";
 
   /* ---------- timer ---------- */
 
