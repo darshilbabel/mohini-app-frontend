@@ -54,7 +54,7 @@ export const shouldShowLanguageButton = languageButtonSelect => {
   return languageButtonSelect && ![null, ""].includes(languageButtonSelect)
 }
 
-export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wssProtocol = 'wss://' }) {
+export function buildWebSocketUrl({ searchParams, storageFlow, selectedType, wssProtocol = 'ws://' }) {
   if (searchParams.get("code")) {
     // NOTE: revert this code after testing
     // return `${wssProtocol}${window.location.host}/ws/chat/company/`;

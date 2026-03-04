@@ -380,12 +380,14 @@
 }
 
 .form-1 {
+    
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.25s ease;
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
+    z-index: 50;
+    background-color: #ffffff;
 }
 
 .input-1 {
@@ -573,11 +575,13 @@
 .div33 {
     padding-top: 7rem;
     padding-bottom: 9rem;
+    min-height: 100dvh;
 }
 
 .div33-a {
     padding-top: 6rem;
     padding-bottom: 9rem;
+    min-height: 100dvh;
 }
 
 
