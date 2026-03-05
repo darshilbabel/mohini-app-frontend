@@ -48,11 +48,11 @@ export const FLOW_TYPES = {
 
 export const bot_websocket = {
   normal: "/ws/shikshalokam_new/",
-  guest_normal: "/ws/guided_guest/",
+  guest_normal: "/ws/common/",
   reflection: "/ws/reflection/",
-  oneshot: "/ws/shikshalokam_one_shot/",
-  guest_oneshot: "/ws/oneshot_guest/",
-  shikshalokam_chaupal: "/ws/shikshalokam_chaupal/",
+  oneshot: "/ws/common/",
+  guest_oneshot: "/ws/common/",
+  shikshalokam_chaupal: "/ws/common/",
   listening_activity: "/ws/common/",
   parent_perception_survey: "/ws/common/",
   creation: "/ws/common/",
