@@ -1480,36 +1480,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     }
   }, [textMessage])
 
-  useEffect(() => {
-    const viewport = window.visualViewport
-
-    if (!viewport) return
-
-    const handleKeyboard = () => {
-      if (!inputWrapperRef.current) return
-
-      const keyboardHeight =
-        window.innerHeight - viewport.height - viewport.offsetTop
-
-      if (keyboardHeight > 100) {
-        inputWrapperRef.current.style.willChange = "transform"
-        inputWrapperRef.current.style.transform =
-          `translateY(-${keyboardHeight}px)`
-      } else {
-        inputWrapperRef.current.style.transform = `translateY(0px)`
-        inputWrapperRef.current.style.willChange = "auto"
-      }
-    }
-
-    viewport.addEventListener("resize", handleKeyboard)
-    viewport.addEventListener("scroll", handleKeyboard)
-
-    return () => {
-      viewport.removeEventListener("resize", handleKeyboard)
-      viewport.removeEventListener("scroll", handleKeyboard)
-    }
-  }, [])
-
   // ========================================================================
   // SECTION: Chat History & Messages (Execution Order: 8 - During Conversation)
   // These effects manage chat messages, recordings, and scroll behavior
