@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react"
 import { HiOutlineSpeakerWave, HiOutlineSpeakerXMark } from "react-icons/hi2"
 import { handleOnSpeaking, handleOnStopSpeaking } from "../services/audio_service"
-import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal"
+import useSiteDataSessionStore from "store/slices/siteData/siteDataSession"
 import { useChatStorage } from "hooks/useStorage"
 
 const ShowPageButton = ({
@@ -22,7 +22,7 @@ const ShowPageButton = ({
   const hasForcedPlay = useRef(1)
   const prevFlow = useRef(null)
 
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
   const selectedFlow = useChatStorage()(state => state.flow)
 
   // Reset audio cache and state when language changes

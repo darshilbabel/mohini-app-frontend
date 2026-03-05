@@ -1,7 +1,7 @@
 // components/Header.js
 import { useTranslation } from "react-i18next"
 import LanguageSelector from "./LanguageSelector"
-import useSiteDataLocalStore from "store/slices/siteData/siteDataLocal"
+import useSiteDataSessionStore from "store/slices/siteData/siteDataSession"
 
 const Header = ({
   // userLanguage,
@@ -11,7 +11,7 @@ const Header = ({
 }) => {
   const { t } = useTranslation()
 
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
 
   if (isDesktop) {
     return (

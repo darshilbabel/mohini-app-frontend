@@ -27,7 +27,7 @@ import { TbReload } from "react-icons/tb"
 import { toast } from "react-toastify"
 import { useAudio } from "hooks/useAudio"
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
-import { useChatDataSessionStore, useSiteDataLocalStore } from "store"
+import { useChatDataSessionStore, useSiteDataSessionStore } from "store"
 import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import { useChatWebhook } from "../../hooks/useChatWebhook"
 import { useConfirmationPopup } from "hooks/useConfirmationPopup"
@@ -137,21 +137,21 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   const acceptedTnc = useUserStorage()(state => state.has_accepted_tnc)
   const botName = useChatStorage()(state => state.botName)
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
   const companyName = useUserStorage()(state => state.companyName)
   const firstName = useUserStorage()(state => state.firstName)
   const introMessage = useChatStorage()(state => state.introMessage)
   const isNewChatOpen = useChatStorage()(state => state.isNewChatOpen)
   const isOldChatOpen = useChatStorage()(state => state.isOldChatOpen)
-  const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
+  const languageToUse = useSiteDataSessionStore(state => state.chatLanguage)
   const preferredLanguage = useUserStorage()(state => state.preferredLanguage)
   const previousUrl = useSiteStorage()(state => state.previousUrl)
   const profileToUse = useUserStorage()(state => state.profileId)
   const projectIdStore = useChatStorage()(state => state.projectId)
   const selectedType = useChatStorage()(state => state.selectedType)
   const sessionId = useChatStorage()(state => state.sessionId)
-  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
-  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
+  const setChatLanguage = useSiteDataSessionStore(state => state.setChatLanguage)
+  const setHasSelectedLanguage = useSiteDataSessionStore(state => state.setHasSelectedLanguage)
   const setLangProgress = useChatStorage()(state => state.setLangProgress)
   const setStorageFlow = useChatStorage()(state => state.setFlow)
   const setStrandStep = useChatDataSessionStore(state => state.setStrandStep)

@@ -17,7 +17,7 @@ import { sessionFlowName } from "../../constants/session"
 import { setLanguage } from "../../i18n"
 import { showNotification } from "components/ToastMessage/TotastMessage"
 import { TbReload } from "react-icons/tb"
-import { useChatDataLocalStore, useSiteDataLocalStore } from "store"
+import { useChatDataLocalStore, useSiteDataSessionStore } from "store"
 import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -88,9 +88,9 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const profileId = useUserStorage()(state => state.profileId)
   const previousUrl = useSiteStorage()(state => state.previousUrl)
 
-  const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
-  const setLanguageToUse = useSiteDataLocalStore(state => state.setChatLanguage)
-  const setHasSelectedLanguage = useSiteDataLocalStore(state => state.setHasSelectedLanguage)
+  const languageToUse = useSiteDataSessionStore(state => state.chatLanguage)
+  const setLanguageToUse = useSiteDataSessionStore(state => state.setChatLanguage)
+  const setHasSelectedLanguage = useSiteDataSessionStore(state => state.setHasSelectedLanguage)
   const { setIsNewChatOpen, setIsOldChatOpen, setSessionId, setChatBotClickedOn } = useChatStorage().getState()
 
   const { setAcceptedTnC } = useUserStorage().getState()

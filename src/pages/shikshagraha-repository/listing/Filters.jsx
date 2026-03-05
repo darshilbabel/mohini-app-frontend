@@ -8,7 +8,7 @@ import { IoMicOutline } from "react-icons/io5"
 import { FaRegStopCircle } from "react-icons/fa"
 import { TbSend2 } from "react-icons/tb"
 /** Hooks OR Stores */
-import { useSiteDataLocalStore } from "store"
+import { useSiteDataSessionStore } from "store"
 import { useAudio } from "hooks/useAudio"
 import { useChatStorage } from "hooks/useStorage"
 import { useRepositoryStore } from "../repository-hooks/useRepositoryStore"
@@ -36,7 +36,7 @@ export default function Filters() {
   const setGlobalSearch = useRepositoryStore(state => state.setSearch)
   const setSearchInput = useRepositoryStore(state => state.setSearchInput)
 
-  const languageToUse = useSiteDataLocalStore(state => state.chatLanguage)
+  const languageToUse = useSiteDataSessionStore(state => state.chatLanguage)
   const sessionId = useChatStorage()(state => state.sessionId)
 
   const [search, setSearch] = useState("")

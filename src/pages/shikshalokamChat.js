@@ -6,7 +6,7 @@ import { setLanguage } from "../i18n"
 import { useChatStorage, useUserStorage } from "hooks/useStorage"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { useSiteDataLocalStore } from "store"
+import { useSiteDataSessionStore } from "store"
 import ROUTES from "../url"
 import ShikshalokamVoiceBasedChat from "./ShikshalokamVoiceChat/voice-chat"
 import useSmartChatStorage from "hooks/useSmartChatStorage"
@@ -18,7 +18,7 @@ function ShikshalokamChat({ type, variant }) {
   const [isLoading, setIsLoading] = useState(false)
   const { setFirstName } = useUserStorage().getState()
 
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
   const companyName = useUserStorage()(state => state.companyName)
   const deviceId = useUserStorage()(state => state.device_id)
   const ipCity = useUserStorage()(state => state.ipCity)

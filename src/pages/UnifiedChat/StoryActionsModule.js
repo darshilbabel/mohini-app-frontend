@@ -17,7 +17,7 @@ import axiosInstance from "../../utils/axios"
 import { LANGUAGE_ENUMS } from "../ShikshalokamVoiceChat/enum"
 import { sessionFlowName } from "../../constants/session"
 import { getStoryBySessionAPI } from "api/endpoints"
-import { useSiteDataLocalStore } from "store"
+import { useSiteDataSessionStore } from "store"
 import { useChatStorage, useStorage } from "hooks/useStorage"
 import { useUserDataLocalStore } from "store"
 
@@ -31,7 +31,7 @@ export const PhotoUploadSection = ({ storyData, files, setFiles, isLoading, setI
   const [isImageUploading, setIsImageUploading] = useState(false)
   const sessionId = useChatStorage()(state => state.sessionId)
   const storageFlow = useChatStorage()(state => state.flow)
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
   const accessToken = useUserDataLocalStore(state => state.access_token)
 
   const fileExceedText = t("fileExceedText")
@@ -684,7 +684,7 @@ export const StoryActionsContainer = ({
   showEdit = true, // Add this
   t,
 }) => {
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
 
   return (
     <div className="div19">

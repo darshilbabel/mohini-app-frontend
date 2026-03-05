@@ -2,7 +2,7 @@
 import { setLanguage } from "i18n"
 import { languageList } from "../pages/ShikshalokamVoiceChat/enum"
 import FormData from "./Form/FormData"
-import { useSiteDataLocalStore } from "store"
+import { useSiteDataSessionStore } from "store"
 
 const LanguageSelector = ({
   // userLanguage,
@@ -10,8 +10,8 @@ const LanguageSelector = ({
   className = "",
   isVisible = true,
 }) => {
-  const chatLanguage = useSiteDataLocalStore(state => state.chatLanguage)
-  const setChatLanguage = useSiteDataLocalStore(state => state.setChatLanguage)
+  const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
+  const setChatLanguage = useSiteDataSessionStore(state => state.setChatLanguage)
 
   function handleChangeLanguage(lang) {
     setChatLanguage(lang)
