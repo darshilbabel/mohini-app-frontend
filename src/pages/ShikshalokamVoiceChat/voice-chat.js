@@ -2597,7 +2597,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       handleOnStopSpeaking()
-      setTextMessage("")
+      // Don't clear textMessage anymore — preserve previous speech text
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then(stream => {
@@ -2658,7 +2658,13 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                   },
                 })
               } else {
-                setTextMessage(transcriptResult)
+                // Append with a space if there's already text in the textarea
+                setTextMessage(prev => {
+                  if (prev && prev.trim().length > 0) {
+                    return prev.trimEnd() + " " + transcriptResult
+                  }
+                  return transcriptResult
+                })
               }
               setIsFetchingData(false)
             } else {
@@ -2878,22 +2884,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         </div>
       )}
       {storyData && isModalOpen && (isSpecialFlow && accessToken ? defaultEditorClick(storyData?.title, firstName, storyData?.location) : <ReportEditor onClose={closeModal} onSave={onEditorSave} disabled={isLoading || isSaving} />)}
-      <div className={`${accessToken ? "div72" : isOpen ? "div71" : ""}`}>
-        {shouldFetchChatSession && (
-          <>
-            <button
-              onClick={e => {
-                if (accessToken) {
-                  clearFromStorage()
-                  navigate(-1)
-                }
-              }}
-              className="button-13"
-            >
-              <div>{t("doLater")}</div>
-            </button>
-          </>
-        )}
+      <div className={`${accessToken ? "div72" : isOpen ? "div71" : ""}`}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100vh',
+          overflow: 'hidden',
+          paddingTop: accessToken ? '3.5rem' : '3.5rem',
+        }}
+      >
         <HiddenRecorder />
         <div className={`${accessToken ? "div33-a" : "div33"} div9`}>
           {!showHomepage && (
@@ -3192,7 +3191,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         {(!showFileInput || showFileInput === null) && !isLoading && !isEndStoryLoading && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
           <form
             ref={inputWrapperRef}
-            className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
+            className="div39 chat-input-row"
             onSubmit={event => {
               if (!hasStartedListening && !isFetchingData) {
                 handleSendMessage(event)
@@ -3200,6 +3199,17 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             }}
             autoComplete="off"
           >
+            {/* Mic button on the left */}
+            <button
+              type="button"
+              onClick={hasStartedRecording ? stopRecording : startRecording}
+              disabled={isFetchingData}
+              className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}
+            >
+              {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
+            </button>
+
+            {/* Text area in the middle */}
             <div className="textarea-wrapper relative">
               <textarea
                 id="textBoxID"
@@ -3242,7 +3252,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                       setTimeout(() => {
                         e.target.value = ""
                       }, 0)
-                    } else {
                     }
                   }
                 }}
@@ -3254,19 +3263,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                 </div>
               )}
             </div>
-            {isTyping && !hasStartedListening && !isFetchingData ? (
-              <div className="button-container">
-                <button type="submit" disabled={hasStartedRecording || isFetchingData} className="button-6 sm:ml-[1.3rem] ml-[0.8rem]">
-                  <MdSend />
-                </button>
-              </div>
-            ) : (
-              <div className={`audio-recorder ${isFetchingData ? "button-container" : ""}`}>
-                <button type="button" onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData} className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${hasStartedRecording ? "button-8" : "button-9"}`}>
-                  {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
-                </button>
-              </div>
-            )}
+
+            {/* Send button on the right - always visible, disabled when no text */}
+            <button
+              type="submit"
+              disabled={!textMessage.trim() || hasStartedRecording || isFetchingData}
+              className="send-btn"
+            >
+              <MdSend />
+            </button>
           </form>
         )}
       </div>
