@@ -68,7 +68,7 @@ const cookies = new Cookies()
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
   const [appendix, setAppendix] = useState([])
-  const [asrAudio, setAsrAudio] = useState(null)
+  const [asrAudio, setAsrAudio] = useState([])
   const [audioCache, setAudioCache] = useState({})
   const [botNameToDisplay, setBotNameToDisplay] = useState("Bot")
   const [chatTitle, setChatTitle] = useState([])
@@ -695,10 +695,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     sendSocketMessage({
       text: textMessage,
       context: "",
-      asr_audio: asrAudio,
+      asr_audio: asrAudio && asrAudio.length > 0 ? asrAudio.join(',') : null
     })
+    setAsrAudio([])
 
-    setAsrAudio(null)
     handleScrollToView()
     setTextMessage("")
   }
@@ -2644,7 +2644,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
               if (!s3Url || s3Url === "") {
                 transcriptResult = t("asrError")
               }
-              setAsrAudio(s3Url)
+              // setAsrAudio(s3Url)
+              setAsrAudio(prev => [...prev, s3Url]) 
               let storedRoute = getSessionRoute()
               transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
               if (!transcriptResult || transcriptResult === "") {
@@ -3191,7 +3192,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         {(!showFileInput || showFileInput === null) && !isLoading && !isEndStoryLoading && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
           <form
             ref={inputWrapperRef}
-            className="div39 chat-input-row"
+            className="form-1 chat-input-row"
             onSubmit={event => {
               if (!hasStartedListening && !isFetchingData) {
                 handleSendMessage(event)
