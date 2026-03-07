@@ -2594,10 +2594,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     return rms < silenceThreshold
   }
 
+  const [isStartingRecording, setIsStartingRecording] = useState(false)
   const startRecording = () => {
+    if (isStartingRecording || hasStartedRecording) return
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       handleOnStopSpeaking()
-      // Don't clear textMessage anymore — preserve previous speech text
+      setIsStartingRecording(true)
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then(stream => {
@@ -2613,6 +2615,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
           recorder.start()
           setHasStartedRecording(true)
+          setIsStartingRecording(false)
 
           recorder.ondataavailable = event => {
             localAudioChunks.push(event.data)
@@ -2644,7 +2647,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
               if (!s3Url || s3Url === "") {
                 transcriptResult = t("asrError")
               }
-              // setAsrAudio(s3Url)
               setAsrAudio(prev => [...prev, s3Url]) 
               let storedRoute = getSessionRoute()
               transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
@@ -2659,7 +2661,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                   },
                 })
               } else {
-                // Append with a space if there's already text in the textarea
                 setTextMessage(prev => {
                   if (prev && prev.trim().length > 0) {
                     return prev.trimEnd() + " " + transcriptResult
@@ -2677,6 +2678,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         .catch(err => {
           console.error("Error accessing microphone:", err)
           setIsFetchingData(false)
+          setIsStartingRecording(false)
         })
     } else {
       console.warn("getUserMedia not supported on your browser!")
@@ -3204,7 +3206,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             <button
               type="button"
               onClick={hasStartedRecording ? stopRecording : startRecording}
-              disabled={isFetchingData}
+              disabled={isFetchingData || isStartingRecording}
               className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}
             >
               {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
@@ -3265,7 +3267,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
               )}
             </div>
 
-            {/* Send button on the right - always visible, disabled when no text */}
             <button
               type="submit"
               disabled={!textMessage.trim() || hasStartedRecording || isFetchingData}
