@@ -3203,7 +3203,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             ref={inputWrapperRef}
             className="form-1 chat-input-row"
             onSubmit={event => {
-              if (!hasStartedListening && !isFetchingData) {
+              event.preventDefault()
+              if (!hasStartedListening && !isFetchingData && !isStartingRecording) {
                 handleSendMessage(event)
               }
             }}
@@ -3212,6 +3213,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             {/* Mic button on the left */}
             <button
               type="button"
+              aria-label={hasStartedRecording ? t("stopRecording") : t("startRecording")}
+              aria-pressed={hasStartedRecording}
               onClick={hasStartedRecording ? stopRecording : startRecording}
               disabled={isFetchingData || isStartingRecording}
               className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}
@@ -3230,7 +3233,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                 name="message-box"
                 value={textMessage}
                 autoFocus={false}
-                disabled={hasStartedRecording || isFetchingData}
+                disabled={hasStartedRecording || isFetchingData || isStartingRecording}
                 ref={textAreaRef}
                 onInput={e => {
                   e.target.style.height = "auto"
@@ -3276,7 +3279,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
             <button
               type="submit"
-              disabled={!textMessage.trim() || hasStartedRecording || isFetchingData}
+              aria-label={t("sendMessage")}
+              disabled={!textMessage.trim() || hasStartedRecording || isFetchingData || isStartingRecording}
               className="send-btn"
             >
               <MdSend />
