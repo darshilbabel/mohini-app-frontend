@@ -2887,15 +2887,22 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         </div>
       )}
       {storyData && isModalOpen && (isSpecialFlow && accessToken ? defaultEditorClick(storyData?.title, firstName, storyData?.location) : <ReportEditor onClose={closeModal} onSave={onEditorSave} disabled={isLoading || isSaving} />)}
-      <div className={`${accessToken ? "div72" : isOpen ? "div71" : ""}`}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100vh',
-          overflow: 'hidden',
-          paddingTop: accessToken ? '3.5rem' : '3.5rem',
-        }}
-      >
+      <div className={`${accessToken ? "div72" : isOpen ? "div71" : ""}`}>
+        {shouldFetchChatSession && (
+          <>
+            <button
+              onClick={e => {
+                if (accessToken) {
+                  clearFromStorage()
+                  navigate(-1)
+                }
+              }}
+              className="button-13"
+            >
+              <div>{t("doLater")}</div>
+            </button>
+          </>
+        )}
         <HiddenRecorder />
         <div className={`${accessToken ? "div33-a" : "div33"} div9`}>
           {!showHomepage && (
