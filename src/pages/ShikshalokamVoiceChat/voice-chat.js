@@ -68,7 +68,7 @@ const cookies = new Cookies()
 const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // ========== useState Hooks ==========
   const [appendix, setAppendix] = useState([])
-  const [asrAudio, setAsrAudio] = useState(null)
+  const [asrAudio, setAsrAudio] = useState([])
   const [audioCache, setAudioCache] = useState({})
   const [botNameToDisplay, setBotNameToDisplay] = useState("Bot")
   const [chatTitle, setChatTitle] = useState([])
@@ -695,10 +695,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     sendSocketMessage({
       text: textMessage,
       context: "",
-      asr_audio: asrAudio,
+      asr_audio: asrAudio && asrAudio.length > 0 ? asrAudio.join(',') : null
     })
+    setAsrAudio([])
 
-    setAsrAudio(null)
     handleScrollToView()
     setTextMessage("")
   }
@@ -2594,10 +2594,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     return rms < silenceThreshold
   }
 
+  const [isStartingRecording, setIsStartingRecording] = useState(false)
   const startRecording = () => {
+    if (isStartingRecording || hasStartedRecording) return
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       handleOnStopSpeaking()
-      setTextMessage("")
+      setIsStartingRecording(true)
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then(stream => {
@@ -2613,6 +2615,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
           recorder.start()
           setHasStartedRecording(true)
+          setIsStartingRecording(false)
 
           recorder.ondataavailable = event => {
             localAudioChunks.push(event.data)
@@ -2644,7 +2647,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
               if (!s3Url || s3Url === "") {
                 transcriptResult = t("asrError")
               }
-              setAsrAudio(s3Url)
+              setAsrAudio(prev => [...prev, s3Url]) 
               let storedRoute = getSessionRoute()
               transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
               if (!transcriptResult || transcriptResult === "") {
@@ -2658,7 +2661,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                   },
                 })
               } else {
-                setTextMessage(transcriptResult)
+                setTextMessage(prev => {
+                  if (prev && prev.trim().length > 0) {
+                    return prev.trimEnd() + " " + transcriptResult
+                  }
+                  return transcriptResult
+                })
               }
               setIsFetchingData(false)
             } else {
@@ -2670,6 +2678,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         .catch(err => {
           console.error("Error accessing microphone:", err)
           setIsFetchingData(false)
+          setIsStartingRecording(false)
         })
     } else {
       console.warn("getUserMedia not supported on your browser!")
@@ -3192,14 +3201,28 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         {(!showFileInput || showFileInput === null) && !isLoading && !isEndStoryLoading && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
           <form
             ref={inputWrapperRef}
-            className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
+            className="form-1 chat-input-row"
             onSubmit={event => {
-              if (!hasStartedListening && !isFetchingData) {
+              event.preventDefault()
+              if (!hasStartedListening && !isFetchingData && !isStartingRecording) {
                 handleSendMessage(event)
               }
             }}
             autoComplete="off"
           >
+            {/* Mic button on the left */}
+            <button
+              type="button"
+              aria-label={hasStartedRecording ? t("stopRecording") : t("startRecording")}
+              aria-pressed={hasStartedRecording}
+              onClick={hasStartedRecording ? stopRecording : startRecording}
+              disabled={isFetchingData || isStartingRecording}
+              className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}
+            >
+              {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
+            </button>
+
+            {/* Text area in the middle */}
             <div className="textarea-wrapper relative">
               <textarea
                 id="textBoxID"
@@ -3210,7 +3233,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                 name="message-box"
                 value={textMessage}
                 autoFocus={false}
-                disabled={hasStartedRecording || isFetchingData}
+                disabled={hasStartedRecording || isFetchingData || isStartingRecording}
                 ref={textAreaRef}
                 onInput={e => {
                   e.target.style.height = "auto"
@@ -3242,7 +3265,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                       setTimeout(() => {
                         e.target.value = ""
                       }, 0)
-                    } else {
                     }
                   }
                 }}
@@ -3254,19 +3276,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                 </div>
               )}
             </div>
-            {isTyping && !hasStartedListening && !isFetchingData ? (
-              <div className="button-container">
-                <button type="submit" disabled={hasStartedRecording || isFetchingData} className="button-6 sm:ml-[1.3rem] ml-[0.8rem]">
-                  <MdSend />
-                </button>
-              </div>
-            ) : (
-              <div className={`audio-recorder ${isFetchingData ? "button-container" : ""}`}>
-                <button type="button" onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData} className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${hasStartedRecording ? "button-8" : "button-9"}`}>
-                  {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
-                </button>
-              </div>
-            )}
+
+            <button
+              type="submit"
+              aria-label={t("sendMessage")}
+              disabled={!textMessage.trim() || hasStartedRecording || isFetchingData || isStartingRecording}
+              className="send-btn"
+            >
+              <MdSend />
+            </button>
           </form>
         )}
       </div>
