@@ -979,7 +979,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
   }, [botName])
 
   useEffect(() => {
-    if (!profileToUse) setCompanySlug("shikshalokamstaging")
+    if (!profileToUse) {
+      setCompanySlug("shikshalokamstaging")
+      return
+    }
 
     getProfileUserApi(profileToUse, accessToken).then(profile => setCompanySlug(profile?.company?.slug))
   }, [profileToUse])
