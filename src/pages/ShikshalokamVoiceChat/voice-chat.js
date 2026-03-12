@@ -1027,9 +1027,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   }, [botName])
 
   useEffect(() => {
-    if (!profileToUse) setCompanySlug("shikshalokamstaging")
-    const profile = getProfileUserApi(profileToUse, accessToken)
-    setCompanySlug(profile?.company?.slug)
+    if (!profileToUse) {
+      setCompanySlug("shikshalokamstaging")
+      return
+    }
+
+    getProfileUserApi(profileToUse, accessToken).then(profile => setCompanySlug(profile?.company?.slug))
   }, [profileToUse])
 
   /**
