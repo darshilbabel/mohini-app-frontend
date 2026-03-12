@@ -170,10 +170,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const ipState = useUserStorage()(state => state.ipState)
   const ipZipCode = useUserStorage()(state => state.ipZipCode)
   const ipFetched = useUserStorage()(state => state.ipFetched)
+  const showFileInput = useChatDataSessionStore(state => state.showFileInput)
 
   // chat data actions
   const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()
-  const { showFileInput, setShowFileInput } = useChatDataSessionStore.getState()
+  const { setShowFileInput } = useChatDataSessionStore.getState()
 
   // user data actions
   const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useUserStorage().getState()
