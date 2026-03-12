@@ -818,11 +818,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   )
 
   useEffect(() => {
-    console.log({ isInitialising, isLoading, isIntroLoading, isEndStoryLoading })
-  }, [isInitialising, isLoading, isIntroLoading, isEndStoryLoading])
-
-
-  useEffect(() => {
     if (!isFlowInfoError) return
 
     if (flowInfoError?.response?.status === 404) {

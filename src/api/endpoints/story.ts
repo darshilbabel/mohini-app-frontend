@@ -228,7 +228,9 @@ export const endStoryApi = async ({ token, data }: TendStoryParams) => {
     },
   }
 
-  data = { ...data, access_token: token }
+  if (token){
+    data = { ...data, access_token: token }
+  }
 
   const response = await apiClient.post(API_ENDPOINTS.END_STORY, data, config)
 
