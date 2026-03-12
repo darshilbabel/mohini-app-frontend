@@ -816,7 +816,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setIsNewChatOpen(false)
         setSessionId(currentSession)
         setChatHistory([])
-        alert("Reset Triggered")
         window.location.reload()
       } else {
         currentSession = sessionId
