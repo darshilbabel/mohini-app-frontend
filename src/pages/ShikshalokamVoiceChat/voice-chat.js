@@ -865,13 +865,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   )
 
   useEffect(() => {
-    console.log("inside useEffect of end story")
-    console.log({ 
-      isStreamingComplete, showFileInput, showHomepage: !showHomepage, endStoryMutation: !endStoryMutation.isPending, isLoading: !isLoading, isPdfDownloading: !isPdfDownloading, storyData: storyData?.id, accessToken: !([sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken)
-     })
-  }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, accessToken])
-
-  useEffect(() => {
     if (chatHistory.length > 1) {
       setShowHomepage(false)
       setIsOldChatOpen(true)
@@ -1197,7 +1190,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Loads existing conversation when user selects from history
    */
     useEffect(() => {
-      console.log({isOldChatOpen, hasFetchIntro, chatHistory, sentences})
       if (isOldChatOpen === true && !hasFetchIntro && isSpecialFlow && chatHistory?.length === 0 && sentences?.length === 0) {
         handleChatSessionButtonClick({ key: null })
       }

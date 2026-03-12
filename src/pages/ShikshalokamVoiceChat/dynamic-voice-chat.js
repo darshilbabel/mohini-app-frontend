@@ -1146,8 +1146,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Loads existing conversation when user selects from history
    */
   useEffect(() => {
-    console.log("useEffect isOldChatOpen", isOldChatOpen)
-    console.log({isOldChatOpen, hasFetchIntro, chatHistory, sentences})
     if (isOldChatOpen === true && !hasFetchIntro && chatHistory?.length === 0 && sentences?.length === 0) {
       handleChatSessionButtonClick()
     }
