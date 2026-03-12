@@ -1,5 +1,6 @@
 import "../../style.css"
 import "./shikshaChatStyle.css"
+import { useMutation } from "@tanstack/react-query"
 import { AiOutlineEye } from "react-icons/ai"
 import { BiLoader } from "react-icons/bi"
 import { bot_routes } from "../../configure"
@@ -23,7 +24,7 @@ import { sessionFlowName } from "../../constants/session"
 import { setLanguage } from "../../i18n"
 import { TbReload } from "react-icons/tb"
 import { toast } from "react-toastify"
-import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi, updateStoryMediaApi, getStoryBySessionAPI } from "api/endpoints"
+import { updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi, updateStoryMediaApi, getStoryBySessionAPI, endStoryApi } from "api/endpoints"
 import { useAudio } from "hooks/useAudio"
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useChatDataSessionStore } from "store"
@@ -83,7 +84,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const [hasStartedListening, setHasStartedListening] = useState(false)
   const [hasStartedRecording, setHasStartedRecording] = useState(false)
   const [intervalId, setIntervalId] = useState(null)
-  const [isEndStoryLoading, setIsEndStoryLoading] = useState(false)
   const [isFetchingData, setIsFetchingData] = useState(false)
   const [isFetchingOldIntro, setIsFetchingOldIntro] = useState(false)
   const [isImageUploading, setIsImageUploading] = useState(false)
@@ -173,11 +173,14 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   // chat data actions
   const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()
+  const { showFileInput, setShowFileInput } = useChatDataSessionStore.getState()
 
   // user data actions
   const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useUserStorage().getState()
   const { llmError, setLlmError } = useChatStorage().getState()
   const { setProfileId: setProfileToUse } = useUserStorage().getState()
+
+  const endStoryMutation = useMutation({ mutationFn: (data) => endStoryApi(data) })
 
   const { recordings, HiddenRecorder } = useVoiceRecord()
 
@@ -813,6 +816,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setIsNewChatOpen(false)
         setSessionId(currentSession)
         setChatHistory([])
+        alert("Reset Triggered")
         window.location.reload()
       } else {
         currentSession = sessionId
@@ -861,6 +865,13 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   )
 
   useEffect(() => {
+    console.log("inside useEffect of end story")
+    console.log({ 
+      isStreamingComplete, showFileInput, showHomepage: !showHomepage, endStoryMutation: !endStoryMutation.isPending, isLoading: !isLoading, isPdfDownloading: !isPdfDownloading, storyData: storyData?.id, accessToken: !([sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken)
+     })
+  }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, accessToken])
+
+  useEffect(() => {
     if (chatHistory.length > 1) {
       setShowHomepage(false)
       setIsOldChatOpen(true)
@@ -874,7 +885,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   // SECTION: Variable Definitions
   // ========================================================================
   // const { access_token } =  getStorageSlice(STORE_NAME_CONSTANTS.USER_DATA, 'localStorage').getState();
-  const { showFileInput, setShowFileInput } = useChatDataSessionStore.getState()
   const selectedLabel = {
     types: [
       { label: t("guidedReflection"), value: "normal" },
@@ -1054,6 +1064,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         if (isTncAccepted && isTncAccepted !== "ONGOING") {
           setIsLoading(false)
           setAcceptedTnC(true)
+          alert("Setting Intro to true")
           setShouldFetchIntro(true)
         } else {
           // setIsLoading(false)
@@ -1183,6 +1194,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Loads existing conversation when user selects from history
    */
     useEffect(() => {
+      console.log({isOldChatOpen, hasFetchIntro, chatHistory, sentences})
       if (isOldChatOpen === true && !hasFetchIntro && isSpecialFlow && chatHistory?.length === 0 && sentences?.length === 0) {
         handleChatSessionButtonClick({ key: null })
       }
@@ -1325,7 +1337,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       return
     }
     // if (sentences.filter(sent => !sent.isNarrated).length > 0) return
-    if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
+    if (!endStoryMutation.isPending  && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
     }
   }, [isStreamingComplete, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow, sentences])
@@ -1361,7 +1373,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    */
   useEffect(() => {
     const currentFlow = storageFlow
-    if (profileToUse && !accessToken && !isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
+    if (profileToUse && !accessToken && !endStoryMutation.isPending && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
       console.log("setting loading to true", "state_tracker")
       setIsLoading(true)
       const titleTime = setTimeout(() => {
@@ -1374,10 +1386,10 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         }
         clearTimeout(titleTime)
       }
-    } else if (!isEndStoryLoading && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
+    } else if (!endStoryMutation.isPending && ![sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
       setIsLoading(false)
     }
-  }, [profileToUse, accessToken, isEndStoryLoading, noStoryFound])
+  }, [profileToUse, accessToken, endStoryMutation.isPending, noStoryFound])
 
   // ========================================================================
   // SECTION: UI State Management (Execution Order: 7 - Throughout Lifecycle)
@@ -1389,7 +1401,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
    * Prevents background scrolling when modals or loaders are active
    */
   useEffect(() => {
-    if (isLoading || isEndStoryLoading || isModalOpen || acceptedTnc === "ONGOING") {
+    if (isLoading || endStoryMutation.isPending || isModalOpen || acceptedTnc === "ONGOING") {
       document.body.style.overflowY = "hidden"
     } else {
       document.body.style.overflowY = "auto"
@@ -1398,7 +1410,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     return () => {
       document.body.style.overflowY = "auto"
     }
-  }, [isLoading, isEndStoryLoading, isModalOpen])
+  }, [isLoading, endStoryMutation.isPending, isModalOpen])
 
   /**
    * Auto-dismiss file upload error messages after 5 seconds
@@ -1578,7 +1590,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     let shouldPlay = false
     if (showFileInput) {
       shouldPlay = true
-    } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !isEndStoryLoading) {
+    } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !endStoryMutation.isPending) {
       const currentFlow = storageFlow
 
       if (currentFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.GuestMiStory, sessionFlowName.ParentPerceptionSurvey].includes(currentFlow)) {
@@ -1591,11 +1603,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         } else {
           shouldPlay = true
         }
-      } else if (chatHistory && chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot" && !isIntroLoading && !isLoading && !isEndStoryLoading) {
+      } else if (chatHistory && chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot" && !isIntroLoading && !isLoading && !endStoryMutation.isPending) {
         shouldPlay = true
       }
     }
-    if (isStreamingComplete && shouldPlay && !isEndStoryLoading && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading && !isFetchingOldIntro) {
+    if (isStreamingComplete && shouldPlay && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading && !isFetchingOldIntro) {
       const speakerButtons = document.querySelectorAll(".button-11.button-3")
       const lastSpeakerButton = speakerButtons[speakerButtons.length - 1]
 
@@ -1603,7 +1615,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         lastSpeakerButton.click()
       }
     }
-  }, [isStreamingComplete, showFileInput, showHomepage, isEndStoryLoading, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroLoading, noStoryFound])
+  }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroLoading, noStoryFound])
 
   /**
    * Process TTS requests for unnarrated bot messages
@@ -1616,12 +1628,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if (acceptedTnc === "ONGOING") {
       return () => {}
     }
-    if (isNextAllowed && hasUnnarratedMessages && !isLoading && !isEndStoryLoading) {
+    if (isNextAllowed && hasUnnarratedMessages && !isLoading && !endStoryMutation.isPending) {
       handleAI4BharatTTSRequest(unnarratedMessages[0].message, unnarratedMessages[0].id, sourceLanguage)
     }
 
     return () => {}
-  }, [isNextAllowed, sentences, languageToUse, isLoading, isEndStoryLoading, acceptedTnc])
+  }, [isNextAllowed, sentences, languageToUse, isLoading, endStoryMutation.isPending, acceptedTnc])
 
   /**
    * Debug log for tracking override ID changes
@@ -1978,39 +1990,29 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     if ((isStreamingComplete && strandStep >= stateMachineLength) || hasClickedOnRegenerate) {
       try {
         setIsLoading(true)
-        setIsEndStoryLoading(true)
-
-        const end_story_api_url = `/api/end-story/`
-
         let sourceLanguage = preferredLanguage?.value || languageToUse
 
-        endStoryResponse = await axiosInstance({
-          url: end_story_api_url,
-          data: {
+        endStoryResponse = await endStoryMutation.mutateAsync({ data: {
             session: sessionId,
             profile_id: profileToUse,
             stage: "COMPLETED",
             access_token: accessToken,
             flow: storageFlow,
             language: sourceLanguage,
-          },
-          method: "POST",
-        })
+          }})
 
-        if (endStoryResponse?.data?.id) {
+        if (endStoryResponse?.id) {
           setFiles([])
           setShowFileInput(true)
           setLlmError("")
           window.location.reload()
         } else {
-          setLlmError(endStoryResponse?.data?.error_message)
-          setIsEndStoryLoading(false)
+          setLlmError(endStoryResponse?.error_message)
           setIsLoading(false)
         }
       } catch (error) {
         console.error("Error completing the story:", error)
-        setLlmError(error?.response?.data?.error_message)
-        setIsEndStoryLoading(false)
+        setLlmError(error?.response?.error_message || "Error in generating story. Please try again")
         setIsLoading(false)
       } finally {
         setNoStoryFound(false)
@@ -2866,7 +2868,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           />
         </div>
       </div>
-      {(isInitialising || isLoading || isIntroLoading || isEndStoryLoading || isFetchingOldIntro) && (
+      {(isInitialising || isLoading || isIntroLoading || endStoryMutation.isPending || isFetchingOldIntro) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />
@@ -2875,7 +2877,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                 <label className="form-label label1">{t("downloadLoader")}</label>
               </div>
             )}
-            {isEndStoryLoading && (
+            {endStoryMutation.isPending && (
               <div className="div69 text-center">
                 <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
                   {storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("feedbackLoaderHeading") : storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoaderHeading") : storageFlow && [sessionFlowName.GuestMiStory].includes(storageFlow) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}
@@ -2999,7 +3001,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
               )}
             </>
           )}
-          {isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading && !isLoading && !isPdfDownloading && storyData?.id !== "" && !([sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken) && (
+          {isStreamingComplete && showFileInput && !showHomepage && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && storyData?.id !== "" && !([sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken) && (
             <>
               {![sessionFlowName.ListeningActivity, sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) && (
                 <div className="div13">
@@ -3177,7 +3179,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
                   className="clickable-button"
                   onClick={async () => {
                     setIsLoading(true)
-                    setIsEndStoryLoading(true)
                     await callEndStory(true)
                   }}
                   disabled={isLoading || isPdfDownloading}
@@ -3198,7 +3199,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         </div>
         <Notification />
 
-        {(!showFileInput || showFileInput === null) && !isLoading && !isEndStoryLoading && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
+        {(!showFileInput || showFileInput === null) && !isLoading && !endStoryMutation.isPending && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
           <form
             ref={inputWrapperRef}
             className="form-1 chat-input-row"

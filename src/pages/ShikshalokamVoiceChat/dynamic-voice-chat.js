@@ -65,7 +65,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const { flow: storageFlow } = useUrlFlow()
 
   // ========== useState Hooks ==========
-  const [appendix, setAppendix] = useState([])
   const [asrAudio, setAsrAudio] = useState(null)
   const [audioCache, setAudioCache] = useState({})
   const [botNameToDisplay, setBotNameToDisplay] = useState("Bot")
@@ -148,7 +147,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const previousUrl = useSiteStorage()(state => state.previousUrl)
   const profileToUse = useUserStorage()(state => state.profileId)
   const projectIdStore = useChatStorage()(state => state.projectId)
-  const selectedType = useChatStorage()(state => state.selectedType)
   const sessionId = useChatStorage()(state => state.sessionId)
   const setChatLanguage = useSiteDataSessionStore(state => state.setChatLanguage)
   const setHasSelectedLanguage = useSiteDataSessionStore(state => state.setHasSelectedLanguage)
@@ -591,7 +589,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
     try {
       let storedRoute = flowInfo.bot_route
-      console.log({ storedRoute, flowInfo })
       const response = await getCompanyBotApi({
         company__slug: companySlug,
         target_language: languageToUse,
@@ -698,8 +695,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
         return
       }
 
-      console.log("handleCompanyChatCall")
-      // setIsFetchingOldIntro(true)
 
       try {
         const resp = await getCompanyChatApi(sessionId)
@@ -821,6 +816,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
     },
     [chatHistory]
   )
+
+  useEffect(() => {
+    console.log({ isInitialising, isLoading, isIntroLoading, isEndStoryLoading })
+  }, [isInitialising, isLoading, isIntroLoading, isEndStoryLoading])
+
 
   useEffect(() => {
     if (!isFlowInfoError) return
@@ -986,8 +986,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   useEffect(() => {
     if (!profileToUse) setCompanySlug("shikshalokamstaging")
 
-    const company_slug = getProfileUserApi(profileToUse, accessToken).then(profile => profile?.company?.slug)
-    setCompanySlug(company_slug)
+    getProfileUserApi(profileToUse, accessToken).then(profile => setCompanySlug(profile?.company?.slug))
   }, [profileToUse])
 
   /**
@@ -1149,6 +1148,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Loads existing conversation when user selects from history
    */
   useEffect(() => {
+    console.log("useEffect isOldChatOpen", isOldChatOpen)
+    console.log({isOldChatOpen, hasFetchIntro, chatHistory, sentences})
     if (isOldChatOpen === true && !hasFetchIntro && chatHistory?.length === 0 && sentences?.length === 0) {
       handleChatSessionButtonClick()
     }
@@ -1163,22 +1164,16 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Fetch bot information and intro message for new chat sessions
    * Initializes bot name, intro message, and calls company chat API
    */
-  /**
-   * ! The useEffect is deprecated as LoginMiStory is not being used anymore.
-   */
   useEffect(() => {
     if (!flowInfo) return
     if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && profileToUse) {
       setIsIntroLoading(true)
-      console.log("state_tracker", "fetching bot info")
       fetchBotInfo()
-        .then(() => handleCompanyChatCall(sessionId))
+        .then(() => handleCompanyChatCall())
         .finally(() => {
           setIsIntroLoading(false)
         })
     }
-
-    return () => {}
   }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage, flowInfo])
 
   /**
