@@ -2011,7 +2011,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         }
       } catch (error) {
         console.error("Error completing the story:", error)
-        setLlmError(error?.response?.error_message || "Error in generating story. Please try again")
+        setLlmError(error?.response?.data?.error_message)
         setIsLoading(false)
       } finally {
         setNoStoryFound(false)
