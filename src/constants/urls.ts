@@ -24,6 +24,7 @@ export const API_ENDPOINTS = {
   TEXT_TO_SPEECH: "/api/text_to_speech/",
   TEXT_TRANSLITERATE: "/api/text_transliterate/",
   UPDATE_PROJECT_STATUS: "/api/shikshalokam/update-project-status/",
+  END_STORY: "/api/end-story/",
   END_STORY_V2: "/api/end-story/v2/",
   // mitra chat
   PARAPHRASE_API: "api/paraphrase/",

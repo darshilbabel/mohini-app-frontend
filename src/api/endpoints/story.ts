@@ -207,3 +207,32 @@ export const endStoryV2Api = async ({ token, data }: TendStoryV2Params) => {
 
   return response.data
 }
+
+
+type TendStoryParams = {
+  token?: string
+  data: {
+    session: string
+    profile_id: number
+    stage: string
+    flow: string
+    language: string
+    access_token?: string
+  }
+}
+
+export const endStoryApi = async ({ token, data }: TendStoryParams) => {
+  const config = {
+    headers: {
+      Authorization: token ? `Bearer ${token}` : undefined,
+    },
+  }
+
+  if (token){
+    data = { ...data, access_token: token }
+  }
+
+  const response = await apiClient.post(API_ENDPOINTS.END_STORY, data, config)
+
+  return response.data
+}
