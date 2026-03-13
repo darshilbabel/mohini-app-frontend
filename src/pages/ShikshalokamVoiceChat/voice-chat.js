@@ -178,7 +178,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
   // user data actions
   const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useUserStorage().getState()
-  const { llmError, setLlmError } = useChatStorage().getState()
+  const { llmError, setLlmError, llmErrorType, setLlmErrorType } = useChatStorage().getState()        
   const { setProfileId: setProfileToUse } = useUserStorage().getState()
 
   const endStoryMutation = useMutation({ mutationFn: (data) => endStoryApi(data) })
@@ -1980,6 +1980,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
   }
 
+function handleLlmError(errorMessage, errorType) {
+  setLlmError(errorMessage)
+  setLlmErrorType(errorType || "generic_error")
+}
+
   async function callEndStory(hasClickedOnRegenerate = false) {
     let endStoryResponse
     if ((isStreamingComplete && strandStep >= stateMachineLength) || hasClickedOnRegenerate) {
@@ -2002,12 +2007,12 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           setLlmError("")
           window.location.reload()
         } else {
-          setLlmError(endStoryResponse?.error_message)
+          handleLlmError(endStoryResponse?.error_message, endStoryResponse?.error_type)
           setIsLoading(false)
         }
       } catch (error) {
         console.error("Error completing the story:", error)
-        setLlmError(error?.response?.data?.error_message)
+        handleLlmError(error?.response?.data?.error_message, error?.response?.data?.error_type)
         setIsLoading(false)
       } finally {
         setNoStoryFound(false)
@@ -2205,6 +2210,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
     setIsNewChatOpen(true)
     setShowFileInput(false)
     setLlmError("")
+    setLlmErrorType(null)
     setSessionId(null)
     setStrandStep(null)
     const session = await getSessionDetails()
@@ -3169,6 +3175,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           {llmError && llmError !== "" && (
             <>
               <p className="error-para">{llmError}</p>
+              {llmErrorType === "generic_error" && (
               <div className="div20">
                 <button
                   className="clickable-button"
@@ -3188,6 +3195,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
                 {triggerDownload && isPdfDownloading && !isLoading && downloadPdf()}
               </div>
+              )}
             </>
           )}
           <div id="last-chat-boundary" className="div38" />

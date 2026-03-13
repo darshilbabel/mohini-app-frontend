@@ -1,6 +1,7 @@
 export const INITIAL_STATE = (set, get, store) => ({
   showFileInput: null,
   llmError: "",
+  llmErrorType: null,
   chatHistory: [],
   introMessage: null,
   flow: null,
@@ -23,6 +24,8 @@ export const INITIAL_STATE = (set, get, store) => ({
   setShowFileInput: showFileInput => set({ showFileInput }),
 
   setLlmError: llmError => set({ llmError }),
+  
+  setLlmErrorType: llmErrorType => set({ llmErrorType }),
 
   setChatHistory: chatHistory => set({ chatHistory }),
 
