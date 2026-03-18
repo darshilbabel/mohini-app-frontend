@@ -78,7 +78,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const [hasStartedListening, setHasStartedListening] = useState(false)
   const [hasStartedRecording, setHasStartedRecording] = useState(false)
   const [intervalId, setIntervalId] = useState(null)
-  const [isEndStoryLoading, setIsEndStoryLoading] = useState(false)
   const [isFetchingData, setIsFetchingData] = useState(false)
   const [isImageUploading, setIsImageUploading] = useState(false)
   const [isIntroLoading, setIsIntroLoading] = useState(false)
@@ -113,6 +112,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const isIntroPlayed = useRef(false)
 
   // ========== react query hooks ==========
+  const endStoryMutation = useMutation({ mutationFn: (data) => endStoryV2Api(data) })
+
   const partialUpdateStoryByIdMutation = useMutation({ mutationFn: partialUpdateStoryById })
   const {
     data: flowInfo,
@@ -1269,7 +1270,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
     console.log({ isStreamingComplete, stateMachineLength, strandStep, noStoryFound, llmError, acceptedTnc })
 
-    if (isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
+    if (!endStoryMutation.isPending && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
     }
   }, [isStreamingComplete, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow, sentences])
@@ -1312,7 +1313,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Prevents background scrolling when modals or loaders are active
    */
   useEffect(() => {
-    if (isLoading || isEndStoryLoading || isModalOpen || acceptedTnc === "ONGOING") {
+    if (isLoading || endStoryMutation.isPending || isModalOpen || acceptedTnc === "ONGOING") {
       document.body.style.overflowY = "hidden"
     } else {
       document.body.style.overflowY = "auto"
@@ -1321,7 +1322,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     return () => {
       document.body.style.overflowY = "auto"
     }
-  }, [isLoading, isEndStoryLoading, isModalOpen])
+  }, [isLoading, endStoryMutation.isPending, isModalOpen])
 
   /**
    * Auto-dismiss file upload error messages after 5 seconds
@@ -1449,7 +1450,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     let shouldPlay = false
     if (showFileInput) {
       shouldPlay = true
-    } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !isEndStoryLoading) {
+    } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !endStoryMutation.isPending) {
       const currentFlow = storageFlow
 
       if (currentFlow) {
@@ -1460,11 +1461,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
         } else {
           shouldPlay = true
         }
-      } else if (chatHistory && chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot" && !isIntroLoading && !isLoading && !isEndStoryLoading) {
+      } else if (chatHistory && chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot" && !isIntroLoading && !isLoading && !endStoryMutation.isPending) {
         shouldPlay = true
       }
     }
-    if (isStreamingComplete && shouldPlay && !isEndStoryLoading && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading) {
+    if (isStreamingComplete && shouldPlay && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading) {
       const speakerButtons = document.querySelectorAll(".button-11.button-3")
       const lastSpeakerButton = speakerButtons[speakerButtons.length - 1]
 
@@ -1472,14 +1473,13 @@ const DynamicVoiceChat = ({ type = "" }) => {
         lastSpeakerButton.click()
       }
     }
-  }, [isStreamingComplete, showFileInput, showHomepage, isEndStoryLoading, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroLoading, noStoryFound])
+  }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroLoading, noStoryFound])
 
   /**
    * Process TTS requests for unnarrated bot messages
    * Converts text to speech for messages not yet played aloud
    */
   useEffect(() => {
-    console.log("reached here <<<<<<<<<")
     let unnarratedMessages = sentences.filter(x => !x?.isNarrated)
     let hasUnnarratedMessages = !!unnarratedMessages?.length
     let sourceLanguage = languageToUse
@@ -1489,12 +1489,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
     console.log({
       hasUnnarratedMessages,
     })
-    if (isNextAllowed && hasUnnarratedMessages && !isLoading && !isEndStoryLoading && flowInfo) {
+    if (isNextAllowed && hasUnnarratedMessages && !isLoading && !endStoryMutation.isPending && flowInfo) {
       handleAI4BharatTTSRequest(unnarratedMessages[0].message, unnarratedMessages[0].id, sourceLanguage)
     }
 
     return () => {}
-  }, [isNextAllowed, sentences, languageToUse, isLoading, isEndStoryLoading, acceptedTnc, flowInfo])
+  }, [isNextAllowed, sentences, languageToUse, isLoading, endStoryMutation.isPending, acceptedTnc, flowInfo])
 
   // ========================================================================
   // SECTION: Editor Management (Execution Order: 10 - When Modal Opens)
@@ -1764,10 +1764,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
     if ((isStreamingComplete && strandStep >= stateMachineLength) || hasClickedOnRegenerate) {
       try {
         setIsLoading(true)
-        setIsEndStoryLoading(true)
 
         let sourceLanguage = preferredLanguage?.value || languageToUse
-        endStoryResponse = await endStoryV2Api({
+        endStoryResponse = await endStoryMutation.mutateAsync({
           token: accessToken,
           data: {
             session: sessionId,
@@ -1785,13 +1784,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
           window.location.reload()
         } else {
           setLlmError(endStoryResponse?.error_message)
-          setIsEndStoryLoading(false)
           setIsLoading(false)
         }
       } catch (error) {
         console.error("Error completing the story:", error)
         setLlmError(error?.response?.data?.error_message)
-        setIsEndStoryLoading(false)
         setIsLoading(false)
       } finally {
         setNoStoryFound(false)
@@ -2221,7 +2218,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           />
         </div>
       </div>
-      {(isInitialising || isLoading || isIntroLoading || isEndStoryLoading) && (
+      {(isInitialising || isLoading || isIntroLoading || endStoryMutation.isPending) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />
@@ -2230,7 +2227,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                 <label className="form-label label1">{t("downloadLoader")}</label>
               </div>
             )}
-            {isEndStoryLoading && (
+            {endStoryMutation.isPending && (
               <div className="div69 text-center">
                 <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
                   {storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("feedbackLoaderHeading") : storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoaderHeading") : storageFlow && [sessionFlowName.GuestMiStory].includes(storageFlow) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}
@@ -2358,7 +2355,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
               )}
             </>
           )}
-          {isStreamingComplete && showFileInput && !showHomepage && !isEndStoryLoading && !isLoading && !isPdfDownloading && storyData?.id !== "" && !([sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken) && (
+          {isStreamingComplete && showFileInput && !showHomepage && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && storyData?.id !== "" && !([sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken) && (
             <>
               {(flowInfo && flowInfo.image_config) && 
                 <div className="div13">
@@ -2549,7 +2546,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   className="clickable-button"
                   onClick={async () => {
                     setIsLoading(true)
-                    setIsEndStoryLoading(true)
                     await callEndStory(true)
                   }}
                   disabled={isLoading || isPdfDownloading}
@@ -2570,7 +2566,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         </div>
         <Notification />
 
-        {(!showFileInput || showFileInput === null) && !isLoading && !isEndStoryLoading && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
+        {(!showFileInput || showFileInput === null) && !isLoading && !endStoryMutation.isPending && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
           <form
             className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
             onSubmit={event => {
