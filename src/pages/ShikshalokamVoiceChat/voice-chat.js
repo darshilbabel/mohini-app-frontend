@@ -637,7 +637,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
 
       try {
         companyChatSignalRef.current = new AbortController()
-        const sortedResult = quickSort(chatSessionData?.results, compareById)
+        const sortedResult = quickSort(Array.isArray(chatSessionData?.results) ? chatSessionData.results : [], compareById)
 
         const intro_message = introMessage
         

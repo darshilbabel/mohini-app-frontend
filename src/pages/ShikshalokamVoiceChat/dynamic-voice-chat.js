@@ -6,7 +6,7 @@ import { BiLoader } from "react-icons/bi"
 import { clearFromStorage, handleS3Upload } from "../../services/storage_service"
 import { createMessage } from "../interview-voice"
 import { createUserProfileApi, getProfileUserApi } from "api/endpoints/user"
-import { endStoryV2Api, getStoryBySessionAPI, updateStoryMediaApi, updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi, getFlowInfoApi } from "../../api/endpoints"
+import { getChatsFromDB, endStoryV2Api, getStoryBySessionAPI, updateStoryMediaApi, updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi, getFlowInfoApi } from "../../api/endpoints"
 import { extractStoryData, extractTextBlocks, getEditorContentBlocks, handleMultipleUploads } from "../../utils/story"
 import { FaCircle } from "react-icons/fa6"
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
@@ -73,14 +73,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const [editorCopyChanges, setEditorCopyChanges] = useState(null)
   const [fileErrorText, setFileErrorText] = useState("")
   const [files, setFiles] = useState([])
-  const [hasFetchIntro, setHasFetchIntro] = useState(false)
   const [hasOverRideId, setHasOverRideId] = useState(null)
   const [hasStartedListening, setHasStartedListening] = useState(false)
   const [hasStartedRecording, setHasStartedRecording] = useState(false)
   const [intervalId, setIntervalId] = useState(null)
   const [isFetchingData, setIsFetchingData] = useState(false)
   const [isImageUploading, setIsImageUploading] = useState(false)
-  const [isIntroLoading, setIsIntroLoading] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isMute, setIsMute] = useState(true)
@@ -104,37 +102,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const [trigger, setTrigger] = useState(false)
   const [triggerDownload, setTriggerDownload] = useState(false)
 
-  // ========== useRef Hooks ==========
-  const textAreaRef = useRef(null)
-  const lastBotMessageIndex = useRef(-1)
-  const isInitialLoadRef = useRef(true)
-  const endPageToScrollRef = useRef(null)
-  const isIntroPlayed = useRef(false)
 
-  // ========== react query hooks ==========
-  const endStoryMutation = useMutation({ mutationFn: (data) => endStoryV2Api(data) })
-
-  const partialUpdateStoryByIdMutation = useMutation({ mutationFn: partialUpdateStoryById })
-  const {
-    data: flowInfo,
-    isError: isFlowInfoError,
-    error: flowInfoError,
-  } = useQuery({
-    queryKey: [API_ENDPOINTS.FLOW_CONNECTION_INFO, storageFlow],
-    queryFn: () => getFlowInfoApi(storageFlow),
-    // staleTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
-
-  // ========== Other Hooks ==========
+  // ========== useSelector Hooks ==========
   const [chatHistory, setChatHistory, removeChatHistory, getChatHistory] = useSmartChatStorage()
-  const [searchParams] = useSearchParams()
-  const { t } = useTranslation()
-
   const accessToken = useUserDataLocalStore(state => state.access_token)
-
   const acceptedTnc = useUserStorage()(state => state.has_accepted_tnc)
   const botName = useChatStorage()(state => state.botName)
   const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
@@ -172,6 +143,57 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useUserStorage().getState()
   const { llmError, setLlmError } = useChatStorage().getState()
   const { setProfileId: setProfileToUse } = useUserStorage().getState()
+
+  // ========== useRef Hooks ==========
+  const textAreaRef = useRef(null)
+  const lastBotMessageIndex = useRef(-1)
+  const isInitialLoadRef = useRef(true)
+  const endPageToScrollRef = useRef(null)
+  const isIntroPlayed = useRef(false)
+
+  // ========== react query hooks ==========
+  const endStoryMutation = useMutation({ mutationFn: (data) => endStoryV2Api(data) })
+
+  const {
+    data: flowInfo,
+    isError: isFlowInfoError,
+    error: flowInfoError,
+  } = useQuery({
+    queryKey: [API_ENDPOINTS.FLOW_CONNECTION_INFO, storageFlow],
+    queryFn: () => getFlowInfoApi(storageFlow),
+    // staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
+
+  const { data: companyBotData } = useQuery({
+    queryKey: [API_ENDPOINTS.GET_COMPANY_BOT, companySlug, flowInfo?.bot_route, languageToUse, accessToken],
+    queryFn: () => getCompanyBotApi({ company_slug: companySlug, route: flowInfo.bot_route, target_language: languageToUse }),
+    enabled: !!(languageToUse && chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && profileToUse && flowInfo?.bot_route),
+  })
+
+  const { data: introMessageData, isLoading: isIntroMessageLoading } = useQuery({
+    queryKey: [API_ENDPOINTS.BOT_VERNACULAR, flowInfo?.bot_route, languageToUse],
+    queryFn: () => getTranslatedIntroMessageApi({
+      language: languageToUse,
+      company_bot__route: flowInfo.bot_route,
+    }),
+    enabled: !!(companyBotData && languageToUse && companyBotData?.results?.length > 0 && flowInfo?.bot_route),
+  })
+
+  const { data: chatSessionData } = useQuery({
+    queryKey: [API_ENDPOINTS.GET_COMPANY_CHAT, sessionId],
+    queryFn: () => getChatsFromDB(sessionId),
+    enabled: !!sessionId,
+  })
+
+  const partialUpdateStoryByIdMutation = useMutation({ mutationFn: partialUpdateStoryById })
+
+  // ========== Other Hooks ==========
+  const [searchParams] = useSearchParams()
+  const { t } = useTranslation()
+
 
   const { recordings, HiddenRecorder } = useVoiceRecord()
 
@@ -304,7 +326,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   }, [storageFlow])
 
   const isInitialising = useMemo(() => {
-    console.log("state_tracker", "sessionId", sessionId, "chatHistory", chatHistory)
     return !sessionId || chatHistory?.length === 0
   }, [sessionId, chatHistory])
 
@@ -458,59 +479,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   }
 
   /**
-   * Handles intro message customization and initialization
-   * Fetches translated message and personalizes with user's first name
-   */
-  const handleIntroMessage = async () => {
-    let data = await getTranslatedIntroMessageApi({
-      language: languageToUse,
-      company_bot__route: flowInfo.bot_route,
-    })
-    let message = data[0]?.introductory_message
-    if (data && data[0]) {
-      if (profileToUse && firstName && firstName !== "null" && firstName !== "") {
-        message = data[0]?.introductory_message
-      } else {
-        message = data[0]?.alt_introductory_message
-      }
-    }
-    const botName = data[0]?.name || "Bot"
-
-    setBotName(botName)
-    setDefaultBotName(data[0]?.default_name)
-    setBotNameToDisplay(botName)
-
-    if (isOldChatOpen) {
-      let sessionInfo = await getSessionInfo()
-      if (sessionInfo && sessionInfo.length > 0) {
-        setStrandStep(sessionInfo[0]?.current_step)
-        if (sessionInfo[0]?.session_type) {
-          setSelectedType(sessionInfo[0]?.session_type)
-        }
-      }
-    }
-    if (message && firstName) {
-      const words = message.split(" ")
-      words.splice(1, 0, firstName)
-      message = words.join(" ")
-    }
-    if (message && !!message?.trim() && chatHistory[chatHistory?.length - 1]?.msg !== message && !sentences.some(msg => msg.message === message)) {
-      setIntroMessage(message)
-      setSentences(prev => [
-        ...prev,
-        {
-          message: message,
-          isNarrated: false,
-          id: "intro_msg_id",
-        },
-      ])
-      setHasOverRideId("intro_msg_id")
-      setIsMute(false)
-      setIsNextAllowed(true)
-    }
-  }
-
-  /**
    * Transforms chat data from API into sentences and chat history format
    * @param {Object} chat - Chat object from API
    * @param {string} introMessage - The intro message to skip duplicates
@@ -577,53 +545,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
 
     return [...quickSort(left, compare), pivot, ...quickSort(right, compare)]
-  }
-
-  /**
-   * Fetches bot configuration and intro message for current session
-   * Initializes bot name, state machine length, and intro message
-   */
-  const fetchBotInfo = async () => {
-    if (!languageToUse) return
-
-    setIsIntroLoading(true)
-
-    try {
-      let storedRoute = flowInfo.bot_route
-      const response = await getCompanyBotApi({
-        company__slug: companySlug,
-        target_language: languageToUse,
-        route: storedRoute,
-      })
-      const bots = response?.results
-
-      if (!bots || bots.length === 0) {
-        handleScrollToView()
-        return
-      }
-
-      // Set state machine length from selected bot
-      const selectedBot = bots.find(bot => bot.route === storedRoute) || bots[0] || { route: "/" }
-      if (selectedBot?.statemachine_length) {
-        setStateMachineLength(selectedBot.statemachine_length)
-      }
-
-      // Find the latest bot based on flow type
-      const latestBot = bots.find(bot => bot.route === storedRoute)
-      if (!latestBot) {
-        handleScrollToView()
-        return
-      }
-
-      await handleIntroMessage()
-    } catch (error) {
-      console.error({ error })
-      setIsLoading(false)
-    } finally {
-      setHasFetchIntro(true)
-      setShouldFetchIntro(false)
-      setIsLoading(false)
-    }
   }
 
   /**
@@ -698,11 +619,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
 
       try {
-        const resp = await getCompanyChatApi(sessionId)
-        const sortedResult = quickSort(resp?.data?.results, compareById)
-
+        const sortedResult = quickSort(Array.isArray(chatSessionData?.results) ? chatSessionData.results : [], compareById)
         const intro_message = introMessage
-        console.log("introMessage: ", intro_message)
 
         // Collect all new sentences and chat history items
         const newSentences = []
@@ -768,7 +686,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         setIsLoading(false)
       }
     }
-  }, [introMessage, sessionId])
+  }, [introMessage, sessionId, chatSessionData])
 
   /**
    * Handles chat session button clicks from sidebar
@@ -778,13 +696,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
     if (!flowInfo) return
     lastBotMessageIndex.current = -1
     try {
-      await fetchBotInfo()
       await handleCompanyChatCall()
     } catch (error) {
       console.error(error)
       // setIsIntroLoading(false)
     }
-  }, [sessionId, flowInfo])
+  }, [sessionId, flowInfo, introMessage, handleCompanyChatCall])
 
   /**
    * Adds bot messages to chat history during streaming
@@ -855,6 +772,85 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const fileExceedText = t("fileExceedText")
   const fileSizeText = t("fileSizeText")
   let isMobile = useCustomMediaQuery("(max-width: 500px)")
+
+  useEffect(() => {
+    if (!introMessageData || introMessageData?.length === 0) return
+
+    let message = introMessageData[0]?.introductory_message
+    if (profileToUse && firstName && firstName !== "null" && firstName !== "") {
+      message = introMessageData[0]?.introductory_message
+    } else {
+      message = introMessageData[0]?.alt_introductory_message
+    }
+    const botName = introMessageData[0]?.name || "Bot"
+
+    setBotName(botName)
+    setDefaultBotName(introMessageData[0]?.default_name)
+    setBotNameToDisplay(botName)
+
+    if (isOldChatOpen) {
+      getSessionInfo().then(sessionInfo => {
+        if (sessionInfo && sessionInfo.length > 0) {
+          setStrandStep(sessionInfo[0]?.current_step)
+          if (sessionInfo[0]?.session_type) {
+            setSelectedType(sessionInfo[0]?.session_type)
+          }
+        }
+      })
+    }
+    if (message && firstName) {
+      const words = message.split(" ")
+      words.splice(1, 0, firstName)
+      message = words.join(" ")
+    }
+    if (message && !!message?.trim() && chatHistory[chatHistory?.length - 1]?.msg !== message && !sentences.some(msg => msg.message === message)) {
+      setIntroMessage(message)
+      setSentences(prev => [
+        ...prev,
+        {
+          message: message,
+          isNarrated: false,
+          id: "intro_msg_id",
+        },
+      ])
+      setHasOverRideId("intro_msg_id")
+      setIsMute(false)
+      setIsNextAllowed(true)
+    }
+
+    setShouldFetchIntro(false)
+    setIsLoading(false)
+  }, [introMessageData])
+
+
+  useEffect(() => {
+    if (!companyBotData) return
+    if (!flowInfo) return
+
+    const bots = companyBotData?.results
+    let storedRoute = flowInfo.bot_route
+
+    if (!bots || bots.length === 0) {
+      handleScrollToView()
+      return
+    }
+
+    const selectedBot = bots.find(bot => bot.route === storedRoute) || bots[0] || { route: "/" }
+    if (selectedBot?.statemachine_length) {
+      setStateMachineLength(selectedBot.statemachine_length)
+    }
+
+    // Find the latest bot based on flow type
+    const latestBot = bots.find(bot => bot.route === storedRoute)
+    if (!latestBot) {
+      handleScrollToView()
+    }
+
+    if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
+      handleCompanyChatCall()
+    }
+
+  }, [companyBotData, introMessage, chatSessionData, flowInfo])
 
   // ========================================================================
   // SECTION: Lifecycle & Browser Events (Execution Order: 1 - On Mount)
@@ -1147,31 +1143,15 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Loads existing conversation when user selects from history
    */
   useEffect(() => {
-    if (isOldChatOpen === true && !hasFetchIntro && chatHistory?.length === 0 && sentences?.length === 0) {
+    if (isOldChatOpen === true && introMessage && chatHistory?.length === 0 && sentences?.length === 0) {
       handleChatSessionButtonClick()
     }
-  }, [isOldChatOpen, hasFetchIntro, chatHistory, sentences])
+  }, [isOldChatOpen, introMessage, chatHistory, sentences])
 
   // ========================================================================
   // SECTION: Language & Bot Setup (Execution Order: 5 - When Profile Ready)
   // These effects fetch bot information and set up language-specific configuration
   // ========================================================================
-
-  /**
-   * Fetch bot information and intro message for new chat sessions
-   * Initializes bot name, intro message, and calls company chat API
-   */
-  useEffect(() => {
-    if (!flowInfo) return
-    if (chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && profileToUse) {
-      setIsIntroLoading(true)
-      fetchBotInfo()
-        .then(() => handleCompanyChatCall())
-        .finally(() => {
-          setIsIntroLoading(false)
-        })
-    }
-  }, [accessToken, shouldFetchIntro, profileToUse, languageToUse, isNewChatOpen, storageFlow, introMessage, flowInfo])
 
   /**
    * Set language progress to complete when intro message loads
@@ -1450,7 +1430,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     let shouldPlay = false
     if (showFileInput) {
       shouldPlay = true
-    } else if ((noStoryFound || noStoryFound === null) && !isIntroLoading && !isLoading && !endStoryMutation.isPending) {
+    } else if ((noStoryFound || noStoryFound === null) && !isIntroMessageLoading && !isLoading && !endStoryMutation.isPending) {
       const currentFlow = storageFlow
 
       if (currentFlow) {
@@ -1461,11 +1441,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
         } else {
           shouldPlay = true
         }
-      } else if (chatHistory && chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot" && !isIntroLoading && !isLoading && !endStoryMutation.isPending) {
+      } else if (chatHistory && chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot" && !isIntroMessageLoading && !isLoading && !endStoryMutation.isPending) {
         shouldPlay = true
       }
     }
-    if (isStreamingComplete && shouldPlay && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroLoading) {
+    if (isStreamingComplete && shouldPlay && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroMessageLoading) {
       const speakerButtons = document.querySelectorAll(".button-11.button-3")
       const lastSpeakerButton = speakerButtons[speakerButtons.length - 1]
 
@@ -1473,7 +1453,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         lastSpeakerButton.click()
       }
     }
-  }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroLoading, noStoryFound])
+  }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroMessageLoading, noStoryFound])
 
   /**
    * Process TTS requests for unnarrated bot messages
@@ -1838,7 +1818,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
       e.preventDefault()
     }
     setIsLoading(true)
-    setIsIntroLoading(true)
     removeChatHistory()
     setIsOldChatOpen(false)
     setIsNewChatOpen(true)
@@ -2218,7 +2197,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           />
         </div>
       </div>
-      {(isInitialising || isLoading || isIntroLoading || endStoryMutation.isPending) && (
+      {(isInitialising || isLoading || isIntroMessageLoading || endStoryMutation.isPending) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />
