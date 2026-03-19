@@ -1,6 +1,18 @@
 # Mohini App Frontend
 
-A React 18 single-page application for the Shikshalokam platform, featuring voice-based chat, rich content editing, internationalization, and PDF generation.
+A React 18 single-page application for the Shikshalokam platform, featuring voice-based AI chat, rich content editing, internationalization, and PDF generation.
+
+## Features
+
+- **Voice-Based AI Chat** — Real-time voice conversations with AI bots, including speech-to-text and audio playback
+- **Mitra (AI Coaching)** — Conversation-based AI assistant for creating improvement plans and coaching feedback
+- **PTM (Parent-Teacher Meetings)** — Structured voice-based discussion flows for parent-teacher interactions
+- **YLC (Youth Leadership Course)** — Story creation, evidence capture, and structured learning flows
+- **PDF Generation** — Export conversations and stories as downloadable PDF reports
+- **Rich Text Editing** — Block-based content editing with Editor.js
+- **Repository Browser** — Browse and search the Shikshagraha learning content repository
+- **Internationalization** — Multi-language support via i18next
+- **WebSocket Chat** — Real-time bot conversation handling with reconnect support
 
 ## Prerequisites
 
@@ -126,22 +138,48 @@ The Docker setup uses a multi-stage build (Node.js for building, nginx for servi
 
 ```
 src/
-├── api/            # API service calls
+├── api/            # API service calls (ai, auth, chat, flow, story, upload, user)
 ├── components/     # Reusable React components
-├── config/         # App configuration
-├── constants/      # Application constants
-├── context/        # React Context providers
-├── hooks/          # Custom React hooks
+├── config/         # App configuration (flow config)
+├── constants/      # Application constants (session, URLs)
+├── context/        # React Context providers (user context)
+├── hooks/          # Custom React hooks (useFlow, useLanguage, useAudio, useStorage)
 ├── pages/          # Page-level components
-├── services/       # Business logic services
-├── store/          # State management (Zustand)
-├── utils/          # Utility functions
-├── App.js          # Root component
+│   ├── ai-creation/              # Mitra AI coaching module
+│   ├── interview-voice/          # Voice interview flow
+│   ├── interview-text-voice/     # Text + voice interview flow
+│   ├── ShikshalokamVoiceChat/    # Main voice chat feature
+│   ├── UnifiedChat/              # Unified chat interface
+│   ├── shikshagraha-repository/  # Content repository browser
+│   ├── ShikshalokamMegaPTM/      # Parent-Teacher Meeting module
+│   ├── story/                    # Story creation and management
+│   ├── Login/                    # Authentication
+│   └── Logout/                   # Sign out
+├── services/       # Business logic services (API, audio, storage)
+├── store/          # Zustand state (chat, user, site, AI creation slices)
+├── utils/          # Utility functions and axios configuration
+├── App.js          # Root component and routing
+├── i18n.js         # Internationalization setup
 └── index.js        # Entry point
 
 tests/
-├── e2e/            # End-to-end test specs
+├── e2e/            # End-to-end test specs (Playwright)
 ├── fixtures/       # Test data fixtures
 ├── helpers/        # Test helper utilities
 └── pages/          # Page object models
 ```
+
+## Tech Stack
+
+| Category | Libraries |
+|---|---|
+| Framework | React 18, React Router DOM 6 |
+| State Management | Zustand 5, TanStack Query 5 |
+| Styling | Tailwind CSS, PrimeReact, Styled Components |
+| Audio & Media | Wavesurfer.js, React PDF |
+| Content Editing | Editor.js, React Markdown, DOMPurify |
+| PDF Export | jsPDF, html2canvas |
+| Internationalization | i18next, react-i18next |
+| HTTP Client | Axios, axios-retry |
+| Animations | React Spring |
+| Testing | Playwright |
