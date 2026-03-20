@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from "constants/urls"
 import { apiClient } from "../client"
+import env from "utils/env"
 
 /**
  * Creates a new user profile
@@ -56,13 +57,14 @@ export const getProfileDetailsApi = async body => {
  */
 export const readElevateProfileApi = async accessToken => {
   try {
-    const response = await apiClient.get(API_ENDPOINTS.READ_ELEVATE_PROFILE, {
+    const authUrl = env.AUTH_ROUTE();
+    const response = await apiClient.get(authUrl, {
       headers: {
         "Content-Type": "application/json",
-        "X-auth-token": accessToken,
       },
-    })
-    return response?.data
+      withCredentials: true,
+    });
+    return response?.data;
   } catch (error) {
     return error?.response?.data
   }
@@ -76,14 +78,12 @@ export const readElevateProfileApi = async accessToken => {
  */
 export const getProfileUserApi = async (profileId, accessToken) => {
   try {
-    const headers = {
-      "Content-Type": "application/json",
-    }
-
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`
-    }
-    const response = await apiClient.get(`${API_ENDPOINTS.PROFILE_USER}${profileId}/`, { headers })
+    const response = await apiClient.get(`${API_ENDPOINTS.PROFILE_USER}${profileId}/`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     return response.data
   } catch (error) {
     return error?.response?.data
