@@ -39,8 +39,8 @@ function SsoFlow() {
       // const rerouteUrl = decodeURIComponent(rerouteRaw)
 
       if (env.AUTH_METHOD() === "url" && (!accessToken || accessToken === "")) {
-        navigate(-1)
-        window.location.reload()
+        navigate(-1);
+        window.location.reload();
       }
       try {
         // const data = await readElevateProfileApi(accessToken);
@@ -79,7 +79,7 @@ function SsoFlow() {
             setCompanyName(profile_details.company)
             setState(profile_details.state)
             setFlow(flow_type)
-            const hasAcc = profile_details.has_accepted_tnc
+            const hasAcc = profile_details.has_accepted_tnc;
             setAcceptedTnC(typeof hasAcc === "string" ? hasAcc : "ONGOING")
             setAccessToken(env.AUTH_METHOD() === "url" ? accessToken : true)
             setProfileId(profile_details.profileid)
