@@ -1,66 +1,185 @@
-# Getting Started with Create React App
+# Mohini App Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React 18 single-page application for the Shikshalokam platform, featuring voice-based AI chat, rich content editing, internationalization, and PDF generation.
+
+## Features
+
+- **Voice-Based AI Chat** — Real-time voice conversations with AI bots, including speech-to-text and audio playback
+- **Mitra (AI Coaching)** — Conversation-based AI assistant for creating improvement plans and coaching feedback
+- **PTM (Parent-Teacher Meetings)** — Structured voice-based discussion flows for parent-teacher interactions
+- **YLC (Youth Leadership Course)** — Story creation, evidence capture, and structured learning flows
+- **PDF Generation** — Export conversations and stories as downloadable PDF reports
+- **Rich Text Editing** — Block-based content editing with Editor.js
+- **Repository Browser** — Browse and search the Shikshagraha learning content repository
+- **Internationalization** — Multi-language support via i18next
+- **WebSocket Chat** — Real-time bot conversation handling with reconnect support
+
+## Prerequisites
+
+- Node.js 22+
+- npm
+
+## Getting Started
+
+1. Clone the repository:
+
+```bash
+git clone <repository-url>
+cd mohini-app-frontend
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Set up environment files:
+
+```bash
+cp sample.env .env
+cp sample.env-cmdrc .env-cmdrc
+```
+
+4. Fill in the required values in both `.env` and `.env-cmdrc` (see [Environment Configuration](#environment-configuration)).
+
+5. Start the development server:
+
+```bash
+npm run dev
+```
+
+The app will be available at [http://localhost:3000/mohini](http://localhost:3000/mohini).
+
+## Environment Configuration
+
+### `.env` file
+
+| Variable | Required | Description |
+|---|---|---|
+| `REACT_APP_LOCAL_PROXY` | Yes | Backend API proxy URL (e.g. `https://devqa-mohini.shikshalokam.org`) |
+| `REACT_APP_WEBSOCKET_HOST` | Yes | WebSocket server host (e.g. `devqa-mohini.shikshalokam.org`) |
+| `REACT_APP_WEBSOCKET_RETRY_NUM` | Yes | Number of WebSocket reconnection attempts |
+| `REACT_APP_S3_UPLOAD_RETRY_NUM` | Yes | Number of S3 upload retry attempts |
+| `REACT_APP_WS_PROTOCOL` | Yes | WebSocket protocol (`ws` or `wss`) |
+| `REACT_APP_COMPANY_SLUG` | Yes | Company identifier slug for retrieving bot configurations |
+| `REACT_APP_MEGA_PTM_PROFILE_ID` | No | Profile ID for Mega PTM |
+| `REACT_APP_YLC_PROFILE_ID` | No | Profile ID for YLC |
+| `REACT_APP_ADUIO_PATH` | No | Audio file path prefix (default: `/mohini/`) |
+| `REACT_APP_ROOT_PATH` | No | Application root path (default: `mohini`) |
+| `REACT_APP_AUTH_METHOD` | No | Authentication method (e.g. `cookie`) |
+| `REACT_APP_AUTH_KEY` | No | Authentication key name (e.g. `shikshaToken`) |
+| `REACT_APP_AUTH_ROUTE` | No | Authentication API route |
+
+### `.env-cmdrc` file
+
+This file manages environment-specific variables using [env-cmd](https://github.com/toddbluhm/env-cmd). It supports multiple environments: `dev`, `demo`, and `prod`.
+
+| Variable | Description |
+|---|---|
+| `REACT_APP_SERVER_URL` | Full backend server URL |
+| `REACT_APP_SERVER_HOST` | Backend server hostname |
+| `REACT_APP_AWS_ACCESS_ID` | AWS access key ID (for S3 uploads) |
+| `REACT_APP_AWS_SECRET_ACCESS` | AWS secret access key |
+| `REACT_APP_AWS_REGION` | AWS region |
+| `GENERATE_SOURCEMAP` | Enable/disable source maps (dev only) |
 
 ## Available Scripts
 
-In the project directory, you can run:
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server with `dev` environment |
+| `npm run local` | Start dev server with `local` environment |
+| `npm run demo` | Start dev server with `demo` environment |
+| `npm run prod` | Start dev server with `prod` environment |
+| `npm run build-dev` | Build for dev environment |
+| `npm run build-prod` | Build for production environment |
+| `npm run build-docker` | Build for Docker environment |
+| `npm test` | Run Playwright end-to-end tests |
+| `npm run test:headed` | Run Playwright tests in headed mode |
+| `npm run test:debug` | Run Playwright tests in debug mode |
+| `npm run test:chrome` | Run Playwright tests in Chromium only |
 
-### `npm start`
+## Running in Production
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### With PM2
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+1. Build the production bundle:
 
-### `npm test`
+```bash
+npm run build-prod
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. Start with PM2:
 
-### `npm run build`
+```bash
+pm2 start pm2.config.json
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+This runs an Express server (`server.js`) on port **1819** serving the built app at `/mohini`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### With Docker
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Build the Docker image:
 
-### `npm run eject`
+```bash
+docker build -t mohini-app .
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. Run the container with environment variables:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+docker run --env-file .env -p 3000:3000 mohini-app
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The Docker setup uses a multi-stage build (Node.js for building, nginx for serving) and injects environment variables at runtime via `generate-env-config.sh`.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Project Structure
 
-## Learn More
+```
+src/
+├── api/            # API service calls (ai, auth, chat, flow, story, upload, user)
+├── components/     # Reusable React components
+├── config/         # App configuration (flow config)
+├── constants/      # Application constants (session, URLs)
+├── context/        # React Context providers (user context)
+├── hooks/          # Custom React hooks (useFlow, useLanguage, useAudio, useStorage)
+├── pages/          # Page-level components
+│   ├── ai-creation/              # Mitra AI coaching module
+│   ├── interview-voice/          # Voice interview flow
+│   ├── interview-text-voice/     # Text + voice interview flow
+│   ├── ShikshalokamVoiceChat/    # Main voice chat feature
+│   ├── UnifiedChat/              # Unified chat interface
+│   ├── shikshagraha-repository/  # Content repository browser
+│   ├── ShikshalokamMegaPTM/      # Parent-Teacher Meeting module
+│   ├── story/                    # Story creation and management
+│   ├── Login/                    # Authentication
+│   └── Logout/                   # Sign out
+├── services/       # Business logic services (API, audio, storage)
+├── store/          # Zustand state (chat, user, site, AI creation slices)
+├── utils/          # Utility functions and axios configuration
+├── App.js          # Root component and routing
+├── i18n.js         # Internationalization setup
+└── index.js        # Entry point
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+tests/
+├── e2e/            # End-to-end test specs (Playwright)
+├── fixtures/       # Test data fixtures
+├── helpers/        # Test helper utilities
+└── pages/          # Page object models
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Tech Stack
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+| Category | Libraries |
+|---|---|
+| Framework | React 18, React Router DOM 6 |
+| State Management | Zustand 5, TanStack Query 5 |
+| Styling | Tailwind CSS, PrimeReact, Styled Components |
+| Audio & Media | Wavesurfer.js, React PDF |
+| Content Editing | Editor.js, React Markdown, DOMPurify |
+| PDF Export | jsPDF, html2canvas |
+| Internationalization | i18next, react-i18next |
+| HTTP Client | Axios, axios-retry |
+| Animations | React Spring |
+| Testing | Playwright |
