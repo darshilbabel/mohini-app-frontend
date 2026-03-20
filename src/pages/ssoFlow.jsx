@@ -3,7 +3,8 @@ import "../index.css"
 import { BiLoader } from "react-icons/bi"
 import { clearFromStorage } from "../services/storage_service"
 import { getSessionDetailsApi } from "../api/endpoints/chat"
-import { LANGUAGE_ENUMS, sessionFlowName } from "./ShikshalokamVoiceChat/enum"
+import { LANGUAGE_ENUMS } from "./ShikshalokamVoiceChat/enum"
+import { sessionFlowName } from "../constants/session"
 import { readElevateProfileApi } from "../api/endpoints/user"
 import { setLanguage } from "../i18n"
 import { updateReflectionStatusApi } from "../api/endpoints/project"
@@ -38,8 +39,8 @@ function SsoFlow() {
       // const rerouteUrl = decodeURIComponent(rerouteRaw)
 
       if (env.AUTH_METHOD() === "url" && (!accessToken || accessToken === "")) {
-        navigate(-1);
-        window.location.reload();
+        navigate(-1)
+        window.location.reload()
       }
       try {
         // const data = await readElevateProfileApi(accessToken);
@@ -78,7 +79,7 @@ function SsoFlow() {
             setCompanyName(profile_details.company)
             setState(profile_details.state)
             setFlow(flow_type)
-            const hasAcc = profile_details.has_accepted_tnc;
+            const hasAcc = profile_details.has_accepted_tnc
             setAcceptedTnC(typeof hasAcc === "string" ? hasAcc : "ONGOING")
             setAccessToken(env.AUTH_METHOD() === "url" ? accessToken : true)
             setProfileId(profile_details.profileid)
