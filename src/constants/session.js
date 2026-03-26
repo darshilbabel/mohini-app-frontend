@@ -22,4 +22,5 @@ export const sessionFlowName = {
   LFA: "lfa",
   LCF: "lcf",
   FreeFlow: "free_flow",
+  ShikshaSamvad: "shiksha-samvad",
 }
