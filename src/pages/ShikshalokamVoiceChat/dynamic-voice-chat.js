@@ -2568,7 +2568,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                 name="message-box"
                 value={textMessage}
                 autoFocus={false}
-                disabled={hasStartedRecording || isFetchingData}
+                disabled={hasStartedRecording || isFetchingData || strandStep >= stateMachineLength}
                 ref={textAreaRef}
                 onInput={e => {
                   e.target.style.height = "auto"
