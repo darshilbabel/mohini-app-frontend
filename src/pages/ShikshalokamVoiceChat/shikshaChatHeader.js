@@ -1,7 +1,7 @@
 import { MdHelpOutline} from "react-icons/md";
 import "./shikshaChatStyle.css"
 
-function Header({ name, hasInfo, isMobileFirst=false, content, logo,showCompanyLogo=false, showTheDots=false }) {
+function Header({ name, hasInfo, isMobileFirst=false, content, logo,showCompanyLogo=false, showTheDots=false, displayNewSessionButton=true }) {
   return (
     <header className={`header-1 ${isMobileFirst ? "header-2" : "header-3"}`}>
       <div className="div59">
@@ -15,7 +15,7 @@ function Header({ name, hasInfo, isMobileFirst=false, content, logo,showCompanyL
           />}
         </div>
       </div>
-      {(isMobileFirst || !showTheDots)&&
+      {(isMobileFirst || !showTheDots)&& displayNewSessionButton &&
         <div className="div62">
           {!!name && <div className="div63">{name}</div>}
           {!!hasInfo && <button className="button-12">

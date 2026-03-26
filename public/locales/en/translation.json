@@ -129,5 +129,10 @@
     "sortDisabledTooltipText": "AI Search sorts results by relevance automatically. Manual sorting is disabled.",
     "heroDescription": "Shared for Public use (CC BY-SA)",
     "heroTitle": "Shikshagraha Commons",
-    "noResourceFoundTitle": "No matching solutions found. Please modify your prompt."
+    "noResourceFoundTitle": "No matching solutions found. Please modify your prompt.",
+    "shiksha_samvad_homepageHeading": "We're Here to Listen to You,",
+    "shiksha_samvad_homepageHeading1": "with MItra!",
+    "shiksha_samvad_homepageList": "Start chatting with MItra",
+    "shiksha_samvad_homepageList1": "Share your experiences and thoughts with MItra",
+    "shiksha_samvad_homepageList2": "Submit your responses"
 }
