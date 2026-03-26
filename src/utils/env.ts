@@ -43,6 +43,10 @@ export const env = {
 
   WS_PROTOCOL: () => getEnv("REACT_APP_WS_PROTOCOL", "wss"),
 
+  AUTH_METHOD: () => getEnv("REACT_APP_AUTH_METHOD", "url"),
+
+  AUTH_ROUTE: () => getEnv("REACT_APP_AUTH_ROUTE", "/api/shikshalokam/read-elevate-profile/"),
+
   // Generic getter for any environment variable
   get: (key: string, defaultValue: string = "") => getEnv(key, defaultValue),
 }
