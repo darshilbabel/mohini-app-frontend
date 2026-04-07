@@ -23,4 +23,6 @@ export const sessionFlowName = {
   LCF: "lcf",
   FreeFlow: "free_flow",
   ShikshaSamvad: "shiksha-samvad",
+  DelhiShikshaSamvad: "delhi-shiksha-samvad",
+  StudyTeacherInterview: "study_teacher_interview",
 }

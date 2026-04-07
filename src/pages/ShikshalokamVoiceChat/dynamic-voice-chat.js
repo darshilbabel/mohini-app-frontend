@@ -1265,7 +1265,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         title: t("PPsCompletionMessage"),
         showCancelButton: false,
         confirmButtonText: t("PPsCompletionCTA"),
-        showConfirmButton: ![sessionFlowName.ShikshaSamvad].includes(storageFlow),
+        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview].includes(storageFlow),
         showCloseButton: false,
         allowEscapeKey: false,
         allowOutsideClick: false,
@@ -2177,7 +2177,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
             isMobileFirst={isMobile}
-            displayNewSessionButton={!([sessionFlowName.ShikshaSamvad].includes(storageFlow))}
+            displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview].includes(storageFlow))}
             showTheDots={false}
             content={
               <button
@@ -2288,7 +2288,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   const prefixMap = {
                     [sessionFlowName.ListeningActivity]: "la_",
                     [sessionFlowName.ParentPerceptionSurvey]: "pppi_",
-                    [sessionFlowName.ShikshaSamvad]: "shiksha_samvad_"
+                    [sessionFlowName.ShikshaSamvad]: "shiksha_samvad_",
+                    [sessionFlowName.DelhiShikshaSamvad]: "shiksha_samvad_",
+                    [sessionFlowName.StudyTeacherInterview]: "shiksha_samvad_",
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
