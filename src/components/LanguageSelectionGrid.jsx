@@ -78,14 +78,11 @@ const LanguageSelectionGrid = ({ usecaseType }) => {
         {
           isFlowLanguagesLoading && (
             <>
-              <div className="shadow-md rounded-[10px] bg-[#F1F5F9] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
-              </div>
-              <div className="shadow-md rounded-[10px] bg-[#F1F5F9] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
-              </div>
-              <div className="shadow-md rounded-[10px] bg-[#F1F5F9] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
-              </div>
-              <div className="shadow-md rounded-[10px] bg-[#F1F5F9] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
-              </div>
+              {
+                Array.from({ length: 2 }).map((_, index) => (
+                  <div key={index} className="div14-lang animate-skeleton w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center"></div>
+                ))
+              }
             </>
           )
         }
