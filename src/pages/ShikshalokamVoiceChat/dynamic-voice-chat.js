@@ -1259,13 +1259,24 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * * Display Popup for the flows where end story api is not being called
    */
   useEffect(() => {
+
+    let survey_title = "PPsCompletionMessage"
+
+    const paramsMap = {
+      [sessionFlowName.DelhiShikshaSamvad]: "delhi_shiksha_"
+    }
+
+    if (paramsMap[storageFlow]) {
+      survey_title = paramsMap[storageFlow] + survey_title
+    }
+
     const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot"
     if (storageFlow && flowInfo?.create_story === "none" && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && isLastMessageFromBot) {
       Swal.fire({
-        title: t("PPsCompletionMessage"),
+        title: t(survey_title),
         showCancelButton: false,
         confirmButtonText: t("PPsCompletionCTA"),
-        showConfirmButton: ![sessionFlowName.ShikshaSamvad].includes(storageFlow),
+        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview].includes(storageFlow),
         showCloseButton: false,
         allowEscapeKey: false,
         allowOutsideClick: false,
@@ -2177,7 +2188,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
             isMobileFirst={isMobile}
-            displayNewSessionButton={!([sessionFlowName.ShikshaSamvad].includes(storageFlow))}
+            displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview].includes(storageFlow))}
             showTheDots={false}
             content={
               <button
@@ -2288,7 +2299,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   const prefixMap = {
                     [sessionFlowName.ListeningActivity]: "la_",
                     [sessionFlowName.ParentPerceptionSurvey]: "pppi_",
-                    [sessionFlowName.ShikshaSamvad]: "shiksha_samvad_"
+                    [sessionFlowName.ShikshaSamvad]: "shiksha_samvad_",
+                    [sessionFlowName.DelhiShikshaSamvad]: "shiksha_samvad_",
+                    [sessionFlowName.StudyTeacherInterview]: "shiksha_samvad_",
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
