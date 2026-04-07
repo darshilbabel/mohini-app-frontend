@@ -1259,10 +1259,21 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * * Display Popup for the flows where end story api is not being called
    */
   useEffect(() => {
+
+    let survey_title = "PPsCompletionMessage"
+
+    const paramsMap = {
+      [sessionFlowName.DelhiShikshaSamvad]: "delhi_shiksha_"
+    }
+
+    if (paramsMap[storageFlow]) {
+      survey_title = paramsMap[storageFlow] + survey_title
+    }
+
     const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot"
     if (storageFlow && flowInfo?.create_story === "none" && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && isLastMessageFromBot) {
       Swal.fire({
-        title: t("PPsCompletionMessage"),
+        title: t(survey_title),
         showCancelButton: false,
         confirmButtonText: t("PPsCompletionCTA"),
         showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview].includes(storageFlow),
