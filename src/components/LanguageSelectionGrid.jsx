@@ -78,13 +78,13 @@ const LanguageSelectionGrid = ({ usecaseType }) => {
         {
           isFlowLanguagesLoading && (
             <>
-              <div className="bg-[#e3e9f0] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
+              <div className="shadow-md rounded-[10px] bg-[#F1F5F9] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
               </div>
-              <div className="bg-[#e3e9f0] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
+              <div className="shadow-md rounded-[10px] bg-[#F1F5F9] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
               </div>
-              <div className="bg-[#e3e9f0] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
+              <div className="shadow-md rounded-[10px] bg-[#F1F5F9] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
               </div>
-              <div className="bg-[#e3e9f0] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
+              <div className="shadow-md rounded-[10px] bg-[#F1F5F9] animate-pulse w-full text-center vertical-center m-0 h-[100px] flex items-center justify-center">
               </div>
             </>
           )
