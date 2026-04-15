@@ -25,5 +25,6 @@ export const sessionFlowName = {
   ShikshaSamvad: "shiksha-samvad",
   DelhiShikshaSamvad: "delhi-shiksha-samvad",
   StudyTeacherInterview: "study_teacher_interview",
-  OdishaYouth: "odisha-youth"
+  OdishaYouth: "odisha-youth",
+  OdishaYouthAI: "odisha-youth-ai"
 }
