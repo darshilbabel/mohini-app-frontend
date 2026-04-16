@@ -1263,6 +1263,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     let survey_title = "PPsCompletionMessage"
 
     const paramsMap = {
+      [sessionFlowName.ShikshaSamvad]: "shiksha_samvad_", 
       [sessionFlowName.DelhiShikshaSamvad]: "delhi_shiksha_",
       [sessionFlowName.OdishaYouth]: "odisha_youth_"
     }
