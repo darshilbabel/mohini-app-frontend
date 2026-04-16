@@ -1792,6 +1792,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   const navigateBack = () => {
     let rerouteUrl = previousUrl
+    const currentFlow = storageFlow
     stopAllAudio()
     if (accessToken) {
       console.log("clearing storage")
@@ -1807,7 +1808,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
     if (rerouteUrl && rerouteUrl !== null && rerouteUrl !== undefined && rerouteUrl !== "") {
       window.location.href = rerouteUrl
     } else {
-      window.location.replace("https://www.google.com")
+      navigate({
+        pathname: ROUTES.SHIKSHALOKAM_HOME_PAGE,
+        search: currentFlow ? new URLSearchParams({ flow: currentFlow }).toString() : ''   
+      })
     }
   }
 

@@ -62,7 +62,6 @@ const LanguageSelectionGrid = ({ usecaseType }) => {
       return
     }
 
-    setPreviousUrl(window.location.href)
     navigate({
       pathname: ROUTES.COMMON_CHAT,
       search: new URLSearchParams({ [URL_PARAMS.FLOW]: urlFlow }).toString(),
@@ -97,7 +96,7 @@ const LanguageSelectionGrid = ({ usecaseType }) => {
           languageList
             .filter(lang => !lang.excludeFor.includes(urlFlow || usecaseType))
             .map(lang => (
-              <div key={lang.value} className=" div14-lang w-[calc(50%-6px)] sm:w-[calc(33.33%-11px)] md:w-[calc(50%-12px)] text-center vertical-center m-0 h-[100px] flex items-center justify-center" onClick={() => handleLanguageClick(lang.value)}>
+              <div key={lang.value} className="div14-lang w-[calc(50%-6px)] sm:w-[calc(33.33%-11px)] md:w-[calc(50%-12px)] text-center vertical-center m-0 h-[100px] flex items-center justify-center" onClick={() => handleLanguageClick(lang.value)}>
                 <button className="w-full">{lang.label}</button>
               </div>
             ))}
