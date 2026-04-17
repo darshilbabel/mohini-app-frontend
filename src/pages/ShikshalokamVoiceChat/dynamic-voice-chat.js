@@ -1278,7 +1278,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         title: t(survey_title),
         showCancelButton: false,
         confirmButtonText: t("PPsCompletionCTA"),
-        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI].includes(storageFlow),
+        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot].includes(storageFlow),
         showCloseButton: false,
         allowEscapeKey: false,
         allowOutsideClick: false,
@@ -2190,7 +2190,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
             isMobileFirst={isMobile}
-            displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI].includes(storageFlow))}
+            displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot].includes(storageFlow))}
             showTheDots={false}
             content={
               <button
@@ -2305,7 +2305,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.DelhiShikshaSamvad]: "shiksha_samvad_",
                     [sessionFlowName.StudyTeacherInterview]: "shiksha_samvad_",
                     [sessionFlowName.OdishaYouth]: "shiksha_samvad_",
-                    [sessionFlowName.OdishaYouthAI]: "shiksha_samvad_"
+                    [sessionFlowName.OdishaYouthAI]: "shiksha_samvad_",
+                    [sessionFlowName.TelanganaPTMPilot]: "shiksha_samvad_",
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
