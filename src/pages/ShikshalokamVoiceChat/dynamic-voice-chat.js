@@ -1813,6 +1813,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         pathname: ROUTES.SHIKSHALOKAM_HOME_PAGE,
         search: currentFlow ? new URLSearchParams({ flow: currentFlow }).toString() : ''   
       })
+      window.location.reload()
     }
   }
 
