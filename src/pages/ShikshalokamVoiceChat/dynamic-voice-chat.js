@@ -1004,7 +1004,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         stopAllAudio()
         isIntroPlayed.current = false
         // setIsLoading(true)
-        setIntroMessage(null)
+        // setIntroMessage(null)
         setChatHistory([])
         setSentences([])
         setLangProgress("IN_PROGRESS")
