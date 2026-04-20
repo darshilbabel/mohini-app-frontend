@@ -21,6 +21,7 @@ export const languageValueMap = {
   hi: "हिंदी",
   kn: "ಕನ್ನಡ",
   te: "తెలుగు",
+  or: "ଓଡ଼ିଆ",
 }
 
 export const languageList = [
