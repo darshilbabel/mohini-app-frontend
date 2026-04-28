@@ -424,7 +424,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         storyId: updatePayload.id,
       })
       setStoryData(result)
-
+      
       /**
        * * Navigation handled differently if authenticated user
        */
@@ -445,6 +445,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
         console.log("navigating from the condtion to -3")
         navigate(-3, { replace: true })
       }
+      setEditorCopyChanges(extractTextBlocks(result.formatted_content))
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Saving failed: ", error)
       if (accessToken) {
