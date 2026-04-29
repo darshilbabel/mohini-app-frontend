@@ -424,7 +424,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         storyId: updatePayload.id,
       })
       setStoryData(result)
-
+      
       /**
        * * Navigation handled differently if authenticated user
        */
@@ -445,6 +445,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
         console.log("navigating from the condtion to -3")
         navigate(-3, { replace: true })
       }
+      setEditorCopyChanges(extractTextBlocks(result.formatted_content))
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Saving failed: ", error)
       if (accessToken) {
@@ -1266,7 +1268,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.ShikshaSamvad]: "shiksha_samvad_", 
       [sessionFlowName.DelhiShikshaSamvad]: "delhi_shiksha_",
       [sessionFlowName.OdishaYouth]: "odisha_youth_",
-      [sessionFlowName.OdishaYouthAI]: "odisha_youth_"
+      [sessionFlowName.OdishaYouthAI]: "odisha_youth_",
+      [sessionFlowName.StudyTeacherInterview]: "fgd_teacher_"
     }
 
     if (paramsMap[storageFlow]) {
@@ -1279,7 +1282,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         title: t(survey_title),
         showCancelButton: false,
         confirmButtonText: t("PPsCompletionCTA"),
-        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot].includes(storageFlow),
+        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.StudyTeacherInterview].includes(storageFlow),
         showCloseButton: false,
         allowEscapeKey: false,
         allowOutsideClick: false,
@@ -2196,7 +2199,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
             isMobileFirst={isMobile}
-            displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot].includes(storageFlow))}
+            displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.StudyTeacherInterview, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.StudyTeacherInterview].includes(storageFlow))}
             showTheDots={false}
             content={
               <button
