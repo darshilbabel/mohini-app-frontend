@@ -74,32 +74,39 @@ const LanguageSelectionGrid = ({ usecaseType }) => {
         <b>{t("welcome_text")}</b>
       </div>
       <p className="sm:text-xl text-md font-semibold text-center">{t("languageQuestion")}</p>
-      <div className="mt-4 mb-10 flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 lg:px-[80px] md:px-[20px] sm:px-[20px] px-[10px]">
-        {
-          isFlowLanguagesLoading && (
-            <>
-              {
-                Array.from({ length: 2 }).map((_, index) => (
-                  <div key={index} className="div14-lang animate-skeleton w-[calc(50%-6px)] sm:w-[calc(33.33%-11px)] md:w-[calc(50%-12px)] text-center vertical-center m-0 h-[100px] flex items-center justify-center"></div>
-                ))
-              }
-            </>
-          )
-        }
-        {!isFlowLanguagesLoading && flowLanguages &&
-          flowLanguages.languages.map(lang => (
-            <div key={lang} className="div14-lang w-[calc(50%-6px)] sm:w-[calc(33.33%-11px)] md:w-[calc(50%-12px)] text-center vertical-center m-0 h-[100px] flex items-center justify-center" onClick={() => handleLanguageClick(lang)}>
-              <button className="w-full">{languageValueMap[lang]}</button>
-            </div>
+      <div className="mt-4 mb-10 grid grid-cols-2 gap-3 md:gap-6 lg:px-[80px] md:px-[20px] sm:px-[20px] px-[10px]">
+        {isFlowLanguagesLoading &&
+          Array.from({ length: 2 }).map((_, index) => (
+            <div key={index} className="div14-lang animate-skeleton m-0 h-[100px]"></div>
           ))}
+        {!isFlowLanguagesLoading && flowLanguages &&
+          flowLanguages.languages.map((lang, index, arr) => {
+            const isLastOdd = arr.length % 2 !== 0 && index === arr.length - 1
+            return (
+              <div
+                key={lang}
+                className={`div14-lang m-0 h-[100px] flex items-center justify-center${isLastOdd ? " col-span-2 w-1/2 mx-auto" : ""}`}
+                onClick={() => handleLanguageClick(lang)}
+              >
+                <button className="w-full text-center">{languageValueMap[lang]}</button>
+              </div>
+            )
+          })}
         {!isFlowLanguagesLoading && !flowLanguages &&
           languageList
             .filter(lang => !lang.excludeFor.includes(urlFlow || usecaseType))
-            .map(lang => (
-              <div key={lang.value} className="div14-lang w-[calc(50%-6px)] sm:w-[calc(33.33%-11px)] md:w-[calc(50%-12px)] text-center vertical-center m-0 h-[100px] flex items-center justify-center" onClick={() => handleLanguageClick(lang.value)}>
-                <button className="w-full">{lang.label}</button>
-              </div>
-            ))}
+            .map((lang, index, arr) => {
+              const isLastOdd = arr.length % 2 !== 0 && index === arr.length - 1
+              return (
+                <div
+                  key={lang.value}
+                  className={`div14-lang m-0 h-[100px] flex items-center justify-center${isLastOdd ? " col-span-2 w-1/2 mx-auto" : ""}`}
+                  onClick={() => handleLanguageClick(lang.value)}
+                >
+                  <button className="w-full text-center">{lang.label}</button>
+                </div>
+              )
+            })}
       </div>
     </>
   )
