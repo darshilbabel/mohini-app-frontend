@@ -1269,7 +1269,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.DelhiShikshaSamvad]: "delhi_shiksha_",
       [sessionFlowName.OdishaYouth]: "odisha_youth_",
       [sessionFlowName.OdishaYouthAI]: "odisha_youth_",
-      [sessionFlowName.StudyTeacherInterview]: "fgd_teacher_"
+      [sessionFlowName.StudyTeacherInterview]: "fgd_teacher_",
+      [sessionFlowName.StakeholderFGD]: "stakeholder_fgd_"
     }
 
     if (paramsMap[storageFlow]) {
@@ -2199,7 +2200,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
             isMobileFirst={isMobile}
-            displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot].includes(storageFlow))}
+            displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.StakeholderFGD].includes(storageFlow))}
             showTheDots={false}
             content={
               <button
@@ -2316,6 +2317,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.OdishaYouth]: "shiksha_samvad_",
                     [sessionFlowName.OdishaYouthAI]: "shiksha_samvad_",
                     [sessionFlowName.TelanganaPTMPilot]: "shiksha_samvad_",
+                    [sessionFlowName.StakeholderFGD]: "shiksha_samvad_"
                   }
 
                   const prefix = prefixMap[storageFlow] || ""

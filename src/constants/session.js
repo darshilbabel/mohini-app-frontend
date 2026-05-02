@@ -27,5 +27,7 @@ export const sessionFlowName = {
   StudyTeacherInterview: "study_teacher_interview",
   OdishaYouth: "odisha-youth",
   OdishaYouthAI: "odisha-youth-ai",
-  TelanganaPTMPilot: "telangana-ptm-pilot"
+  TelanganaPTMPilot: "telangana-ptm-pilot",
+  StakeholderFGD: "stakeholder-fgd"
+
 }
