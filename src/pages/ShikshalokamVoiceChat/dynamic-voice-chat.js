@@ -321,6 +321,17 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   const projectId = useMemo(() => projectIdStore || searchParams.get("projectId"), [projectIdStore, searchParams])
 
+  const tncText = useMemo(() => {
+    let tncMap ={
+      [sessionFlowName.StudyTeacherInterview]: "fgd_tncText",
+      [sessionFlowName.StakeholderFGD]: "fgd_tncText",
+    }
+    if (tncMap[storageFlow]) {
+      return tncMap[storageFlow]
+    }
+    return "tncText"
+  }, [storageFlow])
+
   const shouldFetchChatSession = useMemo(() => {
     return storageFlow && [sessionFlowName.Reflection].includes(storageFlow)
   }, [storageFlow])
@@ -2205,9 +2216,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   return (
     <>
-      {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} />}
+      {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} />}
 
-      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && <PrivacyPolicyPopup tncText={t("tncText")} onAccept={handleAcceptTnC} useStaticText={false} />}
+      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={`div27`}>
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
