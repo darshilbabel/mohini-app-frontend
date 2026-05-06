@@ -124,6 +124,7 @@
     "shiksha_samvad_PPsCompletionMessage": "<div class='text-class'>Thank you so much for spending time and sharing your views.</div>",     
     "fgd_teacher_PPsCompletionMessage": "<div class='text-class'>Thank you for your time. Once we complete the analysis of the baseline report, we will share the relevant aspects with you</div>",
     "stakeholder_fgd_PPsCompletionMessage": "<div class='text-class'>Thank you! Your response has been successfully submitted.</div>",
+    "bihar_student_fgd_PPsCompletionMessage": "<div class='text-class'>Thank you! Your answer has been successfully recorded.</div>",
     "PPsCompletionCTA": "Submit another response",
     "pppi_homepageHeading": "We're Here to Listen to You",
     "pppi_homepageHeading1": "with MItra!",

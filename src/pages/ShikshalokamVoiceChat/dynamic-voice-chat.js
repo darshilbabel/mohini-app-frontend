@@ -1257,6 +1257,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
   }, [isStreamingComplete, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow, sentences])
 
+
+
+
+
   /**
    * * Display Popup for the flows where end story api is not being called
    */
@@ -1270,7 +1274,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.OdishaYouth]: "odisha_youth_",
       [sessionFlowName.OdishaYouthAI]: "odisha_youth_",
       [sessionFlowName.StudyTeacherInterview]: "fgd_teacher_",
-      [sessionFlowName.StakeholderFGD]: "stakeholder_fgd_"
+      [sessionFlowName.StakeholderFGD]: "stakeholder_fgd_",
+      [sessionFlowName.BiharStudentFGD]: "bihar_student_fgd_",
     }
 
     if (paramsMap[storageFlow]) {
@@ -1278,7 +1283,14 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
 
     const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot"
-    if (storageFlow && flowInfo?.create_story === "none" && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && isLastMessageFromBot) {
+    if (
+      storageFlow &&
+      flowInfo?.create_story === "none" &&
+      isStreamingComplete &&
+      stateMachineLength &&
+      strandStep >= stateMachineLength &&
+      isLastMessageFromBot
+    ) {
       Swal.fire({
         title: t(survey_title),
         showCancelButton: false,
