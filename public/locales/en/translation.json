@@ -124,6 +124,7 @@
     "odisha_youth_PPsCompletionMessage": "<div class='text-class'>Thank you for sharing — your journey matters. Keep going, you are creating real change.</div>",
     "shiksha_samvad_PPsCompletionMessage": "<div class='text-class'>Thank you so much for spending time and sharing your views.</div>",     
     "fgd_teacher_PPsCompletionMessage": "<div class='text-class'>Thank you for your time. Once we complete the analysis of the baseline report, we will share the relevant aspects with you</div>",
+    "bihar_student_fgd_PPsCompletionMessage": "<div class='text-class'>Thank you! Your answer has been successfully recorded.</div>",
     "stakeholder_fgd_PPsCompletionMessage": "<div class='text-class'>Thank you for your time. We will share the relevant aspects of the analysis of the Baseline report with you once it is completed.</div>",
     "PPsCompletionCTA": "Submit another response",
     "pppi_homepageHeading": "We're Here to Listen to You",
