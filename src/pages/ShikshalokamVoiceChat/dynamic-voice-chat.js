@@ -325,6 +325,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     let tncMap ={
       [sessionFlowName.StudyTeacherInterview]: "fgd_tncText",
       [sessionFlowName.StakeholderFGD]: "fgd_tncText",
+      [sessionFlowName.BiharStudentFGD]: "fgd_tncText",
     }
     if (tncMap[storageFlow]) {
       return tncMap[storageFlow]
@@ -2340,7 +2341,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.OdishaYouth]: "shiksha_samvad_",
                     [sessionFlowName.OdishaYouthAI]: "shiksha_samvad_",
                     [sessionFlowName.TelanganaPTMPilot]: "shiksha_samvad_",
-                    [sessionFlowName.StakeholderFGD]: "shiksha_samvad_"
+                    [sessionFlowName.StakeholderFGD]: "shiksha_samvad_",
+                    [sessionFlowName.BiharStudentFGD]: "shiksha_samvad_"
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
