@@ -326,6 +326,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.StudyTeacherInterview]: "fgd_tncText",
       [sessionFlowName.StakeholderFGD]: "fgd_tncText",
       [sessionFlowName.BiharStudentFGD]: "fgd_tncText",
+      [sessionFlowName.CommunityFGD]: "fgd_tncText",
     }
     if (tncMap[storageFlow]) {
       return tncMap[storageFlow]
@@ -1291,6 +1292,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.StudyTeacherInterview]: "fgd_teacher_",
       [sessionFlowName.StakeholderFGD]: "stakeholder_fgd_",
       [sessionFlowName.BiharStudentFGD]: "bihar_student_fgd_",
+      [sessionFlowName.CommunityFGD]: "bihar_student_fgd_",
     }
 
     if (paramsMap[storageFlow]) {
@@ -2345,7 +2347,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.OdishaYouthAI]: "shiksha_samvad_",
                     [sessionFlowName.TelanganaPTMPilot]: "shiksha_samvad_",
                     [sessionFlowName.StakeholderFGD]: "shiksha_samvad_",
-                    [sessionFlowName.BiharStudentFGD]: "shiksha_samvad_"
+                    [sessionFlowName.BiharStudentFGD]: "shiksha_samvad_",
+                    [sessionFlowName.CommunityFGD]: "shiksha_samvad_"
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
