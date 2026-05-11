@@ -29,6 +29,6 @@ export const sessionFlowName = {
   OdishaYouth: "odisha-youth",
   OdishaYouthAI: "odisha-youth-ai",
   TelanganaPTMPilot: "telangana-ptm-pilot",
-  StakeholderFGD: "stakeholder-fgd"
-
+  StakeholderFGD: "stakeholder-fgd",
+  CommunityFGD: "community-fgd",
 }
