@@ -170,7 +170,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const { data: companyBotData } = useQuery({
     queryKey: [API_ENDPOINTS.GET_COMPANY_BOT, companySlug, flowInfo?.bot_route, languageToUse, accessToken],
     queryFn: () => getCompanyBotApi({ company_slug: companySlug, route: flowInfo.bot_route, target_language: languageToUse }),
-    enabled: !!(languageToUse && chatHistory?.length === 0 && shouldFetchIntro && isNewChatOpen && profileToUse && flowInfo?.bot_route),
+    enabled: !!(languageToUse && shouldFetchIntro && isNewChatOpen && profileToUse && flowInfo?.bot_route),
   })
 
   const { data: introMessageData, isLoading: isIntroMessageLoading } = useQuery({
@@ -796,7 +796,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
     } else {
       message = introMessageData[0]?.alt_introductory_message
     }
-    const botName = introMessageData[0]?.name || "Bot"
+    const botName =
+      introMessageData[0]?.default_name ||
+      introMessageData[0]?.name ||
+      "Bot"
 
     setBotName(botName)
     setDefaultBotName(introMessageData[0]?.default_name)
