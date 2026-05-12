@@ -797,10 +797,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     } else {
       message = introMessageData[0]?.alt_introductory_message
     }
-    const botName =
-      introMessageData[0]?.default_name ||
-      introMessageData[0]?.name ||
-      "Bot"
+    const botName = introMessageData[0]?.name || "Bot"
 
     setBotName(botName)
     setDefaultBotName(introMessageData[0]?.default_name)
