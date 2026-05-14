@@ -1322,7 +1322,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
           setChatLanguage(LANGUAGE_ENUMS.ENGLISH)
           setHasSelectedLanguage(false)
           stopAllAudio()
-          navigate(-2)
+          navigate({
+            pathname: ROUTES.SHIKSHALOKAM_HOME_PAGE,
+            search: storageFlow ? new URLSearchParams({ flow: storageFlow }).toString() : ''
+          })
+          window.location.reload()
         }
       })
     }
