@@ -173,7 +173,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     enabled: !!(languageToUse && shouldFetchIntro && isNewChatOpen && profileToUse && flowInfo?.bot_route),
   })
 
-  const { data: introMessageData, isLoading: isIntroMessageLoading } = useQuery({
+  const { data: introMessageData, isLoading: isIntroMessageLoading, isFetched: isIntroMessageFetched } = useQuery({
     queryKey: [API_ENDPOINTS.BOT_VERNACULAR, flowInfo?.bot_route, languageToUse],
     queryFn: () => getTranslatedIntroMessageApi({
       language: languageToUse,
@@ -2248,7 +2248,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           />
         </div>
       </div>
-      {(isInitialising || isLoading || isIntroMessageLoading || endStoryMutation.isPending) && (
+      {(isInitialising || isLoading || isIntroMessageLoading || endStoryMutation.isPending || !isIntroMessageFetched) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />
