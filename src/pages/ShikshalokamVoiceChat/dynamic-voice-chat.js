@@ -1503,15 +1503,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
   }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroMessageLoading, noStoryFound])
 
-
-  useEffect(() => {
-    console.log({
-      isInitialising, isLoading, isIntroMessageLoading,
-      endStoryMutation: endStoryMutation.isPending,
-      isIntroMessageFetched: !isIntroMessageFetched
-    })
-  }, [isInitialising, isLoading, isIntroMessageLoading, endStoryMutation.isPending, isIntroMessageFetched])
-
   /**
    * Process TTS requests for unnarrated bot messages
    * Converts text to speech for messages not yet played aloud
