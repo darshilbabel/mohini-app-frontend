@@ -2349,7 +2349,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.StakeholderFGD]: "shiksha_samvad_",
                     [sessionFlowName.BiharStudentFGD]: "shiksha_samvad_",
                     [sessionFlowName.CommunityFGD]: "shiksha_samvad_",
-                    [sessionFlowName.XylemX_entrepreneurship_development]: "xylemx_",
+                    [sessionFlowName.XylemX_entrepreneurship_development]: "shiksha_samvad_",
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
