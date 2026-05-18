@@ -1263,8 +1263,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
       return
     }
 
-    console.log({ isStreamingComplete, stateMachineLength, strandStep, noStoryFound, llmError, acceptedTnc })
-
     if (!endStoryMutation.isPending && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
     }
@@ -1290,6 +1288,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.StakeholderFGD]: "stakeholder_fgd_",
       [sessionFlowName.BiharStudentFGD]: "bihar_student_fgd_",
       [sessionFlowName.CommunityFGD]: "bihar_student_fgd_",
+      [sessionFlowName.XylemX_entrepreneurship_development]: "xylemx_entrepreneurship_development_",
     }
 
     if (paramsMap[storageFlow]) {
@@ -2252,7 +2251,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           />
         </div>
       </div>
-      {(isInitialising || isLoading || isIntroMessageLoading || endStoryMutation.isPending || !isIntroMessageFetched) && (
+      {(isInitialising || isLoading || isIntroMessageLoading || endStoryMutation.isPending || (!isIntroMessageFetched && !showFileInput)) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />
@@ -2349,7 +2348,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.TelanganaPTMPilot]: "shiksha_samvad_",
                     [sessionFlowName.StakeholderFGD]: "shiksha_samvad_",
                     [sessionFlowName.BiharStudentFGD]: "shiksha_samvad_",
-                    [sessionFlowName.CommunityFGD]: "shiksha_samvad_"
+                    [sessionFlowName.CommunityFGD]: "shiksha_samvad_",
+                    [sessionFlowName.XylemX_entrepreneurship_development]: "shiksha_samvad_",
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
