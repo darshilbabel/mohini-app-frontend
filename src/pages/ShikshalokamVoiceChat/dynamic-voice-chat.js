@@ -1288,6 +1288,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.StakeholderFGD]: "stakeholder_fgd_",
       [sessionFlowName.BiharStudentFGD]: "bihar_student_fgd_",
       [sessionFlowName.CommunityFGD]: "bihar_student_fgd_",
+      [sessionFlowName.XylemX_entrepreneurship_development]: "xylemx_entrepreneurship_development_",
     }
 
     if (paramsMap[storageFlow]) {
@@ -2356,7 +2357,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.TelanganaPTMPilot]: "shiksha_samvad_",
                     [sessionFlowName.StakeholderFGD]: "shiksha_samvad_",
                     [sessionFlowName.BiharStudentFGD]: "shiksha_samvad_",
-                    [sessionFlowName.CommunityFGD]: "shiksha_samvad_"
+                    [sessionFlowName.CommunityFGD]: "shiksha_samvad_",
+                    [sessionFlowName.XylemX_entrepreneurship_development]: "xylemx_",
                   }
 
                   const prefix = prefixMap[storageFlow] || ""

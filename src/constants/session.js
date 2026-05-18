@@ -31,4 +31,5 @@ export const sessionFlowName = {
   TelanganaPTMPilot: "telangana-ptm-pilot",
   StakeholderFGD: "stakeholder-fgd",
   CommunityFGD: "community-fgd",
+  XylemX_entrepreneurship_development: "XylemX_entrepreneurship_development",
 }
