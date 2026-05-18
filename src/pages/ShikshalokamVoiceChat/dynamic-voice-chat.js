@@ -1263,8 +1263,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
       return
     }
 
-    console.log({ isStreamingComplete, stateMachineLength, strandStep, noStoryFound, llmError, acceptedTnc })
-
     if (!endStoryMutation.isPending && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
     }
@@ -1503,6 +1501,15 @@ const DynamicVoiceChat = ({ type = "" }) => {
       }
     }
   }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroMessageLoading, noStoryFound])
+
+
+  useEffect(() => {
+    console.log({
+      isInitialising, isLoading, isIntroMessageLoading,
+      endStoryMutation: endStoryMutation.isPending,
+      isIntroMessageFetched: !isIntroMessageFetched
+    })
+  }, [isInitialising, isLoading, isIntroMessageLoading, endStoryMutation.isPending, isIntroMessageFetched])
 
   /**
    * Process TTS requests for unnarrated bot messages
@@ -2252,7 +2259,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           />
         </div>
       </div>
-      {(isInitialising || isLoading || isIntroMessageLoading || endStoryMutation.isPending || !isIntroMessageFetched) && (
+      {(isInitialising || isLoading || isIntroMessageLoading || endStoryMutation.isPending || (!isIntroMessageFetched && !showFileInput)) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />
