@@ -167,13 +167,13 @@ const DynamicVoiceChat = ({ type = "" }) => {
     refetchOnReconnect: false,
   })
 
-  const { data: companyBotData } = useQuery({
+  const { data: companyBotData, isLoading: isCompanyBotLoading } = useQuery({
     queryKey: [API_ENDPOINTS.GET_COMPANY_BOT, companySlug, flowInfo?.bot_route, languageToUse, accessToken],
     queryFn: () => getCompanyBotApi({ company_slug: companySlug, route: flowInfo.bot_route, target_language: languageToUse }),
     enabled: !!(languageToUse && shouldFetchIntro && isNewChatOpen && profileToUse && flowInfo?.bot_route),
   })
 
-  const { data: introMessageData, isLoading: isIntroMessageLoading, isFetched: isIntroMessageFetched } = useQuery({
+  const { data: introMessageData, isLoading: isIntroMessageLoading } = useQuery({
     queryKey: [API_ENDPOINTS.BOT_VERNACULAR, flowInfo?.bot_route, languageToUse],
     queryFn: () => getTranslatedIntroMessageApi({
       language: languageToUse,
@@ -2251,7 +2251,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           />
         </div>
       </div>
-      {(isInitialising || isLoading || isIntroMessageLoading || endStoryMutation.isPending || (!isIntroMessageFetched && !showFileInput)) && (
+      {(isInitialising || isLoading || (!introMessageData && !introMessage) || endStoryMutation.isPending) && (
         <div className="loader-load-spinner">
           <div className="div67">
             <BiLoader className="loader-rotate-loader loader-icon" />
