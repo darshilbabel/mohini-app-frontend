@@ -1289,6 +1289,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.BiharStudentFGD]: "bihar_student_fgd_",
       [sessionFlowName.CommunityFGD]: "bihar_student_fgd_",
       [sessionFlowName.XylemX_entrepreneurship_development]: "xylemx_entrepreneurship_development_",
+      [sessionFlowName.PPPI_BOT_1]: "pppi_",
+      [sessionFlowName.PPPI_Set_2]: "pppi_",
     }
 
     if (paramsMap[storageFlow]) {
@@ -2350,6 +2352,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.BiharStudentFGD]: "shiksha_samvad_",
                     [sessionFlowName.CommunityFGD]: "shiksha_samvad_",
                     [sessionFlowName.XylemX_entrepreneurship_development]: "shiksha_samvad_",
+                    [sessionFlowName.PPPI_BOT_1]: "shiksha_samvad_",
+                    [sessionFlowName.PPPI_Set_2]: "shiksha_samvad_",
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
