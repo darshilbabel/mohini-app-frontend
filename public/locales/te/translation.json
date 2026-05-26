@@ -111,5 +111,6 @@
   "shiksha_samvad_homepageList": "మిత్రతో చాటింగ్ ప్రారంభించండి",
   "shiksha_samvad_homepageList1": "మీ అనుభవాలను, ఆలోచనలను మిత్రతో పంచుకోండి",
   "shiksha_samvad_homepageList2": "మీ ప్రతిస్పందనలను సమర్పించండి",
-  "PPsCompletionMessage": "<div class='text-class'>ధన్యవాదాలు! మీ సమాధానం విజయవంతంగా నమోదు చేయబడింది.</div>"
+  "PPsCompletionMessage": "<div class='text-class'>ధన్యవాదాలు! మీ సమాధానం విజయవంతంగా నమోదు చేయబడింది.</div>",
+  "PPsCompletionCTA": "మరొక ప్రతిస్పందనను సమర్పించండి"
 }

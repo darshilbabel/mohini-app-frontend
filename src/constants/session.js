@@ -32,4 +32,6 @@ export const sessionFlowName = {
   StakeholderFGD: "stakeholder-fgd",
   CommunityFGD: "community-fgd",
   XylemX_entrepreneurship_development: "XylemX_entrepreneurship_development",
+  PPPI_BOT_1: "PPPI_Set_1",
+  PPPI_Set_2: "PPPI_Set_2",
 }
