@@ -2357,11 +2357,14 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
+
+                  const homePageHeading = storageFlow === sessionFlowName.GuestDiscussion ? "homepageHeadingDiscussion" : "homepageHeading"
+
                   return (
                     <>
                       <div className="div10">
                         <h3 className="h3-1">
-                          {t(`${prefix}homepageHeading`)}
+                          {t(`${prefix}${homePageHeading}`)}
                           <br />
                           {t(`${prefix}homepageHeading1`)}
                         </h3>
