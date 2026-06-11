@@ -25,6 +25,7 @@ function CommonHomePage({ usecaseType }) {
   const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
   const hasSelectedLanguage = useSiteDataSessionStore(state => state.hasSelectedLanguage)
   const setChatLanguage = useSiteDataSessionStore(state => state.setChatLanguage)
+  const setHasSelectedLanguage = useSiteDataSessionStore(state => state.setHasSelectedLanguage)
   const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
 
   const ptm_case = sessionFlowName.megaPTM === usecaseType
@@ -52,7 +53,14 @@ function CommonHomePage({ usecaseType }) {
   }, [urlFlow])
 
   useEffect(() => {
-    if (!hasSelectedLanguage || !urlFlow) return
+    if (!urlLanguage) {
+      setHasSelectedLanguage(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const liveHasSelected = useSiteDataSessionStore.getState().hasSelectedLanguage
+    if (!liveHasSelected || !urlFlow) return
 
     navigate({
       pathname: ROUTES.COMMON_CHAT,
@@ -62,9 +70,10 @@ function CommonHomePage({ usecaseType }) {
 
   // Process language selection
   useEffect(() => {
-    // Don't process if user hasn't selected a language (and no URL language) or if no flow is specified
-    console.log({ urlLanguage, hasSelectedLanguage, urlFlow })
-    if (!urlLanguage && !hasSelectedLanguage) {
+    // Read live store value
+    const liveHasSelected = useSiteDataSessionStore.getState().hasSelectedLanguage
+    console.log({ urlLanguage, hasSelectedLanguage: liveHasSelected, urlFlow })
+    if (!urlLanguage && !liveHasSelected) {
       setIsLoading(false)
       return
     }
