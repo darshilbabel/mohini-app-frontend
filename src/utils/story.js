@@ -1,6 +1,5 @@
 import { createStoryMediaApi } from "api/endpoints"
 import { handleS3Upload } from "../services/storage_service"
-import { sessionFlowName } from "../constants/session"
 import { URL_PARAMS } from "../constants/urls"
 import { useUserDataLocalStore } from "../store"
 import axiosInstance from "./axios"
@@ -57,23 +56,19 @@ export const getQuestionAnswersFromBlocks = blocks => {
   return questionAnswers
 }
 
-export function extractStoryData(flow, blocks) {
-  if (!flow) return null
+export function extractStoryData(editorConfig, blocks) {
+  if (!editorConfig) return null
 
-  if ([sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(flow)) {
-    const challenges = getListAfterHeaderText(i18n.t("challengesHeader"), blocks)
-    const solutions = getListAfterHeaderText(i18n.t("solutionsHeader"), blocks)
+  if (editorConfig.type === "header_list_sections") {
+    const result = {}
+    editorConfig.sections.forEach(section => {
+      result[section.data_key] = getListAfterHeaderText(i18n.t(section.header_i18n_key), blocks)
+    })
+    return result
+  }
 
-    return {
-      challenges_faced: challenges,
-      solutions_discussed: solutions,
-    }
-  } else if ([sessionFlowName.ListeningActivity].includes(flow)) {
-    const questionAnswers = getQuestionAnswersFromBlocks(blocks)
-
-    return {
-      question_answers: questionAnswers,
-    }
+  if (editorConfig.type === "qa") {
+    return { [editorConfig.data_key]: getQuestionAnswersFromBlocks(blocks) }
   }
 
   return null
@@ -193,91 +188,43 @@ export const handleMultipleUploads = async (e, storyData, files, sessionId, maxI
   }
 }
 
-export const getEditorContentBlocks = (otherParams, storageFlow, editorCopyChanges) => {
+export const getEditorContentBlocks = (otherParams, editorConfig, editorCopyChanges) => {
   try {
-    if (!otherParams || !storageFlow) return []
-    let parsed_content = []
-
-    if ([sessionFlowName.LoginDiscussion, sessionFlowName.GuestDiscussion].includes(storageFlow)) {
-      const challenges = otherParams?.challenges_faced || []
-      const solutions = otherParams?.solutions_discussed || []
-
-      parsed_content = [
-        {
-          type: "header",
-          data: {
-            text: i18n.t("challengesHeader"),
-            level: 2,
-            customId: "challenges",
-          },
-        },
-        {
-          type: "list",
-          data: {
-            style: "unordered",
-            items: challenges.length > 0 ? challenges : [""],
-          },
-        },
-        {
-          type: "header",
-          data: {
-            text: i18n.t("solutionsHeader"),
-            level: 2,
-            customId: "solutions",
-          },
-        },
-        {
-          type: "list",
-          data: {
-            style: "unordered",
-            items: solutions.length > 0 ? solutions : [""],
-          },
-        },
-      ]
-    } else if ([sessionFlowName.ListeningActivity].includes(storageFlow)) {
-      const questionAnswers = otherParams?.question_answers || []
-
-      parsed_content = []
-      questionAnswers.forEach((qa, index) => {
-        // Add question header
-        parsed_content = [
-          ...parsed_content,
-          {
-            type: "header",
-            data: {
-              text: `Q${index + 1}: ${qa.question}`,
-              level: 3,
-              customId: `question-${index}`,
-            },
-          },
-          {
-            type: "paragraph",
-            data: {
-              text: qa.answer || "",
-            },
-          },
-        ]
-
-        if (index < questionAnswers.length - 1) {
-          parsed_content.push({
-            type: "paragraph",
-            data: {
-              text: "​",
-            },
-            readonly: true,
-          })
-        }
-      })
-    } else {
-      parsed_content = editorCopyChanges.map(item => ({
-        type: item.type,
-        data: {
-          text: item.data.text,
-        },
-      }))
+    if (!editorConfig) {
+      return (editorCopyChanges || []).map(item => ({ type: item.type, data: { text: item.data.text } }))
     }
 
-    return parsed_content
+    if (editorConfig.type === "header_list_sections") {
+      return editorConfig.sections.flatMap(section => [
+        { type: "header", data: { text: i18n.t(section.header_i18n_key), level: section.header_level } },
+        {
+          type: "list",
+          data: {
+            style: section.list_style,
+            items: otherParams?.[section.data_key]?.length ? otherParams[section.data_key] : [""],
+          },
+        },
+      ])
+    }
+
+    if (editorConfig.type === "qa") {
+      const items = otherParams?.[editorConfig.data_key] || []
+      return items.flatMap((qa, i) => [
+        {
+          type: "header",
+          data: {
+            text: editorConfig.header_prefix.replace("{index}", i + 1) + " " + qa[editorConfig.question_field],
+            level: editorConfig.header_level,
+          },
+        },
+        { type: "paragraph", data: { text: qa[editorConfig.answer_field] || "" } },
+        ...(editorConfig.spacer_between && i < items.length - 1
+          ? [{ type: "paragraph", data: { text: "​" }, readonly: true }]
+          : []),
+      ])
+    }
+
+    return (editorCopyChanges || []).map(item => ({ type: item.type, data: { text: item.data.text } }))
   } catch (error) {
     console.error("Error getting editor content blocks: ", error)
     return []

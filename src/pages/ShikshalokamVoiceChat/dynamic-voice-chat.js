@@ -414,7 +414,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       }
 
       const blocks = outputData?.blocks || []
-      const story_params = extractStoryData(flow, blocks)
+      const story_params = extractStoryData(flowInfo?.editor_config, blocks)
 
       if (story_params) {
         updatePayload["other_params"] = {
@@ -1537,8 +1537,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
    */
   useEffect(() => {
     if (!!editorCopyChanges && isModalOpen && storyData) {
-      const flow = storageFlow
-      let parsed_content = getEditorContentBlocks(storyData?.other_params, flow, editorCopyChanges)
+      let parsed_content = getEditorContentBlocks(storyData?.other_params, flowInfo?.editor_config, editorCopyChanges)
 
       if (!document.getElementById("editorjs")) {
         return
@@ -1641,62 +1640,51 @@ const DynamicVoiceChat = ({ type = "" }) => {
           `
           document.head.appendChild(style)
           setTimeout(() => {
-            const blocks = document.querySelectorAll(".ce-block")
+            const editorConfig = flowInfo?.editor_config
+            const domBlocks = document.querySelectorAll(".ce-block")
 
-            blocks.forEach((block, blockIndex) => {
+            domBlocks.forEach((block) => {
               const headerEl = block.querySelector(".ce-header")
               const paragraphEl = block.querySelector(".ce-paragraph")
 
-              if (headerEl) {
-                const text = headerEl.innerText.trim().toLowerCase()
+              if (headerEl && editorConfig?.type === "header_list_sections") {
+                headerEl.setAttribute("contenteditable", "false")
+                headerEl.style.pointerEvents = "none"
+                headerEl.style.color = "#374151"
+                headerEl.style.fontWeight = "bold"
+              } else if (headerEl && editorConfig?.type === "qa") {
+                headerEl.setAttribute("contenteditable", "false")
+                headerEl.style.pointerEvents = "none"
+                headerEl.style.color = "#374151"
+                headerEl.style.fontWeight = "bold"
+                headerEl.classList.add("question-header")
 
-                if (text === t("challengesHeader").toLowerCase() || text === t("solutionsHeader").toLowerCase() || (text.startsWith("q") && text.includes(":"))) {
-                  headerEl.setAttribute("contenteditable", "false")
-                  headerEl.style.pointerEvents = "none"
-                  headerEl.style.color = "#374151"
-                  headerEl.style.fontWeight = "bold"
+                block.classList.add("non-deletable")
+                block.setAttribute("data-readonly", "true")
 
-                  if (text.startsWith("q") && text.includes(":")) {
-                    headerEl.classList.add("question-header")
-
-                    block.classList.add("non-deletable")
-                    block.setAttribute("data-readonly", "true")
-
-                    const preventDeletion = e => {
-                      if (e.key === "Backspace" || e.key === "Delete") {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        return false
-                      }
-                    }
-
-                    block.addEventListener("keydown", preventDeletion, true)
-                    headerEl.addEventListener("keydown", preventDeletion, true)
-
-                    block.addEventListener(
-                      "contextmenu",
-                      e => {
-                        e.preventDefault()
-                        return false
-                      },
-                      true
-                    )
-
-                    block.style.userSelect = "none"
-                    block.style.webkitUserSelect = "none"
-                    block.style.mozUserSelect = "none"
-                    block.style.msUserSelect = "none"
+                const preventDeletion = e => {
+                  if (e.key === "Backspace" || e.key === "Delete") {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    return false
                   }
                 }
-              } else if (paragraphEl) {
+
+                block.addEventListener("keydown", preventDeletion, true)
+                headerEl.addEventListener("keydown", preventDeletion, true)
+                block.addEventListener("contextmenu", e => { e.preventDefault(); return false }, true)
+                block.style.userSelect = "none"
+                block.style.webkitUserSelect = "none"
+                block.style.mozUserSelect = "none"
+                block.style.msUserSelect = "none"
+              } else if (paragraphEl && editorConfig?.type === "qa") {
                 const paragraphText = paragraphEl.textContent || paragraphEl.innerText || ""
                 const isEmpty = !paragraphText.trim() || paragraphText === "​" || paragraphText === " "
 
                 const prevBlock = block.previousElementSibling
                 const prevPrevBlock = prevBlock?.previousElementSibling
-
                 const isPrevBlockAnswer = prevBlock?.querySelector(".ce-paragraph")
-                const isPrevPrevBlockQuestion = prevPrevBlock?.querySelector(".ce-header")?.innerText.toLowerCase().startsWith("q")
+                const isPrevPrevBlockQuestion = prevPrevBlock?.querySelector(".ce-header")
 
                 if (isEmpty && isPrevBlockAnswer && isPrevPrevBlockQuestion) {
                   block.classList.add("spacer-block")
@@ -1714,16 +1702,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
                   block.addEventListener("click", preventInteraction, true)
                   block.addEventListener("mousedown", preventInteraction, true)
-                  block.addEventListener(
-                    "focus",
-                    e => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      if (e.target.blur) e.target.blur()
-                      return false
-                    },
-                    true
-                  )
+                  block.addEventListener("focus", e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (e.target.blur) e.target.blur()
+                    return false
+                  }, true)
                   block.addEventListener("keydown", preventInteraction, true)
                   block.addEventListener("keyup", preventInteraction, true)
                   block.addEventListener("input", preventInteraction, true)
@@ -1733,9 +1717,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   block.style.mozUserSelect = "none"
                   block.style.msUserSelect = "none"
                 }
-                //  else if (isPrevBlockAnswer === false && prevBlock?.querySelector(".ce-header")?.innerText.toLowerCase().startsWith("q")) {
-                //   paragraphEl.classList.add("answer-paragraph")
-                // }
               }
             })
           }, 500)
