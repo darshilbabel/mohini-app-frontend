@@ -17,7 +17,7 @@
 
     - name: Fetch the latest code
       git:
-        repo: https://github.com/ELEVATE-Project/mohini-app-frontend
+        repo: https://github.com/darshilbabel/mohini-app-frontend
         dest: "{{ project_path }}"
         version: "{{ gitBranch }}"
         force: yes
