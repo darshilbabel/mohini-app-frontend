@@ -13,7 +13,7 @@
       file:
         path: "{{ project_path }}"
         state: directory
-        mode: "0755"
+        mode: '0755'
 
     - name: Fetch the latest code
       git:
@@ -21,25 +21,25 @@
         dest: "{{ project_path }}"
         version: "{{ gitBranch }}"
         force: yes
-
+    
     - name: set permission
-      shell: chmod 744 {{ project_path }}/src/scripts/json2env.sh
+      shell: chmod 744 {{ project_path }}/src/scripts/json2env.sh  
 
     - name: Fetch .env from Vault
       shell: >
-        curl --location --request GET '{{ vaultAddress }}mohini-env'
+        curl --location --request GET '{{ vaultAddress }}mohini-env' 
         --header 'X-Vault-Token: {{ slurpfile['content'] | b64decode }}' | jq '.data' > '{{ project_path }}/data2.json'""
       register: env_response
 
-    - name: generate .env
+    - name: generate .env 
       shell: cat {{ project_path }}/data2.json | {{ project_path }}/src/scripts/json2env.sh > {{ project_path }}/.env
-      register: envConfig
-    - debug:
-        msg: " cred {{ envConfig }} "
+      register: envConfig 
+    - debug: 
+        msg: " cred {{ envConfig }} "    
 
     - name: Fetch credentials from Vault
       shell: >
-        curl --location --request GET '{{ vaultAddress }}mohini-frontend'
+        curl --location --request GET '{{ vaultAddress }}mohini-frontend' 
         --header 'X-Vault-Token: {{ slurpfile['content'] | b64decode }}'
       register: vault_response
 
@@ -85,7 +85,7 @@
     - name: Fetch pm2 config file
       shell: >
         curl --location --request GET '{{ vaultAddress }}mohiniPortalPM2Config'
-        --header 'X-Vault-Token: {{ slurpfile['content'] | b64decode }}'
+        --header 'X-Vault-Token: {{ slurpfile['content'] | b64decode }}' 
         | jq '.data.data' > '{{ project_path }}/pm2.config.json'
 
     - name: Build mohini app
