@@ -2660,7 +2660,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
         {(!showFileInput || showFileInput === null) && !isLoading && !endStoryMutation.isPending && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
           <form
-            className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
+            className="form-1 chat-input-row"
             onSubmit={event => {
               if (!hasStartedListening && !isFetchingData) {
                 handleSendMessage(event)
@@ -2668,6 +2668,17 @@ const DynamicVoiceChat = ({ type = "" }) => {
             }}
             autoComplete="off"
           >
+            {/* Mic button on the left */}
+            <button
+              type="button"
+              onClick={hasStartedRecording ? stopRecording : startRecording}
+              disabled={isFetchingData}
+              className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}
+            >
+              {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
+            </button>
+
+            {/* Text area in the middle */}
             <div className="textarea-wrapper relative">
               <textarea
                 id="textBoxID"
@@ -2721,19 +2732,14 @@ const DynamicVoiceChat = ({ type = "" }) => {
                 </div>
               )}
             </div>
-            {isTyping && !hasStartedListening && !isFetchingData ? (
-              <div className="button-container">
-                <button type="submit" disabled={hasStartedRecording || isFetchingData} className="button-6 sm:ml-[1.3rem] ml-[0.8rem]">
-                  <MdSend />
-                </button>
-              </div>
-            ) : (
-              <div className={`audio-recorder ${isFetchingData ? "button-container" : ""}`}>
-                <button type="button" onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData} className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${hasStartedRecording ? "button-8" : "button-9"}`}>
-                  {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
-                </button>
-              </div>
-            )}
+            {/* Send button on the right */}
+            <button
+              type="submit"
+              disabled={!textMessage.trim() || hasStartedRecording || isFetchingData}
+              className="send-btn"
+            >
+              <MdSend />
+            </button>
           </form>
         )}
       </div>

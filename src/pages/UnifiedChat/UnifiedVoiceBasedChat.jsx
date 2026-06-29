@@ -1027,7 +1027,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
 
         {!allQuestionsCompleted && !isEndStoryLoading && (
           <form
-            className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
+            className="form-1 chat-input-row"
             onSubmit={async event => {
               event.stopPropagation()
               event.preventDefault()
@@ -1088,6 +1088,17 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
             }}
             autoComplete="off"
           >
+            {/* Mic button on the left */}
+            <button
+              type="button"
+              onClick={hasStartedRecording ? stopRecording : startRecording}
+              disabled={isFetchingData || isReplying}
+              className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}
+            >
+              {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
+            </button>
+
+            {/* Text area in the middle */}
             <div className="textarea-wrapper relative">
               <textarea
                 id="textBoxID"
@@ -1141,19 +1152,14 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                 </div>
               )}
             </div>
-            {isTyping && !hasStartedListening && !isFetchingData ? (
-              <div className="button-container">
-                <button type="submit" disabled={hasStartedRecording || isFetchingData || isReplying} className="button-6 sm:ml-[1.3rem] ml-[0.8rem]">
-                  <MdSend />
-                </button>
-              </div>
-            ) : (
-              <div className={`audio-recorder ${isFetchingData ? "button-container" : ""}`}>
-                <button type="button" onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData || isReplying} className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${hasStartedRecording ? "button-8" : "button-9"}`}>
-                  {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
-                </button>
-              </div>
-            )}
+            {/* Send button on the right */}
+            <button
+              type="submit"
+              disabled={!textMessage.trim() || hasStartedRecording || isFetchingData || isReplying}
+              className="send-btn"
+            >
+              <MdSend />
+            </button>
           </form>
         )}
       </div>
