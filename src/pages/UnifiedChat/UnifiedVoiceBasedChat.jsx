@@ -1091,6 +1091,8 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
             {/* Mic button on the left */}
             <button
               type="button"
+              aria-label={hasStartedRecording ? t("stopRecording") : t("startRecording")}
+              aria-pressed={hasStartedRecording}
               onClick={hasStartedRecording ? stopRecording : startRecording}
               disabled={isFetchingData || isReplying}
               className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}
@@ -1098,7 +1100,6 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
               {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
             </button>
 
-            {/* Text area in the middle */}
             <div className="textarea-wrapper relative">
               <textarea
                 id="textBoxID"
@@ -1152,9 +1153,9 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                 </div>
               )}
             </div>
-            {/* Send button on the right */}
             <button
               type="submit"
+              aria-label={t("sendMessage")}
               disabled={!textMessage.trim() || hasStartedRecording || isFetchingData || isReplying}
               className="send-btn"
             >
