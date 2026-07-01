@@ -1291,6 +1291,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.XylemX_entrepreneurship_development]: "xylemx_entrepreneurship_development_",
       [sessionFlowName.PPPI_BOT_1]: "pppi_",
       [sessionFlowName.PPPI_Set_2]: "pppi_",
+      [sessionFlowName.Bihar_PTM]: "bihar_ptm_",
     }
 
     if (paramsMap[storageFlow]) {
@@ -1310,7 +1311,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         title: t(survey_title),
         showCancelButton: false,
         confirmButtonText: t("PPsCompletionCTA"),
-        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot].includes(storageFlow),
+        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.Bihar_PTM].includes(storageFlow),
         showCloseButton: false,
         allowEscapeKey: false,
         allowOutsideClick: false,
@@ -2231,7 +2232,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
             isMobileFirst={isMobile}
-                        showTheDots={false}displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot].includes(storageFlow))}
+                        showTheDots={false}displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.Bihar_PTM].includes(storageFlow))}
 
             content={
               <button
@@ -2354,6 +2355,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.XylemX_entrepreneurship_development]: "shiksha_samvad_",
                     [sessionFlowName.PPPI_BOT_1]: "shiksha_samvad_",
                     [sessionFlowName.PPPI_Set_2]: "shiksha_samvad_",
+                    [sessionFlowName.Bihar_PTM]: "shiksha_samvad_", 
                   }
 
                   const prefix = prefixMap[storageFlow] || ""

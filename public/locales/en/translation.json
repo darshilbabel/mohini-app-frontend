@@ -128,6 +128,7 @@
     "bihar_student_fgd_PPsCompletionMessage": "<div class='text-class'>Thank you for talking with us today. We really enjoyed hearing your ideas and learning from you.</div>",
     "stakeholder_fgd_PPsCompletionMessage": "<div class='text-class'>Thank you for your time. We will share the relevant aspects of the analysis of the Baseline report with you once it is completed.</div>",
     "pppi_PPsCompletionMessage": "<div class='text-class'>Thank you for your time and sharing your thoughts with us. Your voice matters and will help make the school better for your child and others.</div>",
+    "bihar_ptm_PPsCompletionMessage": "<div class='text-class'>Thank you! Your answer has been successfully recorded.</div>",
     "PPsCompletionCTA": "Submit another response",
     "pppi_homepageHeading": "We're Here to Listen to You",
     "pppi_homepageHeading1": "with MItra!",
