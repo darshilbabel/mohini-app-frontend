@@ -17,7 +17,7 @@ import { sessionFlowName } from "../../constants/session"
 import { setLanguage } from "../../i18n"
 import { showNotification } from "components/ToastMessage/TotastMessage"
 import { TbReload } from "react-icons/tb"
-import { useChatDataLocalStore, useSiteDataSessionStore } from "store"
+import { useChatDataLocalStore, useSiteDataSessionStore, useChatDataSessionStore } from "store"
 import { useChatStorage, useUserStorage, useSiteStorage } from "hooks/useStorage"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -88,6 +88,9 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const profileId = useUserStorage()(state => state.profileId)
   const previousUrl = useSiteStorage()(state => state.previousUrl)
 
+  const didUserMute = useChatDataSessionStore(state => state.didUserMute)
+  const setDidUserMute = useChatDataSessionStore(state => state.setDidUserMute)
+
   const languageToUse = useSiteDataSessionStore(state => state.chatLanguage)
   const setLanguageToUse = useSiteDataSessionStore(state => state.setChatLanguage)
   const setHasSelectedLanguage = useSiteDataSessionStore(state => state.setHasSelectedLanguage)
@@ -117,6 +120,8 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
 
   const narrateLastMessage = () => {
     try {
+      // Respect the user's session mute preference: don't auto-narrate when muted.
+      if (didUserMute) return
       const speakerButtons = document.querySelectorAll(".button-11.button-3")
       const lastSpeakerButton = speakerButtons[speakerButtons.length - 1]
 
@@ -259,7 +264,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
 
     const shouldGenerateStory = storyActionsConfig.showPhotoUpload || storyActionsConfig.showEdit || storyActionsConfig.showDownload
 
-    if (allQuestionsCompleted && shouldGenerateStory && acceptedTnc && !hasAutoPlayedStoryAudios.current && (showFileInput || storyData) && !llmError && !isLoading && !isEndStoryLoading) {
+    if (allQuestionsCompleted && shouldGenerateStory && acceptedTnc && !didUserMute && !hasAutoPlayedStoryAudios.current && (showFileInput || storyData) && !llmError && !isLoading && !isEndStoryLoading) {
       hasAutoPlayedStoryAudios.current = true
 
       setTimeout(() => {
@@ -450,6 +455,8 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
 
     removeLocalChatHistory()
     setIsOldChatOpen(false)
+    // Reset the audio mute preference when a new chat is started.
+    setDidUserMute(false)
 
     const session = await getSessionDetailsApi()
     setSessionId(session.sessionid)
@@ -505,6 +512,8 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       imageHeight: "100",
     }).then(result => {
       if (result.isConfirmed) {
+        // Reset the audio mute preference once the chat is completed.
+        setDidUserMute(false)
         clearFromStorage()
         window.location.reload()
         setLanguageToUse(LANGUAGE_ENUMS.ENGLISH)
@@ -651,6 +660,17 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
         }
       }
       let cachedAudioUrl = audioCache[id]
+      // User has disabled audio for this session: skip narration entirely and
+      // keep the chat flow moving by marking the message as narrated.
+      if (didUserMute) {
+        setSentences(prev => {
+          let all_sentences = JSON.parse(JSON.stringify([...prev]))
+          return all_sentences.map(x => ({ ...x, isNarrated: true }))
+        })
+        setIsNextAllowed(true)
+        setHasOverRideId(null)
+        return
+      }
       if (isMute && !hasOverRideId) {
         setSentences(prev => {
           let all_sentences = JSON.parse(JSON.stringify([...prev]))

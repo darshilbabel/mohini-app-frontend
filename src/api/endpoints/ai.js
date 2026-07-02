@@ -1,6 +1,7 @@
 import { API_ENDPOINTS } from "constants/urls"
 import { apiClient } from "../client"
 import { bot_routes } from "../../configure"
+import { useChatDataSessionStore } from "store"
 
 /**
  * Get AI4Bharat audio (Text-to-Speech)
@@ -10,6 +11,13 @@ import { bot_routes } from "../../configure"
  * @returns {Promise<string>} The audio data
  */
 export const getAI4BharatAudioApi = async (text, sourceLanguage = "en", storedRoute = bot_routes.normal) => {
+  // Global safety net: if user has muted audio for this session, never hit
+  try {
+    if (useChatDataSessionStore.getState().didUserMute) {
+      return ""
+    }
+  } catch (e) {
+  }
   try {
     const response = await apiClient.post(API_ENDPOINTS.TEXT_TO_SPEECH, {
       text: text,

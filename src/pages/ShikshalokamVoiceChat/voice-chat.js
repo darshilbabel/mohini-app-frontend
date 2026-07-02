@@ -165,6 +165,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const stateMachineLength = useChatStorage()(state => state.stateMachineLength)
   const storageFlow = useChatStorage()(state => state.flow)
   const strandStep = useChatDataSessionStore(state => state.strandStep)
+  const didUserMute = useChatDataSessionStore(state => state.didUserMute)
+  const setDidUserMute = useChatDataSessionStore(state => state.setDidUserMute)
   const taskId = useChatStorage()(state => state.taskId)
   const userState = useUserStorage()(state => state.state)
   const ipCity = useUserStorage()(state => state.ipCity)
@@ -1563,7 +1565,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         shouldPlay = true
       }
     }
-    if (isStreamingComplete && shouldPlay && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroMessageLoading) {
+    if (isStreamingComplete && shouldPlay && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && isMute && !didUserMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroMessageLoading) {
       const speakerButtons = document.querySelectorAll(".button-11.button-3")
       const lastSpeakerButton = speakerButtons[speakerButtons.length - 1]
 
@@ -1571,7 +1573,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         lastSpeakerButton.click()
       }
     }
-  }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroMessageLoading, noStoryFound])
+  }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, didUserMute, acceptedTnc, isIntroMessageLoading, noStoryFound])
 
   /**
    * Process TTS requests for unnarrated bot messages
@@ -1966,6 +1968,8 @@ function handleLlmError(errorMessage, errorType) {
           setFiles([])
           setShowFileInput(true)
           setLlmError("")
+          // Reset the audio mute preference once the chat is completed.
+          setDidUserMute(false)
           window.location.reload()
         } else {
           handleLlmError(endStoryResponse?.error_message, endStoryResponse?.error_type)
@@ -2179,6 +2183,8 @@ function handleLlmError(errorMessage, errorType) {
     setChatbotClickedOn("")
     setShowHomepage(true)
     setIsLoading(false)
+    // Reset the audio mute preference when a new chat is started.
+    setDidUserMute(false)
 
     window.location.reload()
   }
@@ -2440,6 +2446,18 @@ function handleLlmError(errorMessage, errorType) {
 
       if (!hasOverRideId) {
         handleMessagesForBot(text)
+      }
+
+      // User has disabled audio for this session: never call the TTS API.
+      // Mark the message as narrated so the chat flow continues normally.
+      if (didUserMute) {
+        setSentences(prev => {
+          let all_sentences = JSON.parse(JSON.stringify([...prev]))
+          return all_sentences.map(x => ({ ...x, isNarrated: true }))
+        })
+        setIsNextAllowed(true)
+        setHasOverRideId(null)
+        return
       }
 
       if (isMute && !hasOverRideId) {
@@ -3263,6 +3281,7 @@ function handleLlmError(errorMessage, errorType) {
 export default ShikshalokamVoiceBasedChat
 
 function ChatMessage({ userType, message, name, recording, handleOnSpeaking, handleOnStopSpeaking, isPlaying, botNameToDisplay, isStreamingComplete, setNotMute, chat, staticMessage, chatId }) {
+  const setDidUserMute = useChatDataSessionStore(state => state.setDidUserMute)
   let sanitizedContent = DOMPurify.sanitize(message)
   return (
     <div className="div41">
@@ -3274,13 +3293,24 @@ function ChatMessage({ userType, message, name, recording, handleOnSpeaking, han
           <div className="div46">
             {userType === "bot" ? (
               isPlaying ? (
-                <button className={`button-10 button-3`} onClick={handleOnStopSpeaking} disabled={!isStreamingComplete}>
+                <button
+                  className={`button-10 button-3`}
+                  onClick={() => {
+                    // User turned audio OFF: persist the preference so no further
+                    // TTS API calls are made for this session.
+                    setDidUserMute(true)
+                    handleOnStopSpeaking()
+                  }}
+                  disabled={!isStreamingComplete}
+                >
                   <HiMiniSpeakerWave />
                 </button>
               ) : (
                 <button
                   className={`button-11 button-3`}
                   onClick={() => {
+                    // User turned audio ON: clear the mute preference so TTS resumes.
+                    setDidUserMute(false)
                     setNotMute(false)
                     handleOnSpeaking(message, chat?.updated_at, staticMessage, true)
                   }}

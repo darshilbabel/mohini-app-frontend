@@ -1,6 +1,7 @@
 
 import DOMPurify from "dompurify";
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2";
+import { useChatDataSessionStore } from "store";
 import { MdAccountCircle } from "react-icons/md";
 import WaveSurferPlayer from "../interview-text-voice/voice-player";
 import { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord";
@@ -24,6 +25,7 @@ function ChatMessage({
   chatId,
 }) {
 
+  const setDidUserMute = useChatDataSessionStore(state => state.setDidUserMute);
   let sanitizedContent = DOMPurify.sanitize(message);
   return (
     <div className="div41">
@@ -40,7 +42,10 @@ function ChatMessage({
             (isPlaying) ? (
               <button
                 className={`button-10 button-3`}
-                onClick={handleOnStopSpeaking}
+                onClick={() => {
+                  setDidUserMute(true);
+                  handleOnStopSpeaking();
+                }}
                 disabled={!isStreamingComplete}
               >
                 <HiMiniSpeakerWave />
@@ -49,6 +54,7 @@ function ChatMessage({
               <button
                 className={`button-11 button-3`}
                 onClick={() => {
+                  setDidUserMute(false);
                   setNotMute(false);
                   handleOnSpeaking(message, chat?.updated_at, staticMessage, true);
                 }}
