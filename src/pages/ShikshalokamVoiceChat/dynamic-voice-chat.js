@@ -453,7 +453,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         storyId: updatePayload.id,
       })
       setStoryData(result)
-      
+
       /**
        * * Navigation handled differently if authenticated user
        */
@@ -1389,6 +1389,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.XylemX_entrepreneurship_development]: "xylemx_entrepreneurship_development_",
       [sessionFlowName.PPPI_BOT_1]: "pppi_",
       [sessionFlowName.PPPI_Set_2]: "pppi_",
+      [sessionFlowName.Bihar_PTM]: "bihar_ptm_",
     }
 
     if (paramsMap[activeFlowRoute]) {
@@ -1408,7 +1409,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         title: t(survey_title),
         showCancelButton: false,
         confirmButtonText: t("PPsCompletionCTA"),
-        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot].includes(activeFlowRoute),
+        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.Bihar_PTM].includes(activeFlowRoute),
         showCloseButton: false,
         allowEscapeKey: false,
         allowOutsideClick: false,
@@ -1668,7 +1669,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
             .ce-block--selected .ce-block__drag-handle { display: none !important; }
             .ce-inline-toolbar { display: none !important; }
             .ce-block--selected { outline: none !important; }
-            
+
             /* Style for spacer blocks */
             .spacer-block {
               min-height: 0.75rem !important;
@@ -1680,7 +1681,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
               margin: 0.5rem 0 !important;
               position: relative;
             }
-            
+
             .spacer-block .ce-paragraph {
               pointer-events: none !important;
               user-select: none !important;
@@ -1689,7 +1690,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
               opacity: 0 !important;
               min-height: 0.75rem !important;
             }
-            
+
             .spacer-block::before {
               content: '';
               display: block;
@@ -1701,13 +1702,13 @@ const DynamicVoiceChat = ({ type = "" }) => {
               left: 0;
               transform: translateY(-50%);
             }
-            
+
             /* Add visual separation after answer paragraphs */
             .answer-paragraph {
               margin-bottom: 0.5rem !important;
               padding-bottom: 0.5rem !important;
             }
-            
+
             /* Question header styling */
             .question-header {
               color: #374151 !important;
@@ -1715,16 +1716,16 @@ const DynamicVoiceChat = ({ type = "" }) => {
               margin-top: 2rem !important;
               margin-bottom: 1rem !important;
             }
-            
+
             .question-header:first-child {
               margin-top: 0 !important;
             }
-            
+
             /* Non-deletable block styling */
             .non-deletable {
               position: relative;
             }
-            
+
             .non-deletable::after {
               content: '';
               position: absolute;
@@ -1925,7 +1926,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     } else {
       navigate({
         pathname: ROUTES.SHIKSHALOKAM_HOME_PAGE,
-        search: currentFlow ? new URLSearchParams({ flow: currentFlow }).toString() : ''   
+        search: currentFlow ? new URLSearchParams({ flow: currentFlow }).toString() : ''
       })
       window.location.reload()
     }
@@ -2211,7 +2212,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       handleOnStopSpeaking()
-      setTextMessage("")
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then(stream => {
@@ -2271,7 +2271,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   },
                 })
               } else {
-                setTextMessage(transcriptResult)
+                setTextMessage(prev => {
+                  if (prev && prev.trim().length > 0) {
+                    return prev.trimEnd() + " " + transcriptResult
+                  }
+                  return transcriptResult
+                })
               }
               setIsFetchingData(false)
             } else {
@@ -2321,10 +2326,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
       {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && activeFlowRoute && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={`div27`}>
         <div className={isMobile ? "div30_a" : "div30"}>
-        
+
           <MainHeader
             isMobileFirst={isMobile}
-                        showTheDots={false}displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot].includes(activeFlowRoute))}
+            showTheDots={false}displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.Bihar_PTM].includes(activeFlowRoute))}
 
             content={
               <>
@@ -2466,6 +2471,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.XylemX_entrepreneurship_development]: "shiksha_samvad_",
                     [sessionFlowName.PPPI_BOT_1]: "shiksha_samvad_",
                     [sessionFlowName.PPPI_Set_2]: "shiksha_samvad_",
+                    [sessionFlowName.Bihar_PTM]: "shiksha_samvad_",
                   }
 
                   const prefix = prefixMap[activeFlowRoute] || ""
@@ -2481,7 +2487,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                           {t(`${prefix}homepageHeading1`)}
                         </h3>
                       </div>
-                      
+
                       <ul className="div11">
                         <li>{t(`${prefix}homepageList`)}</li>
                         <li>{t(`${prefix}homepageList1`)}</li>
@@ -2731,7 +2737,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
         {(!showFileInput || showFileInput === null) && !isLoading && !endStoryMutation.isPending && (llmError === "" || !llmError) && Array.isArray(chatHistory) && chatHistory.some(item => item && Object.keys(item).length > 0) && (
           <form
-            className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
+            className="form-1 chat-input-row"
             onSubmit={event => {
               if (!hasStartedListening && !isFetchingData) {
                 handleSendMessage(event)
@@ -2739,6 +2745,18 @@ const DynamicVoiceChat = ({ type = "" }) => {
             }}
             autoComplete="off"
           >
+            {/* Mic button on the left */}
+            <button
+              type="button"
+              aria-label={hasStartedRecording ? t("stopRecording") : t("startRecording")}
+              aria-pressed={hasStartedRecording}
+              onClick={hasStartedRecording ? stopRecording : startRecording}
+              disabled={isFetchingData}
+              className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}
+            >
+              {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
+            </button>
+
             <div className="textarea-wrapper relative">
               <textarea
                 id="textBoxID"
@@ -2792,19 +2810,14 @@ const DynamicVoiceChat = ({ type = "" }) => {
                 </div>
               )}
             </div>
-            {isTyping && !hasStartedListening && !isFetchingData ? (
-              <div className="button-container">
-                <button type="submit" disabled={hasStartedRecording || isFetchingData} className="button-6 sm:ml-[1.3rem] ml-[0.8rem]">
-                  <MdSend />
-                </button>
-              </div>
-            ) : (
-              <div className={`audio-recorder ${isFetchingData ? "button-container" : ""}`}>
-                <button type="button" onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData} className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${hasStartedRecording ? "button-8" : "button-9"}`}>
-                  {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
-                </button>
-              </div>
-            )}
+            <button
+              type="submit"
+              aria-label={t("sendMessage")}
+              disabled={!textMessage.trim() || hasStartedRecording || isFetchingData}
+              className="send-btn"
+            >
+              <MdSend />
+            </button>
           </form>
         )}
       </div>

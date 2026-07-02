@@ -34,4 +34,5 @@ export const sessionFlowName = {
   XylemX_entrepreneurship_development: "XylemX_entrepreneurship_development",
   PPPI_BOT_1: "PPPI_Set_1",
   PPPI_Set_2: "PPPI_Set_2",
+  Bihar_PTM: "Bihar_PTM",
 }

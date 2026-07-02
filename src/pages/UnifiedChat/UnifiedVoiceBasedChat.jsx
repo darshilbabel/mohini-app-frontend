@@ -739,7 +739,6 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       handleOnStopSpeaking()
-      setTextMessage("")
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then(stream => {
@@ -798,7 +797,12 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                   },
                 })
               } else {
-                setTextMessage(transcriptResult)
+                setTextMessage(prev => {
+                  if (prev && prev.trim().length > 0) {
+                    return prev.trimEnd() + " " + transcriptResult
+                  }
+                  return transcriptResult
+                })
               }
               setIsFetchingData(false)
             } else {
@@ -1027,7 +1031,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
 
         {!allQuestionsCompleted && !isEndStoryLoading && (
           <form
-            className="div39 form-1 sm:p-[10px_35px] p-[10px_25px]"
+            className="form-1 chat-input-row"
             onSubmit={async event => {
               event.stopPropagation()
               event.preventDefault()
@@ -1088,6 +1092,18 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
             }}
             autoComplete="off"
           >
+            {/* Mic button on the left */}
+            <button
+              type="button"
+              aria-label={hasStartedRecording ? t("stopRecording") : t("startRecording")}
+              aria-pressed={hasStartedRecording}
+              onClick={hasStartedRecording ? stopRecording : startRecording}
+              disabled={isFetchingData || isReplying}
+              className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}
+            >
+              {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
+            </button>
+
             <div className="textarea-wrapper relative">
               <textarea
                 id="textBoxID"
@@ -1141,19 +1157,14 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                 </div>
               )}
             </div>
-            {isTyping && !hasStartedListening && !isFetchingData ? (
-              <div className="button-container">
-                <button type="submit" disabled={hasStartedRecording || isFetchingData || isReplying} className="button-6 sm:ml-[1.3rem] ml-[0.8rem]">
-                  <MdSend />
-                </button>
-              </div>
-            ) : (
-              <div className={`audio-recorder ${isFetchingData ? "button-container" : ""}`}>
-                <button type="button" onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData || isReplying} className={`button-7 sm:ml-[1.3rem] ml-[0.8rem] ${hasStartedRecording ? "button-8" : "button-9"}`}>
-                  {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
-                </button>
-              </div>
-            )}
+            <button
+              type="submit"
+              aria-label={t("sendMessage")}
+              disabled={!textMessage.trim() || hasStartedRecording || isFetchingData || isReplying}
+              className="send-btn"
+            >
+              <MdSend />
+            </button>
           </form>
         )}
       </div>
