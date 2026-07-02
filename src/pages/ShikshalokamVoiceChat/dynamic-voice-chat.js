@@ -2042,6 +2042,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
       if (!cachedAudioUrl) {
         audio_result = await getAI4BharatAudioApi(text, sourceLanguage, storedRoute)
+        if (!audio_result?.length) {
+          setSentences(prev => prev.map(x => ({ ...x, isNarrated: true })))
+          setIsNextAllowed(true)
+          setHasOverRideId(null)
+          return
+        }
         if (audio_result?.length) {
           cachedAudioUrl = `data:audio/wav;base64,${audio_result}`
           setAudioCache(prevCache => ({
