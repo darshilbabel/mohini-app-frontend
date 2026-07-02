@@ -249,3 +249,18 @@ export async function paraphraseChatConversation(session_id) {
 
     return response?.data?.paraphrased_output;
 }
+
+export async function postNonLlmChat({ session, profile_id, message, language }) {
+    try {
+        const response = await axiosInstance.post(API_ENDPOINTS.NON_LLM_CHAT, {
+            session,
+            profile_id,
+            message,
+            language,
+        });
+        return response?.data;
+    } catch (error) {
+        console.error('Error in postNonLlmChat:', error);
+        throw error;
+    }
+}

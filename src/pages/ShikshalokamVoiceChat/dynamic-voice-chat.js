@@ -7,6 +7,7 @@ import { clearFromStorage, handleS3Upload } from "../../services/storage_service
 import { createMessage } from "../interview-voice"
 import { createUserProfileApi, getProfileUserApi } from "api/endpoints/user"
 import { getChatsFromDB, endStoryV2Api, getStoryBySessionAPI, updateStoryMediaApi, updateReflectionStatusApi, getAI4BharatAudioApi, ai4BharatASRApi, getFlowInfoApi } from "../../api/endpoints"
+import { postNonLlmChat } from "../../api/endpoints/chat_flow"
 import { extractStoryData, extractTextBlocks, getEditorContentBlocks, handleMultipleUploads } from "../../utils/story"
 import { FaCircle } from "react-icons/fa6"
 import { FaMicrophone, FaRegStopCircle } from "react-icons/fa"
@@ -104,6 +105,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const [textMessage, setTextMessage] = useState("")
   const [trigger, setTrigger] = useState(false)
   const [triggerDownload, setTriggerDownload] = useState(false)
+  const [stepMetadata, setStepMetadata] = useState([])
 
 
   // ========== useSelector Hooks ==========
@@ -576,11 +578,13 @@ const DynamicVoiceChat = ({ type = "" }) => {
     return [...quickSort(left, compare), pivot, ...quickSort(right, compare)]
   }
 
+  const isNonLlmStep = (step) => stepMetadata.find(s => s.step === step)?.operation_type === 'non_llm'
+
   /**
-   * Sends user message through WebSocket connection
-   * Handles message submission, WebSocket connection, and UI updates
+   * Sends user message through WebSocket connection or HTTP for NON_LLM steps.
+   * Handles message submission, WebSocket connection, and UI updates.
    */
-  function handleSendMessage(event) {
+  async function handleSendMessage(event) {
     if (event) {
       event.preventDefault()
       event.stopPropagation()
@@ -600,6 +604,58 @@ const DynamicVoiceChat = ({ type = "" }) => {
     if (!textMessage.trim()) return
 
     const chat_history = handleMessagesForUser(textMessage)
+
+    // NON_LLM HTTP path: skip WebSocket for data-collection steps
+    if (isNonLlmStep(strandStep)) {
+      try {
+        const res = await postNonLlmChat({
+          session: sessionId,
+          profile_id: profileToUse,
+          message: textMessage,
+          language: chatLanguage,
+        })
+
+        const botMsg = res?.translated_bot_message || res?.bot_message
+        if (botMsg) {
+          setSentences(prev => [...prev, { message: botMsg, source: 'bot', isNarrated: false, id: Date.now() }])
+          handleMessagesForBot(botMsg)
+        }
+
+        if (res?.step !== undefined) {
+          setStrandStep(res.step)
+        }
+
+        if (res?.is_complete) {
+          setStrandStep(stateMachineLength)
+          setIsStreamingComplete(true)
+        } else if (res?.operation_type === 'llm') {
+          // Next step is LLM — open WebSocket to continue
+          connectToWebSocket()
+          sendSocketMessage({
+            type: "authenticate",
+            sessionid: sessionId,
+            profileid: profileToUse,
+            projectid: projectIdStore || searchParams.get("projectId") || "",
+            taskid: searchParams.get("taskId") || taskId,
+            access_token: accessToken,
+            route: chatLanguage,
+            bot_route: activeFlowInfo.bot_route,
+            flow_name: activeFlowRoute,
+            address: { ipCity, ipState, ipZipCode },
+          })
+        }
+      } catch (err) {
+        console.error("NON_LLM HTTP send failed:", err)
+        setLlmError("Failed to send message. Please try again.")
+      }
+
+      setAsrAudio(null)
+      handleScrollToView()
+      setTextMessage("")
+      return
+    }
+
+    // LLM WebSocket path (existing behaviour)
     if (chat_history.filter(chat => chat.source === "user").length == 1 || !isSocketConnected) {
       connectToWebSocket()
       sendSocketMessage({
@@ -880,6 +936,21 @@ const DynamicVoiceChat = ({ type = "" }) => {
     const selectedBot = bots.find(bot => bot.route === storedRoute) || bots[0] || { route: "/" }
     if (selectedBot?.statemachine_length) {
       setStateMachineLength(selectedBot.statemachine_length)
+    }
+
+    const steps = selectedBot?.state_machine_steps ?? []
+    setStepMetadata(steps)
+
+    // If step 0 is NON_LLM, inject first bot question directly from state machine metadata
+    if (steps.length > 0 && steps[0]?.operation_type === 'non_llm' && steps[0]?.bot_question) {
+      const firstQuestion = steps[0].bot_question
+      const firstQuestionId = `non_llm_step_0_${Date.now()}`
+      setSentences(prev => {
+        const alreadyHasFirstQuestion = prev.some(s => s.id?.toString().startsWith('non_llm_step_0'))
+        if (alreadyHasFirstQuestion) return prev
+        return [...prev, { message: firstQuestion, source: 'bot', isNarrated: false, id: firstQuestionId }]
+      })
+      handleMessagesForBot(firstQuestion)
     }
 
     // Find the latest bot based on flow type
