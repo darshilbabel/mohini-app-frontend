@@ -759,7 +759,6 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       handleOnStopSpeaking()
-      setTextMessage("")
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then(stream => {
@@ -818,7 +817,12 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                   },
                 })
               } else {
-                setTextMessage(transcriptResult)
+                setTextMessage(prev => {
+                  if (prev && prev.trim().length > 0) {
+                    return prev.trimEnd() + " " + transcriptResult
+                  }
+                  return transcriptResult
+                })
               }
               setIsFetchingData(false)
             } else {

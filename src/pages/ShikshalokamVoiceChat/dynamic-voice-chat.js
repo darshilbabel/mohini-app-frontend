@@ -2144,7 +2144,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const startRecording = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       handleOnStopSpeaking()
-      setTextMessage("")
       navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then(stream => {
@@ -2204,7 +2203,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   },
                 })
               } else {
-                setTextMessage(transcriptResult)
+                setTextMessage(prev => {
+                  if (prev && prev.trim().length > 0) {
+                    return prev.trimEnd() + " " + transcriptResult
+                  }
+                  return transcriptResult
+                })
               }
               setIsFetchingData(false)
             } else {
