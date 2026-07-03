@@ -947,8 +947,14 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                       hasAppendix={chat?.recording}
                       appendixURL={chat?.appendixURL}
                       isTalking={chat.source === "bot" && i === chatHistory.length - 1}
-                      handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                      handleOnStopSpeaking={() => {
+                        // User turned audio OFF: persist the session mute preference.
+                        setDidUserMute(true)
+                        handleOnStopSpeaking()
+                      }}
                       handleOnSpeaking={() => {
+                        // User turned audio ON: clear the session mute preference.
+                        setDidUserMute(false)
                         handleOnSpeaking(chat?.audio, chat?.updated_at)
                       }}
                       isAnyPlaying={!!hasOverRideId}

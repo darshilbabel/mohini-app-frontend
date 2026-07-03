@@ -1,14 +1,9 @@
 import { getAI4BharatAudioApi } from "api/endpoints/ai";
 import { bot_routes } from "configure";
-import { useChatDataSessionStore } from "store";
 
 export const handleAI4BharatTTSRequest = async (text, id, language, audioCache, setAudioCache, audioRef, setIsBotTalking) => {
 
     try {
-        if (useChatDataSessionStore.getState().didUserMute) {
-            setIsBotTalking(false);
-            return;
-        }
         let cachedAudioUrl = audioCache[id];
         let audio_result = "";
         let audio;

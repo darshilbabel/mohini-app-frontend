@@ -24,7 +24,7 @@ import Notification, { showNotification } from "../../../../components/ToastMess
 /* constants */
 import { ACTIVE_TABS } from "../../constants/mitra.constants";
 import { LOADER_KEYS } from "../../constants/common";
-import { useAICreationSessionStore } from "store";
+import { useAICreationSessionStore, useChatDataSessionStore } from "store";
 import InitialSwitch from "./mitra-pages/InitialSwitch";
 import { getTranslatedIntroMessageApi } from "../../../../api/endpoints/ai";
 import { bot_routes, FLOW_TYPES } from "../../../../configure";
@@ -205,6 +205,8 @@ function MainPage() {
 
   function handleSpeakerOn(messageToUse, audioId) {
     if (!messageToUse || !audioId) return;
+    // User disabled audio for this session: don't request text-to-speech.
+    if (useChatDataSessionStore.getState().didUserMute) return;
     setIsBotTalking(true);
     const preferredLanguage = useAICreationSessionStore.getState().getPreferredLanguage()
     const language = preferredLanguage.value || "en";
