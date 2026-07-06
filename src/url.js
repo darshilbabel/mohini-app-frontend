@@ -3,9 +3,10 @@ const ROUTES = {
   EXIT_ROUTE: "/exit",
   LOGOUT: "/logout",
   NOT_FOUND: "/shikshagraha-not-found",
+  
   SHIKSHAGRAHA_REPOSITORY_DETAIL: "/:id",
-  SHIKSHAGRAHA_REPOSITORY_MITRA_AI_ASSISTANT: "/create-profile/mitra-chat",
   SHIKSHAGRAHA_REPOSITORY: "/",
+  
   SHIKSHALOKAM_GUEST_LISTENING_CHAT: "/guest-listen",
   SHIKSHALOKAM_GUEST_MI_STORY: "/guest-mi",
   SHIKSHALOKAM_GUEST_PAGE: "/flow",

@@ -107,7 +107,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const [triggerDownload, setTriggerDownload] = useState(false)
   const [stepMetadata, setStepMetadata] = useState([])
 
-
   // ========== useSelector Hooks ==========
   const [chatHistory, setChatHistory, removeChatHistory, getChatHistory] = useSmartChatStorage()
   const accessToken = useUserDataLocalStore(state => state.access_token)
@@ -157,7 +156,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const isIntroPlayed = useRef(false)
 
   // ========== react query hooks ==========
-  const endStoryMutation = useMutation({ mutationFn: (data) => endStoryV2Api(data) })
+  const endStoryMutation = useMutation({ mutationFn: data => endStoryV2Api(data) })
 
   const {
     data: flowInfo,
@@ -191,10 +190,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   const { data: introMessageData, isLoading: isIntroMessageLoading } = useQuery({
     queryKey: [API_ENDPOINTS.BOT_VERNACULAR, activeFlowInfo?.bot_route, languageToUse],
-    queryFn: () => getTranslatedIntroMessageApi({
-      language: languageToUse,
-      company_bot__route: activeFlowInfo.bot_route,
-    }),
+    queryFn: () =>
+      getTranslatedIntroMessageApi({
+        language: languageToUse,
+        company_bot__route: activeFlowInfo.bot_route,
+      }),
     enabled: !!(companyBotData && languageToUse && companyBotData?.results?.length > 0 && activeFlowInfo?.bot_route),
   })
 
@@ -209,7 +209,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
   // ========== Other Hooks ==========
   const [searchParams] = useSearchParams()
   const { t } = useTranslation()
-
 
   const { recordings, HiddenRecorder } = useVoiceRecord()
 
@@ -338,7 +337,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const projectId = useMemo(() => projectIdStore || searchParams.get("projectId"), [projectIdStore, searchParams])
 
   const tncText = useMemo(() => {
-    let tncMap ={
+    let tncMap = {
       [sessionFlowName.StudyTeacherInterview]: "fgd_tncText",
       [sessionFlowName.StakeholderFGD]: "fgd_tncText",
       [sessionFlowName.BiharStudentFGD]: "fgd_tncText",
@@ -578,7 +577,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     return [...quickSort(left, compare), pivot, ...quickSort(right, compare)]
   }
 
-  const isNonLlmStep = (step) => stepMetadata.find(s => s.step === step)?.operation_type === 'non_llm'
+  const isNonLlmStep = step => stepMetadata.find(s => s.step === step)?.operation_type === "non_llm"
 
   /**
    * Sends user message through WebSocket connection or HTTP for NON_LLM steps.
@@ -599,25 +598,26 @@ const DynamicVoiceChat = ({ type = "" }) => {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
     }
-    console.log(textMessage, "textMessage")
 
     if (!textMessage.trim()) return
 
     const chat_history = handleMessagesForUser(textMessage)
 
     // NON_LLM HTTP path: skip WebSocket for data-collection steps
-    if (isNonLlmStep(strandStep)) {
+    if (isNonLlmStep(strandStep || 1)) {
       try {
         const res = await postNonLlmChat({
           session: sessionId,
           profile_id: profileToUse,
           message: textMessage,
           language: chatLanguage,
+          flow_name: activeFlowRoute,
+          company_bot: companyBotData.results[0].id,
         })
 
         const botMsg = res?.translated_bot_message || res?.bot_message
         if (botMsg) {
-          setSentences(prev => [...prev, { message: botMsg, source: 'bot', isNarrated: false, id: Date.now() }])
+          setSentences(prev => [...prev, { message: botMsg, source: "bot", isNarrated: false, id: Date.now() }])
           handleMessagesForBot(botMsg)
         }
 
@@ -628,7 +628,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
         if (res?.is_complete) {
           setStrandStep(stateMachineLength)
           setIsStreamingComplete(true)
-        } else if (res?.operation_type === 'llm') {
+        }
+        if (res?.operation_type === "llm") {
           // Next step is LLM — open WebSocket to continue
           connectToWebSocket()
           sendSocketMessage({
@@ -643,6 +644,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
             flow_name: activeFlowRoute,
             address: { ipCity, ipState, ipZipCode },
           })
+        } else if (res?.operation_type === null) {
+          console.log("Hello World")
         }
       } catch (err) {
         console.error("NON_LLM HTTP send failed:", err)
@@ -656,7 +659,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
 
     // LLM WebSocket path (existing behaviour)
-    if (chat_history.filter(chat => chat.source === "user").length == 1 || !isSocketConnected) {
+    if (chat_history.filter(chat => chat.source === "user").length === 1 || !isSocketConnected) {
       connectToWebSocket()
       sendSocketMessage({
         type: "authenticate",
@@ -701,7 +704,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
       if (storedChatHistory.length >= 1) {
         return
       }
-
 
       try {
         const sortedResult = quickSort(Array.isArray(chatSessionData?.results) ? chatSessionData.results : [], compareById)
@@ -792,33 +794,29 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Adds bot messages to chat history during streaming
    * Prevents duplicate messages and manages message state
    */
-  const handleMessagesForBot = useCallback(
-    sentence => {
-      if (isRecognizing || hasStartedListening || !shouldSendMessage) return
+  const handleMessagesForBot = useCallback(sentence => {
+    if (isRecognizing || hasStartedListening || !shouldSendMessage) return
 
-      const chat_history = structuredClone(chatHistory)
-      const lastMessage = chat_history[chatHistory?.length - 1]
-      if (lastMessage?.msg === sentence && lastMessage?.source === "bot") {
-        return
-      }
+    const chat_history = structuredClone(getChatHistory())
+    const lastMessage = chat_history[chat_history?.length - 1]
+    if (lastMessage?.msg === sentence && lastMessage?.source === "bot") {
+      return
+    }
 
-      if (chat_history[chatHistory?.length - 1]?.source === "bot") {
-        const lastMessage = chat_history[chatHistory?.length - 1]
-        lastMessage.msg += " " + sentence
-        setChatHistory([...chat_history])
-      } else {
-        setChatHistory([
-          ...chat_history,
-          createMessage({
-            msg: sentence,
-            source: "bot",
-            received: true,
-          }),
-        ])
-      }
-    },
-    [chatHistory]
-  )
+    if (lastMessage?.source === "bot") {
+      lastMessage.msg += " " + sentence
+      setChatHistory([...chat_history])
+    } else {
+      setChatHistory([
+        ...chat_history,
+        createMessage({
+          msg: sentence,
+          source: "bot",
+          received: true,
+        }),
+      ])
+    }
+  }, [])
 
   useEffect(() => {
     if (!isFlowInfoError) return
@@ -840,9 +838,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       navigateBack()
       return
     }
-    const defaultRoute = (flowInfo.default_flow && activeChildren.find(f => f.flow_route === flowInfo.default_flow))
-      ? flowInfo.default_flow
-      : activeChildren[0].flow_route
+    const defaultRoute = flowInfo.default_flow && activeChildren.find(f => f.flow_route === flowInfo.default_flow) ? flowInfo.default_flow : activeChildren[0].flow_route
     setSelectedChildFlowRoute(defaultRoute)
   }, [flowInfo])
 
@@ -920,7 +916,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
     setIsLoading(false)
   }, [introMessageData])
 
-
   useEffect(() => {
     if (!companyBotData) return
     if (!activeFlowInfo) return
@@ -942,13 +937,13 @@ const DynamicVoiceChat = ({ type = "" }) => {
     setStepMetadata(steps)
 
     // If step 0 is NON_LLM, inject first bot question directly from state machine metadata
-    if (steps.length > 0 && steps[0]?.operation_type === 'non_llm' && steps[0]?.bot_question) {
+    if (steps.length > 0 && steps[0]?.operation_type === "non_llm" && steps[0]?.bot_question) {
       const firstQuestion = steps[0].bot_question
       const firstQuestionId = `non_llm_step_0_${Date.now()}`
       setSentences(prev => {
-        const alreadyHasFirstQuestion = prev.some(s => s.id?.toString().startsWith('non_llm_step_0'))
+        const alreadyHasFirstQuestion = prev.some(s => s.id?.toString().startsWith("non_llm_step_0"))
         if (alreadyHasFirstQuestion) return prev
-        return [...prev, { message: firstQuestion, source: 'bot', isNarrated: false, id: firstQuestionId }]
+        return [...prev, { message: firstQuestion, source: "bot", isNarrated: false, id: firstQuestionId }]
       })
       handleMessagesForBot(firstQuestion)
     }
@@ -962,7 +957,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
     if (!activeFlowRoute || ![sessionFlowName.LoginMiStory].includes(activeFlowRoute)) {
       handleCompanyChatCall()
     }
-
   }, [companyBotData, introMessage, chatSessionData, activeFlowInfo])
 
   // ========================================================================
@@ -1366,15 +1360,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
   }, [isStreamingComplete, accessToken, stateMachineLength, languageToUse, noStoryFound, activeFlowRoute, sentences])
 
-
-
-
-
   /**
    * * Display Popup for the flows where end story api is not being called
    */
   useEffect(() => {
-
     let survey_title = "PPsCompletionMessage"
 
     const paramsMap = {
@@ -1397,14 +1386,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
 
     const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot"
-    if (
-      activeFlowRoute &&
-      activeFlowInfo?.create_story === "none" &&
-      isStreamingComplete &&
-      stateMachineLength &&
-      strandStep >= stateMachineLength &&
-      isLastMessageFromBot
-    ) {
+    if (activeFlowRoute && activeFlowInfo?.create_story === "none" && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && isLastMessageFromBot) {
       Swal.fire({
         title: t(survey_title),
         showCancelButton: false,
@@ -1424,7 +1406,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           stopAllAudio()
           navigate({
             pathname: ROUTES.SHIKSHALOKAM_HOME_PAGE,
-            search: activeFlowRoute ? new URLSearchParams({ flow: activeFlowRoute }).toString() : ''
+            search: activeFlowRoute ? new URLSearchParams({ flow: activeFlowRoute }).toString() : "",
           })
           window.location.reload()
         }
@@ -1615,9 +1597,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
     if (acceptedTnc === "ONGOING") {
       return () => {}
     }
-    console.log({
-      hasUnnarratedMessages,
-    })
     if (isNextAllowed && hasUnnarratedMessages && !isLoading && !endStoryMutation.isPending && activeFlowInfo) {
       handleAI4BharatTTSRequest(unnarratedMessages[0].message, unnarratedMessages[0].id, sourceLanguage)
     }
@@ -1742,7 +1721,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
             const editorConfig = activeFlowInfo?.editor_config
             const domBlocks = document.querySelectorAll(".ce-block")
 
-            domBlocks.forEach((block) => {
+            domBlocks.forEach(block => {
               const headerEl = block.querySelector(".ce-header")
               const paragraphEl = block.querySelector(".ce-paragraph")
 
@@ -1771,7 +1750,14 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
                 block.addEventListener("keydown", preventDeletion, true)
                 headerEl.addEventListener("keydown", preventDeletion, true)
-                block.addEventListener("contextmenu", e => { e.preventDefault(); return false }, true)
+                block.addEventListener(
+                  "contextmenu",
+                  e => {
+                    e.preventDefault()
+                    return false
+                  },
+                  true
+                )
                 block.style.userSelect = "none"
                 block.style.webkitUserSelect = "none"
                 block.style.mozUserSelect = "none"
@@ -1801,12 +1787,16 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
                   block.addEventListener("click", preventInteraction, true)
                   block.addEventListener("mousedown", preventInteraction, true)
-                  block.addEventListener("focus", e => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    if (e.target.blur) e.target.blur()
-                    return false
-                  }, true)
+                  block.addEventListener(
+                    "focus",
+                    e => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      if (e.target.blur) e.target.blur()
+                      return false
+                    },
+                    true
+                  )
                   block.addEventListener("keydown", preventInteraction, true)
                   block.addEventListener("keyup", preventInteraction, true)
                   block.addEventListener("input", preventInteraction, true)
@@ -1926,7 +1916,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     } else {
       navigate({
         pathname: ROUTES.SHIKSHALOKAM_HOME_PAGE,
-        search: currentFlow ? new URLSearchParams({ flow: currentFlow }).toString() : ''
+        search: currentFlow ? new URLSearchParams({ flow: currentFlow }).toString() : "",
       })
       window.location.reload()
     }
@@ -1970,13 +1960,13 @@ const DynamicVoiceChat = ({ type = "" }) => {
     window.location.reload()
   }
 
-  const handleChildFlowChange = (e) => {
+  const handleChildFlowChange = e => {
     const newRoute = e.target.value
     if (chatHistory.length > 0) {
-      showGuestPopup(
-        () => { setSelectedChildFlowRoute(newRoute); resetChat() },
-        stayOnPage
-      )
+      showGuestPopup(() => {
+        setSelectedChildFlowRoute(newRoute)
+        resetChat()
+      }, stayOnPage)
     } else {
       setSelectedChildFlowRoute(newRoute)
       resetChat()
@@ -2326,45 +2316,29 @@ const DynamicVoiceChat = ({ type = "" }) => {
       {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && activeFlowRoute && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={`div27`}>
         <div className={isMobile ? "div30_a" : "div30"}>
-
           <MainHeader
             isMobileFirst={isMobile}
-            showTheDots={false}displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.Bihar_PTM].includes(activeFlowRoute))}
-
+            showTheDots={false}
+            displayNewSessionButton={![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.Bihar_PTM].includes(activeFlowRoute)}
             content={
               <>
-{flowInfo?.isParentFlow && (
-          <CustomFormData
-            layOut={2}
-            selectID="selectedTypeID"
-            selectName="selectedType"
-            selectOptions={
-              (flowInfo.children_flows || [])
-                .filter(f => f.active)
-                .map(f => ({ label: f.flow_name, value: f.flow_route }))
-            }
-            selectValue={selectedChildFlowRoute}
-            selectClassName="div31"
-            selectOnChange={handleChildFlowChange}
-            showDefaultDropdownText={false}
-          />
-        )}
+                {flowInfo?.isParentFlow && <CustomFormData layOut={2} selectID="selectedTypeID" selectName="selectedType" selectOptions={(flowInfo.children_flows || []).filter(f => f.active).map(f => ({ label: f.flow_name, value: f.flow_route }))} selectValue={selectedChildFlowRoute} selectClassName="div31" selectOnChange={handleChildFlowChange} showDefaultDropdownText={false} />}
 
-              <button
-                onClick={async e => {
-                  if (accessToken) {
-                    await resetChat(e)
-                  } else {
-                    showGuestPopup(() => {
-                      setBotName(null)
-                      resetChat()
-                    }, stayOnPage)
-                  }
-                }}
-                className="div32"
-              >
-                <div className="div8">+</div>
-              </button>
+                <button
+                  onClick={async e => {
+                    if (accessToken) {
+                      await resetChat(e)
+                    } else {
+                      showGuestPopup(() => {
+                        setBotName(null)
+                        resetChat()
+                      }, stayOnPage)
+                    }
+                  }}
+                  className="div32"
+                >
+                  <div className="div8">+</div>
+                </button>
               </>
             }
           />
@@ -2382,7 +2356,13 @@ const DynamicVoiceChat = ({ type = "" }) => {
             {endStoryMutation.isPending && (
               <div className="div69 text-center">
                 <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
-                  {activeFlowRoute && [sessionFlowName.ListeningActivity].includes(activeFlowRoute) ? t("feedbackLoaderHeading") : activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(activeFlowRoute) ? t("reportLoaderHeading") : activeFlowRoute && [sessionFlowName.GuestMiStory].includes(activeFlowRoute) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}
+                  {activeFlowRoute && [sessionFlowName.ListeningActivity].includes(activeFlowRoute)
+                    ? t("feedbackLoaderHeading")
+                    : activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(activeFlowRoute)
+                      ? t("reportLoaderHeading")
+                      : activeFlowRoute && [sessionFlowName.GuestMiStory].includes(activeFlowRoute)
+                        ? t("storyGuestLoaderHeading")
+                        : t("storyLoaderHeading")}
                 </h2>
                 <label className="form-label label1 text-center">{activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(activeFlowRoute) ? t("reportLoader") : t("storyLoader")}</label>
               </div>
@@ -2526,7 +2506,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           )}
           {isStreamingComplete && showFileInput && !showHomepage && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && storyData?.id !== "" && !([sessionFlowName.GuestMiStory].includes(activeFlowRoute) && accessToken) && (
             <>
-              {(activeFlowInfo && activeFlowInfo.image_config) &&
+              {activeFlowInfo && activeFlowInfo.image_config && (
                 <div className="div13">
                   <ChatMessage
                     botNameToDisplay={botNameToDisplay}
@@ -2626,7 +2606,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     </div>
                   )}
                 </div>
-              }
+              )}
 
               {![sessionFlowName.ParentPerceptionSurvey].includes(activeFlowRoute) && (
                 <div className="div19">
@@ -2746,14 +2726,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
             autoComplete="off"
           >
             {/* Mic button on the left */}
-            <button
-              type="button"
-              aria-label={hasStartedRecording ? t("stopRecording") : t("startRecording")}
-              aria-pressed={hasStartedRecording}
-              onClick={hasStartedRecording ? stopRecording : startRecording}
-              disabled={isFetchingData}
-              className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}
-            >
+            <button type="button" aria-label={hasStartedRecording ? t("stopRecording") : t("startRecording")} aria-pressed={hasStartedRecording} onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData} className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}>
               {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
             </button>
 
@@ -2810,12 +2783,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                 </div>
               )}
             </div>
-            <button
-              type="submit"
-              aria-label={t("sendMessage")}
-              disabled={!textMessage.trim() || hasStartedRecording || isFetchingData}
-              className="send-btn"
-            >
+            <button type="submit" aria-label={t("sendMessage")} disabled={!textMessage.trim() || hasStartedRecording || isFetchingData} className="send-btn">
               <MdSend />
             </button>
           </form>
