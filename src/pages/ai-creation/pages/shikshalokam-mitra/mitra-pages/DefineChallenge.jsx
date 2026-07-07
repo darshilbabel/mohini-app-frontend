@@ -23,6 +23,7 @@ import { FIRST_BOT_MESSAGE } from "../../../constants/mitra-chat";
 import { bot_routes } from "configure";
 import { useAICreationSessionStore } from "store";
 import { useSiteDataSessionStore } from "store";
+import { useChatDataSessionStore } from "store";
 import { API_ENDPOINTS } from "constants/urls";
 import { apiClient } from "api/client";
 
@@ -661,6 +662,14 @@ const DefineChallenge = ({
         handleMessagesForBot(text);
       }
 
+      // User disabled audio for this session: skip TTS, keep chat flow moving.
+      if (useChatDataSessionStore.getState().didUserMute) {
+        setSentences((prev) => prev.map((x) => ({ ...x, isNarrated: true })));
+        setIsNextAllowed(true);
+        setHasOverRideId(null);
+        return;
+      }
+
       if (isMute && !hasOverRideId) {
         setSentences((prev) => {
           let all_sentences = JSON.parse(JSON.stringify([...prev]));
@@ -803,8 +812,8 @@ const DefineChallenge = ({
         <div className={isDefineChallengeSection ? "flex flex-col h-full" : ""}>
           <ChatWindow
             isTalking={isTalking}
-            handleOnSpeaking={handleOnSpeaking}
-            handleOnStopSpeaking={handleOnStopSpeaking}
+            handleOnSpeaking={(...a) => { useChatDataSessionStore.getState().setDidUserMute(false); handleOnSpeaking(...a) }}
+            handleOnStopSpeaking={(...a) => { useChatDataSessionStore.getState().setDidUserMute(true); handleOnStopSpeaking(...a) }}
             botNameToDisplay={botNameToDisplay}
             isStreamingComplete={isStreamingComplete}
             setNotMute={setNotMute}

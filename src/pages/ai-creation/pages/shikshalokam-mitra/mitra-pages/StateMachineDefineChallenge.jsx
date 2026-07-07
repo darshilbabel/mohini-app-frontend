@@ -37,7 +37,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
   const session = useAICreationSessionStore(state => state.session)
   const { setChatLanguage } = useSiteDataSessionStore.getState()
   const { setSystemError: setSystemErrorStore, setProfileId, setFirstName, setCompany: setCompanyStore, setSession: setSessionStore, setChatHistory, setIsChatVisible, setIntroMessage: setIntroMessageStore, setBotName, setUserProblemStatement: setUserProblemStatementStore, getChatHistory, getPreferredLanguage } = useAICreationSessionStore.getState()
-  const { getStateMachineLength, setStateMachineLength, setStrandStep, getStrandStep } = useChatDataSessionStore.getState()
+  const { getStateMachineLength, setStateMachineLength, setStrandStep, getStrandStep, setDidUserMute } = useChatDataSessionStore.getState()
 
   const [isParaphraseLoading, setIsParaphraseLoading] = useState(false)
   const [textMessage, setTextMessage] = useState("")
@@ -527,6 +527,14 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
         handleMessagesForBot(text)
       }
 
+      // User disabled audio for this session: skip TTS, keep chat flow moving.
+      if (useChatDataSessionStore.getState().didUserMute) {
+        setSentences(prev => prev.map(x => ({ ...x, isNarrated: true })))
+        setIsNextAllowed(true)
+        setHasOverRideId(null)
+        return
+      }
+
       if (isMute && !hasOverRideId) {
         setSentences(prev => {
           let all_sentences = JSON.parse(JSON.stringify([...prev]))
@@ -639,7 +647,7 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
         <LoadingChat />
       ) : (
         <div className={isDefineChallengeSection ? "flex flex-col h-auto" : ""}>
-          <ChatWindow isTalking={isTalking} handleOnSpeaking={handleOnSpeaking} handleOnStopSpeaking={handleOnStopSpeaking} isStreamingComplete={isStreamingComplete} setNotMute={setNotMute} userDetail={userDetail} chatHistory={chatHistory} isReadOnly={isReadOnly} hasStartedListening={hasStartedListening} hasOverRideId={hasOverRideId} isParaphraseLoading={isParaphraseLoading} isDefineChallengeSection={isDefineChallengeSection} />
+          <ChatWindow isTalking={isTalking} handleOnSpeaking={(...a) => { setDidUserMute(false); handleOnSpeaking(...a) }} handleOnStopSpeaking={(...a) => { setDidUserMute(true); handleOnStopSpeaking(...a) }} isStreamingComplete={isStreamingComplete} setNotMute={setNotMute} userDetail={userDetail} chatHistory={chatHistory} isReadOnly={isReadOnly} hasStartedListening={hasStartedListening} hasOverRideId={hasOverRideId} isParaphraseLoading={isParaphraseLoading} isDefineChallengeSection={isDefineChallengeSection} />
           {(isDefineChallengeSection && !isParaphraseLoading) && (
             <div className="mt-auto">
               <ChatBox textInputRef={textInputRef} textMessage={textMessage} handleOnInputText={handleOnInputText} setUseTextbox={setUseTextbox} handleSendMessage={handleSendMessage} isReadOnly={!isDefineChallengeSection} />

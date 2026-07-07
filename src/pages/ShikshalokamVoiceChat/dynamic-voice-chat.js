@@ -129,6 +129,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const ssoRerouteURL = useSiteStorage()(state => state.ssoRerouteURL)
   const stateMachineLength = useChatStorage()(state => state.stateMachineLength)
   const strandStep = useChatDataSessionStore(state => state.strandStep)
+  const didUserMute = useChatDataSessionStore(state => state.didUserMute)
+  const setDidUserMute = useChatDataSessionStore(state => state.setDidUserMute)
   const taskId = useChatStorage()(state => state.taskId)
   const userState = useUserStorage()(state => state.state)
   const ipCity = useUserStorage()(state => state.ipCity)
@@ -1496,7 +1498,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         shouldPlay = true
       }
     }
-    if (isStreamingComplete && shouldPlay && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && isMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroMessageLoading) {
+    if (isStreamingComplete && shouldPlay && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && isMute && !didUserMute && acceptedTnc && acceptedTnc !== "ONGOING" && !isIntroMessageLoading) {
       const speakerButtons = document.querySelectorAll(".button-11.button-3")
       const lastSpeakerButton = speakerButtons[speakerButtons.length - 1]
 
@@ -1504,7 +1506,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         lastSpeakerButton.click()
       }
     }
-  }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, acceptedTnc, isIntroMessageLoading, noStoryFound])
+  }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, didUserMute, acceptedTnc, isIntroMessageLoading, noStoryFound])
 
   /**
    * Process TTS requests for unnarrated bot messages
@@ -1812,6 +1814,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
           setFiles([])
           setShowFileInput(true)
           setLlmError("")
+          // Reset the audio mute preference once the chat is completed.
+          setDidUserMute(false)
           window.location.reload()
         } else {
           setLlmError(endStoryResponse?.error_message)
@@ -1887,6 +1891,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
     setChatbotClickedOn("")
     setShowHomepage(true)
     setIsLoading(false)
+    // Reset the audio mute preference when a new chat is started.
+    setDidUserMute(false)
 
     window.location.reload()
   }
@@ -2012,6 +2018,18 @@ const DynamicVoiceChat = ({ type = "" }) => {
         handleMessagesForBot(text)
       }
 
+      // User has disabled audio for this session: never call the TTS API.
+      // Mark the message as narrated so the chat flow continues normally.
+      if (didUserMute) {
+        setSentences(prev => {
+          let all_sentences = [...prev]
+          return all_sentences.map(x => ({ ...x, isNarrated: true }))
+        })
+        setIsNextAllowed(true)
+        setHasOverRideId(null)
+        return
+      }
+
       if (isMute && !hasOverRideId) {
         setSentences(prev => {
           let all_sentences = [...prev]
@@ -2024,6 +2042,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
       if (!cachedAudioUrl) {
         audio_result = await getAI4BharatAudioApi(text, sourceLanguage, storedRoute)
+        if (!audio_result?.length) {
+          setSentences(prev => prev.map(x => ({ ...x, isNarrated: true })))
+          setIsNextAllowed(true)
+          setHasOverRideId(null)
+          return
+        }
         if (audio_result?.length) {
           cachedAudioUrl = `data:audio/wav;base64,${audio_result}`
           setAudioCache(prevCache => ({
@@ -2715,6 +2739,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
 export default DynamicVoiceChat
 
 function ChatMessage({ userType, message, name, recording, handleOnSpeaking, handleOnStopSpeaking, isPlaying, botNameToDisplay, isStreamingComplete, setNotMute, chat, staticMessage, chatId }) {
+  const setDidUserMute = useChatDataSessionStore(state => state.setDidUserMute)
   let sanitizedContent = DOMPurify.sanitize(message)
   return (
     <div className="div41">
@@ -2725,7 +2750,16 @@ function ChatMessage({ userType, message, name, recording, handleOnSpeaking, han
           </div>
           <div className="div46">
             {userType === "bot" && isPlaying && (
-              <button className={`button-10 button-3`} onClick={handleOnStopSpeaking} disabled={!isStreamingComplete}>
+              <button
+                className={`button-10 button-3`}
+                onClick={() => {
+                  // User turned audio OFF: persist the preference so no further
+                  // TTS API calls are made for this session.
+                  setDidUserMute(true)
+                  handleOnStopSpeaking()
+                }}
+                disabled={!isStreamingComplete}
+              >
                 <HiMiniSpeakerWave />
               </button>
             )}
@@ -2734,6 +2768,8 @@ function ChatMessage({ userType, message, name, recording, handleOnSpeaking, han
               <button
                 className={`button-11 button-3`}
                 onClick={() => {
+                  // User turned audio ON: clear the mute preference so TTS resumes.
+                  setDidUserMute(false)
                   setNotMute(false)
                   handleOnSpeaking(message, chat?.updated_at, staticMessage, true)
                 }}
