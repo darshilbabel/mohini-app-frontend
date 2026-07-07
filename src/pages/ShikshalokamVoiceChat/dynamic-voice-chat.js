@@ -65,7 +65,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const { flow: storageFlow } = useUrlFlow()
 
   // ========== useState Hooks ==========
-  const [asrAudio, setAsrAudio] = useState(null)
+  const [asrAudio, setAsrAudio] = useState([])
   const [audioCache, setAudioCache] = useState({})
   const [botNameToDisplay, setBotNameToDisplay] = useState("Bot")
   const [companySlug, setCompanySlug] = useState("")
@@ -608,10 +608,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
     sendSocketMessage({
       text: textMessage,
       context: "",
-      asr_audio: asrAudio,
+      asr_audio: asrAudio && asrAudio.length > 0 ? asrAudio.join(',') : null,
     })
 
-    setAsrAudio(null)
+    setAsrAudio([])
     handleScrollToView()
     setTextMessage("")
   }
@@ -2165,7 +2165,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
               if (!s3Url || s3Url === "") {
                 transcriptResult = t("asrError")
               }
-              setAsrAudio(s3Url)
+              setAsrAudio(prev => [...prev, s3Url])
               let storedRoute = flowInfo.bot_route
               transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
               if (!transcriptResult || transcriptResult === "") {

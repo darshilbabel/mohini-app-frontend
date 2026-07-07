@@ -38,7 +38,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
   const [localChatHistory, setLocalChatHistory, removeLocalChatHistory] = useSmartChatStorage()
   const [chatHistory, setChatHistory] = useState(!!localChatHistory?.length ? localChatHistory : [])
   const [textMessage, setTextMessage] = useState("")
-  const [asrAudio, setAsrAudio] = useState(null)
+  const [asrAudio, setAsrAudio] = useState([])
   const [isFetchingData, setIsFetchingData] = useState(false)
   const [reconText, setReconText] = useState("")
   const [audioCache, setAudioCache] = useState({})
@@ -784,7 +784,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
               if (!s3Url || s3Url === "") {
                 transcriptResult = t("asrError")
               }
-              setAsrAudio(s3Url)
+              setAsrAudio(prev => [...prev, s3Url])
               transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, FLOW_ROUTE)
               if (!transcriptResult || transcriptResult === "") {
                 showNotification({
@@ -842,7 +842,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
       setHasStartedListening(false)
       setHasStartedRecording(false)
       setTextMessage("")
-      setAsrAudio(null)
+      setAsrAudio([])
       setIntervalId(null)
       setSeconds(0)
       setMediaRecorder(null)
@@ -1058,7 +1058,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                   answer: textMessage,
                   language: languageToUse,
                   sent_at: new Date().toISOString(),
-                  audio_url: asrAudio,
+                  audio_url: asrAudio && asrAudio.length > 0 ? asrAudio.join(',') : null,
                   service: last_question.service || null,
                 }
                 savePTMQuestionApi(data)
@@ -1074,7 +1074,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
                   },
                 ])
                 setTextMessage("")
-                setAsrAudio(null)
+                setAsrAudio([])
                 setHasStartedListening(false)
                 setIsFetchingData(false)
                 setHasStartedRecording(false)
