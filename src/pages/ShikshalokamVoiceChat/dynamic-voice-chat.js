@@ -64,7 +64,7 @@ const cookies = new Cookies()
 
 const DynamicVoiceChat = ({ type = "" }) => {
   const { flow: storageFlow } = useUrlFlow()
-  const [selectedChildFlowRoute, setSelectedChildFlowRoute] = useState(null)
+  const selectedChildFlowRoute = useChatStorage()(state => state.selectedChildFlowRoute)
   const activeFlowRoute = selectedChildFlowRoute || storageFlow
 
   // ========== useState Hooks ==========
@@ -140,7 +140,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const ipFetched = useUserStorage()(state => state.ipFetched)
 
   // chat data actions
-  const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()
+  const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSelectedChildFlowRoute, setSessionId, setStateMachineLength } = useChatStorage().getState()
 
   // user data actions
   const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useUserStorage().getState()
@@ -784,11 +784,17 @@ const DynamicVoiceChat = ({ type = "" }) => {
       navigateBack()
       return
     }
+
+    // Restore a previously selected child flow (persisted across resetChat's reload)
+    // instead of always falling back to the parent's default.
+    const hasValidPersistedSelection = selectedChildFlowRoute && activeChildren.some(f => f.flow_route === selectedChildFlowRoute)
+    if (hasValidPersistedSelection) return
+
     const defaultRoute = (flowInfo.default_flow && activeChildren.find(f => f.flow_route === flowInfo.default_flow))
       ? flowInfo.default_flow
       : activeChildren[0].flow_route
     setSelectedChildFlowRoute(defaultRoute)
-  }, [flowInfo])
+  }, [flowInfo, selectedChildFlowRoute])
 
   useEffect(() => {
     if (chatHistory.length > 1) {
@@ -1352,13 +1358,13 @@ const DynamicVoiceChat = ({ type = "" }) => {
           stopAllAudio()
           navigate({
             pathname: ROUTES.SHIKSHALOKAM_HOME_PAGE,
-            search: activeFlowRoute ? new URLSearchParams({ flow: activeFlowRoute }).toString() : ''
+            search: storageFlow ? new URLSearchParams({ flow: storageFlow }).toString() : ''
           })
           window.location.reload()
         }
       })
     }
-  }, [isStreamingComplete, strandStep, stateMachineLength, activeFlowRoute, chatHistory, activeFlowInfo])
+  }, [isStreamingComplete, strandStep, stateMachineLength, activeFlowRoute, chatHistory, activeFlowInfo, storageFlow])
 
   // ========================================================================
   // SECTION: UI State Management (Execution Order: 7 - Throughout Lifecycle)
@@ -1836,7 +1842,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   const navigateBack = () => {
     let rerouteUrl = previousUrl
-    const currentFlow = activeFlowRoute
+    const currentFlow = storageFlow
     stopAllAudio()
     if (accessToken) {
       console.log("clearing storage")

@@ -15,6 +15,7 @@ export const INITIAL_STATE = (set, get, store) => ({
   botName: null,
   defaultBotName: null,
   selectedType: "normal",
+  selectedChildFlowRoute: null,
   stateMachineLength: 0,
   projectId: null,
   taskId: null,
@@ -64,6 +65,8 @@ export const INITIAL_STATE = (set, get, store) => ({
   setDefaultBotName: defaultBotName => set({ defaultBotName }),
 
   setSelectedType: selectedType => set({ selectedType }),
+
+  setSelectedChildFlowRoute: selectedChildFlowRoute => set({ selectedChildFlowRoute }),
 
   setStateMachineLength: stateMachineLength => set({ stateMachineLength }),
 
