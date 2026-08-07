@@ -196,6 +196,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
         company_bot__route: activeFlowInfo.bot_route,
       }),
     enabled: !!(companyBotData && languageToUse && companyBotData?.results?.length > 0 && activeFlowInfo?.bot_route),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   })
 
   const { data: chatSessionData } = useQuery({
