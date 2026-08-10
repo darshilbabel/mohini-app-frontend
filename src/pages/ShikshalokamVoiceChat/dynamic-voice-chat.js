@@ -63,6 +63,17 @@ import CustomFormData from "../../components/Form/FormData"
 
 const cookies = new Cookies()
 
+async function fetchAudioUrlAsBase64(url) {
+  const response = await fetch(url)
+  const blob = await response.blob()
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result.split(",")[1])
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+}
+
 const DynamicVoiceChat = ({ type = "" }) => {
   const { flow: storageFlow } = useUrlFlow()
   const [selectedChildFlowRoute, setSelectedChildFlowRoute] = useState(null)
@@ -299,12 +310,16 @@ const DynamicVoiceChat = ({ type = "" }) => {
           if (message?.msg) {
             lastSentence.message += message?.msg
           }
+          if (message.finish_reason === "stop" && message?.audio_s3_url) {
+            lastSentence.audio_s3_url = message.audio_s3_url
+          }
         } else {
           updatedSentences.push({
             message: message?.msg || "",
             source: "bot",
             isNarrated: false,
             id: Date.now(),
+            audio_s3_url: message.finish_reason === "stop" ? message?.audio_s3_url : undefined,
           })
           lastBotMessageIndex.current = updatedSentences.length - 1
         }
@@ -799,7 +814,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Adds bot messages to chat history during streaming
    * Prevents duplicate messages and manages message state
    */
-  const handleMessagesForBot = useCallback(sentence => {
+  const handleMessagesForBot = useCallback((sentence, audio_s3_url) => {
     if (isRecognizing || hasStartedListening || !shouldSendMessage) return
 
     const chat_history = structuredClone(getChatHistory())
@@ -810,15 +825,19 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
     if (lastMessage?.source === "bot") {
       lastMessage.msg += " " + sentence
+      if (audio_s3_url) lastMessage.audio_s3_url = audio_s3_url
       setChatHistory([...chat_history])
     } else {
       setChatHistory([
         ...chat_history,
-        createMessage({
-          msg: sentence,
-          source: "bot",
-          received: true,
-        }),
+        {
+          ...createMessage({
+            msg: sentence,
+            source: "bot",
+            received: true,
+          }),
+          audio_s3_url,
+        },
       ])
     }
   }, [])
@@ -1603,7 +1622,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       return () => {}
     }
     if (isNextAllowed && hasUnnarratedMessages && !isLoading && !endStoryMutation.isPending && activeFlowInfo) {
-      handleAI4BharatTTSRequest(unnarratedMessages[0].message, unnarratedMessages[0].id, sourceLanguage)
+      handleAI4BharatTTSRequest(unnarratedMessages[0].message, unnarratedMessages[0].id, sourceLanguage, unnarratedMessages[0].audio_s3_url)
     }
 
     return () => {}
@@ -2079,7 +2098,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
   }
 
-  const handleAI4BharatTTSRequest = async (text, id, sourceLanguage) => {
+  const handleAI4BharatTTSRequest = async (text, id, sourceLanguage, audio_s3_url) => {
     try {
       if (!activeFlowInfo?.bot_route) return
 
@@ -2100,7 +2119,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       let storedRoute = activeFlowInfo.bot_route
 
       if (!hasOverRideId) {
-        handleMessagesForBot(text)
+        handleMessagesForBot(text, audio_s3_url)
       }
 
       // User has disabled audio for this session: never call the TTS API.
@@ -2123,6 +2142,19 @@ const DynamicVoiceChat = ({ type = "" }) => {
         setIsNextAllowed(true)
         setHasOverRideId(null)
         return
+      }
+
+      if (!cachedAudioUrl && audio_s3_url) {
+        try {
+          const audio_result = await fetchAudioUrlAsBase64(audio_s3_url)
+          cachedAudioUrl = `data:audio/wav;base64,${audio_result}`
+          setAudioCache(prevCache => ({
+            ...prevCache,
+            [id]: cachedAudioUrl,
+          }))
+        } catch (error) {
+          console.error("Error fetching audio_s3_url, falling back to TTS:", error)
+        }
       }
 
       if (!cachedAudioUrl) {
@@ -2204,8 +2236,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
         return [
           {
             message: messageToPlay?.msg,
+            source: "bot",
             isNarrated: false,
             id: id,
+            audio_s3_url: messageToPlay?.audio_s3_url,
           },
         ]
       })
