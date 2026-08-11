@@ -27,7 +27,13 @@
   # because this environment block is templated for every task in the play,
   # including the ones that run before that resolve task has set the fact.
   environment:
-    PATH: "{{ node_bin_dir | default('') }}:{{ ansible_env.PATH }}"
+    # Only prepend node_bin_dir (+ its separating colon) when it's actually
+    # set - an unconditional "{{ node_bin_dir }}:" leaves a leading empty
+    # PATH element whenever node_bin_dir is unset/empty (e.g. a partial
+    # rerun via --start-at-task that skips the set_fact task below), and a
+    # leading colon in PATH means "current directory" - dangerous here since
+    # every task runs as root and several cd into the cloned repo.
+    PATH: "{{ (node_bin_dir ~ ':') if node_bin_dir | default('') else '' }}{{ ansible_env.PATH }}"
 
   vars:
     # Root directory for this deploy on the server. Overridable via
@@ -70,9 +76,15 @@
       # nvm.sh defines shell functions, so this needs a real bash - the
       # default /bin/sh (dash on this distro) can't source it.
       shell: |
+        set -euo pipefail
         export NVM_DIR=/root/.nvm
         . "$NVM_DIR/nvm.sh"
-        dirname "$(nvm which default)"
+        resolved="$(dirname "$(nvm which default)")"
+        case "$resolved" in
+          /*) ;;
+          *) echo "Resolved node bin dir '$resolved' is not an absolute path - nvm resolution failed" >&2; exit 1 ;;
+        esac
+        echo "$resolved"
       args:
         executable: /bin/bash
       register: nvm_node_bin
@@ -117,10 +129,6 @@
     - name: Read fetched .env data for debugging
       shell: "cat {{ current_path }}/data2.json"
       register: data2_content
-
-    - name: Debug Vault .env response (for troubleshooting)
-      debug:
-        msg: "{{ data2_content.stdout }}"
 
     - name: Fail if .env data from Vault is empty or invalid
       # Guards against the exact silent-failure mode described above: the
@@ -173,14 +181,16 @@
     - name: Remove node_modules folder
       shell: "rm -rf {{ current_path }}/node_modules"
 
-    - name: Remove package-lock.json
-      shell: "rm -rf {{ current_path }}/package-lock.json"
-
     - name: Clear npm cache
       shell: "npm cache clean --force"
 
     - name: Install dependencies
-      shell: "cd {{ current_path }} && npm i --force"
+      # npm ci (not `npm i --force`) installs strictly from the committed
+      # package-lock.json rather than re-resolving semver ranges at deploy
+      # time - reproducible across deploys of the same commit, and fails
+      # loudly if package.json/package-lock.json ever drift out of sync
+      # instead of silently overriding peer-dependency conflicts.
+      shell: "cd {{ current_path }} && npm ci"
 
     - name: Set permission for json2env.sh
       shell: "chmod 744 {{ current_path }}/src/scripts/json2env.sh"
