@@ -211,7 +211,17 @@
         msg: "{{ pm2_content.stdout }}"
 
     - name: Build mohini app
+      # Pin the heap ceiling explicitly rather than relying on V8's
+      # auto-computed default, which is based on memory available at
+      # process start - this host also runs the backend's uvicorn/celery
+      # services (and, on the load-test job, actual load-test traffic
+      # against them), so the ambient "available" memory at build time can
+      # be lower than on a quiet manual test, producing an inconsistent,
+      # environment-dependent OOM ceiling. 4096MB stays safely under this
+      # host's 7.7GB total with headroom for the OS and those other services.
       shell: "cd {{ current_path }} && npm run build-prod"
+      environment:
+        NODE_OPTIONS: "--max-old-space-size=4096"
 
     - name: Start pm2
       shell: "cd {{ current_path }} && pm2 start pm2.config.json"
