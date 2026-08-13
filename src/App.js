@@ -15,6 +15,7 @@ import UnifiedChat from "./pages/UnifiedChat/UnifiedChat"
 import ChatContainer from "./pages/ShikshalokamVoiceChat/chat-container"
 import MainPage from "pages/ai-creation/pages/shikshalokam-mitra/MainPage"
 import ImprovementPlan from "pages/ai-creation/pages/improvement-plan"
+import LanguageGuard from "./hooks/useLanguageGuard"
 
 const queryClient = new QueryClient()
 
@@ -49,19 +50,19 @@ const unprotected_old_routes = [
   // { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT_LOGIN, element: <Shikshalokam type={"shikshalokam"} variant={"publicBot"} /> },
   // { path: ROUTES.SHIKSHALOKAM_VOICE_CHAT, element: <ShikshalokamVoiceBasedChat type={"shikshalokam"} variant={"publicBot"} /> },
 
-  { path: ROUTES.COMMON_CHAT, element: <ChatContainer /> },
+  { path: ROUTES.COMMON_CHAT, element: <LanguageGuard><ChatContainer /></LanguageGuard> },
 
-  { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <ShikshalokamChat type={sessionFlowName.GuestDiscussion} /> },
-  { path: ROUTES.SHIKSHALOKAM_GUEST_LISTENING_CHAT, element: <ShikshalokamChat type={sessionFlowName.ListeningActivity} /> },
-  { path: ROUTES.SHIKSHALOKAM_GUEST_MI_STORY, element: <ShikshalokamChat type={sessionFlowName.GuestMiStory} /> },
-  { path: ROUTES.SHIKSHALOKAM_PPPI_VOICE_CHAT, element: <ShikshalokamChat type={sessionFlowName.ParentPerceptionSurvey} /> },
+  { path: ROUTES.SHIKSHALOKAM_GUEST_VOICE_CHAT, element: <LanguageGuard flow={sessionFlowName.GuestDiscussion}><ShikshalokamChat type={sessionFlowName.GuestDiscussion} /></LanguageGuard> },
+  { path: ROUTES.SHIKSHALOKAM_GUEST_LISTENING_CHAT, element: <LanguageGuard flow={sessionFlowName.ListeningActivity}><ShikshalokamChat type={sessionFlowName.ListeningActivity} /></LanguageGuard> },
+  { path: ROUTES.SHIKSHALOKAM_GUEST_MI_STORY, element: <LanguageGuard flow={sessionFlowName.GuestMiStory}><ShikshalokamChat type={sessionFlowName.GuestMiStory} /></LanguageGuard> },
+  { path: ROUTES.SHIKSHALOKAM_PPPI_VOICE_CHAT, element: <LanguageGuard flow={sessionFlowName.ParentPerceptionSurvey}><ShikshalokamChat type={sessionFlowName.ParentPerceptionSurvey} /></LanguageGuard> },
 
   // Unified PTM route
-  { path: ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE, element: <UnifiedChat type={sessionFlowName.megaPTM} /> },
+  { path: ROUTES.SHIKSHALOKAM_PTM_CHAT_PAGE, element: <LanguageGuard flow={sessionFlowName.megaPTM}><UnifiedChat type={sessionFlowName.megaPTM} /></LanguageGuard> },
   { path: ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE, element: <CommonHomePage usecaseType={sessionFlowName.megaPTM} /> },
 
   // Unified YLC route
-  { path: ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE, element: <UnifiedChat type={sessionFlowName.YLC} /> },
+  { path: ROUTES.SHIKSHALOKAM_YLC_CHAT_PAGE, element: <LanguageGuard flow={sessionFlowName.YLC}><UnifiedChat type={sessionFlowName.YLC} /></LanguageGuard> },
   { path: ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE, element: <CommonHomePage usecaseType={sessionFlowName.YLC} /> },
 
   { path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage /> },
