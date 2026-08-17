@@ -1,45 +1,153 @@
-- hosts: elevate
+- hosts: all
+  # Host targeting is left to the caller via `--limit` (e.g. Jenkins passing
+  # `-l defaults`) against the shared inventory - matches the pattern
+  # mitra-service's backend deploy.yml already uses, since this FE deploy is
+  # planned to run on that same host. The old hardcoded `hosts: elevate`
+  # group is not on that shared inventory.
+
+  # Needed because /opt/deployment/... on this host is written to by the
+  # backend deploy.yml WITH become: true (i.e. as root) - without this here
+  # too, tasks run as the plain SSH user and fail with permission denied
+  # writing into that same root-owned tree (e.g. `git clone` failing on
+  # ".git: Permission denied").
+  become: true
+
+  # Node on this host is managed via nvm at /root/.nvm, which only lands on
+  # PATH inside an interactive shell (nvm.sh sourced from .bashrc/.profile).
+  # Ansible's become-root shell tasks run non-interactively and never
+  # source that, so without this override `node`/`npm` calls below silently
+  # fall through to whatever older node happens to already be on the base
+  # PATH - confirmed: this caused "npm run build-prod" to fail with a
+  # syntax error from a pre-ES2020 node trying to parse modern JS.
+  #
+  # node_bin_dir is resolved dynamically from nvm's "default" alias by the
+  # "Resolve nvm-managed Node bin directory" task below, rather than a
+  # hardcoded version - this self-updates if Node is ever upgraded via nvm
+  # on this host, with no change needed here. `| default('')` is required
+  # because this environment block is templated for every task in the play,
+  # including the ones that run before that resolve task has set the fact.
+  environment:
+    # Only prepend node_bin_dir (+ its separating colon) when it's actually
+    # set - an unconditional "{{ node_bin_dir }}:" leaves a leading empty
+    # PATH element whenever node_bin_dir is unset/empty (e.g. a partial
+    # rerun via --start-at-task that skips the set_fact task below), and a
+    # leading colon in PATH means "current directory" - dangerous here since
+    # every task runs as root and several cd into the cloned repo.
+    PATH: "{{ (node_bin_dir ~ ':') if node_bin_dir | default('') else '' }}{{ ansible_env.PATH }}"
+
   vars:
-    project_path: /opt/frontend/mohini-app/mohini-app-frontend
-    root_path: /opt/frontend
+    # Root directory for this deploy on the server. Overridable via
+    # -e project_path=... (e.g. to run a side-by-side instance without
+    # clobbering another deploy's directory).
+    project_path: /opt/deployment/frontend/mitra-service
+
+    # The actual app directory the code is cloned/built into - always one
+    # fixed subfolder below project_path, matching the same
+    # project_path/current_path split mitra-service's backend deploy.yml
+    # uses (there: project_path/mitra-backend-service). Not independently
+    # overridable - it always derives from whatever project_path resolves
+    # to, so a side-by-side instance's code never lands in another
+    # instance's directory by accident.
+    current_path: "{{ project_path }}/mitra-frontend-service"
+
+    # Same shared, one-per-host Vault token file the backend deploy uses
+    # (see mitra-service's deploy.yml `vault_token_path` comment) - this FE
+    # deploy shares that host/Vault, so it defaults to the same path rather
+    # than the old, inconsistent /opt/backend/deployment/.token.
+    vault_token_path: /opt/deployment/.token
+
+    # Repo to clone. Overridable via -e repo_url=... (e.g. a fork).
+    repo_url: https://github.com/ELEVATE-Project/mohini-app-frontend
+
+    # Vault secret path segments, appended to {{ vaultAddress }}. These were
+    # hardcoded to one fixed set of secret names; override via -e to point
+    # a different deploy (e.g. a side-by-side instance) at its own secrets.
+    vault_env_path: mohini-env
+    vault_cmdrc_path: mohini-frontend
+    vault_pm2_config_path: mohiniPortalPM2Config
 
   tasks:
     - name: Slurp host file
       slurp:
-        src: "/opt/backend/deployment/.token"
+        src: "{{ vault_token_path }}"
       register: slurpfile
+
+    - name: Resolve nvm-managed Node bin directory
+      # nvm.sh defines shell functions, so this needs a real bash - the
+      # default /bin/sh (dash on this distro) can't source it.
+      shell: |
+        set -euo pipefail
+        export NVM_DIR=/root/.nvm
+        . "$NVM_DIR/nvm.sh"
+        resolved="$(dirname "$(nvm which default)")"
+        case "$resolved" in
+          /*) ;;
+          *) echo "Resolved node bin dir '$resolved' is not an absolute path - nvm resolution failed" >&2; exit 1 ;;
+        esac
+        echo "$resolved"
+      args:
+        executable: /bin/bash
+      register: nvm_node_bin
+      changed_when: false
+
+    - name: Set Node bin directory fact
+      set_fact:
+        node_bin_dir: "{{ nvm_node_bin.stdout }}"
 
     - name: Ensure project directory exists
       file:
-        path: "{{ project_path }}"
+        path: "{{ current_path }}"
         state: directory
         mode: '0755'
 
     - name: Fetch the latest code
       git:
-        repo: https://github.com/ELEVATE-Project/mohini-app-frontend
-        dest: "{{ project_path }}"
+        repo: "{{ repo_url }}"
+        dest: "{{ current_path }}"
         version: "{{ gitBranch }}"
         force: yes
-    
+
     - name: set permission
-      shell: chmod 744 {{ project_path }}/src/scripts/json2env.sh  
+      shell: chmod 744 {{ current_path }}/src/scripts/json2env.sh
 
     - name: Fetch .env from Vault
+      # --insecure: this Vault server (10.0.136.199) uses a self-signed
+      # cert - matches mitra-service's backend deploy.yml, which needs the
+      # same flag on its own Vault curl calls for the same reason.
+      # --http1.1: this Vault server intermittently drops HTTP/2 with
+      # "stream 0 was not closed cleanly" (curl error 92) on these plain
+      # GETs - forcing HTTP/1.1 avoids that error class entirely. Confirmed
+      # this is a real, recurring failure (not theoretical): without this
+      # flag, this exact task silently produced an EMPTY data2.json - the
+      # curl failure got swallowed by the `| jq | >` pipe (only jq's exit
+      # code gates the task), so it reported success while writing nothing.
       shell: >
-        curl --location --request GET '{{ vaultAddress }}mohini-env' 
-        --header 'X-Vault-Token: {{ slurpfile['content'] | b64decode }}' | jq '.data' > '{{ project_path }}/data2.json'""
+        curl --insecure --http1.1 --location --request GET '{{ vaultAddress }}{{ vault_env_path }}'
+        --header 'X-Vault-Token: {{ slurpfile['content'] | b64decode }}' | jq '.data.data' > '{{ current_path }}/data2.json'
       register: env_response
 
-    - name: generate .env 
-      shell: cat {{ project_path }}/data2.json | {{ project_path }}/src/scripts/json2env.sh > {{ project_path }}/.env
-      register: envConfig 
-    - debug: 
-        msg: " cred {{ envConfig }} "    
+    - name: Read fetched .env data for debugging
+      shell: "cat {{ current_path }}/data2.json"
+      register: data2_content
+
+    - name: Fail if .env data from Vault is empty or invalid
+      # Guards against the exact silent-failure mode described above: the
+      # fetch task itself can report "changed" even when curl failed and
+      # jq wrote nothing, so this has to be checked explicitly rather than
+      # relying on the previous task's own success/failure state.
+      fail:
+        msg: "Vault .env fetch returned empty or invalid data - check the debug output above and Vault connectivity/secret path ({{ vault_env_path }})."
+      when: (data2_content.stdout | trim == '') or not (data2_content.stdout is search('^\s*\{'))
+
+    - name: generate .env
+      shell: cat {{ current_path }}/data2.json | {{ current_path }}/src/scripts/json2env.sh > {{ current_path }}/.env
+      register: envConfig
+    - debug:
+        msg: " cred {{ envConfig }} "
 
     - name: Fetch credentials from Vault
       shell: >
-        curl --location --request GET '{{ vaultAddress }}mohini-frontend' 
+        curl --insecure --http1.1 --location --request GET '{{ vaultAddress }}{{ vault_cmdrc_path }}'
         --header 'X-Vault-Token: {{ slurpfile['content'] | b64decode }}'
       register: vault_response
 
@@ -55,11 +163,11 @@
     - name: Extract and write the entire data.data to .env-cmdrc
       copy:
         content: "{{ vault_response.stdout | from_json | json_query('data.data') | to_json }}"
-        dest: "{{ project_path }}/.env-cmdrc"
+        dest: "{{ current_path }}/.env-cmdrc"
 
     - name: Verify .env-cmdrc file creation
       stat:
-        path: "{{ project_path }}/.env-cmdrc"
+        path: "{{ current_path }}/.env-cmdrc"
       register: env_file_stat
 
     - name: Fail if .env-cmdrc file was not created
@@ -68,28 +176,52 @@
       when: not env_file_stat.stat.exists
 
     - name: Remove the old build
-      shell: "rm -rf {{project_path}}/build"
+      shell: "rm -rf {{ current_path }}/build"
 
     - name: Remove node_modules folder
-      shell: "rm -rf {{ project_path }}/node_modules"
+      shell: "rm -rf {{ current_path }}/node_modules"
 
     - name: Clear npm cache
       shell: "npm cache clean --force"
 
     - name: Install dependencies
-      shell: "cd {{ project_path }} && npm i --force"
+      # npm ci (not `npm i --force`) installs strictly from the committed
+      # package-lock.json rather than re-resolving semver ranges at deploy
+      # time - reproducible across deploys of the same commit, and fails
+      # loudly if package.json/package-lock.json ever drift out of sync
+      # instead of silently overriding peer-dependency conflicts.
+      shell: "cd {{ current_path }} && npm ci"
 
     - name: Set permission for json2env.sh
-      shell: "chmod 744 {{ project_path }}/src/scripts/json2env.sh"
+      shell: "chmod 744 {{ current_path }}/src/scripts/json2env.sh"
 
     - name: Fetch pm2 config file
       shell: >
-        curl --location --request GET '{{ vaultAddress }}mohiniPortalPM2Config'
-        --header 'X-Vault-Token: {{ slurpfile['content'] | b64decode }}' 
-        | jq '.data.data' > '{{ project_path }}/pm2.config.json'
+        curl --insecure --http1.1 --location --request GET '{{ vaultAddress }}{{ vault_pm2_config_path }}'
+        --header 'X-Vault-Token: {{ slurpfile['content'] | b64decode }}'
+        | jq '.data.data' > '{{ current_path }}/pm2.config.json'
+      register: pm2_fetch_response
+
+    - name: Read fetched pm2 config for debugging
+      shell: "cat {{ current_path }}/pm2.config.json"
+      register: pm2_content
+
+    - name: Debug Vault pm2 config response (for troubleshooting)
+      debug:
+        msg: "{{ pm2_content.stdout }}"
 
     - name: Build mohini app
-      shell: "cd {{ project_path }} && npm run build-prod"
+      # Pin the heap ceiling explicitly rather than relying on V8's
+      # auto-computed default, which is based on memory available at
+      # process start - this host also runs the backend's uvicorn/celery
+      # services (and, on the load-test job, actual load-test traffic
+      # against them), so the ambient "available" memory at build time can
+      # be lower than on a quiet manual test, producing an inconsistent,
+      # environment-dependent OOM ceiling. 4096MB stays safely under this
+      # host's 7.7GB total with headroom for the OS and those other services.
+      shell: "cd {{ current_path }} && npm run build-prod"
+      environment:
+        NODE_OPTIONS: "--max-old-space-size=4096"
 
     - name: Start pm2
-      shell: "cd {{ project_path }} && pm2 start pm2.config.json"
+      shell: "cd {{ current_path }} && pm2 start pm2.config.json"

@@ -35,7 +35,7 @@ export class ChatInterfacePage extends BasePage {
     // Initialize locators - these should be updated based on actual application selectors
     this.chatContainer = page.locator("li.div34.div35.label1")
     this.messageInput = page.locator("textarea#textBoxID.input-2.input-1")
-    this.sendButton = page.locator("button.button-6.sm\\:ml-\\[1\\.3rem\\].ml-\\[0\\.8rem\\]")
+    this.sendButton = page.locator("button.send-btn")
     this.chatMessages = page.locator('[data-testid="chat-message"]')
     this.userMessages = page.locator('[data-testid="user-message"]')
     this.botMessages = page.locator('[data-testid="bot-message"]')

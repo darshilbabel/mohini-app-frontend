@@ -1,0 +1,16 @@
+export const GUEST_LISTEN_CONVERSATION_EN = [
+  "Thane district",
+  "Dombivli",
+  "Male",
+  "I have a total of 4 years of experience as a Headmaster",
+  "I have started extra curricular activities for the students",
+  "By looking at how bored students feel coming to the school",
+  "I did it by writing a letter to principal and convincing him how it can greatly help our students",
+  "COmmunication and leadership",
+  "It helped me achieveing my goals which is education rural india",
+  "Teachers helped me",
+  "Parents not coordination, they think we are wasting student's time with these extra curricular activities",
+  "Yes I plan on extending to implimentations to schools around me",
+  "Nothing",
+  "I need financial support",
+]
