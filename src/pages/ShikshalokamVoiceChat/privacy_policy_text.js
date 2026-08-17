@@ -6,7 +6,7 @@ export function getPrivacyPolicyText() {
   **Terms and Conditions of Use**
   <br/>
   <br/>
-  Welcome! Before using our platform, please carefully read these Terms and Conditions. By uploading content and interacting with the bot, you agree to abide by the rules outlined below. Failure to comply may result in restricted access or legal consequences.
+  Welcome! Before using our platform, please carefully read these Terms and Conditions. By uploading content and interacting with the bot, you agree to abide by the rules outlined below. We encourage all users to follow these guidelines to ensure continued access to and effective use of the platform.
   <br/>
   <br/>
   #### **1. Purpose of the Platform**
