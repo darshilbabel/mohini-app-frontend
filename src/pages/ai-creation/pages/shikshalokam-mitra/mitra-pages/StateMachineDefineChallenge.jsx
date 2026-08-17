@@ -352,12 +352,12 @@ const StateMachineDefineChallenge = ({ setCurrentPageValue, isReadOnly, userDeta
           language: chatLanguage,
           company_bot__route: storedRoute,
         })
-        setSystemErrorStore(data[0]?.error_message)
-        let message = data[0]?.alt_introductory_message
+        setSystemErrorStore(data?.error_message)
+        let message = data?.alt_introductory_message
         if (!message) {
           message = FIRST_BOT_MESSAGE
         }
-        const botName = data[0]?.name || "Bot"
+        const botName = data?.name || "Bot"
         setBotName(botName)
 
         if (message && firstName) {

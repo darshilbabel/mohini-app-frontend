@@ -405,7 +405,7 @@ const DefineChallenge = ({
     let translate_api_url = `${API_ENDPOINTS.BOT_VERNACULAR}?language=${languageToUse}&company_bot__route=${storedRoute}`;
     try {
       const response = await apiClient.get(translate_api_url, {});
-      return response?.data?.results;
+      return response?.data;
     } catch (error) {
       console.error("Error fetching AI4Bharat audio:", error);
       throw error;
@@ -464,12 +464,12 @@ const DefineChallenge = ({
           let firstName = useAICreationSessionStore.getState().getFirstName() || "";
 
           let data = await getTranslatedIntroMessage(storedRoute);
-          setSystemErrorStore(data[0]?.error_message)
-          let message = data[0]?.alt_introductory_message;
+          setSystemErrorStore(data?.error_message)
+          let message = data?.alt_introductory_message;
           if (!message) {
             message = FIRST_BOT_MESSAGE;
           }
-          const botName = data[0]?.name || "Bot";
+          const botName = data?.name || "Bot";
           // localStorage.setItem("botName", botName);
           setBotNameStore(botName)
           setBotNameToDisplay(botName);

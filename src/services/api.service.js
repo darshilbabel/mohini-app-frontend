@@ -81,21 +81,6 @@ export const readElevateProfile = async accessToken => {
     })
 }
 
-export async function getAI4BharatAudio(text, sourceLanguage = "en", storedRoute = bot_routes.normal) {
-  try {
-    const response = await axiosInstance.post("api/text_to_speech/", {
-      text: text,
-      source_language: sourceLanguage,
-      route: storedRoute,
-    })
-
-    return response.data.audio
-  } catch (error) {
-    console.error("Error fetching AI4Bharat audio:", error)
-    throw error
-  }
-}
-
 export async function ai4BharatASR(base64, sourceLanguage = "en", storedRoute = bot_routes.normal) {
   try {
     const response = await axiosInstance.post("api/asr/", {

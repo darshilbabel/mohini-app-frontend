@@ -195,7 +195,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   const activeFlowInfo = childFlowInfo || flowInfo
 
-  const { data: companyBotData, isLoading: isCompanyBotLoading } = useQuery({
+  const { data: companyBotData } = useQuery({
     queryKey: [API_ENDPOINTS.GET_COMPANY_BOT, companySlug, activeFlowInfo?.bot_route, languageToUse, accessToken],
     queryFn: () => getCompanyBotApi({ company_slug: companySlug, route: activeFlowInfo.bot_route, target_language: languageToUse }),
     enabled: !!(languageToUse && shouldFetchIntro && isNewChatOpen && profileToUse && activeFlowInfo?.bot_route),
@@ -635,10 +635,20 @@ const DynamicVoiceChat = ({ type = "" }) => {
           company_bot: companyBotData.results[0].id,
         })
 
+        const chat_history_after_send = getChatHistory()
+        const updated_chat_history_after_send = chat_history_after_send.map(chat => {
+          if (!chat.received && chat.msg === textMessage) {
+            return { ...chat, received: true }
+          }
+          return chat
+        })
+        setChatHistory(updated_chat_history_after_send)
+
         const botMsg = res?.translated_bot_message || res?.bot_message
         if (botMsg) {
-          setSentences(prev => [...prev, { message: botMsg, source: "bot", isNarrated: false, id: Date.now() }])
-          handleMessagesForBot(botMsg)
+          console.log({ message: botMsg, source: "bot", isNarrated: false, id: Date.now(), audio_s3_url: res?.audio_s3_url })
+          setSentences(prev => [...prev, { message: botMsg, source: "bot", isNarrated: false, id: Date.now(), audio_s3_url: res?.audio_s3_url }])
+          handleMessagesForBot(botMsg, res?.audio_s3_url)
         }
 
         if (res?.step !== undefined) {
@@ -892,18 +902,18 @@ const DynamicVoiceChat = ({ type = "" }) => {
   let isMobile = useCustomMediaQuery("(max-width: 500px)")
 
   useEffect(() => {
-    if (!introMessageData || introMessageData?.length === 0) return
+    if (!introMessageData) return
 
-    let message = introMessageData[0]?.introductory_message
+    let message = introMessageData?.introductory_message
     if (profileToUse && firstName && firstName !== "null" && firstName !== "") {
-      message = introMessageData[0]?.introductory_message
+      message = introMessageData?.introductory_message
     } else {
-      message = introMessageData[0]?.alt_introductory_message
+      message = introMessageData?.alt_introductory_message
     }
-    const botName = introMessageData[0]?.name || "Bot"
+    const botName = introMessageData?.name || "Bot"
 
     setBotName(botName)
-    setDefaultBotName(introMessageData[0]?.default_name)
+    setDefaultBotName(introMessageData?.default_name)
     setBotNameToDisplay(botName)
 
     if (isOldChatOpen) {
@@ -959,18 +969,6 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
     const steps = selectedBot?.state_machine_steps ?? []
     setStepMetadata(steps)
-
-    // If step 0 is NON_LLM, inject first bot question directly from state machine metadata
-    if (steps.length > 0 && steps[0]?.operation_type === "non_llm" && steps[0]?.bot_question) {
-      const firstQuestion = steps[0].bot_question
-      const firstQuestionId = `non_llm_step_0_${Date.now()}`
-      setSentences(prev => {
-        const alreadyHasFirstQuestion = prev.some(s => s.id?.toString().startsWith("non_llm_step_0"))
-        if (alreadyHasFirstQuestion) return prev
-        return [...prev, { message: firstQuestion, source: "bot", isNarrated: false, id: firstQuestionId }]
-      })
-      handleMessagesForBot(firstQuestion)
-    }
 
     // Find the latest bot based on flow type
     const latestBot = bots.find(bot => bot.route === storedRoute)
@@ -1610,6 +1608,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
     }
   }, [isStreamingComplete, showFileInput, showHomepage, endStoryMutation.isPending, isLoading, isPdfDownloading, storyData, chatHistory, isMute, didUserMute, acceptedTnc, isIntroMessageLoading, noStoryFound])
 
+  // TODO: Code needs to be removed
+  useEffect(() => {
+    let unnarratedMessages = sentences.filter(x => !x?.isNarrated)
+    console.log("sentences >>>", sentences, unnarratedMessages)
+  }, [sentences])
+
   /**
    * Process TTS requests for unnarrated bot messages
    * Converts text to speech for messages not yet played aloud
@@ -1621,11 +1625,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
     if (acceptedTnc === "ONGOING") {
       return () => {}
     }
+
     if (isNextAllowed && hasUnnarratedMessages && !isLoading && !endStoryMutation.isPending && activeFlowInfo) {
       handleAI4BharatTTSRequest(unnarratedMessages[0].message, unnarratedMessages[0].id, sourceLanguage, unnarratedMessages[0].audio_s3_url)
     }
 
-    return () => {}
   }, [isNextAllowed, sentences, languageToUse, isLoading, endStoryMutation.isPending, acceptedTnc, activeFlowInfo])
 
   // ========================================================================
@@ -2101,6 +2105,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const handleAI4BharatTTSRequest = async (text, id, sourceLanguage, audio_s3_url) => {
     try {
       if (!activeFlowInfo?.bot_route) return
+
+      console.log({ audio_s3_url })
 
       if (id === "intro_msg_id" && isIntroPlayed.current === true) {
         return
@@ -2787,7 +2793,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
             autoComplete="off"
           >
             {/* Mic button on the left */}
-            <button type="button" aria-label={hasStartedRecording ? t("stopRecording") : t("startRecording")} aria-pressed={hasStartedRecording} onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData} className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}>
+            <button type="button" aria-label={hasStartedRecording ? "stopRecording" : "startRecording"} aria-pressed={hasStartedRecording} onClick={hasStartedRecording ? stopRecording : startRecording} disabled={isFetchingData} className={`mic-btn ${hasStartedRecording ? "mic-recording" : "mic-idle"}`}>
               {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
             </button>
 
@@ -2844,7 +2850,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                 </div>
               )}
             </div>
-            <button type="submit" aria-label={t("sendMessage")} disabled={!textMessage.trim() || hasStartedRecording || isFetchingData} className="send-btn">
+            <button type="submit" aria-label={"sendMessage"} disabled={!textMessage.trim() || hasStartedRecording || isFetchingData} className="send-btn">
               <MdSend />
             </button>
           </form>

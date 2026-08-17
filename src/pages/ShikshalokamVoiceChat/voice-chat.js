@@ -815,18 +815,18 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   let chatToAddLength = isMobile ? 10 : 10
 
   useEffect(() => {
-    if (!introMessageData || introMessageData?.length === 0) return
+    if (!introMessageData) return
 
-    let message = introMessageData[0]?.introductory_message
+    let message = introMessageData?.introductory_message
     if (profileToUse && firstName && firstName !== "null" && firstName !== "") {
-      message = introMessageData[0]?.introductory_message
+      message = introMessageData?.introductory_message
     } else {
-      message = introMessageData[0]?.alt_introductory_message
+      message = introMessageData?.alt_introductory_message
     }
-    const botName = introMessageData[0]?.name || "Bot"
+    const botName = introMessageData?.name || "Bot"
 
     setBotName(botName)
-    setDefaultBotName(introMessageData[0]?.default_name)
+    setDefaultBotName(introMessageData?.default_name)
     setBotNameToDisplay(botName)
 
     if (isOldChatOpen) {

@@ -73,7 +73,7 @@ function WeeksSelection({
           language: "en",
           company_bot__route: bot_routes.mitra_duration,
         });
-        const message = response?.[0]?.alt_introductory_message;
+        const message = response?.alt_introductory_message;
         setIntroMessage(message);
         useAICreationSessionStore.getState().setDurationIntroMessage(message);
       } catch (error) {

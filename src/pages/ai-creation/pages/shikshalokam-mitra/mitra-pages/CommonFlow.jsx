@@ -70,7 +70,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
           language: 'en',
           company_bot__route: botRoute,
         });
-        const message = response?.[0]?.alt_introductory_message;
+        const message = response?.alt_introductory_message;
         if(message) {
           generateNewSession();
         }
