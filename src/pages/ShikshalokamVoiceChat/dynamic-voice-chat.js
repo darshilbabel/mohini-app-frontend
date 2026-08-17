@@ -2211,15 +2211,35 @@ const DynamicVoiceChat = ({ type = "" }) => {
               }
 
               setIsFetchingData(true)
-              let transcriptResult = ""
-              let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${sessionId}/`, storyData)
-              if (!s3Url || s3Url === "") {
-                transcriptResult = t("asrError")
-              }
-              setAsrAudio(prev => [...prev, s3Url])
-              let storedRoute = activeFlowInfo.bot_route
-              transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
-              if (!transcriptResult || transcriptResult === "") {
+              try {
+                let transcriptResult = ""
+                let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${sessionId}/`, storyData)
+                if (!s3Url || s3Url === "") {
+                  transcriptResult = t("asrError")
+                }
+                setAsrAudio(prev => [...prev, s3Url])
+                let storedRoute = activeFlowInfo.bot_route
+                transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
+                if (!transcriptResult || transcriptResult === "") {
+                  showNotification({
+                    message: t("asrError"),
+                    type: "error",
+                    options: {
+                      position: "top-center",
+                      autoClose: 6000,
+                      style: { fontWeight: "bold" },
+                    },
+                  })
+                } else {
+                  setTextMessage(prev => {
+                    if (prev && prev.trim().length > 0) {
+                      return prev.trimEnd() + " " + transcriptResult
+                    }
+                    return transcriptResult
+                  })
+                }
+              } catch (error) {
+                console.error("Error transcribing recorded audio:", error)
                 showNotification({
                   message: t("asrError"),
                   type: "error",
@@ -2229,15 +2249,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     style: { fontWeight: "bold" },
                   },
                 })
-              } else {
-                setTextMessage(prev => {
-                  if (prev && prev.trim().length > 0) {
-                    return prev.trimEnd() + " " + transcriptResult
-                  }
-                  return transcriptResult
-                })
+              } finally {
+                setIsFetchingData(false)
               }
-              setIsFetchingData(false)
             } else {
               console.warn("No audio chunks were recorded.")
               setIsFetchingData(false)
@@ -2282,7 +2296,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     <>
       {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} />}
 
-      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && activeFlowRoute && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} useStaticText={false} />}
+      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && activeFlowRoute && !shouldFetchChatSession && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={`div27`}>
         <div className={isMobile ? "div30_a" : "div30"}>
         
@@ -2519,7 +2533,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                         // multiple
                         onChange={e => {
                           setIsLoading(true)
-                          handleMultipleUploads(e, storyData, files, sessionId, activeFlowInfo.image_config.max_images, activeFlowInfo.image_config.image_size_mb)
+                          handleMultipleUploads(e, storyData, files, sessionId, activeFlowInfo.image_config.max_images, activeFlowInfo.image_config.image_size_mb, activeFlowRoute)
                             .then(uploadedFiles => {
                               if (uploadedFiles && uploadedFiles.error) {
                                 setFileErrorText(uploadedFiles.error)

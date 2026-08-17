@@ -21,7 +21,16 @@ export const getListAfterHeaderText = (headerText, blocks) => {
   return []
 }
 
-export const getQuestionAnswersFromBlocks = blocks => {
+const escapeRegExp = value => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+export const getQuestionAnswersFromBlocks = (blocks, editorConfig) => {
+  const questionField = editorConfig?.question_field || "question"
+  const answerField = editorConfig?.answer_field || "answer"
+  // derive the header matcher from the configured prefix, falling back to the legacy "Q<n>:" format
+  const headerPrefix = editorConfig?.header_prefix
+  const headerRegex = headerPrefix ? new RegExp(`^${headerPrefix.split("{index}").map(escapeRegExp).join("\\d+")}\\s*`) : /^Q\d+:\s*/
+  const isQuestionHeader = text => (headerPrefix ? headerRegex.test(text) : (text || "").startsWith("Q"))
+
   const questionAnswers = []
   let currentQuestion = null
 
@@ -35,15 +44,15 @@ export const getQuestionAnswersFromBlocks = blocks => {
   })
 
   filteredBlocks.forEach((block, index) => {
-    if (block.type === "header" && block.data.text.startsWith("Q")) {
+    if (block.type === "header" && isQuestionHeader(block.data.text)) {
       if (currentQuestion) {
         questionAnswers.push(currentQuestion)
       }
 
-      const questionText = block.data.text.replace(/^Q\d+:\s*/, "")
-      currentQuestion = { question: questionText, answer: "" }
+      const questionText = block.data.text.replace(headerRegex, "")
+      currentQuestion = { [questionField]: questionText, [answerField]: "" }
     } else if (block.type === "paragraph" && currentQuestion) {
-      currentQuestion.answer = block.data.text || ""
+      currentQuestion[answerField] = block.data.text || ""
       questionAnswers.push(currentQuestion)
       currentQuestion = null
     }
@@ -68,7 +77,7 @@ export function extractStoryData(editorConfig, blocks) {
   }
 
   if (editorConfig.type === "qa") {
-    return { [editorConfig.data_key]: getQuestionAnswersFromBlocks(blocks) }
+    return { [editorConfig.data_key]: getQuestionAnswersFromBlocks(blocks, editorConfig) }
   }
 
   return null
@@ -107,9 +116,10 @@ const convertHeifToJpg = async file => {
   return jpgFile
 }
 
-export const handleMultipleUploads = async (e, storyData, files, sessionId, maxImages = 10, perImageSize = 2) => {
+export const handleMultipleUploads = async (e, storyData, files, sessionId, maxImages = 10, perImageSize = 2, flowRoute) => {
   const urlParams = new URLSearchParams(window.location.search)
-  const storageFlow = urlParams.get(URL_PARAMS.FLOW)
+  // the URL intentionally retains the parent flow, so prefer the caller-supplied active (child) route
+  const storageFlow = flowRoute || urlParams.get(URL_PARAMS.FLOW)
 
   const filesArray = Array.from(e.target.files).filter(file => {
     const fileSizeInMB = file.size / (1024 * 1024)
