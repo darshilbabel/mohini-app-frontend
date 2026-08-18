@@ -20,7 +20,7 @@ import { GrGallery } from "react-icons/gr"
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
 import { LANGUAGE_ENUMS, languageList } from "./enum"
 import { sessionFlowName } from "../../constants/session"
-import { EDITOR_CONFIG_TYPE } from "../../constants/editor"
+import { EDITOR_BLOCK_TYPE, EDITOR_CONFIG_TYPE } from "../../constants/editor"
 import { MdAccountCircle, MdEdit, MdSend } from "react-icons/md"
 import { RxCross2 } from "react-icons/rx"
 import { setLanguage } from "../../i18n"
@@ -1758,16 +1758,16 @@ const DynamicVoiceChat = ({ type = "" }) => {
             })
           }, 500)
         },
-        defaultBlock: "paragraph",
+        defaultBlock: EDITOR_BLOCK_TYPE.PARAGRAPH,
         data: {
-          blocks: parsed_content.length > 0 ? parsed_content : [{ type: "paragraph", data: { text: "" } }],
+          blocks: parsed_content.length > 0 ? parsed_content : [{ type: EDITOR_BLOCK_TYPE.PARAGRAPH, data: { text: "" } }],
         },
         onChange: async (api, event) => {
           setIsSaving(false)
           const savedData = await api.saver.save()
 
           const filteredBlocks = savedData.blocks.filter((block, index) => {
-            if (block.type === "paragraph") {
+            if (block.type === EDITOR_BLOCK_TYPE.PARAGRAPH) {
               const isEmpty = !block.data.text.trim() || block.data.text === "​" || block.data.text === " "
               return !isEmpty
             }

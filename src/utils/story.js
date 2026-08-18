@@ -1,7 +1,7 @@
 import { createStoryMediaApi } from "api/endpoints"
 import { handleS3Upload } from "../services/storage_service"
 import { URL_PARAMS } from "../constants/urls"
-import { EDITOR_CONFIG_TYPE } from "../constants/editor"
+import { EDITOR_BLOCK_TYPE, EDITOR_CONFIG_TYPE } from "../constants/editor"
 import { useUserDataLocalStore } from "../store"
 import axiosInstance from "./axios"
 import i18n from "../i18n"
@@ -10,12 +10,12 @@ export function extractTextBlocks(formattedContent) {
   if (!formattedContent) return []
   const blocks = JSON.parse(formattedContent)
   if (!blocks || blocks?.length === 0) return []
-  return blocks.filter(block => block.type === "paragraph")
+  return blocks.filter(block => block.type === EDITOR_BLOCK_TYPE.PARAGRAPH)
 }
 
 export const getListAfterHeaderText = (headerText, blocks) => {
-  const idx = blocks.findIndex(b => b.type === "header" && b.data.text.trim().toLowerCase() === headerText.toLowerCase())
-  if (idx !== -1 && blocks[idx + 1]?.type === "list") {
+  const idx = blocks.findIndex(b => b.type === EDITOR_BLOCK_TYPE.HEADER && b.data.text.trim().toLowerCase() === headerText.toLowerCase())
+  if (idx !== -1 && blocks[idx + 1]?.type === EDITOR_BLOCK_TYPE.LIST) {
     const items = blocks[idx + 1].data.items || []
     return items.map(item => (typeof item === "string" ? item : item?.content || ""))
   }
@@ -36,7 +36,7 @@ export const getQuestionAnswersFromBlocks = (blocks, editorConfig) => {
   let currentQuestion = null
 
   const filteredBlocks = blocks.filter(block => {
-    if (block.type === "paragraph") {
+    if (block.type === EDITOR_BLOCK_TYPE.PARAGRAPH) {
       const text = block.data.text || ""
       const isEmpty = !text.trim() || text === "​" || text === " "
       return !isEmpty
@@ -45,14 +45,14 @@ export const getQuestionAnswersFromBlocks = (blocks, editorConfig) => {
   })
 
   filteredBlocks.forEach((block, index) => {
-    if (block.type === "header" && isQuestionHeader(block.data.text)) {
+    if (block.type === EDITOR_BLOCK_TYPE.HEADER && isQuestionHeader(block.data.text)) {
       if (currentQuestion) {
         questionAnswers.push(currentQuestion)
       }
 
       const questionText = block.data.text.replace(headerRegex, "")
       currentQuestion = { [questionField]: questionText, [answerField]: "" }
-    } else if (block.type === "paragraph" && currentQuestion) {
+    } else if (block.type === EDITOR_BLOCK_TYPE.PARAGRAPH && currentQuestion) {
       currentQuestion[answerField] = block.data.text || ""
       questionAnswers.push(currentQuestion)
       currentQuestion = null
@@ -207,9 +207,9 @@ export const getEditorContentBlocks = (otherParams, editorConfig, editorCopyChan
 
     if (editorConfig.type === EDITOR_CONFIG_TYPE.HEADER_LIST_SECTIONS) {
       return editorConfig.sections.flatMap(section => [
-        { type: "header", data: { text: i18n.t(section.header_i18n_key), level: section.header_level } },
+        { type: EDITOR_BLOCK_TYPE.HEADER, data: { text: i18n.t(section.header_i18n_key), level: section.header_level } },
         {
-          type: "list",
+          type: EDITOR_BLOCK_TYPE.LIST,
           data: {
             style: section.list_style,
             items: otherParams?.[section.data_key]?.length ? otherParams[section.data_key] : [""],
@@ -222,15 +222,15 @@ export const getEditorContentBlocks = (otherParams, editorConfig, editorCopyChan
       const items = otherParams?.[editorConfig.data_key] || []
       return items.flatMap((qa, i) => [
         {
-          type: "header",
+          type: EDITOR_BLOCK_TYPE.HEADER,
           data: {
             text: editorConfig.header_prefix.replace("{index}", i + 1) + " " + qa[editorConfig.question_field],
             level: editorConfig.header_level,
           },
         },
-        { type: "paragraph", data: { text: qa[editorConfig.answer_field] || "" } },
+        { type: EDITOR_BLOCK_TYPE.PARAGRAPH, data: { text: qa[editorConfig.answer_field] || "" } },
         ...(editorConfig.spacer_between && i < items.length - 1
-          ? [{ type: "paragraph", data: { text: "​" }, readonly: true }]
+          ? [{ type: EDITOR_BLOCK_TYPE.PARAGRAPH, data: { text: "​" }, readonly: true }]
           : []),
       ])
     }
