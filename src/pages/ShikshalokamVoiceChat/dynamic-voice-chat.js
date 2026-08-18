@@ -20,6 +20,7 @@ import { GrGallery } from "react-icons/gr"
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
 import { LANGUAGE_ENUMS, languageList } from "./enum"
 import { sessionFlowName } from "../../constants/session"
+import { EDITOR_CONFIG_TYPE } from "../../constants/editor"
 import { MdAccountCircle, MdEdit, MdSend } from "react-icons/md"
 import { RxCross2 } from "react-icons/rx"
 import { setLanguage } from "../../i18n"
@@ -1683,12 +1684,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
               const headerEl = block.querySelector(".ce-header")
               const paragraphEl = block.querySelector(".ce-paragraph")
 
-              if (headerEl && editorConfig?.type === "header_list_sections") {
+              if (headerEl && editorConfig?.type === EDITOR_CONFIG_TYPE.HEADER_LIST_SECTIONS) {
                 headerEl.setAttribute("contenteditable", "false")
                 headerEl.style.pointerEvents = "none"
                 headerEl.style.color = "#374151"
                 headerEl.style.fontWeight = "bold"
-              } else if (headerEl && editorConfig?.type === "qa") {
+              } else if (headerEl && editorConfig?.type === EDITOR_CONFIG_TYPE.QA) {
                 headerEl.setAttribute("contenteditable", "false")
                 headerEl.style.pointerEvents = "none"
                 headerEl.style.color = "#374151"
@@ -1713,7 +1714,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                 block.style.webkitUserSelect = "none"
                 block.style.mozUserSelect = "none"
                 block.style.msUserSelect = "none"
-              } else if (paragraphEl && editorConfig?.type === "qa") {
+              } else if (paragraphEl && editorConfig?.type === EDITOR_CONFIG_TYPE.QA) {
                 const paragraphText = paragraphEl.textContent || paragraphEl.innerText || ""
                 const isEmpty = !paragraphText.trim() || paragraphText === "​" || paragraphText === " "
 

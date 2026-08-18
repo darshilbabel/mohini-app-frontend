@@ -1,6 +1,7 @@
 import { createStoryMediaApi } from "api/endpoints"
 import { handleS3Upload } from "../services/storage_service"
 import { URL_PARAMS } from "../constants/urls"
+import { EDITOR_CONFIG_TYPE } from "../constants/editor"
 import { useUserDataLocalStore } from "../store"
 import axiosInstance from "./axios"
 import i18n from "../i18n"
@@ -68,7 +69,7 @@ export const getQuestionAnswersFromBlocks = (blocks, editorConfig) => {
 export function extractStoryData(editorConfig, blocks) {
   if (!editorConfig) return null
 
-  if (editorConfig.type === "header_list_sections") {
+  if (editorConfig.type === EDITOR_CONFIG_TYPE.HEADER_LIST_SECTIONS) {
     const result = {}
     editorConfig.sections.forEach(section => {
       result[section.data_key] = getListAfterHeaderText(i18n.t(section.header_i18n_key), blocks)
@@ -76,7 +77,7 @@ export function extractStoryData(editorConfig, blocks) {
     return result
   }
 
-  if (editorConfig.type === "qa") {
+  if (editorConfig.type === EDITOR_CONFIG_TYPE.QA) {
     return { [editorConfig.data_key]: getQuestionAnswersFromBlocks(blocks, editorConfig) }
   }
 
@@ -204,7 +205,7 @@ export const getEditorContentBlocks = (otherParams, editorConfig, editorCopyChan
       return (editorCopyChanges || []).map(item => ({ type: item.type, data: { text: item.data.text } }))
     }
 
-    if (editorConfig.type === "header_list_sections") {
+    if (editorConfig.type === EDITOR_CONFIG_TYPE.HEADER_LIST_SECTIONS) {
       return editorConfig.sections.flatMap(section => [
         { type: "header", data: { text: i18n.t(section.header_i18n_key), level: section.header_level } },
         {
@@ -217,7 +218,7 @@ export const getEditorContentBlocks = (otherParams, editorConfig, editorCopyChan
       ])
     }
 
-    if (editorConfig.type === "qa") {
+    if (editorConfig.type === EDITOR_CONFIG_TYPE.QA) {
       const items = otherParams?.[editorConfig.data_key] || []
       return items.flatMap((qa, i) => [
         {
