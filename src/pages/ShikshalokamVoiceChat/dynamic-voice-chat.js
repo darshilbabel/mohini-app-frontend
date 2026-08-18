@@ -20,6 +20,7 @@ import { GrGallery } from "react-icons/gr"
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
 import { LANGUAGE_ENUMS, languageList } from "./enum"
 import { sessionFlowName } from "../../constants/session"
+import { EDITOR_BLOCK_TYPE, EDITOR_CONFIG_TYPE } from "../../constants/editor"
 import { MdAccountCircle, MdEdit, MdSend } from "react-icons/md"
 import { RxCross2 } from "react-icons/rx"
 import { setLanguage } from "../../i18n"
@@ -58,11 +59,14 @@ import useUserDataLocalStore from "store/slices/userData/userDataLocal"
 import useVoiceRecord, { default_wave_surfer_config } from "../interview-text-voice/useVoiceRecord"
 import WaveSurferPlayer from "../interview-text-voice/voice-player"
 import { apiClient } from "../../api/client"
+import CustomFormData from "../../components/Form/FormData"
 
 const cookies = new Cookies()
 
 const DynamicVoiceChat = ({ type = "" }) => {
   const { flow: storageFlow } = useUrlFlow()
+  const selectedChildFlowRoute = useChatStorage()(state => state.selectedChildFlowRoute)
+  const activeFlowRoute = selectedChildFlowRoute || storageFlow
 
   // ========== useState Hooks ==========
   const [asrAudio, setAsrAudio] = useState([])
@@ -139,7 +143,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const ipFetched = useUserStorage()(state => state.ipFetched)
 
   // chat data actions
-  const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()
+  const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSelectedChildFlowRoute, setSessionId, setStateMachineLength } = useChatStorage().getState()
 
   // user data actions
   const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useUserStorage().getState()
@@ -169,19 +173,30 @@ const DynamicVoiceChat = ({ type = "" }) => {
     refetchOnReconnect: false,
   })
 
+  const { data: childFlowInfo } = useQuery({
+    queryKey: [API_ENDPOINTS.FLOW_CONNECTION_INFO, selectedChildFlowRoute],
+    queryFn: () => getFlowInfoApi(selectedChildFlowRoute),
+    enabled: !!selectedChildFlowRoute,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
+
+  const activeFlowInfo = childFlowInfo || flowInfo
+
   const { data: companyBotData, isLoading: isCompanyBotLoading } = useQuery({
-    queryKey: [API_ENDPOINTS.GET_COMPANY_BOT, companySlug, flowInfo?.bot_route, languageToUse, accessToken],
-    queryFn: () => getCompanyBotApi({ company_slug: companySlug, route: flowInfo.bot_route, target_language: languageToUse }),
-    enabled: !!(languageToUse && shouldFetchIntro && isNewChatOpen && profileToUse && flowInfo?.bot_route),
+    queryKey: [API_ENDPOINTS.GET_COMPANY_BOT, companySlug, activeFlowInfo?.bot_route, languageToUse, accessToken],
+    queryFn: () => getCompanyBotApi({ company_slug: companySlug, route: activeFlowInfo.bot_route, target_language: languageToUse }),
+    enabled: !!(languageToUse && shouldFetchIntro && isNewChatOpen && profileToUse && activeFlowInfo?.bot_route),
   })
 
   const { data: introMessageData, isLoading: isIntroMessageLoading } = useQuery({
-    queryKey: [API_ENDPOINTS.BOT_VERNACULAR, flowInfo?.bot_route, languageToUse],
+    queryKey: [API_ENDPOINTS.BOT_VERNACULAR, activeFlowInfo?.bot_route, languageToUse],
     queryFn: () => getTranslatedIntroMessageApi({
       language: languageToUse,
-      company_bot__route: flowInfo.bot_route,
+      company_bot__route: activeFlowInfo.bot_route,
     }),
-    enabled: !!(companyBotData && languageToUse && companyBotData?.results?.length > 0 && flowInfo?.bot_route),
+    enabled: !!(companyBotData && languageToUse && companyBotData?.results?.length > 0 && activeFlowInfo?.bot_route),
   })
 
   const { data: chatSessionData } = useQuery({
@@ -248,7 +263,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     const chat_history = getChatHistory()
 
     if (chat_history.filter(chat => chat.source === "user").length < 1) return
-    if (!flowInfo) return
+    if (!activeFlowInfo) return
 
     sendSocketMessage({
       type: "authenticate",
@@ -258,15 +273,15 @@ const DynamicVoiceChat = ({ type = "" }) => {
       taskid: searchParams.get("taskId") || taskId,
       access_token: accessToken,
       route: chatLanguage,
-      bot_route: flowInfo.bot_route,
-      flow_name: storageFlow,
+      bot_route: activeFlowInfo.bot_route,
+      flow_name: activeFlowRoute,
       address: {
         ipCity,
         ipState,
         ipZipCode,
       },
     })
-  }, [sessionId, profileToUse, projectIdStore, searchParams, taskId, accessToken, chatLanguage, storageFlow, ipFetched, flowInfo])
+  }, [sessionId, profileToUse, projectIdStore, searchParams, taskId, accessToken, chatLanguage, activeFlowRoute, ipFetched, activeFlowInfo])
 
   const onWebSocketMessage = useCallback(event => {
     const data = JSON.parse(event.data)
@@ -330,23 +345,23 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.BiharStudentFGD]: "fgd_tncText",
       [sessionFlowName.CommunityFGD]: "fgd_tncText",
     }
-    if (tncMap[storageFlow]) {
-      return tncMap[storageFlow]
+    if (tncMap[activeFlowRoute]) {
+      return tncMap[activeFlowRoute]
     }
     return "tncText"
-  }, [storageFlow])
+  }, [activeFlowRoute])
 
   const shouldFetchChatSession = useMemo(() => {
-    return storageFlow && [sessionFlowName.Reflection].includes(storageFlow)
-  }, [storageFlow])
+    return activeFlowRoute && [sessionFlowName.Reflection].includes(activeFlowRoute)
+  }, [activeFlowRoute])
 
   const isInitialising = useMemo(() => {
     return !sessionId || chatHistory?.length === 0
   }, [sessionId, chatHistory])
 
   const webSocketUrl = useMemo(() => {
-    return `${env.WS_PROTOCOL()}://${env.WEBSOCKET_HOST()}/${flowInfo ? flowInfo.websocket_url : ""}`
-  }, [flowInfo])
+    return `${env.WS_PROTOCOL()}://${env.WEBSOCKET_HOST()}/${activeFlowInfo ? activeFlowInfo.websocket_url : ""}`
+  }, [activeFlowInfo])
 
   const {
     sendMessage: sendSocketMessage,
@@ -389,7 +404,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       setIsLoading(true)
       const formData = {
         include_in_story: include_in_story,
-        flow: storageFlow,
+        flow: activeFlowRoute,
         access_token: accessToken,
         session: sessionId,
       }
@@ -406,7 +421,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       setIsLoading(true)
       setIsSaving(true)
       const outputData = await editor.save()
-      const flow = storageFlow
+      const flow = activeFlowRoute
 
       let updatePayload = {
         id: storyData?.id,
@@ -416,7 +431,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       }
 
       const blocks = outputData?.blocks || []
-      const story_params = extractStoryData(flow, blocks)
+      const story_params = extractStoryData(activeFlowInfo?.editor_config, blocks)
 
       if (story_params) {
         updatePayload["other_params"] = {
@@ -598,8 +613,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
         taskid: searchParams.get("taskId") || taskId,
         access_token: accessToken,
         route: chatLanguage,
-        bot_route: flowInfo.bot_route,
-        flow_name: storageFlow,
+        bot_route: activeFlowInfo.bot_route,
+        flow_name: activeFlowRoute,
         address: {
           ipCity,
           ipState,
@@ -710,7 +725,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Loads selected chat session or fetches intro for new session
    */
   const handleChatSessionButtonClick = useCallback(async () => {
-    if (!flowInfo) return
+    if (!activeFlowInfo) return
     lastBotMessageIndex.current = -1
     try {
       await handleCompanyChatCall()
@@ -718,7 +733,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       console.error(error)
       // setIsIntroLoading(false)
     }
-  }, [sessionId, flowInfo, introMessage, handleCompanyChatCall])
+  }, [sessionId, activeFlowInfo, introMessage, handleCompanyChatCall])
 
   /**
    * Adds bot messages to chat history during streaming
@@ -762,8 +777,27 @@ const DynamicVoiceChat = ({ type = "" }) => {
   }, [flowInfoError, isFlowInfoError])
 
   useEffect(() => {
-    setStorageFlow(storageFlow)
-  }, [storageFlow])
+    setStorageFlow(activeFlowRoute)
+  }, [activeFlowRoute])
+
+  useEffect(() => {
+    if (!flowInfo?.isParentFlow) return
+    const activeChildren = (flowInfo.children_flows || []).filter(f => f.active)
+    if (activeChildren.length === 0) {
+      navigateBack()
+      return
+    }
+
+    // Restore a previously selected child flow (persisted across resetChat's reload)
+    // instead of always falling back to the parent's default.
+    const hasValidPersistedSelection = selectedChildFlowRoute && activeChildren.some(f => f.flow_route === selectedChildFlowRoute)
+    if (hasValidPersistedSelection) return
+
+    const defaultRoute = (flowInfo.default_flow && activeChildren.find(f => f.flow_route === flowInfo.default_flow))
+      ? flowInfo.default_flow
+      : activeChildren[0].flow_route
+    setSelectedChildFlowRoute(defaultRoute)
+  }, [flowInfo, selectedChildFlowRoute])
 
   useEffect(() => {
     if (chatHistory.length > 1) {
@@ -842,10 +876,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   useEffect(() => {
     if (!companyBotData) return
-    if (!flowInfo) return
+    if (!activeFlowInfo) return
 
     const bots = companyBotData?.results
-    let storedRoute = flowInfo.bot_route
+    let storedRoute = activeFlowInfo.bot_route
 
     if (!bots || bots.length === 0) {
       handleScrollToView()
@@ -863,11 +897,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
       handleScrollToView()
     }
 
-    if (!storageFlow || ![sessionFlowName.LoginMiStory].includes(storageFlow)) {
+    if (!activeFlowRoute || ![sessionFlowName.LoginMiStory].includes(activeFlowRoute)) {
       handleCompanyChatCall()
     }
 
-  }, [companyBotData, introMessage, chatSessionData, flowInfo])
+  }, [companyBotData, introMessage, chatSessionData, activeFlowInfo])
 
   // ========================================================================
   // SECTION: Lifecycle & Browser Events (Execution Order: 1 - On Mount)
@@ -940,7 +974,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Shows guest popup for special flows or navigates to previous page
    */
   useEffect(() => {
-    const currentFlow = storageFlow
+    const currentFlow = activeFlowRoute
     const handleBack = () => {
       console.log("History length:", window.history.length)
       console.log("Can go back 1?", window.history.length > 1)
@@ -1038,11 +1072,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
         }
       }
     }
-    if (chatLanguage && storageFlow) {
+    if (chatLanguage && activeFlowRoute) {
       // setIsLoading(true)
       handleLanguageSelect(chatLanguage)
     }
-  }, [chatLanguage, storageFlow])
+  }, [chatLanguage, activeFlowRoute])
 
   // ========================================================================
   // SECTION: User Profile & Authentication (Execution Order: 3 - On Token Available)
@@ -1259,16 +1293,16 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * * DO NOT END STORY FOR PARENT PERCEPTION SURVEY
    */
   useEffect(() => {
-    if (!flowInfo) return
+    if (!activeFlowInfo) return
 
-    if (flowInfo.create_story === "none") {
+    if (activeFlowInfo.create_story === "none") {
       return
     }
 
     if (!endStoryMutation.isPending && isStreamingComplete && stateMachineLength && strandStep >= stateMachineLength && noStoryFound && (!llmError || llmError === "") && acceptedTnc && acceptedTnc !== "ONGOING") {
       callEndStory()
     }
-  }, [isStreamingComplete, accessToken, stateMachineLength, languageToUse, noStoryFound, storageFlow, sentences])
+  }, [isStreamingComplete, accessToken, stateMachineLength, languageToUse, noStoryFound, activeFlowRoute, sentences])
 
 
 
@@ -1282,7 +1316,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     let survey_title = "PPsCompletionMessage"
 
     const paramsMap = {
-      [sessionFlowName.ShikshaSamvad]: "shiksha_samvad_", 
+      [sessionFlowName.ShikshaSamvad]: "shiksha_samvad_",
       [sessionFlowName.DelhiShikshaSamvad]: "delhi_shiksha_",
       [sessionFlowName.OdishaYouth]: "odisha_youth_",
       [sessionFlowName.OdishaYouthAI]: "odisha_youth_",
@@ -1296,14 +1330,14 @@ const DynamicVoiceChat = ({ type = "" }) => {
       [sessionFlowName.Bihar_PTM]: "bihar_ptm_",
     }
 
-    if (paramsMap[storageFlow]) {
-      survey_title = paramsMap[storageFlow] + survey_title
+    if (paramsMap[activeFlowRoute]) {
+      survey_title = paramsMap[activeFlowRoute] + survey_title
     }
 
     const isLastMessageFromBot = chatHistory.length > 0 && chatHistory[chatHistory.length - 1]?.source === "bot"
     if (
-      storageFlow &&
-      flowInfo?.create_story === "none" &&
+      activeFlowRoute &&
+      activeFlowInfo?.create_story === "none" &&
       isStreamingComplete &&
       stateMachineLength &&
       strandStep >= stateMachineLength &&
@@ -1313,7 +1347,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         title: t(survey_title),
         showCancelButton: false,
         confirmButtonText: t("PPsCompletionCTA"),
-        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.Bihar_PTM].includes(storageFlow),
+        showConfirmButton: ![sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.Bihar_PTM].includes(activeFlowRoute),
         showCloseButton: false,
         allowEscapeKey: false,
         allowOutsideClick: false,
@@ -1334,7 +1368,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         }
       })
     }
-  }, [isStreamingComplete, strandStep, stateMachineLength, storageFlow, chatHistory, flowInfo])
+  }, [isStreamingComplete, strandStep, stateMachineLength, activeFlowRoute, chatHistory, activeFlowInfo, storageFlow])
 
   // ========================================================================
   // SECTION: UI State Management (Execution Order: 7 - Throughout Lifecycle)
@@ -1484,7 +1518,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     if (showFileInput) {
       shouldPlay = true
     } else if ((noStoryFound || noStoryFound === null) && !isIntroMessageLoading && !isLoading && !endStoryMutation.isPending) {
-      const currentFlow = storageFlow
+      const currentFlow = activeFlowRoute
 
       if (currentFlow) {
         if (chatHistory.length > 0) {
@@ -1522,12 +1556,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
     console.log({
       hasUnnarratedMessages,
     })
-    if (isNextAllowed && hasUnnarratedMessages && !isLoading && !endStoryMutation.isPending && flowInfo) {
+    if (isNextAllowed && hasUnnarratedMessages && !isLoading && !endStoryMutation.isPending && activeFlowInfo) {
       handleAI4BharatTTSRequest(unnarratedMessages[0].message, unnarratedMessages[0].id, sourceLanguage)
     }
 
     return () => {}
-  }, [isNextAllowed, sentences, languageToUse, isLoading, endStoryMutation.isPending, acceptedTnc, flowInfo])
+  }, [isNextAllowed, sentences, languageToUse, isLoading, endStoryMutation.isPending, acceptedTnc, activeFlowInfo])
 
   // ========================================================================
   // SECTION: Editor Management (Execution Order: 10 - When Modal Opens)
@@ -1540,8 +1574,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
    */
   useEffect(() => {
     if (!!editorCopyChanges && isModalOpen && storyData) {
-      const flow = storageFlow
-      let parsed_content = getEditorContentBlocks(storyData?.other_params, flow, editorCopyChanges)
+      let parsed_content = getEditorContentBlocks(storyData?.other_params, activeFlowInfo?.editor_config, editorCopyChanges)
 
       if (!document.getElementById("editorjs")) {
         return
@@ -1644,62 +1677,51 @@ const DynamicVoiceChat = ({ type = "" }) => {
           `
           document.head.appendChild(style)
           setTimeout(() => {
-            const blocks = document.querySelectorAll(".ce-block")
+            const editorConfig = activeFlowInfo?.editor_config
+            const domBlocks = document.querySelectorAll(".ce-block")
 
-            blocks.forEach((block, blockIndex) => {
+            domBlocks.forEach((block) => {
               const headerEl = block.querySelector(".ce-header")
               const paragraphEl = block.querySelector(".ce-paragraph")
 
-              if (headerEl) {
-                const text = headerEl.innerText.trim().toLowerCase()
+              if (headerEl && editorConfig?.type === EDITOR_CONFIG_TYPE.HEADER_LIST_SECTIONS) {
+                headerEl.setAttribute("contenteditable", "false")
+                headerEl.style.pointerEvents = "none"
+                headerEl.style.color = "#374151"
+                headerEl.style.fontWeight = "bold"
+              } else if (headerEl && editorConfig?.type === EDITOR_CONFIG_TYPE.QA) {
+                headerEl.setAttribute("contenteditable", "false")
+                headerEl.style.pointerEvents = "none"
+                headerEl.style.color = "#374151"
+                headerEl.style.fontWeight = "bold"
+                headerEl.classList.add("question-header")
 
-                if (text === t("challengesHeader").toLowerCase() || text === t("solutionsHeader").toLowerCase() || (text.startsWith("q") && text.includes(":"))) {
-                  headerEl.setAttribute("contenteditable", "false")
-                  headerEl.style.pointerEvents = "none"
-                  headerEl.style.color = "#374151"
-                  headerEl.style.fontWeight = "bold"
+                block.classList.add("non-deletable")
+                block.setAttribute("data-readonly", "true")
 
-                  if (text.startsWith("q") && text.includes(":")) {
-                    headerEl.classList.add("question-header")
-
-                    block.classList.add("non-deletable")
-                    block.setAttribute("data-readonly", "true")
-
-                    const preventDeletion = e => {
-                      if (e.key === "Backspace" || e.key === "Delete") {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        return false
-                      }
-                    }
-
-                    block.addEventListener("keydown", preventDeletion, true)
-                    headerEl.addEventListener("keydown", preventDeletion, true)
-
-                    block.addEventListener(
-                      "contextmenu",
-                      e => {
-                        e.preventDefault()
-                        return false
-                      },
-                      true
-                    )
-
-                    block.style.userSelect = "none"
-                    block.style.webkitUserSelect = "none"
-                    block.style.mozUserSelect = "none"
-                    block.style.msUserSelect = "none"
+                const preventDeletion = e => {
+                  if (e.key === "Backspace" || e.key === "Delete") {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    return false
                   }
                 }
-              } else if (paragraphEl) {
+
+                block.addEventListener("keydown", preventDeletion, true)
+                headerEl.addEventListener("keydown", preventDeletion, true)
+                block.addEventListener("contextmenu", e => { e.preventDefault(); return false }, true)
+                block.style.userSelect = "none"
+                block.style.webkitUserSelect = "none"
+                block.style.mozUserSelect = "none"
+                block.style.msUserSelect = "none"
+              } else if (paragraphEl && editorConfig?.type === EDITOR_CONFIG_TYPE.QA) {
                 const paragraphText = paragraphEl.textContent || paragraphEl.innerText || ""
                 const isEmpty = !paragraphText.trim() || paragraphText === "​" || paragraphText === " "
 
                 const prevBlock = block.previousElementSibling
                 const prevPrevBlock = prevBlock?.previousElementSibling
-
                 const isPrevBlockAnswer = prevBlock?.querySelector(".ce-paragraph")
-                const isPrevPrevBlockQuestion = prevPrevBlock?.querySelector(".ce-header")?.innerText.toLowerCase().startsWith("q")
+                const isPrevPrevBlockQuestion = prevPrevBlock?.querySelector(".ce-header")
 
                 if (isEmpty && isPrevBlockAnswer && isPrevPrevBlockQuestion) {
                   block.classList.add("spacer-block")
@@ -1717,16 +1739,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
                   block.addEventListener("click", preventInteraction, true)
                   block.addEventListener("mousedown", preventInteraction, true)
-                  block.addEventListener(
-                    "focus",
-                    e => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      if (e.target.blur) e.target.blur()
-                      return false
-                    },
-                    true
-                  )
+                  block.addEventListener("focus", e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (e.target.blur) e.target.blur()
+                    return false
+                  }, true)
                   block.addEventListener("keydown", preventInteraction, true)
                   block.addEventListener("keyup", preventInteraction, true)
                   block.addEventListener("input", preventInteraction, true)
@@ -1736,23 +1754,20 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   block.style.mozUserSelect = "none"
                   block.style.msUserSelect = "none"
                 }
-                //  else if (isPrevBlockAnswer === false && prevBlock?.querySelector(".ce-header")?.innerText.toLowerCase().startsWith("q")) {
-                //   paragraphEl.classList.add("answer-paragraph")
-                // }
               }
             })
           }, 500)
         },
-        defaultBlock: "paragraph",
+        defaultBlock: EDITOR_BLOCK_TYPE.PARAGRAPH,
         data: {
-          blocks: parsed_content.length > 0 ? parsed_content : [{ type: "paragraph", data: { text: "" } }],
+          blocks: parsed_content.length > 0 ? parsed_content : [{ type: EDITOR_BLOCK_TYPE.PARAGRAPH, data: { text: "" } }],
         },
         onChange: async (api, event) => {
           setIsSaving(false)
           const savedData = await api.saver.save()
 
           const filteredBlocks = savedData.blocks.filter((block, index) => {
-            if (block.type === "paragraph") {
+            if (block.type === EDITOR_BLOCK_TYPE.PARAGRAPH) {
               const isEmpty = !block.data.text.trim() || block.data.text === "​" || block.data.text === " "
               return !isEmpty
             }
@@ -1805,7 +1820,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
             session: sessionId,
             profile_id: profileToUse,
             stage: "COMPLETED",
-            flow: storageFlow,
+            flow: activeFlowRoute,
             language: sourceLanguage,
           },
         })
@@ -1895,6 +1910,19 @@ const DynamicVoiceChat = ({ type = "" }) => {
     setDidUserMute(false)
 
     window.location.reload()
+  }
+
+  const handleChildFlowChange = (e) => {
+    const newRoute = e.target.value
+    if (chatHistory.length > 0) {
+      showGuestPopup(
+        () => { setSelectedChildFlowRoute(newRoute); resetChat() },
+        stayOnPage
+      )
+    } else {
+      setSelectedChildFlowRoute(newRoute)
+      resetChat()
+    }
   }
 
   async function getSessionInfo() {
@@ -1996,7 +2024,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   const handleAI4BharatTTSRequest = async (text, id, sourceLanguage) => {
     try {
-      if (!flowInfo.bot_route) return
+      if (!activeFlowInfo?.bot_route) return
 
       if (id === "intro_msg_id" && isIntroPlayed.current === true) {
         return
@@ -2012,7 +2040,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         sourceLanguage = "en"
       }
 
-      let storedRoute = flowInfo.bot_route
+      let storedRoute = activeFlowInfo.bot_route
 
       if (!hasOverRideId) {
         handleMessagesForBot(text)
@@ -2184,15 +2212,35 @@ const DynamicVoiceChat = ({ type = "" }) => {
               }
 
               setIsFetchingData(true)
-              let transcriptResult = ""
-              let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${sessionId}/`, storyData)
-              if (!s3Url || s3Url === "") {
-                transcriptResult = t("asrError")
-              }
-              setAsrAudio(prev => [...prev, s3Url])
-              let storedRoute = flowInfo.bot_route
-              transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
-              if (!transcriptResult || transcriptResult === "") {
+              try {
+                let transcriptResult = ""
+                let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${sessionId}/`, storyData)
+                if (!s3Url || s3Url === "") {
+                  transcriptResult = t("asrError")
+                }
+                setAsrAudio(prev => [...prev, s3Url])
+                let storedRoute = activeFlowInfo.bot_route
+                transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
+                if (!transcriptResult || transcriptResult === "") {
+                  showNotification({
+                    message: t("asrError"),
+                    type: "error",
+                    options: {
+                      position: "top-center",
+                      autoClose: 6000,
+                      style: { fontWeight: "bold" },
+                    },
+                  })
+                } else {
+                  setTextMessage(prev => {
+                    if (prev && prev.trim().length > 0) {
+                      return prev.trimEnd() + " " + transcriptResult
+                    }
+                    return transcriptResult
+                  })
+                }
+              } catch (error) {
+                console.error("Error transcribing recorded audio:", error)
                 showNotification({
                   message: t("asrError"),
                   type: "error",
@@ -2202,15 +2250,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     style: { fontWeight: "bold" },
                   },
                 })
-              } else {
-                setTextMessage(prev => {
-                  if (prev && prev.trim().length > 0) {
-                    return prev.trimEnd() + " " + transcriptResult
-                  }
-                  return transcriptResult
-                })
+              } finally {
+                setIsFetchingData(false)
               }
-              setIsFetchingData(false)
             } else {
               console.warn("No audio chunks were recorded.")
               setIsFetchingData(false)
@@ -2255,14 +2297,33 @@ const DynamicVoiceChat = ({ type = "" }) => {
     <>
       {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} />}
 
-      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && storageFlow && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} useStaticText={false} />}
+      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && activeFlowRoute && !shouldFetchChatSession && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={`div27`}>
         <div className={isMobile ? "div30_a" : "div30"}>
+        
           <MainHeader
             isMobileFirst={isMobile}
-                        showTheDots={false}displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.Bihar_PTM].includes(storageFlow))}
+                        showTheDots={false}displayNewSessionButton={!([sessionFlowName.ShikshaSamvad, sessionFlowName.DelhiShikshaSamvad, sessionFlowName.OdishaYouth, sessionFlowName.OdishaYouthAI, sessionFlowName.TelanganaPTMPilot, sessionFlowName.Bihar_PTM].includes(activeFlowRoute))}
 
             content={
+              <>
+{flowInfo?.isParentFlow && (
+          <CustomFormData
+            layOut={2}
+            selectID="selectedTypeID"
+            selectName="selectedType"
+            selectOptions={
+              (flowInfo.children_flows || [])
+                .filter(f => f.active)
+                .map(f => ({ label: f.flow_name, value: f.flow_route }))
+            }
+            selectValue={selectedChildFlowRoute}
+            selectClassName="div31"
+            selectOnChange={handleChildFlowChange}
+            showDefaultDropdownText={false}
+          />
+        )}
+
               <button
                 onClick={async e => {
                   if (accessToken) {
@@ -2278,6 +2339,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
               >
                 <div className="div8">+</div>
               </button>
+              </>
             }
           />
         </div>
@@ -2294,9 +2356,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
             {endStoryMutation.isPending && (
               <div className="div69 text-center">
                 <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
-                  {storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("feedbackLoaderHeading") : storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoaderHeading") : storageFlow && [sessionFlowName.GuestMiStory].includes(storageFlow) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}
+                  {activeFlowRoute && [sessionFlowName.ListeningActivity].includes(activeFlowRoute) ? t("feedbackLoaderHeading") : activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(activeFlowRoute) ? t("reportLoaderHeading") : activeFlowRoute && [sessionFlowName.GuestMiStory].includes(activeFlowRoute) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}
                 </h2>
-                <label className="form-label label1 text-center">{storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoader") : t("storyLoader")}</label>
+                <label className="form-label label1 text-center">{activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(activeFlowRoute) ? t("reportLoader") : t("storyLoader")}</label>
               </div>
             )}
           </div>
@@ -2366,7 +2428,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           )}
           {showHomepage && (
             <>
-              {storageFlow &&
+              {activeFlowRoute &&
                 (() => {
                   const prefixMap = {
                     [sessionFlowName.ListeningActivity]: "la_",
@@ -2386,9 +2448,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.Bihar_PTM]: "shiksha_samvad_", 
                   }
 
-                  const prefix = prefixMap[storageFlow] || ""
+                  const prefix = prefixMap[activeFlowRoute] || ""
 
-                  const homePageHeading = storageFlow === sessionFlowName.GuestDiscussion ? "homepageHeadingDiscussion" : "homepageHeading"
+                  const homePageHeading = activeFlowRoute === sessionFlowName.GuestDiscussion ? "homepageHeadingDiscussion" : "homepageHeading"
 
                   return (
                     <>
@@ -2399,6 +2461,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                           {t(`${prefix}homepageHeading1`)}
                         </h3>
                       </div>
+                      
                       <ul className="div11">
                         <li>{t(`${prefix}homepageList`)}</li>
                         <li>{t(`${prefix}homepageList1`)}</li>
@@ -2435,21 +2498,21 @@ const DynamicVoiceChat = ({ type = "" }) => {
               )}
             </>
           )}
-          {isStreamingComplete && showFileInput && !showHomepage && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && storyData?.id !== "" && !([sessionFlowName.GuestMiStory].includes(storageFlow) && accessToken) && (
+          {isStreamingComplete && showFileInput && !showHomepage && !endStoryMutation.isPending && !isLoading && !isPdfDownloading && storyData?.id !== "" && !([sessionFlowName.GuestMiStory].includes(activeFlowRoute) && accessToken) && (
             <>
-              {(flowInfo && flowInfo.image_config) && 
+              {(activeFlowInfo && activeFlowInfo.image_config) &&
                 <div className="div13">
                   <ChatMessage
                     botNameToDisplay={botNameToDisplay}
                     userType="bot"
                     message={(() => {
-                      const flow = storageFlow
+                      const flow = activeFlowRoute
                       return flow && [sessionFlowName.GuestMiStory].includes(flow) ? t("evidenceStory") : t("evidence")
                     })()}
                     isTalking={false}
                     handleOnStopSpeaking={() => handleOnStopSpeaking()}
                     handleOnSpeaking={() => {
-                      const flow = storageFlow
+                      const flow = activeFlowRoute
                       const message_to_use = flow && [sessionFlowName.GuestMiStory].includes(flow) ? t("evidenceStory") : t("evidence")
                       handleOnSpeaking(message_to_use, "upload-img-id", { msg: message_to_use, updated_at: "upload-img-id", source: "bot" })
                     }}
@@ -2471,7 +2534,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                         // multiple
                         onChange={e => {
                           setIsLoading(true)
-                          handleMultipleUploads(e, storyData, files, sessionId, flowInfo.image_config.max_images, flowInfo.image_config.image_size_mb)
+                          handleMultipleUploads(e, storyData, files, sessionId, activeFlowInfo.image_config.max_images, activeFlowInfo.image_config.image_size_mb, activeFlowRoute)
                             .then(uploadedFiles => {
                               if (uploadedFiles && uploadedFiles.error) {
                                 setFileErrorText(uploadedFiles.error)
@@ -2501,7 +2564,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     </label>
                   </div>
                   <div className="div18">
-                    <p className="li-message">{t("photosLimitMsgDyn", { image_limit: flowInfo.image_config.max_images })}</p>
+                    <p className="li-message">{t("photosLimitMsgDyn", { image_limit: activeFlowInfo.image_config.max_images })}</p>
                   </div>
                   {isImageUploading && (
                     <div className="div18">
@@ -2539,16 +2602,16 @@ const DynamicVoiceChat = ({ type = "" }) => {
                 </div>
               }
 
-              {![sessionFlowName.ParentPerceptionSurvey].includes(storageFlow) && (
+              {![sessionFlowName.ParentPerceptionSurvey].includes(activeFlowRoute) && (
                 <div className="div19">
                   <ChatMessage
                     botNameToDisplay={botNameToDisplay}
                     userType="bot"
-                    message={storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")}
+                    message={activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(activeFlowRoute) ? t("reportText") : activeFlowRoute && [sessionFlowName.ListeningActivity].includes(activeFlowRoute) ? t("reportFeedbackText") : t("storyText")}
                     isTalking={false}
                     handleOnStopSpeaking={() => handleOnStopSpeaking()}
                     handleOnSpeaking={() => {
-                      const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")
+                      const message_to_use = activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(activeFlowRoute) ? t("reportText") : activeFlowRoute && [sessionFlowName.ListeningActivity].includes(activeFlowRoute) ? t("reportFeedbackText") : t("storyText")
                       console.log("message_to_use", message_to_use)
                       handleOnSpeaking(message_to_use, "download-story-id", { msg: message_to_use, updated_at: "download-story-id", source: "bot" })
                     }}
@@ -2573,7 +2636,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                         <div className="download-story-div">
                           <FiDownload className="icon-1" />
                           <span className="div16" ref={endPageToScrollRef}>
-                            {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("downloadReportText") : t("downloadStoryText")}
+                            {activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(activeFlowRoute) ? t("downloadReportText") : t("downloadStoryText")}
                           </span>
                         </div>
                       </button>
@@ -2586,7 +2649,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                       <div className="download-story-div">
                         <MdEdit className="icon-1" />
                         <span className="div16" ref={endPageToScrollRef}>
-                          {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("editReportText") : t("editStoryText")}
+                          {activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(activeFlowRoute) ? t("editReportText") : t("editStoryText")}
                         </span>
                       </div>
                     </button>
@@ -2598,7 +2661,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                         onClick={async () => {
                           if (projectId) {
                             setIsLoading(true)
-                            await updateReflectionStatusApi(projectId, "completed", storageFlow, accessToken)
+                            await updateReflectionStatusApi(projectId, "completed", activeFlowRoute, accessToken)
                           } else {
                             window.location.reload()
                           }
@@ -2633,7 +2696,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   <div className="download-story-div">
                     <TbReload className="icon-1" />
                     <span className="div16" ref={endPageToScrollRef}>
-                      {FLOW_CONFIG[storageFlow] ? t(FLOW_CONFIG[storageFlow].storyActions?.downloadReportText) : t("reDownloadStoryText")}
+                      {FLOW_CONFIG[activeFlowRoute] ? t(FLOW_CONFIG[activeFlowRoute].storyActions?.downloadReportText) : t("reDownloadStoryText")}
                     </span>
                   </div>
                 </button>
@@ -2668,6 +2731,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
               {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
             </button>
 
+            {/* Text area in the middle */}
             <div className="textarea-wrapper relative">
               <textarea
                 id="textBoxID"
@@ -2721,6 +2785,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                 </div>
               )}
             </div>
+            {/* Send button on the right */}
             <button
               type="submit"
               aria-label={t("sendMessage")}
