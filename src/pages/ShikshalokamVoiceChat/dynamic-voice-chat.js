@@ -198,7 +198,8 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const { data: companyBotData } = useQuery({
     queryKey: [API_ENDPOINTS.GET_COMPANY_BOT, companySlug, activeFlowInfo?.bot_route, languageToUse, accessToken],
     queryFn: () => getCompanyBotApi({ company_slug: companySlug, route: activeFlowInfo.bot_route, target_language: languageToUse }),
-    enabled: !!(languageToUse && shouldFetchIntro && isNewChatOpen && profileToUse && activeFlowInfo?.bot_route),
+    enabled: !!(languageToUse && profileToUse && activeFlowInfo?.bot_route),
+    refetchOnWindowFocus: false,
   })
 
   const { data: introMessageData, isLoading: isIntroMessageLoading } = useQuery({
@@ -218,6 +219,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     queryKey: [API_ENDPOINTS.GET_COMPANY_CHAT, sessionId],
     queryFn: () => getChatsFromDB(sessionId),
     enabled: !!sessionId,
+    refetchOnWindowFocus: false,
   })
 
   const partialUpdateStoryByIdMutation = useMutation({ mutationFn: partialUpdateStoryById })
@@ -1529,17 +1531,18 @@ const DynamicVoiceChat = ({ type = "" }) => {
    * Updates latest user message with voice recording data
    */
   useEffect(() => {
-    const lastMsg = chatHistory[chatHistory?.length - 1]
+    const chat_history = getChatHistory()
+    const lastMsg = chat_history[chat_history?.length - 1]
     if (!!recordings?.length && lastMsg?.source !== "bot") {
-      const updatedChatHistory = [...chatHistory]
-      updatedChatHistory[chatHistory?.length - 1] = {
-        ...updatedChatHistory[chatHistory?.length - 1],
+      const updatedChatHistory = [...chat_history]
+      updatedChatHistory[chat_history?.length - 1] = {
+        ...updatedChatHistory[chat_history?.length - 1],
         recording: recordings[recordings?.length - 1],
       }
       setChatHistory(updatedChatHistory)
     }
     return () => {}
-  }, [recordings, chatHistory])
+  }, [recordings, setChatHistory, getChatHistory])
 
   /**
    * Reset recognition text and trigger state after processing
