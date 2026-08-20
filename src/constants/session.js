@@ -36,3 +36,15 @@ export const sessionFlowName = {
   PPPI_Set_2: "PPPI_Set_2",
   Bihar_PTM: "Bihar_PTM",
 }
+
+export const STATE_MACHINE_OPERATION_TYPE = {
+  NON_LLM: "non_llm",
+  LLM: "llm"
+}
+
+export const FINISH_REASON_SOCKET = "stop"
+
+export const CONVERSATION_USER_TYPES = {
+    USER: "user",
+    BOT: "bot"
+}

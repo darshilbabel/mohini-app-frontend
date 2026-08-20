@@ -15,6 +15,7 @@ import ChatWindow from './components/ChatWindow';
 import LoadingChat from './components/LoadingChat';
 import env from "../../../../../utils/env";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { FINISH_REASON_SOCKET } from '../../../../../constants/session';
 
 const { USER } = CONVERSATION_USER_TYPES;
 
@@ -70,7 +71,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
           language: 'en',
           company_bot__route: botRoute,
         });
-        const message = response?.[0]?.alt_introductory_message;
+        const message = response?.alt_introductory_message;
         if(message) {
           generateNewSession();
         }
@@ -218,7 +219,7 @@ const CommonFlow = ({ flowType, handleScrollIntoView }) => {
           }
         });
 
-        if (message?.finish_reason === 'stop') {
+        if (message?.finish_reason === FINISH_REASON_SOCKET) {
           setIsWaitingForBot(false);
         }
 

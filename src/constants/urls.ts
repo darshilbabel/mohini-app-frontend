@@ -40,7 +40,8 @@ export const API_ENDPOINTS = {
   VALIDATE_OBJECTIVE: "api/shikshalokam/validate-objective/",
   VALIDATE_ACTIONS: "api/shikshalokam/validate-actions/",
   VALIDATE_TITLE: "api/shikshalokam/validate-title/",
-  PARAPHRASE: "api/shikshalokam/paraphrase/"
+  PARAPHRASE: "api/shikshalokam/paraphrase/",
+  NON_LLM_CHAT: "api/non-llm-chat/",
 }
 
 export const URL_PARAMS = {

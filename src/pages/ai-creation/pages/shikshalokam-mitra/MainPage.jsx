@@ -353,8 +353,8 @@ function MainPage() {
         company_bot__route: bot_routes.initial_switch_bot,
       })
 
-      setIntroMessage(response?.[0]?.alt_introductory_message);
-      setBotMessageNameStore(response?.[0]?.name);
+      setIntroMessage(response?.alt_introductory_message);
+      setBotMessageNameStore(response?.name);
     } catch (error) {
       handleLoaderState(LOADER_KEYS.LOAD_INTRO_MESSAGE, false);
       console.error({ error });
