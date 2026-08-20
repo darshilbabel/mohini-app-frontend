@@ -3305,7 +3305,7 @@ function handleLlmError(errorMessage, errorType) {
 
             <button
               type="submit"
-              aria-label={t("sendMessage")}
+              aria-label={"sendMessage"}
               disabled={!textMessage.trim() || hasStartedRecording || isFetchingData || isStartingRecording}
               className="send-btn"
             >

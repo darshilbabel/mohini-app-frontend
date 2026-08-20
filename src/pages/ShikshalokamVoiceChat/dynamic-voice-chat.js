@@ -685,7 +685,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         setLlmError("Failed to send message. Please try again.")
       }
 
-      setAsrAudio(null)
+      setAsrAudio([])
       handleScrollToView()
       setTextMessage("")
       return
