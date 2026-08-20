@@ -21,6 +21,7 @@ import { GrGallery } from "react-icons/gr"
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
 import { LANGUAGE_ENUMS, languageList } from "./enum"
 import { sessionFlowName } from "../../constants/session"
+import { EDITOR_BLOCK_TYPE, EDITOR_CONFIG_TYPE } from "../../constants/editor"
 import { MdAccountCircle, MdEdit, MdSend } from "react-icons/md"
 import { RxCross2 } from "react-icons/rx"
 import { setLanguage } from "../../i18n"
@@ -76,7 +77,7 @@ async function fetchAudioUrlAsBase64(url) {
 
 const DynamicVoiceChat = ({ type = "" }) => {
   const { flow: storageFlow } = useUrlFlow()
-  const [selectedChildFlowRoute, setSelectedChildFlowRoute] = useState(null)
+  const selectedChildFlowRoute = useChatStorage()(state => state.selectedChildFlowRoute)
   const activeFlowRoute = selectedChildFlowRoute || storageFlow
 
   // ========== useState Hooks ==========
@@ -154,7 +155,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
   const ipFetched = useUserStorage()(state => state.ipFetched)
 
   // chat data actions
-  const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSessionId, setStateMachineLength } = useChatStorage().getState()
+  const { setShowHomepage, setBotName, setChatbotClickedOn, setDefaultBotName, setIntroMessage, setIsChatVisible, setIsNewChatOpen, setIsOldChatOpen, setSelectedType, setSelectedChildFlowRoute, setSessionId, setStateMachineLength } = useChatStorage().getState()
 
   // user data actions
   const { setAcceptedTnC, setCompanyName, setFirstName, setState } = useUserStorage().getState()
@@ -874,9 +875,17 @@ const DynamicVoiceChat = ({ type = "" }) => {
       navigateBack()
       return
     }
-    const defaultRoute = flowInfo.default_flow && activeChildren.find(f => f.flow_route === flowInfo.default_flow) ? flowInfo.default_flow : activeChildren[0].flow_route
+
+    // Restore a previously selected child flow (persisted across resetChat's reload)
+    // instead of always falling back to the parent's default.
+    const hasValidPersistedSelection = selectedChildFlowRoute && activeChildren.some(f => f.flow_route === selectedChildFlowRoute)
+    if (hasValidPersistedSelection) return
+
+    const defaultRoute = (flowInfo.default_flow && activeChildren.find(f => f.flow_route === flowInfo.default_flow))
+      ? flowInfo.default_flow
+      : activeChildren[0].flow_route
     setSelectedChildFlowRoute(defaultRoute)
-  }, [flowInfo])
+  }, [flowInfo, selectedChildFlowRoute])
 
   useEffect(() => {
     if (chatHistory.length > 1) {
@@ -1437,7 +1446,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
         }
       })
     }
-  }, [isStreamingComplete, strandStep, stateMachineLength, activeFlowRoute, chatHistory, activeFlowInfo])
+  }, [isStreamingComplete, strandStep, stateMachineLength, activeFlowRoute, chatHistory, activeFlowInfo, storageFlow])
 
   // ========================================================================
   // SECTION: UI State Management (Execution Order: 7 - Throughout Lifecycle)
@@ -1757,12 +1766,12 @@ const DynamicVoiceChat = ({ type = "" }) => {
               const headerEl = block.querySelector(".ce-header")
               const paragraphEl = block.querySelector(".ce-paragraph")
 
-              if (headerEl && editorConfig?.type === "header_list_sections") {
+              if (headerEl && editorConfig?.type === EDITOR_CONFIG_TYPE.HEADER_LIST_SECTIONS) {
                 headerEl.setAttribute("contenteditable", "false")
                 headerEl.style.pointerEvents = "none"
                 headerEl.style.color = "#374151"
                 headerEl.style.fontWeight = "bold"
-              } else if (headerEl && editorConfig?.type === "qa") {
+              } else if (headerEl && editorConfig?.type === EDITOR_CONFIG_TYPE.QA) {
                 headerEl.setAttribute("contenteditable", "false")
                 headerEl.style.pointerEvents = "none"
                 headerEl.style.color = "#374151"
@@ -1794,7 +1803,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                 block.style.webkitUserSelect = "none"
                 block.style.mozUserSelect = "none"
                 block.style.msUserSelect = "none"
-              } else if (paragraphEl && editorConfig?.type === "qa") {
+              } else if (paragraphEl && editorConfig?.type === EDITOR_CONFIG_TYPE.QA) {
                 const paragraphText = paragraphEl.textContent || paragraphEl.innerText || ""
                 const isEmpty = !paragraphText.trim() || paragraphText === "​" || paragraphText === " "
 
@@ -1842,16 +1851,16 @@ const DynamicVoiceChat = ({ type = "" }) => {
             })
           }, 500)
         },
-        defaultBlock: "paragraph",
+        defaultBlock: EDITOR_BLOCK_TYPE.PARAGRAPH,
         data: {
-          blocks: parsed_content.length > 0 ? parsed_content : [{ type: "paragraph", data: { text: "" } }],
+          blocks: parsed_content.length > 0 ? parsed_content : [{ type: EDITOR_BLOCK_TYPE.PARAGRAPH, data: { text: "" } }],
         },
         onChange: async (api, event) => {
           setIsSaving(false)
           const savedData = await api.saver.save()
 
           const filteredBlocks = savedData.blocks.filter((block, index) => {
-            if (block.type === "paragraph") {
+            if (block.type === EDITOR_BLOCK_TYPE.PARAGRAPH) {
               const isEmpty = !block.data.text.trim() || block.data.text === "​" || block.data.text === " "
               return !isEmpty
             }
@@ -1932,7 +1941,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   const navigateBack = () => {
     let rerouteUrl = previousUrl
-    const currentFlow = activeFlowRoute
+    const currentFlow = storageFlow
     stopAllAudio()
     if (accessToken) {
       console.log("clearing storage")
@@ -2313,15 +2322,35 @@ const DynamicVoiceChat = ({ type = "" }) => {
               }
 
               setIsFetchingData(true)
-              let transcriptResult = ""
-              let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${sessionId}/`, storyData)
-              if (!s3Url || s3Url === "") {
-                transcriptResult = t("asrError")
-              }
-              setAsrAudio(prev => [...prev, s3Url])
-              let storedRoute = flowInfo.bot_route
-              transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
-              if (!transcriptResult || transcriptResult === "") {
+              try {
+                let transcriptResult = ""
+                let s3Url = await handleS3Upload(audioBlob, `${Date.now()}`, `chatbot/companychat/${sessionId}/`, storyData)
+                if (!s3Url || s3Url === "") {
+                  transcriptResult = t("asrError")
+                }
+                setAsrAudio(prev => [...prev, s3Url])
+                let storedRoute = activeFlowInfo.bot_route
+                transcriptResult = await ai4BharatASRApi(s3Url, languageToUse, storedRoute)
+                if (!transcriptResult || transcriptResult === "") {
+                  showNotification({
+                    message: t("asrError"),
+                    type: "error",
+                    options: {
+                      position: "top-center",
+                      autoClose: 6000,
+                      style: { fontWeight: "bold" },
+                    },
+                  })
+                } else {
+                  setTextMessage(prev => {
+                    if (prev && prev.trim().length > 0) {
+                      return prev.trimEnd() + " " + transcriptResult
+                    }
+                    return transcriptResult
+                  })
+                }
+              } catch (error) {
+                console.error("Error transcribing recorded audio:", error)
                 showNotification({
                   message: t("asrError"),
                   type: "error",
@@ -2331,15 +2360,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     style: { fontWeight: "bold" },
                   },
                 })
-              } else {
-                setTextMessage(prev => {
-                  if (prev && prev.trim().length > 0) {
-                    return prev.trimEnd() + " " + transcriptResult
-                  }
-                  return transcriptResult
-                })
+              } finally {
+                setIsFetchingData(false)
               }
-              setIsFetchingData(false)
             } else {
               console.warn("No audio chunks were recorded.")
               setIsFetchingData(false)
@@ -2384,7 +2407,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     <>
       {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} />}
 
-      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && activeFlowRoute && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} useStaticText={false} />}
+      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && activeFlowRoute && !shouldFetchChatSession && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={`div27`}>
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
@@ -2611,7 +2634,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
                         // multiple
                         onChange={e => {
                           setIsLoading(true)
-                          handleMultipleUploads(e, storyData, files, sessionId, activeFlowInfo.image_config.max_images, activeFlowInfo.image_config.image_size_mb)
+                          handleMultipleUploads(e, storyData, files, sessionId, activeFlowInfo.image_config.max_images, activeFlowInfo.image_config.image_size_mb, activeFlowRoute)
                             .then(uploadedFiles => {
                               if (uploadedFiles && uploadedFiles.error) {
                                 setFileErrorText(uploadedFiles.error)
@@ -2801,6 +2824,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
               {hasStartedRecording ? <FaRegStopCircle /> : <FaMicrophone />}
             </button>
 
+            {/* Text area in the middle */}
             <div className="textarea-wrapper relative">
               <textarea
                 id="textBoxID"
