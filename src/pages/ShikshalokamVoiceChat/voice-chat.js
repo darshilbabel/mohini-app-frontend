@@ -20,7 +20,7 @@ import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
 import { LANGUAGE_ENUMS, languageList } from "./enum"
 import { MdAccountCircle, MdEdit, MdSend } from "react-icons/md"
 import { RxCross2 } from "react-icons/rx"
-import { sessionFlowName } from "../../constants/session"
+import { sessionFlowName, FINISH_REASON_SOCKET, CONVERSATION_USER_TYPES } from "../../constants/session"
 import { setLanguage } from "../../i18n"
 import { TbReload } from "react-icons/tb"
 import { toast } from "react-toastify"
@@ -301,7 +301,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
           if (message?.msg) {
             lastSentence.message += message?.msg
           }
-          if (message.finish_reason === "stop" && message?.audio_s3_url) {
+          if (message.finish_reason === FINISH_REASON_SOCKET && message?.audio_s3_url) {
             lastSentence.audio_s3_url = message.audio_s3_url
           }
         } else {
@@ -310,7 +310,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
             source: "bot",
             isNarrated: false,
             id: new Date().valueOf(),
-            audio_s3_url: message.finish_reason === "stop" ? message?.audio_s3_url : undefined,
+            audio_s3_url: message.finish_reason === FINISH_REASON_SOCKET ? message?.audio_s3_url : undefined,
           })
           lastBotMessageIndex.current = updatedSentences.length - 1
         }
@@ -332,7 +332,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       setChatHistory(updated_chat_history)
     }
 
-    if (message.finish_reason === "stop" && message.source === "bot") {
+    if (message.finish_reason === FINISH_REASON_SOCKET && message.source === CONVERSATION_USER_TYPES.BOT) {
       setStrandStep(message?.step)
       handleScrollToView()
       setTalking(0)

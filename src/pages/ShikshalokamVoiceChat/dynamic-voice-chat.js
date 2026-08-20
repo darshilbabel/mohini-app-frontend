@@ -20,7 +20,7 @@ import { getTranslatedIntroMessageApi } from "api/endpoints/ai"
 import { GrGallery } from "react-icons/gr"
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2"
 import { LANGUAGE_ENUMS, languageList } from "./enum"
-import { sessionFlowName } from "../../constants/session"
+import { sessionFlowName, STATE_MACHINE_OPERATION_TYPE, FINISH_REASON_SOCKET, CONVERSATION_USER_TYPES } from "../../constants/session"
 import { EDITOR_BLOCK_TYPE, EDITOR_CONFIG_TYPE } from "../../constants/editor"
 import { MdAccountCircle, MdEdit, MdSend } from "react-icons/md"
 import { RxCross2 } from "react-icons/rx"
@@ -313,7 +313,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           if (message?.msg) {
             lastSentence.message += message?.msg
           }
-          if (message.finish_reason === "stop" && message?.audio_s3_url) {
+          if (message.finish_reason === FINISH_REASON_SOCKET && message?.audio_s3_url) {
             lastSentence.audio_s3_url = message.audio_s3_url
           }
         } else {
@@ -322,7 +322,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
             source: "bot",
             isNarrated: false,
             id: Date.now(),
-            audio_s3_url: message.finish_reason === "stop" ? message?.audio_s3_url : undefined,
+            audio_s3_url: message.finish_reason === FINISH_REASON_SOCKET ? message?.audio_s3_url : undefined,
           })
           lastBotMessageIndex.current = updatedSentences.length - 1
         }
@@ -344,7 +344,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       setChatHistory(updated_chat_history)
     }
 
-    if (message.finish_reason === "stop" && message.source === "bot") {
+    if (message.finish_reason === FINISH_REASON_SOCKET && message.source === CONVERSATION_USER_TYPES.BOT) {
       setStrandStep(message?.step)
       handleScrollToView()
       setTalking(0)
@@ -600,7 +600,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
     return [...quickSort(left, compare), pivot, ...quickSort(right, compare)]
   }
 
-  const isNonLlmStep = step => stepMetadata.find(s => s.step === step)?.operation_type === "non_llm"
+  const isNonLlmStep = step => stepMetadata.find(s => s.step === step)?.operation_type === STATE_MACHINE_OPERATION_TYPE.NON_LLM
 
   /**
    * Sends user message through WebSocket connection or HTTP for NON_LLM steps.

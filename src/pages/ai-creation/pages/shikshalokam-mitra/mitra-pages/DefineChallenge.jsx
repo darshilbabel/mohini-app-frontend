@@ -17,7 +17,6 @@ import ChatWindow from "./components/ChatWindow";
 import LoadingChat from "./components/LoadingChat";
 import Notification from "../../../../../components/ToastMessage/TotastMessage";
 /* constants */
-import { CONVERSATION_USER_TYPES } from "../../../constants/mitra.constants";
 import { FIRST_BOT_MESSAGE } from "../../../constants/mitra-chat";
 
 import { bot_routes } from "configure";
@@ -29,8 +28,6 @@ import { apiClient } from "api/client";
 
 const wss_protocol =
   window.location.protocol === "https:" ? "wss://" : "wss://";
-
-const { BOT, USER } = CONVERSATION_USER_TYPES;
 
 const DefineChallenge = ({
   setIsLoading,
