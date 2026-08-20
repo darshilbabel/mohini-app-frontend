@@ -941,6 +941,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           message: message,
           isNarrated: false,
           id: "intro_msg_id",
+          audio_s3_url: introMessageData?.audio_url
         },
       ])
       setHasOverRideId("intro_msg_id")
