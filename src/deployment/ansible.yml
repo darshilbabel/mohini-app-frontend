@@ -10,7 +10,7 @@
   # too, tasks run as the plain SSH user and fail with permission denied
   # writing into that same root-owned tree (e.g. `git clone` failing on
   # ".git: Permission denied").
-  become: true
+  # become: true
 
   # Node on this host is managed via nvm at /root/.nvm, which only lands on
   # PATH inside an interactive shell (nvm.sh sourced from .bashrc/.profile).
