@@ -636,7 +636,10 @@ const DynamicVoiceChat = ({ type = "" }) => {
           language: chatLanguage,
           flow_name: activeFlowRoute,
           company_bot: companyBotData.results[0].id,
+          asr_audio: asrAudio && asrAudio.length > 0 ? asrAudio.join(',') : null
         })
+
+        setAsrAudio([])
 
         const chat_history_after_send = getChatHistory()
         const updated_chat_history_after_send = chat_history_after_send.map(chat => {

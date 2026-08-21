@@ -241,7 +241,7 @@ export async function paraphraseChatConversation(session_id) {
   return response?.data?.paraphrased_output
 }
 
-export async function postNonLlmChat({ session, profile_id, message, language, flow_name, company_bot }) {
+export async function postNonLlmChat({ session, profile_id, message, language, flow_name, company_bot, asr_audio }) {
   try {
     const response = await axiosInstance.post(API_ENDPOINTS.NON_LLM_CHAT, {
       session,
@@ -250,6 +250,7 @@ export async function postNonLlmChat({ session, profile_id, message, language, f
       language,
       flow_name,
       company_bot,
+      asr_audio
     })
     return response?.data
   } catch (error) {
