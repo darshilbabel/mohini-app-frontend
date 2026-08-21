@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: elevate
   # Host targeting is left to the caller via `--limit` (e.g. Jenkins passing
   # `-l defaults`) against the shared inventory - matches the pattern
   # mitra-service's backend deploy.yml already uses, since this FE deploy is
