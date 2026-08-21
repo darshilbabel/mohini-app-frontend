@@ -190,7 +190,7 @@
       # time - reproducible across deploys of the same commit, and fails
       # loudly if package.json/package-lock.json ever drift out of sync
       # instead of silently overriding peer-dependency conflicts.
-      shell: "cd {{ current_path }} && npm ci"
+      shell: "cd {{ current_path }} && npm i --force"
 
     - name: Set permission for json2env.sh
       shell: "chmod 744 {{ current_path }}/src/scripts/json2env.sh"
