@@ -15,6 +15,8 @@ export const LANGUAGE_ENUMS = {
   KANNADA: "kn",
   TELUGU: "te",
   ODIYA: "or",
+  PUNJABI: "pa",
+  BENGALI: "bn",
 }
 
 export const languageValueMap = {
@@ -24,6 +26,8 @@ export const languageValueMap = {
   te: "తెలుగు",
   or: "ଓଡ଼ିଆ",
   ta: "தமிழ்",
+  pa: "ਪੰਜਾਬੀ",
+  bn: "বাংলা",
 }
 
 export const languageList = [
