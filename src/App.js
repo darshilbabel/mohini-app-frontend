@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { sessionFlowName } from "./constants/session"
-import { useRoutes, Navigate } from "react-router-dom"
+import { useRoutes, Navigate, useLocation } from "react-router-dom"
 import { UserProvider } from "./context/user"
 import CommonHomePage from "./pages/Login/commonPage"
 import NotFound from "./pages/shikshagraha-repository/not-found"
@@ -39,6 +39,11 @@ const ProtectedComponent = ({ component, isAccessible }) => {
   return component
 }
 
+function HomeRedirect() {
+  const location = useLocation()
+  return <Navigate to={{ pathname: ROUTES.SHIKSHAGRAHA_REPOSITORY, search: location.search, hash: location.hash }} replace />
+}
+
 const protected_routes = []
 
 const unprotected_old_routes = [
@@ -66,7 +71,7 @@ const unprotected_old_routes = [
   { path: ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE, element: <CommonHomePage usecaseType={sessionFlowName.YLC} /> },
 
   { path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage /> },
-  { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <Navigate to={ROUTES.SHIKSHAGRAHA_REPOSITORY} replace /> },
+  { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <HomeRedirect /> },
   { path: ROUTES.SSO_FLOW, element: <SsoFlow /> },
   { path: ROUTES.SHIKSHAGRAHA_REPOSITORY, element: <CommonHomePage /> },
   { path: ROUTES.SHIKSHAGRAHA_REPOSITORY_DETAIL, element: <ShikshagrahaRepositoryDetail /> },
