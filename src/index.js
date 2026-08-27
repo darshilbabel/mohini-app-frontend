@@ -8,10 +8,11 @@ import env from "./utils/env"
 const strippedRoot = (env.ROOT_PATH() || "").replace(/^\/|\/$/g, "")
 const rootPath = strippedRoot ? `/${strippedRoot}` : ""
 
-// Redirect bare "/" or the root path itself to the app's home page
+// Redirect legacy /mohini paths to base URL
 const pathname = window.location.pathname
-if (pathname === "/" || (rootPath && (pathname === rootPath || pathname === `${rootPath}/`))) {
-  window.location.replace(`${rootPath}/home`)
+if (pathname === "/mohini" || pathname.startsWith("/mohini/")) {
+  const newPath = pathname.replace(/^\/mohini/, "") || "/"
+  window.location.replace(newPath + window.location.search + window.location.hash)
 }
 
 const el = document.getElementById("root")

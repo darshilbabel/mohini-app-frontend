@@ -11,6 +11,7 @@ import { useLocalStorage } from "react-use"
 import USER_ACTIONS from "../context/user/user-actions"
 import FormData from "./Form/FormData"
 import ROUTES from "../url"
+import { rootPath } from "../utils/constants"
 import { BiLoader } from "react-icons/bi"
 import "./custom-style.css"
 import "../index.css"
@@ -433,7 +434,7 @@ function Login({ type, variant }) {
                       className="text-purple-600 hover:underline whitespace-nowrap"
                       onClick={e => {
                         e.preventDefault()
-                        window.open("/mohini" + ROUTES.TERMS_AND_CONDITIONS, "_blank")
+                        window.open(rootPath + ROUTES.TERMS_AND_CONDITIONS, "_blank", "noopener,noreferrer")
                         // navigate(ROUTES.TERMS_AND_CONDITIONS);
                       }}
                     >

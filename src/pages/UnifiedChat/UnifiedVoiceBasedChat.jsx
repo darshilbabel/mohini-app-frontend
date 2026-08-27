@@ -27,6 +27,7 @@ import ChatMessage from "../ShikshalokamMegaPTM/ChatMessage"
 import Header from "../ShikshalokamVoiceChat/shikshaChatHeader"
 import PrivacyPolicyPopup from "components/TnC/privacyPolicyPopup"
 import ROUTES from "../../url"
+import { rootPath } from "../../utils/constants"
 import SpeedNotification from "../ShikshalokamMegaPTM/SpeedNotification"
 import Swal from "sweetalert2"
 import useCustomMediaQuery from "hooks/useCustomMediaQuery"
@@ -486,7 +487,7 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
               window.location.href = previousUrl
             } else {
               // navigate(flowConfig.homePageRoute)
-              window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
+              window.location.replace(rootPath + ROUTES.SHIKSHAGRAHA_REPOSITORY)
             }
           } else {
             resetChatState()
@@ -522,11 +523,11 @@ const UnifiedVoiceBasedChat = ({ flowType }) => {
         console.log("flowType", flowType)
         stopAllAudio()
         if (flowType === sessionFlowName.megaPTM) {
-          window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE)
+          window.location.replace(rootPath + ROUTES.SHIKSHALOKAM_PTM_HOME_PAGE)
         } else if (flowType === sessionFlowName.YLC) {
-          window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE)
+          window.location.replace(rootPath + ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE)
         } else {
-          window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
+          window.location.replace(rootPath + ROUTES.SHIKSHAGRAHA_REPOSITORY)
         }
       }
     })

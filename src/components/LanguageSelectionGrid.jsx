@@ -41,7 +41,7 @@ const LanguageSelectionGrid = ({ usecaseType }) => {
     if (flowLanguagesError?.response?.status === 404) {
       console.error("Flow not found or inactivate, navigating to home page")
       clearFromStorage()
-      navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE, { replace: true })
+      navigate(ROUTES.SHIKSHAGRAHA_REPOSITORY, { replace: true })
     }
   }, [flowLanguagesError, isFlowLanguagesError])
 

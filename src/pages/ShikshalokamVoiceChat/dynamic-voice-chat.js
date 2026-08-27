@@ -863,7 +863,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
     if (flowInfoError?.response?.status === 404) {
       clearFromStorage()
-      navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
+      navigate(ROUTES.SHIKSHAGRAHA_REPOSITORY)
     }
   }, [flowInfoError, isFlowInfoError])
 
@@ -1442,7 +1442,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
           setHasSelectedLanguage(false)
           stopAllAudio()
           navigate({
-            pathname: ROUTES.SHIKSHALOKAM_HOME_PAGE,
+            pathname: ROUTES.SHIKSHAGRAHA_REPOSITORY,
             search: activeFlowRoute ? new URLSearchParams({ flow: activeFlowRoute }).toString() : "",
           })
           window.location.reload()
@@ -1961,7 +1961,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       window.location.href = rerouteUrl
     } else {
       navigate({
-        pathname: ROUTES.SHIKSHALOKAM_HOME_PAGE,
+        pathname: ROUTES.SHIKSHAGRAHA_REPOSITORY,
         search: currentFlow ? new URLSearchParams({ flow: currentFlow }).toString() : "",
       })
       window.location.reload()
