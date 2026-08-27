@@ -93,9 +93,9 @@ function SsoFlow() {
               params.append("language", languagePassed)
             }
             const queryString = params.toString()
-            const navigationPath = queryString ? `${ROUTES.SHIKSHALOKAM_HOME_PAGE}?${queryString}` : ROUTES.SHIKSHALOKAM_HOME_PAGE
+            const navigationPath = queryString ? `${ROUTES.SHIKSHAGRAHA_REPOSITORY}?${queryString}` : ROUTES.SHIKSHAGRAHA_REPOSITORY
             navigate(navigationPath, { replace: true })
-            // window.location.replace("/mohini" + ROUTES.SHIKSHALOKAM_HOME_PAGE)
+            // window.location.replace("/mohini" + ROUTES.SHIKSHAGRAHA_REPOSITORY)
           } else {
             navigate(-1)
           }

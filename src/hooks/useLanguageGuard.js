@@ -16,9 +16,9 @@ const FLOW_SELECTION_FLOWS = [
 
 function getLandingPath(flow) {
   if (DEDICATED_LANDING_PAGES[flow]) return DEDICATED_LANDING_PAGES[flow]
-  if (FLOW_SELECTION_FLOWS.includes(flow)) return ROUTES.SHIKSHALOKAM_HOME_PAGE
-  if (flow) return `${ROUTES.SHIKSHALOKAM_HOME_PAGE}?${new URLSearchParams({ [URL_PARAMS.FLOW]: flow })}`
-  return ROUTES.SHIKSHALOKAM_HOME_PAGE
+  if (FLOW_SELECTION_FLOWS.includes(flow)) return ROUTES.SHIKSHAGRAHA_REPOSITORY
+  if (flow) return `${ROUTES.SHIKSHAGRAHA_REPOSITORY}?${new URLSearchParams({ [URL_PARAMS.FLOW]: flow })}`
+  return ROUTES.SHIKSHAGRAHA_REPOSITORY
 }
 
 export default function LanguageGuard({ flow, children }) {

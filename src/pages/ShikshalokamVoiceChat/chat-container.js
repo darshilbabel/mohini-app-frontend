@@ -118,7 +118,7 @@ function ChatContainer() {
       setIsLoading(false)
     } catch (error) {
       console.error("Error during initial setup:", error)
-      navigate(ROUTES.SHIKSHALOKAM_HOME_PAGE)
+      navigate(ROUTES.SHIKSHAGRAHA_REPOSITORY)
       setIsLoading(false)
     }
   }

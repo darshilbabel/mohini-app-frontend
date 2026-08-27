@@ -66,9 +66,9 @@ const unprotected_old_routes = [
   { path: ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE, element: <CommonHomePage usecaseType={sessionFlowName.YLC} /> },
 
   { path: ROUTES.TERMS_AND_CONDITIONS, element: <PrivacyPage /> },
-  { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <CommonHomePage /> },
+  { path: ROUTES.SHIKSHALOKAM_HOME_PAGE, element: <Navigate to={ROUTES.SHIKSHAGRAHA_REPOSITORY} replace /> },
   { path: ROUTES.SSO_FLOW, element: <SsoFlow /> },
-  { path: ROUTES.SHIKSHAGRAHA_REPOSITORY, element: <Navigate to={ROUTES.SHIKSHALOKAM_HOME_PAGE} replace /> },
+  { path: ROUTES.SHIKSHAGRAHA_REPOSITORY, element: <CommonHomePage /> },
   { path: ROUTES.SHIKSHAGRAHA_REPOSITORY_DETAIL, element: <ShikshagrahaRepositoryDetail /> },
   { path: ROUTES.NOT_FOUND, element: <NotFound /> },
 ]

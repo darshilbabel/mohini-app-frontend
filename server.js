@@ -3,9 +3,9 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 1819;
 
-app.use('/mohini', express.static(path.join(__dirname, 'build')));
+app.use('/', express.static(path.join(__dirname, 'build')));
 
-app.get('/mohini/*', (req, res) => {
+app.get('/*', (req, res) => {
     res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
     res.header('Expires', '-1');
     res.header('Pragma', 'no-cache');
