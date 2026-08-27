@@ -10,7 +10,7 @@ const rootPath = strippedRoot ? `/${strippedRoot}` : ""
 
 // Redirect legacy /mohini paths to base URL
 const pathname = window.location.pathname
-if (pathname.startsWith("/mohini")) {
+if (pathname === "/mohini" || pathname.startsWith("/mohini/")) {
   const newPath = pathname.replace(/^\/mohini/, "") || "/"
   window.location.replace(newPath + window.location.search + window.location.hash)
 }
