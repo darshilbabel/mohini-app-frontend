@@ -666,21 +666,36 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         // Use Set with IDs for reliable duplicate detection
         const existingChatIds = new Set(chatHistory.map(msg => msg.updated_at))
 
-        // Add intro message if it exists and not already in history
+        // Add intro message if it exists and not already in history or sentences
+        const introAlreadyQueued = sentences.some(msg => msg.id === "intro_msg_id")
         if (intro_message && !existingChatIds.has("intro_msg_id")) {
-          newSentences.push({
-            message: intro_message,
-            source: "bot",
-            isNarrated: true,
-            id: "intro_msg_id",
-          })
+          if (introAlreadyQueued) {
+            // Intro was already queued in sentences by the introMessageData effect;
+            // only add to chatHistory so both stay in sync without duplicating sentences
+            newChatHistoryItems.push({
+              msg: intro_message,
+              source: "bot",
+              updated_at: "intro_msg_id",
+              received: true,
+            })
+          } else {
+            newSentences.push({
+              message: intro_message,
+              source: "bot",
+              isNarrated: true,
+              id: "intro_msg_id",
+            })
 
-          newChatHistoryItems.push({
-            msg: intro_message,
-            source: "bot",
-            updated_at: "intro_msg_id",
-            received: true,
-          })
+            newChatHistoryItems.push({
+              msg: intro_message,
+              source: "bot",
+              updated_at: "intro_msg_id",
+              received: true,
+            })
+          }
+        } else if (introAlreadyQueued && existingChatIds.has("intro_msg_id")) {
+          // Hydrated chatHistory already has the intro; remove the queued duplicate from sentences
+          setSentences(prev => prev.filter(msg => msg.id !== "intro_msg_id"))
         }
 
         // Process all chat messages
@@ -860,7 +875,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setNotMute(false)
         setIsNextAllowed(true)
       }
-    } else if (message) {
+    } else if (message && !!message?.trim()) {
       setIntroMessage(message)
     }
 

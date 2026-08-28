@@ -960,7 +960,7 @@ const DynamicVoiceChat = ({ type = "" }) => {
       setHasOverRideId("intro_msg_id")
       setIsMute(false)
       setIsNextAllowed(true)
-    } else if (message) {
+    } else if (message && !!message?.trim()) {
       setIntroMessage(message)
     }
 
