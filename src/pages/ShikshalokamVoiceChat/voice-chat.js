@@ -646,6 +646,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const handleCompanyChatCall = useCallback(async () => {
     try {
       const storedChatHistory = chatHistory
+      const existingChatIds = new Set(storedChatHistory.map(msg => msg.updated_at))
+      const introAlreadyQueued = sentences.some(msg => msg.id === "intro_msg_id")
+
+      // Reconcile intro: if hydrated chatHistory already has the intro marker,
+      // remove any duplicate queued in sentences regardless of history length
+      if (introAlreadyQueued && existingChatIds.has("intro_msg_id")) {
+        setSentences(prev => prev.filter(msg => msg.id !== "intro_msg_id"))
+      }
+
       if (storedChatHistory.length >= 1) {
         return
       }
@@ -663,11 +672,7 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         const newSentences = []
         const newChatHistoryItems = []
 
-        // Use Set with IDs for reliable duplicate detection
-        const existingChatIds = new Set(chatHistory.map(msg => msg.updated_at))
-
         // Add intro message if it exists and not already in history or sentences
-        const introAlreadyQueued = sentences.some(msg => msg.id === "intro_msg_id")
         if (intro_message && !existingChatIds.has("intro_msg_id")) {
           if (introAlreadyQueued) {
             // Intro was already queued in sentences by the introMessageData effect;
@@ -693,9 +698,6 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
               received: true,
             })
           }
-        } else if (introAlreadyQueued && existingChatIds.has("intro_msg_id")) {
-          // Hydrated chatHistory already has the intro; remove the queued duplicate from sentences
-          setSentences(prev => prev.filter(msg => msg.id !== "intro_msg_id"))
         }
 
         // Process all chat messages
