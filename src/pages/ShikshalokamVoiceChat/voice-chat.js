@@ -646,6 +646,15 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const handleCompanyChatCall = useCallback(async () => {
     try {
       const storedChatHistory = chatHistory
+      const existingChatIds = new Set(storedChatHistory.map(msg => msg.updated_at))
+      const introAlreadyQueued = sentences.some(msg => msg.id === "intro_msg_id")
+
+      // Reconcile intro: if hydrated chatHistory already has the intro marker,
+      // remove any duplicate queued in sentences regardless of history length
+      if (introAlreadyQueued && existingChatIds.has("intro_msg_id")) {
+        setSentences(prev => prev.filter(msg => msg.id !== "intro_msg_id"))
+      }
+
       if (storedChatHistory.length >= 1) {
         return
       }
@@ -663,24 +672,32 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         const newSentences = []
         const newChatHistoryItems = []
 
-        // Use Set with IDs for reliable duplicate detection
-        const existingChatIds = new Set(chatHistory.map(msg => msg.updated_at))
-
-        // Add intro message if it exists and not already in history
+        // Add intro message if it exists and not already in history or sentences
         if (intro_message && !existingChatIds.has("intro_msg_id")) {
-          newSentences.push({
-            message: intro_message,
-            source: "bot",
-            isNarrated: true,
-            id: "intro_msg_id",
-          })
+          if (introAlreadyQueued) {
+            // Intro was already queued in sentences by the introMessageData effect;
+            // only add to chatHistory so both stay in sync without duplicating sentences
+            newChatHistoryItems.push({
+              msg: intro_message,
+              source: "bot",
+              updated_at: "intro_msg_id",
+              received: true,
+            })
+          } else {
+            newSentences.push({
+              message: intro_message,
+              source: "bot",
+              isNarrated: true,
+              id: "intro_msg_id",
+            })
 
-          newChatHistoryItems.push({
-            msg: intro_message,
-            source: "bot",
-            updated_at: "intro_msg_id",
-            received: true,
-          })
+            newChatHistoryItems.push({
+              msg: intro_message,
+              source: "bot",
+              updated_at: "intro_msg_id",
+              received: true,
+            })
+          }
         }
 
         // Process all chat messages
@@ -844,7 +861,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       words.splice(1, 0, firstName)
       message = words.join(" ")
     }
-    if (message && !!message?.trim() && chatHistory[chatHistory?.length - 1]?.msg !== message && !sentences.some(msg => msg.message === message)) {
+    const introAlreadyInHistory = chatHistory.some(msg => msg.updated_at === "intro_msg_id" || msg.msg === message)
+    if (message && !!message?.trim() && !introAlreadyInHistory && !sentences.some(msg => msg.message === message)) {
       setIntroMessage(message)
       setSentences(prev => [
         ...prev,
@@ -859,6 +877,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setNotMute(false)
         setIsNextAllowed(true)
       }
+    } else if (message && !!message?.trim()) {
+      setIntroMessage(message)
     }
 
     setShouldFetchIntro(false)
