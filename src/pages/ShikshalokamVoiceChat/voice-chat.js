@@ -844,7 +844,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
       words.splice(1, 0, firstName)
       message = words.join(" ")
     }
-    if (message && !!message?.trim() && chatHistory[chatHistory?.length - 1]?.msg !== message && !sentences.some(msg => msg.message === message)) {
+    const introAlreadyInHistory = chatHistory.some(msg => msg.updated_at === "intro_msg_id" || msg.msg === message)
+    if (message && !!message?.trim() && !introAlreadyInHistory && !sentences.some(msg => msg.message === message)) {
       setIntroMessage(message)
       setSentences(prev => [
         ...prev,
@@ -859,6 +860,8 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
         setNotMute(false)
         setIsNextAllowed(true)
       }
+    } else if (message) {
+      setIntroMessage(message)
     }
 
     setShouldFetchIntro(false)
