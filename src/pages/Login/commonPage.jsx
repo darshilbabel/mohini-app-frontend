@@ -10,7 +10,7 @@ import { useFlow } from "../../hooks/useFlow"
 import { useLanguage } from "../../hooks/useLanguage"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import { useSiteDataSessionStore } from "store"
-import { useSiteStorage } from "hooks/useStorage"
+import { useChatStorage, useSiteStorage } from "hooks/useStorage"
 import FlowSelection from "../../components/FlowSelection"
 import Header from "../../components/Header"
 import LanguageSelectionGrid from "../../components/LanguageSelectionGrid"
@@ -27,6 +27,7 @@ function CommonHomePage({ usecaseType }) {
   const setChatLanguage = useSiteDataSessionStore(state => state.setChatLanguage)
   const setHasSelectedLanguage = useSiteDataSessionStore(state => state.setHasSelectedLanguage)
   const setPreviousUrl = useSiteStorage()(state => state.setPreviousUrl)
+  const chatStore = useChatStorage()
 
   const ptm_case = sessionFlowName.megaPTM === usecaseType
   const ylc_case = sessionFlowName.YLC === usecaseType
@@ -53,8 +54,11 @@ function CommonHomePage({ usecaseType }) {
   }, [urlFlow])
 
   useEffect(() => {
-    if (!urlLanguage) {
+    if (!urlLanguage && !chatLanguage) {
       setHasSelectedLanguage(false)
+    }
+    if (!urlFlow) {
+      chatStore.getState().reset()
     }
   }, [])
 
