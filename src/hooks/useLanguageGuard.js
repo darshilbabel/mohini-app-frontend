@@ -9,14 +9,8 @@ const DEDICATED_LANDING_PAGES = {
   [sessionFlowName.YLC]: ROUTES.SHIKSHALOKAM_YLC_HOME_PAGE,
 }
 
-const FLOW_SELECTION_FLOWS = [
-  sessionFlowName.GuestDiscussion,
-  sessionFlowName.GuestMiStory,
-]
-
 function getLandingPath(flow) {
   if (DEDICATED_LANDING_PAGES[flow]) return DEDICATED_LANDING_PAGES[flow]
-  if (FLOW_SELECTION_FLOWS.includes(flow)) return ROUTES.SHIKSHAGRAHA_REPOSITORY
   if (flow) return `${ROUTES.SHIKSHAGRAHA_REPOSITORY}?${new URLSearchParams({ [URL_PARAMS.FLOW]: flow })}`
   return ROUTES.SHIKSHAGRAHA_REPOSITORY
 }

@@ -47,6 +47,10 @@ export const env = {
 
   AUTH_ROUTE: () => getEnv("REACT_APP_AUTH_ROUTE", "/api/shikshalokam/read-elevate-profile/"),
 
+  // Flow Configuration
+  GUEST_DISCUSSION_FLOW: () => getEnv("REACT_APP_GUEST_DISCUSSION_FLOW"),
+  GUEST_MI_STORY_FLOW: () => getEnv("REACT_APP_GUEST_MI_STORY_FLOW"),
+
   // Generic getter for any environment variable
   get: (key: string, defaultValue: string = "") => getEnv(key, defaultValue),
 }
