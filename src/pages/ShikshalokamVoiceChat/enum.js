@@ -36,6 +36,7 @@ export const languageList = [
   { label: "ಕನ್ನಡ", value: "kn", excludeFor: [sessionFlowName.megaPTM, SESSION_USECASE_TYPE.ListeningActivity, SESSION_USECASE_TYPE.ParentPerceptionSurvey] },
   { label: "తెలుగు", value: "te", excludeFor: [SESSION_USECASE_TYPE.ListeningActivity, SESSION_USECASE_TYPE.YLC, SESSION_USECASE_TYPE.ParentPerceptionSurvey] },
   { label: "தமிழ்", value: "ta", excludeFor: [sessionFlowName.megaPTM, SESSION_USECASE_TYPE.YLC, SESSION_USECASE_TYPE.ParentPerceptionSurvey, sessionFlowName.GuestDiscussion,sessionFlowName.LoginDiscussion, sessionFlowName.GuestMiStory, sessionFlowName.LoginMiStory, undefined ] },
+  { label: "ଓଡ଼ିଆ", value: "or", excludeFor: [sessionFlowName.megaPTM, SESSION_USECASE_TYPE.YLC, SESSION_USECASE_TYPE.ListeningActivity, SESSION_USECASE_TYPE.ParentPerceptionSurvey] },
 ]
 
 export const PTM_CONVERSATION_STATUS_TYPE = {
