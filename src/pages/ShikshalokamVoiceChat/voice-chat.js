@@ -164,6 +164,11 @@ const ShikshalokamVoiceBasedChat = ({ type = "", variant = "" }) => {
   const ssoRerouteURL = useSiteStorage()(state => state.ssoRerouteURL)
   const stateMachineLength = useChatStorage()(state => state.stateMachineLength)
   const storageFlow = useChatStorage()(state => state.flow)
+<<<<<<< HEAD
+=======
+  const isYouthFlow = [sessionFlowName.Youth_21_25, sessionFlowName.Youth_12_20].includes(storageFlow)
+  const isEducationHouseConversationFlow = [sessionFlowName.Education_House_Conversation].includes(storageFlow)
+>>>>>>> f1e42e5 (ticket 5493)
   const strandStep = useChatDataSessionStore(state => state.strandStep)
   const didUserMute = useChatDataSessionStore(state => state.didUserMute)
   const setDidUserMute = useChatDataSessionStore(state => state.setDidUserMute)
@@ -2867,9 +2872,15 @@ function handleLlmError(errorMessage, errorType) {
             {endStoryMutation.isPending && (
               <div className="div69 text-center">
                 <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
+<<<<<<< HEAD
                   {storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("feedbackLoaderHeading") : storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoaderHeading") : storageFlow && [sessionFlowName.GuestMiStory].includes(storageFlow) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}
                 </h2>
                 <label className="form-label label1 text-center">{storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoader") : t("storyLoader")}</label>
+=======
+                  {storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("feedbackLoaderHeading") : storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(storageFlow) ? t("reportLoaderHeading") : isYouthFlow ? t("youth_storyGuestLoaderHeading") : isEducationHouseConversationFlow ? t("education_house_conversation_storyGuestLoaderHeading") : storageFlow && [sessionFlowName.GuestMiStory, sessionFlowName.SanjhiSikhiyaStoryBot].includes(storageFlow) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}
+                </h2>
+                <label className="form-label label1 text-center">{storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(storageFlow) ? t("reportLoader") : isYouthFlow ? t("youth_storyLoader") : isEducationHouseConversationFlow ? t("education_house_conversation_storyLoader") : t("storyLoader")}</label>
+>>>>>>> f1e42e5 (ticket 5493)
               </div>
             )}
           </div>
@@ -2940,6 +2951,12 @@ function handleLlmError(errorMessage, errorType) {
                   const prefixMap = {
                     [sessionFlowName.ListeningActivity]: "la_",
                     [sessionFlowName.ParentPerceptionSurvey]: "pppi_",
+<<<<<<< HEAD
+=======
+                    [sessionFlowName.Youth_21_25]: "youth_",
+                    [sessionFlowName.Youth_12_20]: "youth_",
+                    [sessionFlowName.Education_House_Conversation]: "education_house_conversation_",
+>>>>>>> f1e42e5 (ticket 5493)
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
@@ -3086,11 +3103,19 @@ function handleLlmError(errorMessage, errorType) {
                   <ChatMessage
                     botNameToDisplay={botNameToDisplay}
                     userType="bot"
+<<<<<<< HEAD
                     message={storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")}
                     isTalking={false}
                     handleOnStopSpeaking={() => handleOnStopSpeaking()}
                     handleOnSpeaking={(message, updatedAt, staticMessage) => {
                       const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")
+=======
+                    message={storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : isYouthFlow ? t("youth_storyText") : isEducationHouseConversationFlow ? t("education_house_conversation_storyText") : t("storyText")}
+                    isTalking={false}
+                    handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                    handleOnSpeaking={(message, updatedAt, staticMessage) => {
+                      const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : isYouthFlow ? t("youth_storyText") : isEducationHouseConversationFlow ? t("education_house_conversation_storyText") : t("storyText")
+>>>>>>> f1e42e5 (ticket 5493)
                       console.log("message_to_use", message_to_use)
                       handleOnSpeaking(message_to_use, "download-story-id", { msg: message_to_use, updated_at: "download-story-id", source: "bot" })
                     }}
@@ -3115,7 +3140,11 @@ function handleLlmError(errorMessage, errorType) {
                         <div className="download-story-div">
                           <FiDownload className="icon-1" />
                           <span className="div16" ref={endPageToScrollRef}>
+<<<<<<< HEAD
                             {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("downloadReportText") : t("downloadStoryText")}
+=======
+                            {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(storageFlow) ? t("downloadReportText") : isYouthFlow ? t("youth_downloadStoryText") : isEducationHouseConversationFlow ? t("education_house_conversation_downloadReportText") : t("downloadStoryText")}
+>>>>>>> f1e42e5 (ticket 5493)
                           </span>
                         </div>
                       </button>
@@ -3128,7 +3157,11 @@ function handleLlmError(errorMessage, errorType) {
                       <div className="download-story-div">
                         <MdEdit className="icon-1" />
                         <span className="div16" ref={endPageToScrollRef}>
+<<<<<<< HEAD
                           {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("editReportText") : t("editStoryText")}
+=======
+                          {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(storageFlow) ? t("editReportText") : isYouthFlow ? t("youth_editReportText") : isEducationHouseConversationFlow ? t("education_house_conversation_editReportText") : t("editStoryText")}
+>>>>>>> f1e42e5 (ticket 5493)
                         </span>
                       </div>
                     </button>

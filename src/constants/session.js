@@ -35,4 +35,12 @@ export const sessionFlowName = {
   PPPI_BOT_1: "PPPI_Set_1",
   PPPI_Set_2: "PPPI_Set_2",
   Bihar_PTM: "Bihar_PTM",
+<<<<<<< HEAD
+=======
+  SanjhiSikhiyaStoryBot: "sanjhi_sikhiya_story_bot",
+  SanjhiSikhiyaDiscussionBot: "sanjhi_sikhiya_discussion_bot",
+  Youth_21_25: "youth_21-25",
+  Youth_12_20: "youth_12-20",
+  Education_House_Conversation: "Education_House_Conversation",
+>>>>>>> f1e42e5 (ticket 5493)
 }

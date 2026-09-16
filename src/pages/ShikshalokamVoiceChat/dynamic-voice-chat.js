@@ -63,6 +63,13 @@ const cookies = new Cookies()
 
 const DynamicVoiceChat = ({ type = "" }) => {
   const { flow: storageFlow } = useUrlFlow()
+<<<<<<< HEAD
+=======
+  const selectedChildFlowRoute = useChatStorage()(state => state.selectedChildFlowRoute)
+  const activeFlowRoute = selectedChildFlowRoute || storageFlow
+  const isYouthFlow = [sessionFlowName.Youth_21_25, sessionFlowName.Youth_12_20].includes(activeFlowRoute)
+  const isEducationHouseConversationFlow = [sessionFlowName.Education_House_Conversation].includes(activeFlowRoute)
+>>>>>>> f1e42e5 (ticket 5493)
 
   // ========== useState Hooks ==========
   const [asrAudio, setAsrAudio] = useState([])
@@ -2294,9 +2301,25 @@ const DynamicVoiceChat = ({ type = "" }) => {
             {endStoryMutation.isPending && (
               <div className="div69 text-center">
                 <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
+<<<<<<< HEAD
                   {storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("feedbackLoaderHeading") : storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoaderHeading") : storageFlow && [sessionFlowName.GuestMiStory].includes(storageFlow) ? t("storyGuestLoaderHeading") : t("storyLoaderHeading")}
                 </h2>
                 <label className="form-label label1 text-center">{storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportLoader") : t("storyLoader")}</label>
+=======
+                  {activeFlowRoute && [sessionFlowName.ListeningActivity].includes(activeFlowRoute)
+                    ? t("feedbackLoaderHeading")
+                    : activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(activeFlowRoute)
+                      ? t("reportLoaderHeading")
+                      : isYouthFlow
+                        ? t("youth_storyGuestLoaderHeading")
+                        : isEducationHouseConversationFlow
+                          ? t("education_house_conversation_storyGuestLoaderHeading")
+                          : activeFlowRoute && [sessionFlowName.GuestMiStory, sessionFlowName.SanjhiSikhiyaStoryBot].includes(activeFlowRoute)
+                            ? t("storyGuestLoaderHeading")
+                            : t("storyLoaderHeading")}
+                </h2>
+                <label className="form-label label1 text-center">{activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(activeFlowRoute) ? t("reportLoader") : isYouthFlow ? t("youth_storyLoader") : isEducationHouseConversationFlow ? t("education_house_conversation_storyLoader") : t("storyLoader")}</label>
+>>>>>>> f1e42e5 (ticket 5493)
               </div>
             )}
           </div>
@@ -2383,7 +2406,14 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     [sessionFlowName.XylemX_entrepreneurship_development]: "shiksha_samvad_",
                     [sessionFlowName.PPPI_BOT_1]: "shiksha_samvad_",
                     [sessionFlowName.PPPI_Set_2]: "shiksha_samvad_",
+<<<<<<< HEAD
                     [sessionFlowName.Bihar_PTM]: "shiksha_samvad_", 
+=======
+                    [sessionFlowName.Bihar_PTM]: "shiksha_samvad_",
+                    [sessionFlowName.Youth_21_25]: "youth_",
+                    [sessionFlowName.Youth_12_20]: "youth_",
+                    [sessionFlowName.Education_House_Conversation]: "education_house_conversation_",
+>>>>>>> f1e42e5 (ticket 5493)
                   }
 
                   const prefix = prefixMap[storageFlow] || ""
@@ -2544,11 +2574,19 @@ const DynamicVoiceChat = ({ type = "" }) => {
                   <ChatMessage
                     botNameToDisplay={botNameToDisplay}
                     userType="bot"
+<<<<<<< HEAD
                     message={storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")}
                     isTalking={false}
                     handleOnStopSpeaking={() => handleOnStopSpeaking()}
                     handleOnSpeaking={() => {
                       const message_to_use = storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("reportText") : storageFlow && [sessionFlowName.ListeningActivity].includes(storageFlow) ? t("reportFeedbackText") : t("storyText")
+=======
+                    message={activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(activeFlowRoute) ? t("reportText") : activeFlowRoute && [sessionFlowName.ListeningActivity].includes(activeFlowRoute) ? t("reportFeedbackText") : isYouthFlow ? t("youth_storyText") : isEducationHouseConversationFlow ? t("education_house_conversation_storyText") : t("storyText")}
+                    isTalking={false}
+                    handleOnStopSpeaking={() => handleOnStopSpeaking()}
+                    handleOnSpeaking={() => {
+                      const message_to_use = activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(activeFlowRoute) ? t("reportText") : activeFlowRoute && [sessionFlowName.ListeningActivity].includes(activeFlowRoute) ? t("reportFeedbackText") : isYouthFlow ? t("youth_storyText") : isEducationHouseConversationFlow ? t("education_house_conversation_storyText") : t("storyText")
+>>>>>>> f1e42e5 (ticket 5493)
                       console.log("message_to_use", message_to_use)
                       handleOnSpeaking(message_to_use, "download-story-id", { msg: message_to_use, updated_at: "download-story-id", source: "bot" })
                     }}
@@ -2573,7 +2611,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
                         <div className="download-story-div">
                           <FiDownload className="icon-1" />
                           <span className="div16" ref={endPageToScrollRef}>
+<<<<<<< HEAD
                             {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("downloadReportText") : t("downloadStoryText")}
+=======
+                            {activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(activeFlowRoute) ? t("downloadReportText") : isYouthFlow ? t("youth_downloadStoryText") : isEducationHouseConversationFlow ? t("education_house_conversation_downloadReportText") : t("downloadStoryText")}
+>>>>>>> f1e42e5 (ticket 5493)
                           </span>
                         </div>
                       </button>
@@ -2586,7 +2628,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
                       <div className="download-story-div">
                         <MdEdit className="icon-1" />
                         <span className="div16" ref={endPageToScrollRef}>
+<<<<<<< HEAD
                           {storageFlow && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion].includes(storageFlow) ? t("editReportText") : t("editStoryText")}
+=======
+                          {activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(activeFlowRoute) ? t("editReportText") : isYouthFlow ? t("youth_editReportText") : isEducationHouseConversationFlow ? t("education_house_conversation_editReportText") : t("editStoryText")}
+>>>>>>> f1e42e5 (ticket 5493)
                         </span>
                       </div>
                     </button>

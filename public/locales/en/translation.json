@@ -145,5 +145,15 @@
     "shiksha_samvad_homepageList": "Start chatting with MItra",
     "shiksha_samvad_homepageList1": "Share your experiences and thoughts with MItra",
     "shiksha_samvad_homepageList2": "Submit your responses",
-    "xylemx_entrepreneurship_development_PPsCompletionMessage": "<div class='text-class'>Thank you so much for expressing yourself and sharing about you and your startup. We wish you the best. We would like to connect with you again and support your journey.</div>"
+    "xylemx_entrepreneurship_development_PPsCompletionMessage": "<div class='text-class'>Thank you so much for expressing yourself and sharing about you and your startup. We wish you the best. We would like to connect with you again and support your journey.</div>",
+    "education_house_conversation_downloadReportText": "Download Report",
+    "education_house_conversation_editReportText": "Edit Report",
+    "education_house_conversation_storyGuestLoaderHeading": "Thank you ! I'm creating your report based on what you shared.",
+    "education_house_conversation_storyText": "Here is your Future Readiness Report",
+    "education_house_conversation_storyLoader": "Creating your report, this may take a moment. Please wait...",
+    "education_house_conversation_homepageHeading": "We're Here to Listen to You",
+    "education_house_conversation_homepageHeading1": "with MItra!",
+    "education_house_conversation_homepageList": "Reflect on the big picture",
+    "education_house_conversation_homepageList1": "Share your expert insights",
+    "education_house_conversation_homepageList2": "Help shape the future"
     }
