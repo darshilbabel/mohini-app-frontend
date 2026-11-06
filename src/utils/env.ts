@@ -57,6 +57,10 @@ export const env = {
   GUEST_DISCUSSION_FLOW: () => getEnv("REACT_APP_GUEST_DISCUSSION_FLOW"),
   GUEST_MI_STORY_FLOW: () => getEnv("REACT_APP_GUEST_MI_STORY_FLOW"),
 
+  LOCALES_DOMAIN: () => getEnv("REACT_APP_LOCALES_DOMAIN", "mitra.shikshalokam.org"),
+
+  LOCALES_DIR_PATH: () => getEnv("REACT_APP_LOCALES_DIR_PATH", ""),
+
   // Generic getter for any environment variable
   get: (key: string, defaultValue: string = "") => getEnv(key, defaultValue),
 }

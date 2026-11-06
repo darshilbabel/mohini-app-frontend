@@ -366,6 +366,36 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   // ========== useMemo Hooks ==========
 
+  const storyLoaderHeading = useMemo(() => {
+    const heading_map = {
+      [sessionFlowName.ListeningActivity]: "feedbackLoaderHeading",
+      [sessionFlowName.GuestDiscussion]: "reportLoaderHeading",
+      [sessionFlowName.LoginDiscussion]: "reportLoaderHeading",
+      [sessionFlowName.SanjhiSikhiyaDiscussionBot]: "reportLoaderHeading",
+      [sessionFlowName.Youth_21_25]: "youth_storyGuestLoaderHeading",
+      [sessionFlowName.Youth_12_20]: "youth_storyGuestLoaderHeading",
+      [sessionFlowName.Education_House_Conversation]: "education_house_conversation_storyGuestLoaderHeading",
+      [sessionFlowName.LoginMiStory]: "storyLoaderHeading"
+    }
+
+    if (heading_map[activeFlowRoute]) return heading_map[activeFlowRoute]
+
+    return "storyGuestLoaderHeading"
+  }, [activeFlowRoute])
+
+  const storyLoaderLabel = useMemo(() => {
+    if ([sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(activeFlowRoute)) {
+      return "reportLoader"
+    }
+    else if([sessionFlowName.Youth_21_25, sessionFlowName.Youth_12_20].includes(activeFlowRoute)) {
+      return "youth_storyLoader"
+    }
+    else if([sessionFlowName.Education_House_Conversation].includes(activeFlowRoute)) {
+      return "education_house_conversation_storyLoader"
+    }
+    return "storyLoader"
+  }, [activeFlowRoute])
+
   const projectId = useMemo(() => projectIdStore || searchParams.get("projectId"), [projectIdStore, searchParams])
 
   const tncText = useMemo(() => {
@@ -2466,9 +2496,11 @@ const DynamicVoiceChat = ({ type = "" }) => {
 
   return (
     <>
-      {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} />}
+      {acceptedTnc === "ONGOING" && !isLoading && shouldFetchChatSession
+        && <PrivacyPolicyPopup tncText={t([`config.${activeFlowRoute}.tncText`, `config.default.tncText`, tncText])} onAccept={handleAcceptTnC} />
+      }
 
-      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && activeFlowRoute && !shouldFetchChatSession && <PrivacyPolicyPopup tncText={t(tncText)} onAccept={handleAcceptTnC} useStaticText={false} />}
+      {chatLanguage && acceptedTnc === "ONGOING" && !isLoading && activeFlowRoute && !shouldFetchChatSession && <PrivacyPolicyPopup tncText={t([`config.${activeFlowRoute}.tncText`, `config.default.tncText`, tncText])} onAccept={handleAcceptTnC} useStaticText={false} />}
       <div className={`div27`}>
         <div className={isMobile ? "div30_a" : "div30"}>
           <MainHeader
@@ -2511,19 +2543,9 @@ const DynamicVoiceChat = ({ type = "" }) => {
             {endStoryMutation.isPending && (
               <div className="div69 text-center">
                 <h2 className="form-label label1 font-bold text-lg sm:text-2xl text-center">
-                  {activeFlowRoute && [sessionFlowName.ListeningActivity].includes(activeFlowRoute)
-                    ? t("feedbackLoaderHeading")
-                    : activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(activeFlowRoute)
-                      ? t("reportLoaderHeading")
-                      : isYouthFlow
-                        ? t("youth_storyGuestLoaderHeading")
-                        : isEducationHouseConversationFlow
-                          ? t("education_house_conversation_storyGuestLoaderHeading")
-                          : activeFlowRoute && [sessionFlowName.LoginMiStory].includes(activeFlowRoute)
-                            ? t("storyLoaderHeading")
-                            : t("storyGuestLoaderHeading")}
+                  {activeFlowRoute && t([`config.${activeFlowRoute}.storyLoaderHeading`, `config.default.storyLoaderHeading`, storyLoaderHeading])}
                 </h2>
-                <label className="form-label label1 text-center">{activeFlowRoute && [sessionFlowName.GuestDiscussion, sessionFlowName.ListeningActivity, sessionFlowName.LoginDiscussion, sessionFlowName.SanjhiSikhiyaDiscussionBot].includes(activeFlowRoute) ? t("reportLoader") : isYouthFlow ? t("youth_storyLoader") : isEducationHouseConversationFlow ? t("education_house_conversation_storyLoader") : t("storyLoader")}</label>
+                <label className="form-label label1 text-center">{t([`config.${activeFlowRoute}.storyLoaderLabel`, `config.default.storyLoaderLabel`, storyLoaderLabel])}</label>
               </div>
             )}
           </div>
@@ -2627,16 +2649,16 @@ const DynamicVoiceChat = ({ type = "" }) => {
                     <>
                       <div className="div10">
                         <h3 className="h3-1">
-                          {t(`${prefix}${homePageHeading}`)}
+                          {t([`config.${activeFlowRoute}.${homePageHeading}` ,`config.default.${homePageHeading}`, `${prefix}${homePageHeading}`])}
                           <br />
-                          {t(`${prefix}homepageHeading1`)}
+                          {t([`config.${activeFlowRoute}.homepageHeading1`, `config.default.homepageHeading1`, `${prefix}homepageHeading1`])}
                         </h3>
                       </div>
 
                       <ul className="div11">
-                        <li>{t(`${prefix}homepageList`)}</li>
-                        <li>{t(`${prefix}homepageList1`)}</li>
-                        <li>{t(`${prefix}homepageList2`)}</li>
+                        <li>{t([`config.${activeFlowRoute}.homepageList`, `config.default.homepageList`, `${prefix}homepageList`])}</li>
+                        <li>{t([`config.${activeFlowRoute}.homepageList1`, `config.default.homepageList1`, `${prefix}homepageList1`])}</li>
+                        <li>{t([`config.${activeFlowRoute}.homepageList2`, `config.default.homepageList2`, `${prefix}homepageList2`])}</li>
                       </ul>
                     </>
                   )

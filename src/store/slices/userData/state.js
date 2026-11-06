@@ -39,6 +39,8 @@ export const INITIAL_STATE = (set, get, store) => ({
 
   setDeviceId: device_id => set({ device_id }),
 
+  getDeviceId: () => get().device_id,
+
   setProfileId: profileId => set({ profileId }),
 
   setIpCity: ipCity => set({ ipCity }),

@@ -25,6 +25,7 @@ function ChatContainer() {
   const chatLanguage = useSiteDataSessionStore(state => state.chatLanguage)
   const companyName = useUserStorage()(state => state.companyName)
   const deviceId = useUserStorage()(state => state.device_id)
+  const getDeviceId = useUserStorage()(state => state.getDeviceId)
   const ipCity = useUserStorage()(state => state.ipCity)
   const ipCountry = useUserStorage()(state => state.ipCountry)
   const ipFetched = useUserStorage()(state => state.ipFetched)
@@ -81,14 +82,14 @@ function ChatContainer() {
     if (accessToken) return
 
     try {
-      const customEmail = deviceId + "@shikshalokam.org"
+      const customEmail = getDeviceId() + "@shikshalokam.org"
       const body = {
         email: customEmail,
         company: "shikshalokamstaging",
         password: "grit@123",
         latest_flow: urlFlow,
         other_params: {
-          device_id: deviceId,
+          device_id: getDeviceId(),
           city: ipCity || "",
           state: ipState || "",
           country: ipCountry || "",
